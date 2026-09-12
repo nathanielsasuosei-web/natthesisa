@@ -34,7 +34,7 @@ export default async function OverviewPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="animate-fade-up rounded-2xl border border-slate-200 bg-white p-5" style={{ animationDelay: "0.05s" }}>
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Boards</p>
           <p className="mt-2 text-2xl font-bold">
             {user.boards.length}
@@ -68,7 +68,7 @@ export default async function OverviewPage() {
 
       <div className="grid gap-4 lg:grid-cols-5">
         {/* Activity */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3">
+        <section className="animate-fade-up rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3" style={{ animationDelay: "0.29s" }}>
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Activity — last 7 days</h2>
             {!plan.entitlements.analytics && (

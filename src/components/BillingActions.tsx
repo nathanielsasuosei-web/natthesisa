@@ -75,7 +75,7 @@ export default function BillingActions({
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Billing cycle</p>
         <div className="flex gap-2">
           {pill("monthly", "Monthly")}
-          {pill("yearly", "Yearly · save ~20%")}
+          {pill("yearly", "Yearly · 2 months free")}
         </div>
       </div>
 

@@ -6,7 +6,7 @@ A tidy SaaS workspace (boards & tasks) with **subscription control** built in �
 
 - **Boards & tasks** — create boards, add/complete/delete tasks, live usage meters.
 - **Subscription control** (the core of this project):
-  - Free / Pro / Business plans with monthly & yearly billing.
+  - Free / Pro / Business plans with monthly & yearly billing, priced in **Ghana cedis (GH₵)**.
   - **Upgrades apply immediately** (new period starts today, invoice issued, usage resets).
   - **Downgrades are scheduled** for the end of the paid period (Stripe-like) and can be undone.
   - **Cancel** keeps paid features until the period ends; **resume** any time before that.

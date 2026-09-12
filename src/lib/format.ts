@@ -29,7 +29,7 @@ export function fmtDateTime(iso: string): string {
 }
 
 export function fmtMoney(n: number): string {
-  return `$${n.toLocaleString("en-US")}`;
+  return `GH₵${n.toLocaleString("en-US")}`;
 }
 
 export function fmtDayKey(key: string): string {

@@ -43,8 +43,8 @@ export const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     tagline: "For serious builders",
-    monthly: 12,
-    yearly: 115,
+    monthly: 99,
+    yearly: 990,
     featured: true,
     limits: { boards: 25, actionsPerPeriod: 2000 },
     entitlements: { analytics: true, export: true, auditLog: false },
@@ -60,8 +60,8 @@ export const PLANS: Plan[] = [
     id: "business",
     name: "Business",
     tagline: "Teams at scale",
-    monthly: 49,
-    yearly: 470,
+    monthly: 399,
+    yearly: 3990,
     limits: { boards: null, actionsPerPeriod: null },
     entitlements: { analytics: true, export: true, auditLog: true },
     features: [
@@ -91,9 +91,7 @@ export function cycleDays(cycle: BillingCycle): number {
   return cycle === "yearly" ? 365 : 30;
 }
 
-export function formatMoney(n: number): string {
-  return `$${n.toLocaleString("en-US")}`;
-}
+export { fmtMoney as formatMoney } from "./format";
 
 export function describeLimit(n: number | null): string {
   return n === null ? "Unlimited" : n.toLocaleString("en-US");

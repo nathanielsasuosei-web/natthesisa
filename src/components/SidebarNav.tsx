@@ -37,7 +37,7 @@ export default function SidebarNav({ userName, planName, auditEnabled, compact }
 
   const linkCls = (active: boolean) =>
     [
-      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+      "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
       compact ? "w-44 shrink-0" : "",
       active
         ? "bg-indigo-600 text-white"
@@ -45,7 +45,7 @@ export default function SidebarNav({ userName, planName, auditEnabled, compact }
     ].join(" ");
 
   return (
-    <nav className={compact ? "flex gap-2 overflow-x-auto" : "flex h-full flex-col"}>
+    <nav className={compact ? "relative flex gap-2 overflow-x-auto" : "relative flex h-full flex-col"}>
       <div className={compact ? "" : "mb-8 flex items-center gap-2"}>
         <Link href="/" className={`flex items-center gap-2 font-semibold tracking-tight text-white ${compact ? "shrink-0" : ""}`}>
           <span className="grid size-7 place-items-center rounded-lg bg-indigo-600 text-sm font-bold">N</span>
