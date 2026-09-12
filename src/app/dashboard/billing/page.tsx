@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
+import { site } from "@/config/site";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import BillingActions from "@/components/BillingActions";
 
@@ -33,7 +34,7 @@ export default async function BillingPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Manage your plan, billing cycle and invoices. All amounts in Ghana cedis (GH₵).
+          Manage your plan, billing cycle and invoices. All amounts in {site.currency.label} ({site.currency.symbol}).
         </p>
       </div>
 

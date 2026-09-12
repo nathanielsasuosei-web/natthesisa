@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
+import { site } from "@/config/site";
 import { fmtDate } from "@/lib/format";
 import PlansGrid from "@/components/PlansGrid";
 import Link from "next/link";
@@ -14,7 +15,7 @@ export default async function PlansPage() {
         <h1 className="text-2xl font-bold tracking-tight">Plans</h1>
         <p className="mt-1 text-sm text-slate-600">
           Upgrades apply immediately; downgrades are scheduled for the end of your billing period.
-          All prices are in Ghana cedis (GH₵).
+          All prices are in {site.currency.label} ({site.currency.symbol}).
         </p>
       </div>
 

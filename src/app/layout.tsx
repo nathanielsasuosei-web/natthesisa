@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { site } from "@/config/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Natthesisa — plan work, ship faster",
-  description:
-    "A tidy workspace with subscription control built in: upgrade, downgrade, cancel and resume — all enforced server-side.",
+  title: `${site.name} — ${site.tagline}`,
+  description: site.description,
 };
 
 export default function RootLayout({

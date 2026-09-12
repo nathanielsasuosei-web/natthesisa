@@ -1,4 +1,5 @@
 /** Deterministic date/money formatting shared by server & client renders. */
+import { site } from "@/config/site";
 
 export function fmtDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -29,7 +30,7 @@ export function fmtDateTime(iso: string): string {
 }
 
 export function fmtMoney(n: number): string {
-  return `GH₵${n.toLocaleString("en-US")}`;
+  return `${site.currency.symbol}${n.toLocaleString("en-US")}`;
 }
 
 export function fmtDayKey(key: string): string {

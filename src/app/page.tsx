@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
-import { PLANS, formatMoney } from "@/lib/plans";
+import { PLANS, getPlan, formatMoney } from "@/lib/plans";
+import { site } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 const FEATURES = [
@@ -95,7 +96,7 @@ export default async function LandingPage() {
             Natthesisa is a tidy little workspace — boards, tasks, usage — with a complete
             subscription engine behind it: upgrades apply instantly, downgrades and cancellations
             respect your billing period, and every entitlement is enforced server-side.
-            Prices in Ghana cedis.
+            Prices in {site.currency.label} ({site.currency.symbol}).
           </p>
           <div
             className="animate-fade-up mt-8 flex items-center justify-center gap-3"
@@ -140,7 +141,9 @@ export default async function LandingPage() {
                 <div className="rounded-xl border border-slate-100 bg-white/80 p-4">
                   <p className="text-xs font-medium text-slate-500">Renews</p>
                   <p className="mt-1 text-lg font-semibold">Oct 12</p>
-                  <p className="mt-2 text-xs text-slate-400">Monthly · GH₵99</p>
+                  <p className="mt-2 text-xs text-slate-400">
+                    Monthly · {formatMoney(getPlan("pro").monthly)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -180,7 +183,7 @@ export default async function LandingPage() {
             Start free. Upgrade when you outgrow it. Cancel any time.
           </p>
           <p className="mt-1 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
-            All prices in Ghana cedis (GH₵)
+            All prices in {site.currency.label} ({site.currency.symbol})
           </p>
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
             {PLANS.map((plan, i) => (
@@ -235,7 +238,7 @@ export default async function LandingPage() {
 
       <footer className="border-t border-slate-200/70 bg-white/85 py-8 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-sm text-slate-500 sm:flex-row">
-          <p>© {new Date().getFullYear()} Natthesisa. Demo project — no real payments. Prices in GH₵.</p>
+          <p>© {new Date().getFullYear()} {site.name}. Demo project — no real payments. Prices in {site.currency.symbol}.</p>
           <Link href="/login" className="font-medium text-indigo-600 transition hover:text-indigo-500">Sign in →</Link>
         </div>
       </footer>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
+import { site } from "@/config/site";
 import LoginForm from "@/components/LoginForm";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
@@ -26,7 +27,7 @@ export default async function LoginPage() {
         <LoginForm />
       </div>
       <p className="animate-fade-up mt-6 text-xs text-slate-400" style={{ animationDelay: "0.2s" }}>
-        Demo only · data lives in memory and resets on restart · prices in GH₵ · no real payments
+        Demo only · data lives in memory and resets on restart · prices in {site.currency.label} ({site.currency.symbol}) · no real payments
       </p>
     </div>
   );
