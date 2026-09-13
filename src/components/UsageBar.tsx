@@ -1,10 +1,10 @@
 interface Props {
   value: number;
   max: number | null;
-  tone?: "indigo" | "emerald";
+  tone?: "rose" | "emerald";
 }
 
-export default function UsageBar({ value, max, tone = "indigo" }: Props) {
+export default function UsageBar({ value, max, tone = "rose" }: Props) {
   const pct = max === null ? 6 : Math.min(100, Math.round((value / max) * 100));
   const nearLimit = max !== null && pct >= 80;
   return (
@@ -16,7 +16,7 @@ export default function UsageBar({ value, max, tone = "indigo" }: Props) {
             ? "bg-emerald-500"
             : nearLimit
               ? "bg-amber-500"
-              : "bg-indigo-500",
+              : "bg-rose-500",
         ].join(" ")}
         style={{ width: `${max === 0 ? 0 : pct}%` }}
       />

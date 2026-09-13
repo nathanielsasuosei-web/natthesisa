@@ -10,7 +10,7 @@ import {
   User,
   addDays,
   addInvoice,
-  audit,
+  logActivity,
   freshUsage,
   makeSubscription,
 } from "./store";
@@ -56,14 +56,14 @@ export function syncSubscription(user: User): void {
 
   const price = priceFor(nextPlan, sub.cycle);
   if (price > 0) {
-    addInvoice(user, price, `${getPlan(nextPlan).name} plan — ${sub.cycle} renewal`);
+    addInvoice(user, price, `${getPlan(nextPlan).name} membership — ${sub.cycle} renewal`);
   }
   if (wasCancelling && !hadPending) {
-    audit(user, "Subscription ended — moved to the Free plan");
+    logActivity(user, "Membership ended — moved to the Free plan");
   } else if (hadPending) {
-    audit(user, `Scheduled change applied — now on the ${getPlan(nextPlan).name} plan`);
+    logActivity(user, `Scheduled change applied — now on the ${getPlan(nextPlan).name} plan`);
   } else {
-    audit(user, `Subscription renewed on the ${getPlan(nextPlan).name} plan`);
+    logActivity(user, `Membership renewed on the ${getPlan(nextPlan).name} plan`);
   }
 }
 
@@ -90,14 +90,14 @@ export function changePlan(
     sub.pendingPlanId = null;
     startNewPeriod(user, useCycle);
     if (price > 0) addInvoice(user, price, `Upgrade to ${target.name} (${useCycle})`);
-    audit(user, `Upgraded to ${target.name} (${useCycle})`);
+    logActivity(user, `Upgraded to ${target.name} (${useCycle})`);
     return { mode: "upgraded", charged: price };
   }
 
   if (PLAN_TIER[planId] < PLAN_TIER[sub.planId]) {
     sub.pendingPlanId = planId;
     sub.cancelAtPeriodEnd = false;
-    audit(user, `Scheduled downgrade to ${target.name} for the end of the billing period`);
+    logActivity(user, `Scheduled downgrade to ${target.name} for the end of the billing period`);
     return { mode: "scheduled", effectiveAt: sub.currentPeriodEnd };
   }
 
@@ -107,7 +107,7 @@ export function changePlan(
     const price = priceFor(planId, cycle);
     startNewPeriod(user, cycle);
     if (price > 0) addInvoice(user, price, `Switched to ${cycle} billing (${target.name})`);
-    audit(user, `Switched ${target.name} billing to ${cycle}`);
+    logActivity(user, `Switched ${target.name} billing to ${cycle}`);
     return { mode: "cycle", charged: price };
   }
 
@@ -121,15 +121,15 @@ export function cancelSubscription(user: User): void {
   }
   sub.cancelAtPeriodEnd = true;
   sub.pendingPlanId = null;
-  audit(user, "Cancellation scheduled — access continues until the period ends");
+  logActivity(user, "Cancellation scheduled — access continues until the period ends");
 }
 
 export function resumeSubscription(user: User): void {
   if (!user.subscription.cancelAtPeriodEnd) {
-    throw new SubscriptionError("Your subscription isn't scheduled to cancel.", "BAD_REQUEST");
+    throw new SubscriptionError("Your membership isn't scheduled to cancel.", "BAD_REQUEST");
   }
   user.subscription.cancelAtPeriodEnd = false;
-  audit(user, "Cancellation reversed — subscription stays active");
+  logActivity(user, "Cancellation reversed — membership stays active");
 }
 
 export function clearPendingChange(user: User): void {
@@ -138,7 +138,7 @@ export function clearPendingChange(user: User): void {
     throw new SubscriptionError("There's no scheduled plan change to remove.", "BAD_REQUEST");
   }
   user.subscription.pendingPlanId = null;
-  audit(user, `Removed the scheduled switch to ${getPlan(pending).name}`);
+  logActivity(user, `Removed the scheduled switch to ${getPlan(pending).name}`);
 }
 
 export function reseedForTests(user: User): void {

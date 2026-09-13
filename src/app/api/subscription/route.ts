@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/session";
+import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import {
   SubscriptionError,
   cancelSubscription,
@@ -9,12 +9,13 @@ import {
 } from "@/lib/subscription";
 import { BillingCycle, PlanId, getPlan } from "@/lib/plans";
 
-const PLAN_IDS: PlanId[] = ["free", "pro", "business"];
+const PLAN_IDS: PlanId[] = ["free", "premium", "elite"];
 const CYCLES: BillingCycle[] = ["monthly", "yearly"];
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
 

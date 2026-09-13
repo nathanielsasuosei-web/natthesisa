@@ -6,23 +6,23 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 
 const FEATURES = [
   {
-    title: "Boards & tasks",
-    body: "Create boards, add tasks, tick things off. The basics, done properly.",
-    icon: "M3 7h18M3 12h18M3 17h10",
+    title: "Real matches",
+    body: "Discover singles near you, like the ones who make you smile, and match when it's mutual.",
+    icon: "M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.7 4c1.6 0 3.2.8 4.3 2.2C13.1 4.8 14.7 4 16.3 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z",
   },
   {
-    title: "Subscription control",
-    body: "Upgrade instantly, schedule downgrades, cancel with one click and resume any time before the period ends.",
-    icon: "M12 3v18m5-13H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H6",
+    title: "Date ideas, together",
+    body: "Every match gets a shared list of date ideas — plan them, go on them, tick them off.",
+    icon: "M8 2v4M16 2v4M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z",
   },
   {
-    title: "Usage you can see",
-    body: "Live counters for boards and actions, so limits are never a surprise.",
+    title: "Likes you can see",
+    body: "Live counters for matches and likes, so limits are never a surprise.",
     icon: "M4 19V9m5 10V5m5 14v-7m5 7V8",
   },
   {
-    title: "Entitlements, enforced",
-    body: "Analytics, CSV export and the audit log unlock with your plan — checked on the server, not just hidden in the UI.",
+    title: "Perks, enforced",
+    body: "Love insights, match export and the activity timeline unlock with your membership — checked on the server, not just hidden in the UI.",
     icon: "M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z",
   },
   {
@@ -45,24 +45,24 @@ export default async function LandingPage() {
       <AnimatedBackground />
 
       {/* Nav */}
-      <header className="sticky top-0 z-10 border-b border-slate-200/60 bg-white/70 backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-rose-200/60 bg-white/70 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <span className="grid size-7 place-items-center rounded-lg bg-indigo-600 text-sm font-bold text-white">N</span>
-            Natthesisa
+            <span className="grid size-7 place-items-center rounded-lg bg-rose-600 text-sm font-bold text-white">♥</span>
+            {site.name}
           </Link>
           <nav className="flex items-center gap-3 text-sm">
             <a href="#features" className="hidden rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900 sm:block">Features</a>
-            <a href="#pricing" className="hidden rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900 sm:block">Pricing</a>
+            <a href="#pricing" className="hidden rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900 sm:block">Membership</a>
             {user ? (
-              <Link href="/dashboard" className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500">
-                Open dashboard
+              <Link href="/dashboard" className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-500">
+                Open my matches
               </Link>
             ) : (
               <>
                 <Link href="/login" className="rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900">Sign in</Link>
-                <Link href="/login" className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500">
-                  Get started
+                <Link href="/login" className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-500">
+                  Join free
                 </Link>
               </>
             )}
@@ -73,29 +73,29 @@ export default async function LandingPage() {
       {/* Hero */}
       <section className="relative">
         <div className="mx-auto max-w-6xl px-6 pt-20 pb-16 text-center">
-          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-white/70 px-3 py-1 text-xs font-medium text-indigo-700 backdrop-blur">
+          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-white/70 px-3 py-1 text-xs font-medium text-rose-700 backdrop-blur">
             <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-indigo-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-rose-500" />
             </span>
-            Subscription control built in
+            Thousands of sparks flying right now
           </span>
           <h1
             className="animate-fade-up mx-auto mt-6 max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl"
             style={{ animationDelay: "0.1s" }}
           >
-            Plan your work.
-            <span className="gradient-pan-text block bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-indigo-600 bg-clip-text text-transparent">
-              Own your subscription.
+            Meet someone real.
+            <span className="gradient-pan-text block bg-gradient-to-r from-rose-600 via-fuchsia-600 to-rose-600 bg-clip-text text-transparent">
+              Fall for the right one.
             </span>
           </h1>
           <p
             className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg text-slate-600"
             style={{ animationDelay: "0.2s" }}
           >
-            Natthesisa is a tidy little workspace — boards, tasks, usage — with a complete
-            subscription engine behind it: upgrades apply instantly, downgrades and cancellations
-            respect your billing period, and every entitlement is enforced server-side.
+            {site.name} is a warm little dating app — matches, date ideas, compatibility — with a
+            complete membership engine behind it: upgrades apply instantly, downgrades and
+            cancellations respect your billing period, and every perk is enforced server-side.
             Prices in {site.currency.label} ({site.currency.symbol}).
           </p>
           <div
@@ -104,45 +104,45 @@ export default async function LandingPage() {
           >
             <Link
               href="/login"
-              className="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:scale-[1.03] hover:bg-indigo-500 active:scale-[0.98]"
+              className="rounded-xl bg-rose-600 px-6 py-3 font-semibold text-white shadow-lg shadow-rose-600/25 transition hover:scale-[1.03] hover:bg-rose-500 active:scale-[0.98]"
             >
-              Start free
+              Start matching — free
             </Link>
             <a
               href="#pricing"
               className="rounded-xl border border-slate-300 bg-white/80 px-6 py-3 font-semibold text-slate-700 backdrop-blur transition hover:scale-[1.03] hover:border-slate-400 active:scale-[0.98]"
             >
-              See pricing
+              See membership
             </a>
           </div>
 
           {/* Product mock */}
           <div className="animate-fade-up mx-auto mt-16 max-w-4xl" style={{ animationDelay: "0.45s" }}>
-            <div className="animate-float rounded-2xl border border-slate-200/80 bg-white/85 shadow-2xl shadow-slate-900/10 backdrop-blur">
-              <div className="flex items-center gap-1.5 border-b border-slate-100 px-4 py-3">
+            <div className="animate-float rounded-2xl border border-rose-200/80 bg-white/85 shadow-2xl shadow-rose-900/10 backdrop-blur">
+              <div className="flex items-center gap-1.5 border-b border-rose-100 px-4 py-3">
                 <span className="size-2.5 rounded-full bg-red-400" />
                 <span className="size-2.5 rounded-full bg-amber-400" />
                 <span className="size-2.5 rounded-full bg-emerald-400" />
-                <span className="ml-3 text-xs text-slate-400">natthesisa / dashboard</span>
+                <span className="ml-3 text-xs text-slate-400">{site.name.toLowerCase()} / matches</span>
               </div>
               <div className="grid gap-4 p-6 text-left sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-100 bg-white/80 p-4">
-                  <p className="text-xs font-medium text-slate-500">Plan</p>
-                  <p className="mt-1 text-lg font-semibold">Pro</p>
-                  <span className="mt-2 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Active</span>
+                <div className="rounded-xl border border-rose-100 bg-white/80 p-4">
+                  <p className="text-xs font-medium text-slate-500">New match</p>
+                  <p className="mt-1 text-lg font-semibold">Adjoa, 26 🐙</p>
+                  <span className="mt-2 inline-block rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">93% compatible</span>
                 </div>
-                <div className="rounded-xl border border-slate-100 bg-white/80 p-4">
-                  <p className="text-xs font-medium text-slate-500">Actions used</p>
+                <div className="rounded-xl border border-rose-100 bg-white/80 p-4">
+                  <p className="text-xs font-medium text-slate-500">Likes used</p>
                   <p className="mt-1 text-lg font-semibold">1,284 / 2,000</p>
-                  <div className="mt-3 h-2 rounded-full bg-slate-200">
-                    <div className="h-2 w-[64%] rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500" />
+                  <div className="mt-3 h-2 rounded-full bg-rose-100">
+                    <div className="h-2 w-[64%] rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
                   </div>
                 </div>
-                <div className="rounded-xl border border-slate-100 bg-white/80 p-4">
-                  <p className="text-xs font-medium text-slate-500">Renews</p>
+                <div className="rounded-xl border border-rose-100 bg-white/80 p-4">
+                  <p className="text-xs font-medium text-slate-500">Membership renews</p>
                   <p className="mt-1 text-lg font-semibold">Oct 12</p>
                   <p className="mt-2 text-xs text-slate-400">
-                    Monthly · {formatMoney(getPlan("pro").monthly)}
+                    Premium · {formatMoney(getPlan("premium").monthly)}/mo
                   </p>
                 </div>
               </div>
@@ -152,17 +152,17 @@ export default async function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="border-y border-slate-200/70 bg-white/85 py-20 backdrop-blur-sm">
+      <section id="features" className="border-y border-rose-200/70 bg-white/85 py-20 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-center text-3xl font-bold tracking-tight">Everything a workspace needs — and a subscription engine that behaves</h2>
+          <h2 className="text-center text-3xl font-bold tracking-tight">Everything a love life needs — and a membership engine that behaves</h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f, i) => (
               <div
                 key={f.title}
-                className="animate-fade-up rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-600/5"
+                className="animate-fade-up rounded-2xl border border-rose-100 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-rose-300 hover:shadow-lg hover:shadow-rose-600/5"
                 style={{ animationDelay: `${0.08 * i}s` }}
               >
-                <span className="grid size-10 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                <span className="grid size-10 place-items-center rounded-xl bg-rose-50 text-rose-600">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5">
                     <path d={f.icon} />
                   </svg>
@@ -178,9 +178,9 @@ export default async function LandingPage() {
       {/* Pricing */}
       <section id="pricing" className="py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-center text-3xl font-bold tracking-tight">Simple, honest pricing</h2>
+          <h2 className="text-center text-3xl font-bold tracking-tight">Simple, honest membership</h2>
           <p className="mt-3 text-center text-slate-600">
-            Start free. Upgrade when you outgrow it. Cancel any time.
+            Start free. Upgrade when the sparks fly. Cancel any time.
           </p>
           <p className="mt-1 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
             All prices in {site.currency.label} ({site.currency.symbol})
@@ -191,14 +191,14 @@ export default async function LandingPage() {
                 key={plan.id}
                 className={`animate-fade-up relative rounded-2xl border p-8 backdrop-blur transition duration-300 hover:-translate-y-1 ${
                   plan.featured
-                    ? "border-indigo-600 bg-white/90 shadow-xl shadow-indigo-600/10 hover:shadow-2xl hover:shadow-indigo-600/15"
-                    : "border-slate-200 bg-white/85 hover:shadow-lg"
+                    ? "border-rose-600 bg-white/90 shadow-xl shadow-rose-600/10 hover:shadow-2xl hover:shadow-rose-600/15"
+                    : "border-rose-100 bg-white/85 hover:shadow-lg"
                 }`}
                 style={{ animationDelay: `${0.1 * i}s` }}
               >
                 {plan.featured && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30">
-                    Most popular
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-rose-600 to-fuchsia-600 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-rose-600/30">
+                    Most loved
                   </span>
                 )}
                 <h3 className="font-semibold">{plan.name}</h3>
@@ -213,7 +213,7 @@ export default async function LandingPage() {
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 size-4 shrink-0 text-emerald-500">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 size-4 shrink-0 text-rose-500">
                         <path d="M20 6 9 17l-5-5" />
                       </svg>
                       {f}
@@ -224,11 +224,11 @@ export default async function LandingPage() {
                   href="/login"
                   className={`mt-8 block rounded-xl px-4 py-2.5 text-center font-semibold transition ${
                     plan.featured
-                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500"
+                      ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20 hover:bg-rose-500"
                       : "border border-slate-300 bg-white/80 text-slate-700 hover:border-slate-400"
                   }`}
                 >
-                  {plan.id === "free" ? "Start free" : `Choose ${plan.name}`}
+                  {plan.id === "free" ? "Join free" : `Choose ${plan.name}`}
                 </Link>
               </div>
             ))}
@@ -236,10 +236,10 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200/70 bg-white/85 py-8 backdrop-blur-sm">
+      <footer className="border-t border-rose-200/70 bg-white/85 py-8 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-sm text-slate-500 sm:flex-row">
           <p>© {new Date().getFullYear()} {site.name}. Demo project — no real payments. Prices in {site.currency.symbol}.</p>
-          <Link href="/login" className="font-medium text-indigo-600 transition hover:text-indigo-500">Sign in →</Link>
+          <Link href="/login" className="font-medium text-rose-600 transition hover:text-rose-500">Sign in →</Link>
         </div>
       </footer>
     </div>

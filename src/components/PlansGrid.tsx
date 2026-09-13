@@ -144,7 +144,7 @@ export default function PlansGrid({
               key={plan.id}
               className={[
                 "relative flex flex-col rounded-2xl border bg-white p-7",
-                plan.featured && !isCurrent ? "border-indigo-600 shadow-xl shadow-indigo-600/10" : "",
+                plan.featured && !isCurrent ? "border-rose-600 shadow-xl shadow-rose-600/10" : "",
                 isCurrent ? "border-emerald-500 ring-1 ring-emerald-500" : "border-slate-200",
               ].join(" ")}
             >
@@ -154,7 +154,7 @@ export default function PlansGrid({
                 </span>
               )}
               {isPending && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold text-white">
                   Scheduled for {fmtDate(periodEnd)}
                 </span>
               )}
@@ -182,7 +182,7 @@ export default function PlansGrid({
                   <button
                     onClick={undoPending}
                     disabled={busy}
-                    className="w-full rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 disabled:opacity-50"
+                    className="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:border-rose-300 disabled:opacity-50"
                   >
                     Keep {plan.name} — undo switch
                   </button>
@@ -193,7 +193,7 @@ export default function PlansGrid({
                     className={[
                       "w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50",
                       cta.kind === "upgrade"
-                        ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                        ? "bg-rose-600 text-white hover:bg-rose-500"
                         : cta.kind === "downgrade"
                           ? "border border-slate-300 text-slate-700 hover:border-slate-400"
                           : "bg-slate-900 text-white hover:bg-slate-700",
@@ -242,7 +242,7 @@ export default function PlansGrid({
                     {isUpgradeKind && (
                       <>
                         Your new period starts today and you'll be charged{" "}
-                        <strong>{formatMoney(price)}</strong> ({confirming.cycle}). Your usage allowance resets.
+                        <strong>{formatMoney(price)}</strong> ({confirming.cycle}). Your likes allowance resets.
                       </>
                     )}
                     {confirming.kind === "downgrade" && (
@@ -271,7 +271,7 @@ export default function PlansGrid({
                     <button
                       onClick={submitChange}
                       disabled={busy}
-                      className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+                      className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-60"
                     >
                       {busy ? "Working…" : isUpgradeKind ? "Confirm upgrade" : confirming.kind === "downgrade" ? "Schedule downgrade" : "Confirm switch"}
                     </button>

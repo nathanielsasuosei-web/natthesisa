@@ -29,7 +29,7 @@ export default function LoginForm() {
         setError(data.error ?? "Could not sign in.");
         return;
       }
-      router.push("/dashboard");
+      router.push(data.role === "admin" ? "/admin" : "/dashboard");
     } catch {
       setError("Network error — please try again.");
     } finally {
@@ -49,14 +49,14 @@ export default function LoginForm() {
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Nat"
           autoComplete="off"
-          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
         />
       </div>
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+        className="w-full rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-60"
       >
         {busy ? "Signing in…" : "Continue"}
       </button>

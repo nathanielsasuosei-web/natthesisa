@@ -1,24 +1,24 @@
-export type PlanId = "free" | "pro" | "business";
+export type PlanId = "free" | "premium" | "elite";
 export type BillingCycle = "monthly" | "yearly";
 
 export interface Plan {
   id: PlanId;
   name: string;
   tagline: string;
-  /** price per month, USD */
+  /** price per month */
   monthly: number;
-  /** price per year, USD (≈ 2 months free) */
+  /** price per year (≈ 2 months free) */
   yearly: number;
   limits: {
-    /** max boards, null = unlimited */
-    boards: number | null;
-    /** max tracked actions per billing period, null = unlimited */
-    actionsPerPeriod: number | null;
+    /** max active matches, null = unlimited */
+    matches: number | null;
+    /** max likes & interactions per billing period, null = unlimited */
+    likesPerPeriod: number | null;
   };
   entitlements: {
-    analytics: boolean;
+    insights: boolean;
     export: boolean;
-    auditLog: boolean;
+    activityLog: boolean;
   };
   features: string[];
   featured?: boolean;
@@ -28,54 +28,55 @@ export const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    tagline: "Kick the tires",
+    tagline: "Dip a toe in",
     monthly: 0,
     yearly: 0,
-    limits: { boards: 3, actionsPerPeriod: 25 },
-    entitlements: { analytics: false, export: false, auditLog: false },
+    limits: { matches: 3, likesPerPeriod: 25 },
+    entitlements: { insights: false, export: false, activityLog: false },
     features: [
-      "3 boards",
-      "25 actions per billing period",
+      "3 active matches",
+      "25 likes per billing period",
+      "Basic profile",
       "Community support",
     ],
   },
   {
-    id: "pro",
-    name: "Pro",
-    tagline: "For serious builders",
+    id: "premium",
+    name: "Premium",
+    tagline: "For serious daters",
     monthly: 99,
     yearly: 990,
     featured: true,
-    limits: { boards: 25, actionsPerPeriod: 2000 },
-    entitlements: { analytics: true, export: true, auditLog: false },
+    limits: { matches: 25, likesPerPeriod: 2000 },
+    entitlements: { insights: true, export: true, activityLog: false },
     features: [
-      "25 boards",
-      "2,000 actions per billing period",
-      "Insights & analytics",
-      "CSV export",
+      "25 active matches",
+      "2,000 likes per billing period",
+      "Love insights & compatibility stats",
+      "Export your match history (CSV)",
       "Priority email support",
     ],
   },
   {
-    id: "business",
-    name: "Business",
-    tagline: "Teams at scale",
+    id: "elite",
+    name: "Elite",
+    tagline: "All-in on love",
     monthly: 399,
     yearly: 3990,
-    limits: { boards: null, actionsPerPeriod: null },
-    entitlements: { analytics: true, export: true, auditLog: true },
+    limits: { matches: null, likesPerPeriod: null },
+    entitlements: { insights: true, export: true, activityLog: true },
     features: [
-      "Unlimited boards",
-      "Unlimited actions",
-      "Everything in Pro",
-      "Full audit log",
-      "SSO / SAML (demo)",
-      "Dedicated support",
+      "Unlimited matches",
+      "Unlimited likes",
+      "Everything in Premium",
+      "Full activity timeline",
+      "Profile boost (demo)",
+      "Dedicated matchmaker support",
     ],
   },
 ];
 
-export const PLAN_TIER: Record<PlanId, number> = { free: 0, pro: 1, business: 2 };
+export const PLAN_TIER: Record<PlanId, number> = { free: 0, premium: 1, elite: 2 };
 
 export function getPlan(id: PlanId): Plan {
   const plan = PLANS.find((p) => p.id === id);

@@ -1,17 +1,21 @@
 import { BillingCycle, PlanId, cycleDays, getPlan } from "./plans";
 
-export interface Task {
+export interface DateIdea {
   id: string;
   title: string;
   done: boolean;
   createdAt: string;
 }
 
-export interface Board {
+export interface Match {
   id: string;
   name: string;
+  age: number;
+  bio: string;
+  emoji: string;
+  compatibility: number; // 0-100
   createdAt: string;
-  tasks: Task[];
+  dateIdeas: DateIdea[];
 }
 
 export interface Invoice {
@@ -23,7 +27,7 @@ export interface Invoice {
   status: "paid";
 }
 
-export interface AuditEvent {
+export interface ActivityEvent {
   id: string;
   ts: string;
   text: string;
@@ -60,11 +64,14 @@ export interface User {
   id: string;
   name: string;
   createdAt: string;
+  role: "member" | "admin";
+  /** suspended members can sign in but every action is blocked server-side */
+  suspended: boolean;
   subscription: Subscription;
   usage: Usage;
-  boards: Board[];
+  matches: Match[];
   invoices: Invoice[];
-  auditLog: AuditEvent[];
+  activityLog: ActivityEvent[];
   paymentMethod: PaymentMethod;
 }
 
@@ -77,13 +84,13 @@ export interface Store {
 /* hot reloads in dev. Resets when the server process restarts.       */
 /* ------------------------------------------------------------------ */
 
-const g = globalThis as unknown as { __natthesisaStore?: Store };
+const g = globalThis as unknown as { __sparksStore?: Store };
 
 export function getStore(): Store {
-  if (!g.__natthesisaStore) {
-    g.__natthesisaStore = { users: new Map<string, User>() };
+  if (!g.__sparksStore) {
+    g.__sparksStore = { users: new Map<string, User>() };
   }
-  return g.__natthesisaStore;
+  return g.__sparksStore;
 }
 
 let uidCounter = 0;
@@ -122,9 +129,9 @@ export function makeSubscription(planId: PlanId, cycle: BillingCycle): Subscript
   };
 }
 
-export function audit(user: User, text: string): void {
-  user.auditLog.unshift({ id: uid(), ts: new Date().toISOString(), text });
-  if (user.auditLog.length > 200) user.auditLog.pop();
+export function logActivity(user: User, text: string): void {
+  user.activityLog.unshift({ id: uid(), ts: new Date().toISOString(), text });
+  if (user.activityLog.length > 200) user.activityLog.pop();
 }
 
 export function addInvoice(user: User, amount: number, description: string): Invoice | null {
@@ -141,9 +148,9 @@ export function addInvoice(user: User, amount: number, description: string): Inv
   return invoice;
 }
 
-/** Consume one action against the plan's per-period allowance. */
+/** Consume one like/interaction against the plan's per-period allowance. */
 export function consumeAction(user: User): boolean {
-  const limit = getPlan(user.subscription.planId).limits.actionsPerPeriod;
+  const limit = getPlan(user.subscription.planId).limits.likesPerPeriod;
   if (limit !== null && user.usage.count >= limit) return false;
   user.usage.count += 1;
   const key = todayKey();
@@ -161,10 +168,13 @@ export function findUserByName(name: string): User | undefined {
   return undefined;
 }
 
-export function findTask(user: User, taskId: string): { board: Board; task: Task } | null {
-  for (const board of user.boards) {
-    const task = board.tasks.find((t) => t.id === taskId);
-    if (task) return { board, task };
+export function findDateIdea(
+  user: User,
+  ideaId: string
+): { match: Match; idea: DateIdea } | null {
+  for (const match of user.matches) {
+    const idea = match.dateIdeas.find((t) => t.id === ideaId);
+    if (idea) return { match, idea };
   }
   return null;
 }
@@ -173,13 +183,25 @@ export function findTask(user: User, taskId: string): { board: Board; task: Task
 
 const SEED_HISTORY = [4, 7, 2, 9, 5, 3, 0];
 
-function seedBoard(name: string, tasks: Array<[string, boolean]>): Board {
+export interface MatchSeed {
+  name: string;
+  age: number;
+  bio: string;
+  emoji: string;
+  compatibility: number;
+}
+
+function seedMatch(seed: MatchSeed, ideas: Array<[string, boolean]>): Match {
   const now = new Date().toISOString();
   return {
     id: uid(),
-    name,
+    name: seed.name,
+    age: seed.age,
+    bio: seed.bio,
+    emoji: seed.emoji,
+    compatibility: seed.compatibility,
     createdAt: now,
-    tasks: tasks.map(([title, done]) => ({
+    dateIdeas: ideas.map(([title, done]) => ({
       id: uid(),
       title,
       done,
@@ -188,33 +210,51 @@ function seedBoard(name: string, tasks: Array<[string, boolean]>): Board {
   };
 }
 
+/** Pool of demo singles used when the user taps "Discover". */
+export const DISCOVER_POOL: MatchSeed[] = [
+  { name: "Ama", age: 27, bio: "Sunset chaser, amateur baker, will beat you at Scrabble.", emoji: "🌅", compatibility: 91 },
+  { name: "Kwame", age: 31, bio: "Runs at dawn, reads at dusk. Looking for a plus-one to jollof festivals.", emoji: "🏃", compatibility: 84 },
+  { name: "Efua", age: 25, bio: "Painter with paint on everything I own. Ask me about my cat, Palette.", emoji: "🎨", compatibility: 88 },
+  { name: "Kofi", age: 29, bio: "Live-music nerd. I know every open-mic night in town.", emoji: "🎸", compatibility: 79 },
+  { name: "Adjoa", age: 26, bio: "Marine biologist. Yes, I will talk about octopuses on the first date.", emoji: "🐙", compatibility: 93 },
+  { name: "Yaw", age: 33, bio: "Chef who cooks better on dates than at work. Prove me wrong.", emoji: "👨‍🍳", compatibility: 82 },
+  { name: "Abena", age: 28, bio: "Trail hiker and cloud photographer. Golden hour is my love language.", emoji: "⛰️", compatibility: 87 },
+  { name: "Kojo", age: 30, bio: "Board-game hoarder. My shelf is a red flag and I own it.", emoji: "🎲", compatibility: 76 },
+  { name: "Esi", age: 24, bio: "Poet, plant mom, professional overthinker of texts.", emoji: "🌿", compatibility: 90 },
+  { name: "Nana", age: 32, bio: "Salsa on Fridays, brunch on Sundays, kindness always.", emoji: "💃", compatibility: 85 },
+];
+
 export function createUser(name: string): User {
   const usage = freshUsage();
   usage.history = usage.history.map((h, i) => ({ ...h, count: SEED_HISTORY[i] ?? 0 }));
+  const cleanName = name.trim().slice(0, 40) || "Guest";
+  const isAdmin = cleanName.toLowerCase() === "admin";
   const user: User = {
     id: uid(),
-    name: name.trim().slice(0, 40) || "Guest",
+    name: cleanName,
     createdAt: new Date().toISOString(),
+    role: isAdmin ? "admin" : "member",
+    suspended: false,
     subscription: makeSubscription("free", "monthly"),
     usage,
-    boards: [
-      seedBoard("Website redesign", [
-        ["Write project brief", true],
-        ["Low-fi wireframes", true],
-        ["Pick color palette", false],
-        ["Build landing page", false],
+    matches: [
+      seedMatch(DISCOVER_POOL[0], [
+        ["Say hi and break the ice", true],
+        ["Coffee at the corner café", true],
+        ["Sunset walk on the beach", false],
+        ["Bake-off night — bring flour", false],
       ]),
-      seedBoard("Learning TypeScript", [
-        ["Generics deep-dive", false],
-        ["Practice: utility types", true],
-        ["Skim the release notes", false],
+      seedMatch(DISCOVER_POOL[4], [
+        ["Aquarium visit", false],
+        ["Trade favourite playlists", true],
+        ["Street-food crawl", false],
       ]),
     ],
     invoices: [],
-    auditLog: [],
+    activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242" },
   };
-  audit(user, "Workspace created on the Free plan");
+  logActivity(user, isAdmin ? "Admin account created" : "Profile created on the Free plan");
   getStore().users.set(user.id, user);
   return user;
 }

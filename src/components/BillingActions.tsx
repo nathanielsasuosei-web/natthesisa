@@ -61,8 +61,8 @@ export default function BillingActions({
       className={[
         "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition",
         c === cycle
-          ? "bg-indigo-600 text-white"
-          : "border border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-40",
+          ? "bg-rose-600 text-white"
+          : "border border-slate-300 text-slate-600 hover:border-rose-400 hover:text-rose-600 disabled:opacity-40",
       ].join(" ")}
     >
       {label}
@@ -121,7 +121,7 @@ export default function BillingActions({
             <button
               onClick={() => act({ action: "clearPending" }, "Scheduled change removed.")}
               disabled={busy}
-              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-600 transition hover:border-indigo-300 disabled:opacity-50"
+              className="rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-300 disabled:opacity-50"
             >
               Undo switch to {pendingPlanName}
             </button>

@@ -13,7 +13,7 @@ export default function ExportButton() {
     try {
       const res = await fetch("/api/export");
       if (res.status === 403) {
-        setMsg("CSV export requires the Pro plan or higher.");
+        setMsg("Exporting your match history requires Premium or higher.");
         return;
       }
       if (!res.ok) {
@@ -24,7 +24,7 @@ export default function ExportButton() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "natthesisa-boards.csv";
+      a.download = "sparks-matches.csv";
       a.click();
       URL.revokeObjectURL(url);
       setMsg("Downloaded ✓");
