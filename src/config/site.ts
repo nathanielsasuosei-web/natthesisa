@@ -5,10 +5,10 @@
  * prices on the landing page, plan cards, invoices, and every charge.
  */
 export const site = {
-  name: "Natthesisa",
-  tagline: "Plan work, ship faster",
+  name: "Sparks",
+  tagline: "Find your person",
   description:
-    "A tidy workspace with subscription control built in: upgrade, downgrade, cancel and resume — all enforced server-side.",
+    "A warm little dating app with membership control built in: upgrade, downgrade, cancel and resume — all enforced server-side.",
   currency: {
     /** ISO 4217 code (informational) */
     code: "GHS",

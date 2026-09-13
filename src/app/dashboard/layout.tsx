@@ -19,7 +19,7 @@ export default async function DashboardLayout({
         {/* animated glow */}
         <div
           aria-hidden
-          className="animate-blob pointer-events-none absolute -top-24 -left-16 size-72 rounded-full bg-indigo-600/25 blur-3xl"
+          className="animate-blob pointer-events-none absolute -top-24 -left-16 size-72 rounded-full bg-rose-600/25 blur-3xl"
         />
         <div
           aria-hidden
@@ -29,7 +29,7 @@ export default async function DashboardLayout({
         <SidebarNav
           userName={user.name}
           planName={plan.name}
-          auditEnabled={plan.entitlements.auditLog}
+          activityEnabled={plan.entitlements.activityLog}
         />
       </aside>
 
@@ -38,7 +38,7 @@ export default async function DashboardLayout({
         <SidebarNav
           userName={user.name}
           planName={plan.name}
-          auditEnabled={plan.entitlements.auditLog}
+          activityEnabled={plan.entitlements.activityLog}
           compact
         />
       </div>

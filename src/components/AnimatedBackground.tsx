@@ -18,8 +18,8 @@ export default function AnimatedBackground({ variant = "full" }: Props) {
       <div
         className={`animate-blob absolute -top-44 left-[5%] size-[38rem] rounded-full blur-3xl ${
           subtle
-            ? "bg-indigo-300/20"
-            : "bg-gradient-to-br from-indigo-400/45 via-indigo-300/25 to-transparent"
+            ? "bg-rose-300/20"
+            : "bg-gradient-to-br from-rose-400/45 via-rose-300/25 to-transparent"
         }`}
       />
       <div

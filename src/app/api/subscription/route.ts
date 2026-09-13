@@ -9,7 +9,7 @@ import {
 } from "@/lib/subscription";
 import { BillingCycle, PlanId, getPlan } from "@/lib/plans";
 
-const PLAN_IDS: PlanId[] = ["free", "pro", "business"];
+const PLAN_IDS: PlanId[] = ["free", "premium", "elite"];
 const CYCLES: BillingCycle[] = ["monthly", "yearly"];
 
 export async function POST(req: NextRequest) {

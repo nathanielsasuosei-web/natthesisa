@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { User, getStore } from "./store";
 import { syncSubscription } from "./subscription";
 
-export const SESSION_COOKIE = "nt_session";
+export const SESSION_COOKIE = "sparks_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 /** Resolve the signed-in user from the session cookie (or null). */

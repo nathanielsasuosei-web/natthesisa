@@ -15,12 +15,12 @@ export default async function BillingPage() {
     ? {
         label: "Cancelling",
         cls: "bg-amber-100 text-amber-700",
-        note: `Your ${plan.name} plan stays active until ${fmtDate(sub.currentPeriodEnd)}, then moves to Free.`,
+        note: `Your ${plan.name} membership stays active until ${fmtDate(sub.currentPeriodEnd)}, then moves to Free.`,
       }
     : pending
       ? {
           label: "Change scheduled",
-          cls: "bg-indigo-100 text-indigo-700",
+          cls: "bg-rose-100 text-rose-700",
           note: `Switches to ${pending.name} on ${fmtDate(sub.currentPeriodEnd)}.`,
         }
       : {
@@ -34,16 +34,16 @@ export default async function BillingPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Manage your plan, billing cycle and invoices. All amounts in {site.currency.label} ({site.currency.symbol}).
+          Manage your membership, billing cycle and invoices. All amounts in {site.currency.label} ({site.currency.symbol}).
         </p>
       </div>
 
-      {/* Current subscription */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+      {/* Current membership */}
+      <section className="rounded-2xl border border-rose-100 bg-white p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold">{plan.name} plan</h2>
+              <h2 className="text-xl font-bold">{plan.name} membership</h2>
               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${status.cls}`}>{status.label}</span>
             </div>
             <p className="mt-2 text-sm text-slate-600">
@@ -54,13 +54,13 @@ export default async function BillingPage() {
           </div>
           <Link
             href="/dashboard/plans"
-            className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500"
+            className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500"
           >
-            {plan.id === "business" ? "Compare plans" : "Change plan"}
+            {plan.id === "elite" ? "Compare plans" : "Change plan"}
           </Link>
         </div>
 
-        <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-6 text-sm sm:grid-cols-3">
+        <dl className="mt-6 grid gap-4 border-t border-rose-50 pt-6 text-sm sm:grid-cols-3">
           <div>
             <dt className="text-slate-500">Current period</dt>
             <dd className="mt-0.5 font-medium">
@@ -80,7 +80,7 @@ export default async function BillingPage() {
           </div>
         </dl>
 
-        <div className="mt-6 border-t border-slate-100 pt-6">
+        <div className="mt-6 border-t border-rose-50 pt-6">
           <BillingActions
             planId={sub.planId}
             planName={plan.name}
@@ -93,10 +93,10 @@ export default async function BillingPage() {
       </section>
 
       {/* Invoices */}
-      <section className="rounded-2xl border border-slate-200 bg-white">
-        <div className="border-b border-slate-100 p-6">
+      <section className="rounded-2xl border border-rose-100 bg-white">
+        <div className="border-b border-rose-50 p-6">
           <h2 className="font-semibold">Invoice history</h2>
-          <p className="mt-1 text-sm text-slate-500">Every plan change and renewal issues an invoice.</p>
+          <p className="mt-1 text-sm text-slate-500">Every membership change and renewal issues an invoice.</p>
         </div>
         {user.invoices.length === 0 ? (
           <p className="p-6 text-sm text-slate-500">
@@ -105,7 +105,7 @@ export default async function BillingPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
+              <tr className="border-b border-rose-50 text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-6 py-3 font-medium">Invoice</th>
                 <th className="px-6 py-3 font-medium">Date</th>
                 <th className="px-6 py-3 font-medium">Description</th>
@@ -115,7 +115,7 @@ export default async function BillingPage() {
             </thead>
             <tbody>
               {user.invoices.map((inv) => (
-                <tr key={inv.id} className="border-b border-slate-50 last:border-0">
+                <tr key={inv.id} className="border-b border-rose-50/60 last:border-0">
                   <td className="px-6 py-3.5 font-mono text-xs text-slate-500">{inv.number}</td>
                   <td className="px-6 py-3.5 text-slate-600">{fmtDate(inv.date)}</td>
                   <td className="px-6 py-3.5 text-slate-700">{inv.description}</td>
@@ -130,9 +130,9 @@ export default async function BillingPage() {
         )}
       </section>
 
-      <p className="rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-500">
+      <p className="rounded-xl border border-rose-100 bg-white p-4 text-xs text-slate-500">
         This is a demo — payments are simulated and data is stored in memory. Cancellations keep your
-        paid features until the end of the period you've already paid for, just like the real thing.
+        paid perks until the end of the period you've already paid for, just like the real thing.
       </p>
     </div>
   );

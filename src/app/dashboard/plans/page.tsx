@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@/lib/session";
-import { getPlan } from "@/lib/plans";
 import { site } from "@/config/site";
 import { fmtDate } from "@/lib/format";
 import PlansGrid from "@/components/PlansGrid";
@@ -12,7 +11,7 @@ export default async function PlansPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Plans</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Membership</h1>
         <p className="mt-1 text-sm text-slate-600">
           Upgrades apply immediately; downgrades are scheduled for the end of your billing period.
           All prices are in {site.currency.label} ({site.currency.symbol}).
@@ -22,7 +21,7 @@ export default async function PlansPage() {
       {sub.cancelAtPeriodEnd && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           <span>
-            <strong>Heads up:</strong> your subscription cancels on {fmtDate(sub.currentPeriodEnd)}.
+            <strong>Heads up:</strong> your membership cancels on {fmtDate(sub.currentPeriodEnd)}.
             You can resume any time before then.
           </span>
           <Link href="/dashboard/billing" className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-500">
