@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/session";
+import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
 import {
   DISCOVER_POOL,
@@ -14,6 +14,7 @@ import {
 export async function POST() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
 
   const plan = getPlan(user.subscription.planId);
 
@@ -67,5 +68,6 @@ export async function POST() {
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
   return NextResponse.json({ matches: user.matches, store: getStore().users.size });
 }

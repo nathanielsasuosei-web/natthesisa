@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/session";
+import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
 import { logActivity, consumeAction, uid } from "@/lib/store";
 
@@ -9,6 +9,7 @@ export async function POST(
 ) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
 
   const { id } = await ctx.params;
   const match = user.matches.find((m) => m.id === id);

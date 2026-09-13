@@ -21,6 +21,13 @@ membership (subscription) engine.
   insights, export and the activity timeline are all checked in the API routes,
   not just hidden in the UI.
 - **Billing history** — every upgrade, renewal and cycle switch issues an invoice.
+- **Admin console** (`/admin`) — sign in as **admin** to get the administrator
+  role. Site-wide stats (accounts, matches, likes, revenue, est. MRR, plan
+  distribution) plus full member management: comp plans in either direction
+  (no invoice), reset like allowances, suspend/reinstate, promote/demote
+  admins and delete accounts. Suspended members can still sign in, but every
+  like, match and membership action is rejected by the server (`403 SUSPENDED`)
+  until they're reinstated. Admins can't suspend, demote or delete themselves.
 
 ## Getting started
 
@@ -31,6 +38,7 @@ npm run dev
 
 Open http://localhost:3000, click **Join free** and sign in with any name.
 Your demo profile starts on the Free plan with a couple of matches waiting.
+Sign in with the name **admin** to open the admin console instead.
 
 ## Notes
 
@@ -47,5 +55,7 @@ Your demo profile starts on the Free plan with a couple of matches waiting.
 | `src/lib/plans.ts` | Membership tiers, prices, limits and perks |
 | `src/lib/store.ts` | In-memory store: users, matches, date ideas, invoices |
 | `src/lib/subscription.ts` | Upgrade / downgrade / cancel / renew logic |
-| `src/app/api/*` | Auth, matches, dates, membership and export APIs |
+| `src/lib/admin.ts` | Admin stats + suspend / comp / promote / delete actions |
+| `src/app/api/*` | Auth, matches, dates, membership, export and admin APIs |
 | `src/app/dashboard/*` | Overview, matches, membership, billing, timeline |
+| `src/app/admin/*` | Admin console (admins only, enforced server-side) |

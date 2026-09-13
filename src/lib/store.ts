@@ -64,6 +64,9 @@ export interface User {
   id: string;
   name: string;
   createdAt: string;
+  role: "member" | "admin";
+  /** suspended members can sign in but every action is blocked server-side */
+  suspended: boolean;
   subscription: Subscription;
   usage: Usage;
   matches: Match[];
@@ -224,10 +227,14 @@ export const DISCOVER_POOL: MatchSeed[] = [
 export function createUser(name: string): User {
   const usage = freshUsage();
   usage.history = usage.history.map((h, i) => ({ ...h, count: SEED_HISTORY[i] ?? 0 }));
+  const cleanName = name.trim().slice(0, 40) || "Guest";
+  const isAdmin = cleanName.toLowerCase() === "admin";
   const user: User = {
     id: uid(),
-    name: name.trim().slice(0, 40) || "Guest",
+    name: cleanName,
     createdAt: new Date().toISOString(),
+    role: isAdmin ? "admin" : "member",
+    suspended: false,
     subscription: makeSubscription("free", "monthly"),
     usage,
     matches: [
@@ -247,7 +254,7 @@ export function createUser(name: string): User {
     activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242" },
   };
-  logActivity(user, "Profile created on the Free plan");
+  logActivity(user, isAdmin ? "Admin account created" : "Profile created on the Free plan");
   getStore().users.set(user.id, user);
   return user;
 }

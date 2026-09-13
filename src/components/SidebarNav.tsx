@@ -17,10 +17,11 @@ interface Props {
   userName: string;
   planName: string;
   activityEnabled: boolean;
+  isAdmin?: boolean;
   compact?: boolean;
 }
 
-export default function SidebarNav({ userName, planName, activityEnabled, compact }: Props) {
+export default function SidebarNav({ userName, planName, activityEnabled, isAdmin, compact }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -71,6 +72,23 @@ export default function SidebarNav({ userName, planName, activityEnabled, compac
             </Link>
           );
         })}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className={[
+              "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+              compact ? "w-44 shrink-0" : "",
+              pathname.startsWith("/admin")
+                ? "bg-rose-600 text-white"
+                : "text-rose-300/80 hover:bg-slate-900 hover:text-rose-200",
+            ].join(" ")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-[18px] shrink-0">
+              <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4zM9.5 12l1.8 1.8 3.2-3.6" />
+            </svg>
+            <span className={compact ? "text-xs" : ""}>Admin console</span>
+          </Link>
+        )}
       </div>
 
       {!compact && (

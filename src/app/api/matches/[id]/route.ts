@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/session";
+import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
 import { logActivity, consumeAction } from "@/lib/store";
 
@@ -9,6 +9,7 @@ export async function DELETE(
 ) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
 
   const { id } = await ctx.params;
   const idx = user.matches.findIndex((m) => m.id === id);

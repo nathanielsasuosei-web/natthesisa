@@ -24,6 +24,9 @@ export default async function LoginPage() {
         <p className="mt-1 text-sm text-slate-600">
           Enter any name to open your demo profile — it starts on the Free plan with a couple of matches waiting.
         </p>
+        <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">
+          Tip: sign in as <strong>admin</strong> to open the admin console.
+        </p>
         <LoginForm />
       </div>
       <p className="animate-fade-up mt-6 text-xs text-slate-400" style={{ animationDelay: "0.2s" }}>

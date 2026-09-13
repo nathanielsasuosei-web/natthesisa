@@ -12,6 +12,25 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!id) return null;
   const user = getStore().users.get(id);
   if (!user) return null;
+  // backfill for users created before the admin fields existed (hot-reload safety)
+  if (user.role === undefined) user.role = user.name.toLowerCase() === "admin" ? "admin" : "member";
+  if (user.suspended === undefined) user.suspended = false;
   syncSubscription(user);
   return user;
 }
+
+/** Resolve the signed-in user only if they are an admin (or null). */
+export async function getCurrentAdmin(): Promise<User | null> {
+  const user = await getCurrentUser();
+  return user && user.role === "admin" ? user : null;
+}
+
+/** True when the account is suspended and must be blocked from acting. */
+export function isSuspended(user: User): boolean {
+  return user.suspended === true;
+}
+
+export const SUSPENDED_ERROR = {
+  error: "Your account has been suspended by an administrator. Contact support to appeal.",
+  code: "SUSPENDED",
+} as const;

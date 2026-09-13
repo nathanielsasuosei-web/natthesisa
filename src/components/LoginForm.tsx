@@ -29,7 +29,7 @@ export default function LoginForm() {
         setError(data.error ?? "Could not sign in.");
         return;
       }
-      router.push("/dashboard");
+      router.push(data.role === "admin" ? "/admin" : "/dashboard");
     } catch {
       setError("Network error — please try again.");
     } finally {

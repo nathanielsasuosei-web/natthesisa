@@ -30,6 +30,7 @@ export default async function DashboardLayout({
           userName={user.name}
           planName={plan.name}
           activityEnabled={plan.entitlements.activityLog}
+          isAdmin={user.role === "admin"}
         />
       </aside>
 
@@ -39,13 +40,23 @@ export default async function DashboardLayout({
           userName={user.name}
           planName={plan.name}
           activityEnabled={plan.entitlements.activityLog}
+          isAdmin={user.role === "admin"}
           compact
         />
       </div>
 
       <main className="min-w-0 flex-1">
         <AnimatedBackground variant="subtle" />
-        <div className="relative mx-auto max-w-5xl px-6 py-8">{children}</div>
+        <div className="relative mx-auto max-w-5xl px-6 py-8">
+          {user.suspended && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              <strong>Your account is suspended.</strong> An administrator has paused your profile —
+              likes, matches and membership changes are blocked until you&apos;re reinstated.
+              Contact support to appeal.
+            </div>
+          )}
+          {children}
+        </div>
       </main>
     </div>
   );
