@@ -6,6 +6,16 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 
 const FEATURES = [
   {
+    title: "Accounts, not nicknames",
+    body: "Sign up with an email and a password you actually own. Passwords are scrypt-hashed, repeated wrong tries lock sign-in, and your session lasts 30 days.",
+    icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-5 8-5s8 1.7 8 5",
+  },
+  {
+    title: "A profile that does something",
+    body: "Photo, age, city, bio, interests, gender and who you want to meet — the same fields that decide who turns up in Discover and how compatibility is scored.",
+    icon: "M4 5h16v14H4zM8 9h8M8 13h5M9 5v4",
+  },
+  {
     title: "Real matches",
     body: "Discover singles near you, like the ones who make you smile, and match when it's mutual.",
     icon: "M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.7 4c1.6 0 3.2.8 4.3 2.2C13.1 4.8 14.7 4 16.3 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z",
@@ -61,7 +71,7 @@ export default async function LandingPage() {
             ) : (
               <>
                 <Link href="/login" className="rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900">Sign in</Link>
-                <Link href="/login" className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-500">
+                <Link href="/signup" className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-500">
                   Join free
                 </Link>
               </>
@@ -93,9 +103,9 @@ export default async function LandingPage() {
             className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg text-slate-600"
             style={{ animationDelay: "0.2s" }}
           >
-            {site.name} is a warm little dating app — matches, date ideas, compatibility — with a
-            complete membership engine behind it: upgrades apply instantly, downgrades and
-            cancellations respect your billing period, and every perk is enforced server-side.
+            {site.name} is a warm little dating app with real accounts: sign up with an email and
+            password, build a profile with a photo, age, location, interests and dating preferences,
+            then match, plan dates and manage membership — every limit and perk enforced server-side.
             Prices in {site.currency.label} ({site.currency.symbol}).
           </p>
           <div
@@ -103,7 +113,7 @@ export default async function LandingPage() {
             style={{ animationDelay: "0.3s" }}
           >
             <Link
-              href="/login"
+              href="/signup"
               className="rounded-xl bg-rose-600 px-6 py-3 font-semibold text-white shadow-lg shadow-rose-600/25 transition hover:scale-[1.03] hover:bg-rose-500 active:scale-[0.98]"
             >
               Start matching — free
@@ -221,7 +231,7 @@ export default async function LandingPage() {
                   ))}
                 </ul>
                 <Link
-                  href="/login"
+                  href="/signup"
                   className={`mt-8 block rounded-xl px-4 py-2.5 text-center font-semibold transition ${
                     plan.featured
                       ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20 hover:bg-rose-500"

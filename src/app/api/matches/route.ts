@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
+import {
+  PROFILE_INCOMPLETE_ERROR,
+  SUSPENDED_ERROR,
+  getCurrentUser,
+  isSuspended,
+  needsProfileSetup,
+} from "@/lib/session";
 import { getPlan } from "@/lib/plans";
 import {
-  DISCOVER_POOL,
   Match,
   logActivity,
   consumeAction,
+  createMatch,
   getStore,
-  uid,
+  pickCandidate,
 } from "@/lib/store";
 
 /** Like someone new — the app "discovers" the next single for you. */
@@ -15,6 +21,20 @@ export async function POST() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
+  // a profile is what makes matching fair — so it's required before the first like
+  if (needsProfileSetup(user))
+    return NextResponse.json(PROFILE_INCOMPLETE_ERROR, { status: 403 });
+  // a hidden profile can't meet anyone new — the toggle is enforced, not decorative
+  if (!user.settings.privacy.discoverable) {
+    return NextResponse.json(
+      {
+        error:
+          "You're hidden from Discover, so new matches are paused. Turn visibility back on in account settings.",
+        code: "NOT_DISCOVERABLE",
+      },
+      { status: 403 }
+    );
+  }
 
   const plan = getPlan(user.subscription.planId);
 
@@ -39,27 +59,20 @@ export async function POST() {
     );
   }
 
-  // pick the next single the user hasn't matched with yet
-  const taken = new Set(user.matches.map((m) => m.name));
-  const candidates = DISCOVER_POOL.filter((s) => !taken.has(s.name));
-  const seed =
-    candidates.length > 0
-      ? candidates[Math.floor(Math.random() * candidates.length)]
-      : {
-          ...DISCOVER_POOL[Math.floor(Math.random() * DISCOVER_POOL.length)],
-          name: `${DISCOVER_POOL[Math.floor(Math.random() * DISCOVER_POOL.length)].name} ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}.`,
-        };
+  // respect the member's dating preferences first, widen only if that leaves nobody
+  const seed = pickCandidate(user, { respectPreferences: true });
+  if (!seed) {
+    return NextResponse.json(
+      {
+        error:
+          "You've liked everyone in this demo pool. Widen your age range or distance in profile settings to meet more people.",
+        code: "POOL_EMPTY",
+      },
+      { status: 409 }
+    );
+  }
 
-  const match: Match = {
-    id: uid(),
-    name: seed.name,
-    age: seed.age,
-    bio: seed.bio,
-    emoji: seed.emoji,
-    compatibility: seed.compatibility,
-    createdAt: new Date().toISOString(),
-    dateIdeas: [],
-  };
+  const match: Match = createMatch(user, seed);
   user.matches.push(match);
   logActivity(user, `It's a match — you and ${match.name} liked each other 💘`);
   return NextResponse.json({ ok: true, match }, { status: 201 });

@@ -31,8 +31,12 @@ export default function AdminUsersTable({ initialUsers, adminId }: Props) {
     return initialUsers.filter(
       (u) =>
         u.name.toLowerCase().includes(needle) ||
+        (u.email ?? "").toLowerCase().includes(needle) ||
+        (u.location ?? "").toLowerCase().includes(needle) ||
         u.planName.toLowerCase().includes(needle) ||
         (u.suspended && "suspended".includes(needle)) ||
+        (needle === "no photo" && !u.hasPhoto) ||
+        (needle === "incomplete" && !u.profileComplete) ||
         u.role.includes(needle)
     );
   }, [initialUsers, query]);
@@ -79,7 +83,7 @@ export default function AdminUsersTable({ initialUsers, adminId }: Props) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name, plan, role…"
+          placeholder="Search name, email, city, plan…"
           className="w-56 rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
         />
       </div>
@@ -123,8 +127,14 @@ export default function AdminUsersTable({ initialUsers, adminId }: Props) {
                   {/* Member */}
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-3">
-                      <span className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${u.role === "admin" ? "bg-slate-900 text-rose-300" : "bg-rose-100 text-rose-700"}`}>
+                      <span className={`relative grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${u.role === "admin" ? "bg-slate-900 text-rose-300" : "bg-rose-100 text-rose-700"}`}>
                         {u.name.slice(0, 1).toUpperCase()}
+                        {u.hasPhoto && (
+                          <span
+                            title="Has a profile photo"
+                            className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white"
+                          />
+                        )}
                       </span>
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 font-medium">
@@ -136,7 +146,20 @@ export default function AdminUsersTable({ initialUsers, adminId }: Props) {
                           )}
                           {isSelf && <span className="text-xs font-normal text-slate-400">(you)</span>}
                         </p>
-                        <p className="text-xs text-slate-400">Joined {fmtDate(u.createdAt)}</p>
+                        <p className="truncate text-xs text-slate-400">
+                          {u.email || "no email"}
+                        </p>
+                        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+                          <span>Joined {fmtDate(u.createdAt)}</span>
+                          {u.age !== null && <span>· {u.age}</span>}
+                          {u.location && <span className="truncate">· {u.location}</span>}
+                          {u.interests > 0 && <span>· {u.interests} interests</span>}
+                          {!u.profileComplete && (
+                            <span className="rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-amber-700">
+                              profile incomplete
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                   </td>

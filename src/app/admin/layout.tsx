@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
+import Avatar from "@/components/Avatar";
 import { site } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
@@ -29,9 +30,7 @@ export default async function AdminLayout({
               My dashboard
             </Link>
             <span className="hidden items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-slate-300 sm:flex">
-              <span className="grid size-6 place-items-center rounded-full bg-rose-500/20 text-xs font-semibold text-rose-300">
-                {user.name.slice(0, 1).toUpperCase()}
-              </span>
+              <Avatar name={user.name} photo={user.profile?.photo} emoji={user.profile?.avatar} size={24} ring={false} />
               {user.name}
             </span>
           </nav>

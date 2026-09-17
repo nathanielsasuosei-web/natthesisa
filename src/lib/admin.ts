@@ -1,4 +1,5 @@
 import { PLANS, PlanId, getPlan, priceFor } from "./plans";
+import { ageFrom, summarizeLocation } from "./profile";
 import { User, getStore, logActivity } from "./store";
 import { changePlan } from "./subscription";
 
@@ -16,7 +17,13 @@ export class AdminError extends Error {
 export interface AdminUserRow {
   id: string;
   name: string;
+  email: string;
   role: "member" | "admin";
+  hasPhoto: boolean;
+  age: number | null;
+  location: string;
+  interests: number;
+  profileComplete: boolean;
   suspended: boolean;
   createdAt: string;
   planId: PlanId;
@@ -37,7 +44,13 @@ export function toAdminRow(user: User): AdminUserRow {
   return {
     id: user.id,
     name: user.name,
+    email: user.email ?? "",
     role: user.role ?? "member",
+    hasPhoto: Boolean(user.profile?.photo),
+    age: ageFrom(user.profile?.birthDate ?? ""),
+    location: user.profile ? summarizeLocation(user.profile) : "",
+    interests: user.profile?.interests.length ?? 0,
+    profileComplete: Boolean(user.profile?.completedAt),
     suspended: user.suspended ?? false,
     createdAt: user.createdAt,
     planId: user.subscription.planId,
@@ -103,8 +116,7 @@ export function computeStats(): AdminStats {
 function getTargetUser(userId: string): User {
   const target = getStore().users.get(userId);
   if (!target) throw new AdminError("User not found.", "NOT_FOUND", 404);
-  if (target.role === undefined)
-    target.role = target.name.toLowerCase() === "admin" ? "admin" : "member";
+  if (target.role === undefined) target.role = "member";
   if (target.suspended === undefined) target.suspended = false;
   return target;
 }

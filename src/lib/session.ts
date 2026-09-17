@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
-import { User, getStore } from "./store";
+import { redirect } from "next/navigation";
+import type { NextResponse } from "next/server";
+import { User, getStore, ensureUserReady } from "./store";
 import { syncSubscription } from "./subscription";
 
 export const SESSION_COOKIE = "sparks_session";
@@ -12,10 +14,16 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!id) return null;
   const user = getStore().users.get(id);
   if (!user) return null;
-  // backfill for users created before the admin fields existed (hot-reload safety)
-  if (user.role === undefined) user.role = user.name.toLowerCase() === "admin" ? "admin" : "member";
-  if (user.suspended === undefined) user.suspended = false;
+  // backfills fields added after a record was created (hot-reload safety)
+  ensureUserReady(user);
   syncSubscription(user);
+  return user;
+}
+
+/** For server components behind the login wall — redirects instead of crashing. */
+export async function requireUser(): Promise<User> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
   return user;
 }
 
@@ -25,12 +33,42 @@ export async function getCurrentAdmin(): Promise<User | null> {
   return user && user.role === "admin" ? user : null;
 }
 
+/** Admin-only server component guard. */
+export async function requireAdmin(): Promise<User> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role !== "admin") redirect("/dashboard");
+  return user;
+}
+
 /** True when the account is suspended and must be blocked from acting. */
 export function isSuspended(user: User): boolean {
   return user.suspended === true;
+}
+
+/** True until the member has finished creating their profile. */
+export function needsProfileSetup(user: User): boolean {
+  return !user.profile?.completedAt;
 }
 
 export const SUSPENDED_ERROR = {
   error: "Your account has been suspended by an administrator. Contact support to appeal.",
   code: "SUSPENDED",
 } as const;
+
+export const PROFILE_INCOMPLETE_ERROR = {
+  error: "Finish creating your profile before you start matching — add a photo, your interests and who you'd like to meet.",
+  code: "PROFILE_INCOMPLETE",
+} as const;
+
+/** Set or clear the session cookie on a response. */
+export function applySessionCookie<T extends NextResponse>(res: T, userId: string | null): T {
+  res.cookies.set(SESSION_COOKIE, userId ?? "", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: userId ? SESSION_MAX_AGE : 0,
+    secure: process.env.NODE_ENV === "production",
+  });
+  return res;
+}

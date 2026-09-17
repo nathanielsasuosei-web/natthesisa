@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
 import { fmtDateTime } from "@/lib/format";
 
 export default async function ActivityPage() {
-  const user = (await getCurrentUser())!;
+  const user = await requireUser();
   const plan = getPlan(user.subscription.planId);
 
   if (!plan.entitlements.activityLog) {

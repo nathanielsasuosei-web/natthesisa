@@ -1,11 +1,11 @@
-import { getCurrentAdmin } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 import { computeStats, estimateMrr, toAdminRow } from "@/lib/admin";
 import { getStore } from "@/lib/store";
 import { fmtMoney } from "@/lib/format";
 import AdminUsersTable from "@/components/AdminUsersTable";
 
 export default async function AdminPage() {
-  const admin = (await getCurrentAdmin())!;
+  const admin = await requireAdmin();
   const stats = computeStats();
   const mrr = estimateMrr();
   const users = [...getStore().users.values()]

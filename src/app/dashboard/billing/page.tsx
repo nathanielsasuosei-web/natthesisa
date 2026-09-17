@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
 import { site } from "@/config/site";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import BillingActions from "@/components/BillingActions";
 
 export default async function BillingPage() {
-  const user = (await getCurrentUser())!;
+  const user = await requireUser();
   const plan = getPlan(user.subscription.planId);
   const sub = user.subscription;
   const pending = sub.pendingPlanId ? getPlan(sub.pendingPlanId) : null;

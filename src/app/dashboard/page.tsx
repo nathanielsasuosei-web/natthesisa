@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { getPlan, describeLimit } from "@/lib/plans";
+import { profileCompleteness, summarizeLocation, ageFrom } from "@/lib/profile";
 import { fmtDate, fmtMoney, fmtDayKey } from "@/lib/format";
+import Avatar from "@/components/Avatar";
 import UsageBar from "@/components/UsageBar";
 import UsageChart from "@/components/UsageChart";
 
 export default async function OverviewPage() {
-  const user = (await getCurrentUser())!;
+  const user = await requireUser();
   const plan = getPlan(user.subscription.planId);
   const maxMatches = plan.limits.matches;
   const maxLikes = plan.limits.likesPerPeriod;
@@ -18,6 +20,7 @@ export default async function OverviewPage() {
     user.matches[0] ?? null
   );
 
+  const completeness = profileCompleteness(user.profile);
   const subBadge = user.subscription.cancelAtPeriodEnd
     ? { text: `Cancels ${fmtDate(user.subscription.currentPeriodEnd)}`, cls: "bg-amber-100 text-amber-700" }
     : user.subscription.pendingPlanId
@@ -31,9 +34,26 @@ export default async function OverviewPage() {
           <h1 className="text-2xl font-bold tracking-tight">Welcome back, {user.name.split(" ")[0]} 💘</h1>
           <p className="mt-1 text-sm text-slate-600">Here's what's happening in your love life.</p>
         </div>
-        <Link href="/dashboard/matches" className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500">
-          Go to matches
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/profile"
+            className="flex items-center gap-3 rounded-xl border border-rose-100 bg-white px-3 py-2 text-left transition hover:border-rose-300"
+          >
+            <Avatar name={user.name} photo={user.profile.photo} emoji={user.profile.avatar} size={34} />
+            <span className="pr-1">
+              <span className="block text-sm font-semibold leading-tight">
+                {user.name}
+                {ageFrom(user.profile.birthDate) !== null ? `, ${ageFrom(user.profile.birthDate)}` : ""}
+              </span>
+              <span className="block text-[11px] text-slate-500">
+                {summarizeLocation(user.profile) || "Add your city"} · {completeness.percent}% complete
+              </span>
+            </span>
+          </Link>
+          <Link href="/dashboard/matches" className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500">
+            Go to matches
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

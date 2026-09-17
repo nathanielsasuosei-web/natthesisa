@@ -1,11 +1,11 @@
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { site } from "@/config/site";
 import { fmtDate } from "@/lib/format";
 import PlansGrid from "@/components/PlansGrid";
 import Link from "next/link";
 
 export default async function PlansPage() {
-  const user = (await getCurrentUser())!;
+  const user = await requireUser();
   const sub = user.subscription;
 
   return (

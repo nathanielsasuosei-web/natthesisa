@@ -1,24 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/session";
-import { createUser, findUserByName } from "@/lib/store";
+import { authenticate } from "@/lib/accounts";
+import { handleError, readJson } from "@/lib/api";
+import { profileCompleteness, toProfileDto } from "@/lib/profile";
+import { applySessionCookie } from "@/lib/session";
 
+/**
+ * POST /api/auth/login
+ * Body: { email, password }
+ * Verifies the password against the stored scrypt hash, resets the failure
+ * counter, and opens a 30-day session cookie. Repeated failures lock sign-in.
+ */
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  if (!name) {
-    return NextResponse.json({ error: "Please enter a name." }, { status: 400 });
+  try {
+    const body = await readJson(req);
+    const { user } = authenticate(body.email, body.password);
+    const completeness = profileCompleteness(user.profile);
+
+    const res = NextResponse.json({
+      ok: true,
+      userId: user.id,
+      role: user.role,
+      suspended: user.suspended,
+      name: user.name,
+      profile: toProfileDto(user, user.profile, user.settings),
+      completeness,
+      // the client uses these two flags to decide where to land
+      next: user.role === "admin" ? "/admin" : completeness.done ? "/dashboard" : "/onboarding",
+    });
+    return applySessionCookie(res, user.id);
+  } catch (err) {
+    return handleError(err);
   }
-
-  const user = findUserByName(name) ?? createUser(name);
-  if (user.role === undefined) user.role = user.name.toLowerCase() === "admin" ? "admin" : "member";
-  if (user.suspended === undefined) user.suspended = false;
-
-  const res = NextResponse.json({ ok: true, userId: user.id, role: user.role });
-  res.cookies.set(SESSION_COOKIE, user.id, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-  return res;
 }

@@ -4,12 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Match } from "@/lib/store";
+import { interestEmoji, sharedInterests } from "@/lib/profile";
 
 interface Props {
   matches: Match[];
   maxMatches: number | null;
   likesUsed: number;
   likeLimit: number | null;
+  /** the signed-in member's interests — used to highlight what a match shares */
+  myInterests: string[];
+  needsProfile: boolean;
+  /** false when the member has hidden themselves from Discover */
+  discoverable: boolean;
 }
 
 interface ApiError {
@@ -17,7 +23,15 @@ interface ApiError {
   code?: string;
 }
 
-export default function MatchesView({ matches, maxMatches, likesUsed, likeLimit }: Props) {
+export default function MatchesView({
+  matches,
+  maxMatches,
+  likesUsed,
+  likeLimit,
+  myInterests,
+  needsProfile,
+  discoverable,
+}: Props) {
   const router = useRouter();
   const [discovering, setDiscovering] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -25,6 +39,8 @@ export default function MatchesView({ matches, maxMatches, likesUsed, likeLimit 
   const [ideaDraft, setIdeaDraft] = useState<Record<string, string>>({});
 
   const blocked = error?.code === "MATCH_LIMIT" || error?.code === "LIKE_LIMIT";
+  const hidden = !discoverable;
+  const needsSetup = needsProfile || error?.code === "PROFILE_INCOMPLETE";
   const atMatchLimit = maxMatches !== null && matches.length >= maxMatches;
   const likesLeft = likeLimit === null ? null : Math.max(likeLimit - likesUsed, 0);
 
@@ -62,17 +78,51 @@ export default function MatchesView({ matches, maxMatches, likesUsed, likeLimit 
 
   return (
     <div className="space-y-4">
+      {needsSetup && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <span className="font-medium">
+            Finish your profile first — your photo, interests and preferences are what we match on.
+          </span>
+          <Link
+            href="/onboarding"
+            className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-500"
+          >
+            Set up my profile →
+          </Link>
+        </div>
+      )}
+
+      {hidden && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <span className="font-medium">
+            You&apos;re hidden from Discover — existing matches still work, but new ones are paused.
+          </span>
+          <Link
+            href="/dashboard/settings"
+            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700"
+          >
+            Change visibility →
+          </Link>
+        </div>
+      )}
+
       {/* Discover */}
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={discover}
-          disabled={discovering || atMatchLimit}
+          disabled={discovering || atMatchLimit || needsSetup || hidden}
           className="flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
             <path d="M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.7 4c1.6 0 3.2.8 4.3 2.2C13.1 4.8 14.7 4 16.3 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z" />
           </svg>
-          {discovering ? "Finding your spark…" : atMatchLimit ? "Match limit reached" : "Discover someone new"}
+          {discovering
+            ? "Finding your spark…"
+            : hidden
+              ? "Hidden from Discover"
+              : atMatchLimit
+                ? "Match limit reached"
+                : "Discover someone new"}
         </button>
         {atMatchLimit && (
           <span className="text-xs text-slate-500">
@@ -129,6 +179,7 @@ export default function MatchesView({ matches, maxMatches, likesUsed, likeLimit 
             <MatchCard
               key={match.id}
               match={match}
+              myInterests={myInterests}
               ideaDraft={ideaDraft[match.id] ?? ""}
               onDraft={(v) => setIdeaDraft((d) => ({ ...d, [match.id]: v }))}
               onAddIdea={async () => {
@@ -158,6 +209,7 @@ export default function MatchesView({ matches, maxMatches, likesUsed, likeLimit 
 
 function MatchCard({
   match,
+  myInterests,
   ideaDraft,
   onDraft,
   onAddIdea,
@@ -166,6 +218,7 @@ function MatchCard({
   onUnmatch,
 }: {
   match: Match;
+  myInterests: string[];
   ideaDraft: string;
   onDraft: (v: string) => void;
   onAddIdea: () => void;
@@ -174,6 +227,7 @@ function MatchCard({
   onUnmatch: () => void;
 }) {
   const been = match.dateIdeas.filter((t) => t.done).length;
+  const shared = sharedInterests(myInterests, match.interests ?? []);
   return (
     <div className="flex flex-col rounded-2xl border border-rose-100 bg-white p-5">
       <div className="flex items-start justify-between gap-2">
@@ -186,14 +240,38 @@ function MatchCard({
               {match.name}, {match.age}
             </h3>
             <p className="mt-0.5 text-xs text-slate-500">{match.bio}</p>
-            <p className="mt-1.5 flex items-center gap-2 text-xs">
+            <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
               <span className="rounded-full bg-rose-100 px-2 py-0.5 font-semibold text-rose-700">
                 {match.compatibility}% compatible
               </span>
               <span className="text-slate-400">
                 {been}/{match.dateIdeas.length} dates
               </span>
+              {(match.city || typeof match.distanceKm === "number") && (
+                <span className="text-slate-400">
+                  · {[match.city, match.distanceKm ? `${match.distanceKm} km away` : ""]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              )}
             </p>
+            {shared.length > 0 && (
+              <p className="mt-2 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
+                  Shared
+                </span>
+                {shared.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+                    title="You both list this"
+                  >
+                    <span aria-hidden>{interestEmoji(tag)}</span>
+                    {tag}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         </div>
         <button

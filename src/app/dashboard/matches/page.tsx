@@ -1,11 +1,13 @@
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
+import { profileCompleteness } from "@/lib/profile";
 import MatchesView from "@/components/MatchesView";
 import ExportButton from "@/components/ExportButton";
 
 export default async function MatchesPage() {
-  const user = (await getCurrentUser())!;
+  const user = await requireUser();
   const plan = getPlan(user.subscription.planId);
+  const completeness = profileCompleteness(user.profile);
 
   return (
     <div className="space-y-6">
@@ -25,6 +27,9 @@ export default async function MatchesPage() {
         maxMatches={plan.limits.matches}
         likesUsed={user.usage.count}
         likeLimit={plan.limits.likesPerPeriod}
+        myInterests={user.profile.interests}
+        needsProfile={!completeness.done}
+        discoverable={user.settings.privacy.discoverable}
       />
     </div>
   );

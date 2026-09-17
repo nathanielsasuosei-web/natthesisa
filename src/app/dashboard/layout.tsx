@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPlan } from "@/lib/plans";
+import { profileCompleteness } from "@/lib/profile";
 import SidebarNav from "@/components/SidebarNav";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
@@ -11,6 +13,7 @@ export default async function DashboardLayout({
   if (!user) redirect("/login");
 
   const plan = getPlan(user.subscription.planId);
+  const completeness = profileCompleteness(user.profile);
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
@@ -31,6 +34,9 @@ export default async function DashboardLayout({
           planName={plan.name}
           activityEnabled={plan.entitlements.activityLog}
           isAdmin={user.role === "admin"}
+          photo={user.profile.photo}
+          avatar={user.profile.avatar}
+          needsProfile={!completeness.done}
         />
       </aside>
 
@@ -41,6 +47,9 @@ export default async function DashboardLayout({
           planName={plan.name}
           activityEnabled={plan.entitlements.activityLog}
           isAdmin={user.role === "admin"}
+          photo={user.profile.photo}
+          avatar={user.profile.avatar}
+          needsProfile={!completeness.done}
           compact
         />
       </div>
@@ -48,6 +57,21 @@ export default async function DashboardLayout({
       <main className="min-w-0 flex-1">
         <AnimatedBackground variant="subtle" />
         <div className="relative mx-auto max-w-5xl px-6 py-8">
+          {!completeness.done && (
+            <Link
+              href="/onboarding"
+              className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 transition hover:border-amber-300"
+            >
+              <span>
+                <strong>Your profile isn&apos;t finished.</strong> Add a photo, your interests and who
+                you&apos;d like to meet — {completeness.percent}% done so far. Matching stays locked
+                until you do.
+              </span>
+              <span className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white">
+                Continue setup →
+              </span>
+            </Link>
+          )}
           {user.suspended && (
             <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
               <strong>Your account is suspended.</strong> An administrator has paused your profile —
