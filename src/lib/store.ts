@@ -10,7 +10,6 @@ import {
   compatibilityFor,
   defaultProfile,
   defaultSettings,
-  withinPreferences,
 } from "./profile";
 
 export interface DateIdea {
@@ -73,6 +72,18 @@ export interface Usage {
   history: DayUsage[];
 }
 
+export type SwipeAction = "like" | "pass" | "super";
+
+/** One swipe on the Discover deck — the deck's memory. */
+export interface Swipe {
+  id: string;
+  name: string;
+  action: SwipeAction;
+  /** set when the like became a match */
+  matchId: string | null;
+  ts: string;
+}
+
 export interface PaymentMethod {
   brand: string;
   last4: string;
@@ -100,6 +111,8 @@ export interface User {
   matches: Match[];
   invoices: Invoice[];
   activityLog: ActivityEvent[];
+  /** deck history: who was liked/passed, in order (newest last) */
+  swipes: Swipe[];
   paymentMethod: PaymentMethod;
 }
 
@@ -272,9 +285,11 @@ function ensureAccountShape(user: User): User {
     if (typeof p.city !== "string") p.city = "";
     if (!p.preferences) p.preferences = defaultProfile().preferences;
     if (p.avatar === undefined) p.avatar = defaultProfile().avatar;
+    if (!Array.isArray(p.photos)) p.photos = p.photo ? [p.photo] : [];
     if (p.avatarPicked === undefined) p.avatarPicked = false;
     if (p.photo === undefined) p.photo = null;
   }
+  if (!Array.isArray(user.swipes)) user.swipes = [];
   if (!user.settings) user.settings = defaultSettings();
   else {
     if (!user.settings.notifications) user.settings.notifications = defaultSettings().notifications;
@@ -282,6 +297,14 @@ function ensureAccountShape(user: User): User {
   }
   indexEmail(user);
   return user;
+}
+
+/** Keep `photo` (the primary shot) and `photos` (the gallery) in sync. */
+export function applyGallery(user: User, photos: string[]): void {
+  user.profile.photos = photos;
+  user.profile.photo = photos[0] ?? null;
+  if (photos.length > 0) user.profile.avatarPicked = true;
+  user.profile.updatedAt = new Date().toISOString();
 }
 
 /** Older matches were created without gender/interests — give them defaults. */
@@ -337,31 +360,6 @@ function seedMatchWithIdeas(user: User, seed: MatchSeed, ideas: Array<[string, b
     createdAt: match.createdAt,
   }));
   return match;
-}
-
-/** Choose the best un-matched single for this member, honouring preferences. */
-export function pickCandidate(
-  user: User,
-  opts: { respectPreferences?: boolean } = { respectPreferences: true }
-): MatchSeed | undefined {
-  const taken = new Set(user.matches.map((m) => m.name.toLowerCase()));
-  const profile = user.profile ?? defaultProfile();
-  const pool = DISCOVER_POOL.filter((s) => !taken.has(s.name.toLowerCase()));
-  if (pool.length === 0) return undefined;
-  const eligible = opts.respectPreferences
-    ? pool.filter((s) => withinPreferences(profile, candidateOf(s)).ok)
-    : pool;
-  const ranked = (eligible.length > 0 ? eligible : pool)
-    .map((s) => ({ seed: s, score: s.compatibility + sharedInterestsCount(profile, s) * 6 }))
-    .sort((a, b) => b.score - a.score);
-  // pick from the top few so Discover feels alive without breaking the maths
-  const top = ranked.slice(0, Math.min(3, ranked.length));
-  return top[Math.floor(Math.random() * top.length)].seed;
-}
-
-function sharedInterestsCount(profile: Profile, seed: MatchSeed): number {
-  const mine = new Set(profile.interests.map((t) => t.toLowerCase()));
-  return seed.interests.filter((t) => mine.has(t.toLowerCase())).length;
 }
 
 /* ------------------------------------------------------------------ */
@@ -423,6 +421,7 @@ function buildDemoUser(store: Store, spec: DemoSpec): User {
     matches: [],
     invoices: [],
     activityLog: [],
+    swipes: [],
     paymentMethod: { brand: "Visa", last4: "4242" },
   };
   store.users.set(user.id, user);
@@ -559,6 +558,7 @@ export function createAccount(input: {
     matches: [],
     invoices: [],
     activityLog: [],
+    swipes: [],
     paymentMethod: { brand: "Visa", last4: "4242" },
   };
   store.users.set(user.id, user);

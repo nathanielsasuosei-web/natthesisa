@@ -1,13 +1,170 @@
 /**
- * Shared form building blocks. Every account screen (signup, onboarding,
- * profile editor, settings) is assembled from these so inputs, error text and
- * focus rings stay identical across the app.
+ * The Sparks design system, tuned for the phone-shaped app: dark, tactile,
+ * big tap targets, sheets instead of modals, switches instead of checkboxes.
+ *
+ * Every surface (auth, onboarding, deck, profile, settings) is built from
+ * these so the app reads as one product rather than a pile of forms.
  */
 "use client";
 
-import { useId } from "react";
+import Link from "next/link";
+import { useEffect, useId, useRef, useState } from "react";
 
-/* ----------------------------- wrappers ----------------------------- */
+/* ------------------------------ surfaces ------------------------------ */
+
+export function Panel({
+  children,
+  className = "",
+  as: Tag = "section",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: "section" | "div" | "form";
+}) {
+  return (
+    <Tag
+      className={`rounded-3xl bg-white/[0.045] p-4 ring-1 ring-white/10 backdrop-blur-sm ${className}`}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+export function SectionLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">{children}</h2>
+      {hint && <span className="text-[11px] text-white/35">{hint}</span>}
+    </div>
+  );
+}
+
+/** Tappable settings-style row. */
+export function Row({
+  icon,
+  label,
+  value,
+  hint,
+  onClick,
+  href,
+  chevron = true,
+  tone = "default",
+  disabled,
+}: {
+  icon?: string;
+  label: string;
+  value?: React.ReactNode;
+  hint?: string;
+  onClick?: () => void;
+  href?: string;
+  chevron?: boolean;
+  tone?: "default" | "danger";
+  disabled?: boolean;
+}) {
+  const cls = `press flex w-full items-center gap-3 px-4 py-3.5 text-left ${
+    tone === "danger" ? "text-rose-300" : "text-white"
+  }`;
+  const inner = (
+    <>
+      {icon && (
+        <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/[0.07] text-base">
+          {icon}
+        </span>
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[15px] font-medium">{label}</span>
+        {hint && <span className="mt-0.5 block truncate text-xs text-white/45">{hint}</span>}
+      </span>
+      {value !== undefined && <span className="shrink-0 text-sm text-white/55">{value}</span>}
+      {chevron && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-4 shrink-0 text-white/25">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      )}
+    </>
+  );
+  if (href) {
+    return (
+      <Link href={href} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} className={`${cls} disabled:opacity-40`}>
+      {inner}
+    </button>
+  );
+}
+
+/** Bottom sheet — the app's answer to a modal. */
+export function Sheet({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+  footer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 mx-auto flex max-w-[430px] flex-col justify-end"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+      />
+      <div
+        ref={ref}
+        className="animate-sheet-up no-scrollbar relative max-h-[86%] overflow-y-auto rounded-t-[28px] bg-[#1b1017] px-5 pb-6 pt-3 ring-1 ring-white/10"
+      >
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" aria-hidden />
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold tracking-tight text-white">{title}</h3>
+            {subtitle && <p className="mt-1 text-sm text-white/55">{subtitle}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="press grid size-8 place-items-center rounded-full bg-white/[0.07] text-white/60"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="mt-5">{children}</div>
+        {footer && <div className="mt-6">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ controls ------------------------------ */
+
+const control =
+  "w-full rounded-2xl bg-white/[0.07] px-4 py-3.5 text-[15px] text-white outline-none ring-1 ring-white/10 transition placeholder:text-white/30 focus:bg-white/[0.11] focus:ring-2 focus:ring-rose-400/70 disabled:opacity-50";
 
 export function Field({
   label,
@@ -17,7 +174,6 @@ export function Field({
   required,
   counter,
   children,
-  className = "",
 }: {
   label?: string;
   htmlFor?: string;
@@ -26,105 +182,26 @@ export function Field({
   required?: boolean;
   counter?: string;
   children: React.ReactNode;
-  className?: string;
 }) {
   return (
-    <div className={className}>
+    <div>
       {label && (
-        <div className="mb-1.5 flex items-baseline justify-between gap-3">
-          <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700">
+        <div className="mb-1.5 flex items-baseline justify-between gap-3 px-1">
+          <label htmlFor={htmlFor} className="text-[13px] font-medium text-white/70">
             {label}
-            {required && <span className="ml-1 text-rose-500">*</span>}
+            {required && <span className="ml-1 text-rose-400">*</span>}
           </label>
-          {counter && <span className="shrink-0 text-xs tabular-nums text-slate-400">{counter}</span>}
+          {counter && <span className="text-[11px] tabular-nums text-white/35">{counter}</span>}
         </div>
       )}
       {children}
       {error ? (
-        <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p>
+        <p className="mt-1.5 px-1 text-xs font-medium text-rose-300">{error}</p>
       ) : hint ? (
-        <p className="mt-1.5 text-xs text-slate-500">{hint}</p>
+        <p className="mt-1.5 px-1 text-xs text-white/40">{hint}</p>
       ) : null}
     </div>
   );
-}
-
-export function Card({
-  title,
-  description,
-  icon,
-  action,
-  children,
-  footer,
-  id,
-}: {
-  title: string;
-  description?: string;
-  icon?: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-  id?: string;
-}) {
-  return (
-    <section
-      id={id}
-      className="scroll-mt-24 rounded-2xl border border-rose-100 bg-white p-6 shadow-sm shadow-rose-900/5"
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          {icon && (
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600">
-              <span aria-hidden className="text-base leading-none">
-                {icon}
-              </span>
-            </span>
-          )}
-          <div>
-            <h2 className="font-semibold">{title}</h2>
-            {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
-          </div>
-        </div>
-        {action}
-      </div>
-      <div className="mt-5">{children}</div>
-      {footer && <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rose-50 pt-4">{footer}</div>}
-    </section>
-  );
-}
-
-export function Alert({
-  tone = "error",
-  children,
-  action,
-}: {
-  tone?: "error" | "success" | "info" | "warn";
-  children: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  const cls = {
-    error: "border-red-200 bg-red-50 text-red-700",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    info: "border-sky-200 bg-sky-50 text-sky-800",
-    warn: "border-amber-200 bg-amber-50 text-amber-800",
-  }[tone];
-  return (
-    <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3.5 text-sm ${cls}`}>
-      <span className="font-medium">{children}</span>
-      {action}
-    </div>
-  );
-}
-
-/* ----------------------------- controls ----------------------------- */
-
-const inputBase =
-  "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70";
-
-function tone(error?: string | null) {
-  return error
-    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-    : "border-slate-300 focus:border-rose-500 focus:ring-rose-100";
 }
 
 export function TextInput({
@@ -132,7 +209,7 @@ export function TextInput({
   hint,
   error,
   required,
-  className,
+  className = "",
   id,
   ...rest
 }: React.ComponentProps<"input"> & {
@@ -148,7 +225,7 @@ export function TextInput({
         id={inputId}
         {...rest}
         aria-invalid={error ? true : undefined}
-        className={`${inputBase} ${tone(error)} ${className ?? ""}`}
+        className={`${control} ${error ? "ring-rose-400/70" : ""} ${className}`}
       />
     </Field>
   );
@@ -161,7 +238,7 @@ export function Textarea({
   required,
   maxLength,
   value,
-  className,
+  className = "",
   id,
   ...rest
 }: React.ComponentProps<"textarea"> & {
@@ -187,7 +264,7 @@ export function Textarea({
         maxLength={maxLength}
         {...rest}
         aria-invalid={error ? true : undefined}
-        className={`${inputBase} ${tone(error)} min-h-28 resize-y leading-relaxed ${className ?? ""}`}
+        className={`${control} min-h-28 resize-none leading-relaxed ${error ? "ring-rose-400/70" : ""} ${className}`}
       />
     </Field>
   );
@@ -199,7 +276,7 @@ export function Select({
   error,
   required,
   options,
-  className,
+  className = "",
   id,
   ...rest
 }: React.ComponentProps<"select"> & {
@@ -216,7 +293,7 @@ export function Select({
       <select
         id={selectId}
         {...rest}
-        className={`${inputBase} ${tone(error)} appearance-none bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")] bg-[length:1rem] bg-[position:right_0.85rem_center] bg-no-repeat pr-10 ${className ?? ""}`}
+        className={`${control} appearance-none bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")] bg-[length:1rem] bg-[position:right_0.9rem_center] bg-no-repeat pr-10 [&>option]:bg-[#1b1017] [&>option]:text-white`}
       >
         {list.map((o) => (
           <option key={o.value} value={o.value}>
@@ -228,7 +305,6 @@ export function Select({
   );
 }
 
-/** Accessible switch: a real checkbox that looks like a toggle. */
 export function Toggle({
   label,
   description,
@@ -251,26 +327,26 @@ export function Toggle({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`flex w-full items-start justify-between gap-4 rounded-xl border bg-white px-4 py-3 text-left transition disabled:opacity-60 ${
-        checked ? "border-rose-200" : "border-slate-200"
-      } hover:border-rose-300`}
+      className="press flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left ring-1 ring-white/10 transition disabled:opacity-50 hover:bg-white/[0.04]"
     >
-      <span className="min-w-0">
-        <span className="block text-sm font-medium text-slate-800">
-          {emoji && <span className="mr-1.5">{emoji}</span>}
-          {label}
+      {emoji && (
+        <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/[0.07] text-base">
+          {emoji}
         </span>
-        {description && <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{description}</span>}
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-medium text-white">{label}</span>
+        {description && <span className="mt-0.5 block text-xs leading-relaxed text-white/45">{description}</span>}
       </span>
       <span
         aria-hidden
-        className={`relative mt-0.5 block h-6 w-11 shrink-0 rounded-full transition ${
-          checked ? "bg-rose-600" : "bg-slate-300"
+        className={`relative block h-[26px] w-[46px] shrink-0 rounded-full transition ${
+          checked ? "bg-gradient-to-r from-rose-500 to-fuchsia-500" : "bg-white/15"
         }`}
       >
         <span
-          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${
-            checked ? "left-[1.375rem]" : "left-0.5"
+          className={`absolute top-[3px] size-5 rounded-full bg-white shadow transition-all ${
+            checked ? "left-[23px]" : "left-[3px]"
           }`}
         />
       </span>
@@ -284,20 +360,21 @@ export function Chip({
   children,
   emoji,
   onRemove,
+  size = "md",
 }: {
   active?: boolean;
   onClick?: () => void;
   children: React.ReactNode;
   emoji?: string;
   onRemove?: () => void;
+  size?: "sm" | "md";
 }) {
+  const pad = size === "sm" ? "px-2.5 py-1 text-xs" : "px-3.5 py-2 text-sm";
   if (onRemove) {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${
-          active
-            ? "border-rose-300 bg-rose-50 font-medium text-rose-700"
-            : "border-slate-200 bg-slate-50 text-slate-600"
+        className={`inline-flex items-center gap-1.5 rounded-full ${pad} ${
+          active ? "bg-white/[0.09] font-medium text-white ring-1 ring-white/15" : "bg-white/[0.05] text-white/55"
         }`}
       >
         {emoji && <span aria-hidden>{emoji}</span>}
@@ -306,7 +383,7 @@ export function Chip({
           type="button"
           onClick={onRemove}
           aria-label={`Remove ${String(children)}`}
-          className="grid size-4 place-items-center rounded-full text-slate-400 transition hover:bg-rose-200 hover:text-rose-700"
+          className="press grid size-4 place-items-center rounded-full bg-white/10 text-[11px] text-white/70 hover:bg-rose-500 hover:text-white"
         >
           ×
         </button>
@@ -318,10 +395,10 @@ export function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+      className={`press inline-flex items-center gap-1.5 rounded-full ${pad} font-medium transition ${
         active
-          ? "border-rose-500 bg-rose-600 font-semibold text-white shadow-sm shadow-rose-600/25"
-          : "border-slate-300 bg-white text-slate-700 hover:border-rose-400 hover:bg-rose-50"
+          ? "bg-gradient-to-r from-rose-500 to-fuchsia-500 text-white shadow-lg shadow-rose-900/40"
+          : "bg-white/[0.06] text-white/70 ring-1 ring-white/10 hover:bg-white/[0.11]"
       }`}
     >
       {emoji && <span aria-hidden>{emoji}</span>}
@@ -335,23 +412,42 @@ export function Button({
   busy,
   children,
   className = "",
+  full,
+  href,
   ...rest
-}: React.ComponentProps<"button"> & { variant?: "primary" | "ghost" | "danger" | "subtle"; busy?: boolean }) {
+}: Omit<React.ComponentProps<"button">, "href"> & {
+  variant?: "primary" | "ghost" | "danger" | "subtle";
+  busy?: boolean;
+  full?: boolean;
+  /** renders a styled link instead — so a CTA never nests a button in an <a> */
+  href?: string;
+}) {
   const styles = {
-    primary: "bg-rose-600 text-white shadow-lg shadow-rose-600/20 hover:bg-rose-500",
-    ghost: "border border-slate-300 bg-white/80 text-slate-700 hover:border-slate-400",
-    subtle: "bg-rose-50 text-rose-700 hover:bg-rose-100",
-    danger: "border border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50",
+    primary:
+      "bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white shadow-lg shadow-rose-900/40 hover:brightness-110",
+    ghost: "bg-white/[0.06] text-white/80 ring-1 ring-white/12 hover:bg-white/[0.11]",
+    subtle: "bg-rose-500/15 text-rose-200 ring-1 ring-rose-400/25 hover:bg-rose-500/25",
+    danger: "bg-rose-600/90 text-white shadow-lg shadow-rose-900/40 hover:bg-rose-600",
   }[variant];
+  const look = `press inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[15px] font-semibold transition ${styles} ${
+    full ? "w-full" : ""
+  } ${className}`;
+  if (href) {
+    return (
+      <Link href={href} className={look}>
+        {children}
+      </Link>
+    );
+  }
   return (
     <button
       {...rest}
       disabled={rest.disabled || busy}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 ${styles} ${className}`}
+      className={`${look} disabled:cursor-not-allowed disabled:opacity-45`}
     >
       {busy && (
         <svg viewBox="0 0 24 24" className="size-4 animate-spin" fill="none" aria-hidden>
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="3" />
           <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
         </svg>
       )}
@@ -360,18 +456,186 @@ export function Button({
   );
 }
 
-/* ------------------------------ helpers ------------------------------ */
-
-export interface ApiError {
-  error?: string;
-  code?: string;
-  fields?: Record<string, string>;
+/** Round icon-only control (deck buttons, header actions). */
+export function IconButton({
+  label,
+  onClick,
+  children,
+  size = 52,
+  tone = "dark",
+  disabled,
+  className = "",
+}: {
+  label: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+  size?: number;
+  tone?: "dark" | "like" | "pass" | "super" | "ghost";
+  disabled?: boolean;
+  className?: string;
+}) {
+  const tones = {
+    dark: "bg-white/[0.07] text-white ring-1 ring-white/12 hover:bg-white/[0.13]",
+    like: "bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-900/40",
+    pass: "bg-white text-rose-600 shadow-lg shadow-black/30 ring-1 ring-white/20",
+    super: "bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-lg shadow-indigo-900/40",
+    ghost: "bg-transparent text-white/60 hover:text-white",
+  }[tone];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      style={{ width: size, height: size }}
+      className={`press grid shrink-0 place-items-center rounded-full transition disabled:opacity-40 ${tones} ${className}`}
+    >
+      {children}
+    </button>
+  );
 }
 
-/** Post JSON and return the parsed body, throwing a friendly message on failure. */
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  size = "md",
+}: {
+  options: Array<{ value: T; label: string; hint?: string }>;
+  value: T;
+  onChange: (next: T) => void;
+  size?: "sm" | "md";
+}) {
+  return (
+    <div className="flex gap-1 rounded-2xl bg-white/[0.05] p-1 ring-1 ring-white/10">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          aria-pressed={value === o.value}
+          className={`press flex-1 rounded-xl px-3 ${
+            size === "sm" ? "py-1.5 text-xs" : "py-2 text-sm"
+          } font-semibold transition ${
+            value === o.value ? "bg-white text-[#1b1017] shadow" : "text-white/60 hover:text-white"
+          }`}
+        >
+          {o.label}
+          {o.hint && <span className="ml-1 text-[10px] font-bold uppercase opacity-70">{o.hint}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Meter({
+  value,
+  max,
+  label,
+  tone = "rose",
+}: {
+  value: number;
+  max: number | null;
+  label?: string;
+  tone?: "rose" | "emerald" | "amber";
+}) {
+  const pct = max === null ? 8 : Math.min(100, Math.round((value / Math.max(max, 1)) * 100));
+  const bar = {
+    rose: "bg-gradient-to-r from-rose-400 to-fuchsia-400",
+    emerald: "bg-gradient-to-r from-emerald-400 to-teal-400",
+    amber: "bg-gradient-to-r from-amber-300 to-orange-400",
+  }[tone];
+  return (
+    <div>
+      {label && (
+        <p className="mb-1 flex items-baseline justify-between text-[11px] text-white/45">
+          <span>{label}</span>
+          <span className="tabular-nums text-white/70">
+            {value.toLocaleString("en-US")}
+            {max === null ? " · unlimited" : ` / ${max.toLocaleString("en-US")}`}
+          </span>
+        </p>
+      )}
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className={`h-full rounded-full transition-all duration-500 ${bar}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+export function Alert({
+  tone = "info",
+  children,
+  action,
+}: {
+  tone?: "error" | "success" | "info" | "warn";
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  const cls = {
+    error: "bg-rose-500/12 text-rose-100 ring-rose-400/25",
+    success: "bg-emerald-500/12 text-emerald-100 ring-emerald-400/25",
+    info: "bg-sky-500/12 text-sky-100 ring-sky-400/25",
+    warn: "bg-amber-500/12 text-amber-100 ring-amber-400/25",
+  }[tone];
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm ring-1 ${cls}`}>
+      <span className="font-medium">{children}</span>
+      {action}
+    </div>
+  );
+}
+
+export function EmptyState({
+  emoji,
+  title,
+  body,
+  action,
+}: {
+  emoji: string;
+  title: string;
+  body: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center px-6 py-12 text-center">
+      <span aria-hidden className="animate-float grid size-16 place-items-center rounded-3xl bg-white/[0.06] text-3xl ring-1 ring-white/10">
+        {emoji}
+      </span>
+      <h3 className="mt-4 text-lg font-bold tracking-tight text-white">{title}</h3>
+      <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-white/55">{body}</p>
+      {action && <div className="mt-5 w-full max-w-xs">{action}</div>}
+    </div>
+  );
+}
+
+/** Small floating confirmation, shown at the bottom of the phone frame. */
+export function useToast() {
+  const [toast, setToast] = useState<string | null>(null);
+  const timer = useRef<number | null>(null);
+  function show(message: string, ms = 2400) {
+    setToast(message);
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setToast(null), ms);
+  }
+  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+  const node = toast ? (
+    <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[60] mx-auto flex max-w-[430px] justify-center px-6">
+      <p className="animate-pop glass rounded-full px-4 py-2.5 text-center text-sm font-medium text-white shadow-xl ring-1 ring-white/15">
+        {toast}
+      </p>
+    </div>
+  ) : null;
+  return { show, node };
+}
+
+/* ------------------------------ networking ----------------------------- */
+
+/** Fetch JSON with the app's conventions: parsed body + friendly errors. */
 export async function sendJson(
   url: string,
-  init: RequestInit
+  init: RequestInit = {}
 ): Promise<{ ok: boolean; status: number; body: Record<string, unknown> }> {
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },

@@ -139,6 +139,7 @@ export const INTEREST_MAX = 10;
 export const TAG_MAX = 24;
 /** Hard cap on an uploaded photo, after the browser has resized it. */
 export const PHOTO_MAX_BYTES = 1_500_000;
+export const PHOTO_MAX_COUNT = 6;
 
 export interface Preferences {
   /** who to surface in Discover — empty array means "anyone" */
@@ -161,6 +162,8 @@ export interface Profile {
   interests: string[];
   /** data: URL produced by the browser after client-side downscaling */
   photo: string | null;
+  /** the gallery, first shot is the primary (mirrored into `photo`) */
+  photos: string[];
   /** decorative fallback shown until a photo exists */
   avatar: string;
   /** true once the member picked an avatar or uploaded a photo themselves */
@@ -207,6 +210,7 @@ export function defaultProfile(): Profile {
     bio: "",
     interests: [],
     photo: null,
+    photos: [],
     avatar: AVATAR_PRESETS[0],
     avatarPicked: false,
     preferences: defaultPreferences(),
@@ -277,7 +281,7 @@ export interface Completeness {
 }
 
 const WEIGHTS: Array<[string, number, (p: Profile) => boolean]> = [
-  ["photo", 20, (p) => Boolean(p.photo) || p.avatarPicked],
+  ["photo", 20, (p) => Boolean(p.photo) || (p.photos?.length ?? 0) > 0 || p.avatarPicked],
   ["age", 15, (p) => ageFrom(p.birthDate) !== null],
   ["city", 15, (p) => p.city.trim().length >= 2],
   ["bio", 15, (p) => p.bio.trim().length >= 40],
@@ -526,6 +530,17 @@ export function validatePhotoDataUrl(raw: unknown): string {
   return `data:image/${match[1] === "jpg" ? "jpeg" : match[1]};base64,${match[2].replace(/\s+/g, "")}`;
 }
 
+/** A gallery upload replaces the list wholesale; each entry is re-validated. */
+export function validatePhotoList(raw: unknown): string[] {
+  if (!Array.isArray(raw))
+    throw new ProfileValidationError("Photos should be a list.", { photo: "Something's off with that upload." });
+  if (raw.length > PHOTO_MAX_COUNT)
+    throw new ProfileValidationError(`Profiles hold up to ${PHOTO_MAX_COUNT} photos.`, {
+      photo: `Remove ${raw.length - PHOTO_MAX_COUNT} to save.`,
+    });
+  return raw.map((entry) => validatePhotoDataUrl(entry));
+}
+
 export function validateAvatar(raw: unknown): string {
   const value = sanitizeText(raw, 8);
   if (!value) throw new ProfileValidationError("Pick an avatar.", { avatar: "Choose one of the presets." });
@@ -710,6 +725,7 @@ export interface ProfileDto {
   bio: string;
   interests: string[];
   photo: string | null;
+  photos: string[];
   avatar: string;
   avatarPicked: boolean;
   preferences: Preferences;
@@ -731,6 +747,7 @@ export function profileFromDto(dto: ProfileDto): Profile {
     bio: dto.bio,
     interests: dto.interests,
     photo: dto.photo,
+    photos: dto.photos ?? [],
     avatar: dto.avatar,
     avatarPicked: dto.avatarPicked,
     preferences: dto.preferences,
@@ -756,6 +773,7 @@ export function toProfileDto(
     bio: profile.bio,
     interests: profile.interests,
     photo: profile.photo,
+    photos: profile.photos ?? [],
     avatar: profile.avatar,
     avatarPicked: profile.avatarPicked,
     preferences: profile.preferences,

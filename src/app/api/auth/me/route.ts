@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/session";
 
 /**
  * GET /api/auth/me — who is signed in (used by the client shell to hydrate
- * forms and to decide between /dashboard and /onboarding).
+ * forms and to decide between /app/discover and /onboarding).
  */
 export async function GET() {
   const user = await getCurrentUser();

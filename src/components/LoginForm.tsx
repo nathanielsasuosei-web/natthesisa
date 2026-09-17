@@ -39,7 +39,7 @@ export default function LoginForm({ demo }: { demo?: { member: { email: string; 
         setBanner(messageFrom(body, "Could not sign in."));
         return;
       }
-      const next = typeof body.next === "string" ? body.next : "/dashboard";
+      const next = typeof body.next === "string" ? body.next : "/app/discover";
       router.push(next);
       router.refresh();
     } catch {
@@ -50,7 +50,7 @@ export default function LoginForm({ demo }: { demo?: { member: { email: string; 
   }
 
   return (
-    <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+    <form onSubmit={submit} className="space-y-4" noValidate>
       {banner && <Alert tone={banner.includes("locked") ? "warn" : "error"}>{banner}</Alert>}
       <TextInput
         label="Email"
@@ -75,33 +75,34 @@ export default function LoginForm({ demo }: { demo?: { member: { email: string; 
       </Button>
 
       {demo && (
-        <div className="rounded-xl border border-dashed border-rose-200 bg-rose-50/50 p-3">
-          <p className="text-xs font-medium text-rose-800">Demo accounts — one tap to fill in</p>
+        <div className="rounded-2xl bg-white/[0.05] p-3 ring-1 ring-white/10">
+          <p className="text-xs font-medium text-white/70">Demo accounts — one tap signs you in</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={(e) => void submit(e, demo.member)}
-              className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100"
+              className="press rounded-full bg-gradient-to-r from-rose-500/25 to-fuchsia-500/20 px-3 py-1.5 text-xs font-semibold text-rose-100 ring-1 ring-rose-400/30"
             >
-              Member · {demo.member.email}
+              💘 Member
             </button>
             <button
               type="button"
               onClick={(e) => void submit(e, demo.admin)}
-              className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100"
+              className="press rounded-full bg-white/[0.07] px-3 py-1.5 text-xs font-semibold text-white/70 ring-1 ring-white/12"
             >
-              Admin · {demo.admin.email}
+              🛠️ Admin
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-rose-700/80">
-            Passwords are shown on purpose: this is a demo with in-memory data.
+          <p className="mt-2 text-[11px] text-white/40">
+            {demo.member.email} · {demo.member.password} — passwords are shown on purpose: this is a demo
+            with in-memory data.
           </p>
         </div>
       )}
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-white/50">
         New here?{" "}
-        <Link href="/signup" className="font-semibold text-rose-600 hover:text-rose-500">
+        <Link href="/signup" className="font-semibold text-rose-300 hover:text-rose-200">
           Create an account
         </Link>
       </p>

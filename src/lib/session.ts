@@ -37,7 +37,7 @@ export async function getCurrentAdmin(): Promise<User | null> {
 export async function requireAdmin(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "admin") redirect("/dashboard");
+  if (user.role !== "admin") redirect("/app/discover");
   return user;
 }
 
@@ -54,6 +54,12 @@ export function needsProfileSetup(user: User): boolean {
 export const SUSPENDED_ERROR = {
   error: "Your account has been suspended by an administrator. Contact support to appeal.",
   code: "SUSPENDED",
+} as const;
+
+export const NOT_DISCOVERABLE_ERROR = {
+  error:
+    "You're hidden from Discover, so new matches are paused. Turn visibility back on in account settings.",
+  code: "NOT_DISCOVERABLE",
 } as const;
 
 export const PROFILE_INCOMPLETE_ERROR = {

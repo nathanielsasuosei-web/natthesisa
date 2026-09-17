@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       profile: toProfileDto(user, user.profile, user.settings),
       completeness,
       // the client uses these two flags to decide where to land
-      next: user.role === "admin" ? "/admin" : completeness.done ? "/dashboard" : "/onboarding",
+      next: user.role === "admin" ? "/admin" : completeness.done ? "/app/discover" : "/onboarding",
     });
     return applySessionCookie(res, user.id);
   } catch (err) {

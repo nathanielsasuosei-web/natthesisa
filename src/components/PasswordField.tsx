@@ -56,13 +56,13 @@ export default function PasswordField({
       />
       {strength && (
         <div className="mt-2 flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
             <div
               className={`h-full rounded-full transition-all duration-300 ${barColor}`}
               style={{ width: `${pct}%` }}
             />
           </div>
-          <span className="w-20 shrink-0 text-right text-xs font-medium text-slate-500">{strength.label}</span>
+          <span className="w-20 shrink-0 text-right text-xs font-medium text-white/55">{strength.label}</span>
         </div>
       )}
     </div>

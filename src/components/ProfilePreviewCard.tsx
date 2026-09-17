@@ -36,23 +36,35 @@ export default function ProfilePreviewCard({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-lg shadow-rose-900/5">
+      <div className="overflow-hidden overflow-hidden rounded-3xl bg-white/[0.05] ring-1 ring-white/12">
         <div className="relative">
-          {profile.photo ? (
+          {profile.photos && profile.photos.length > 1 ? (
+            <div className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto">
+              {profile.photos.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={src} alt={i === 0 ? "" : `Photo ${i + 1}`} className="h-52 w-full shrink-0 snap-center object-cover" />
+              ))}
+            </div>
+          ) : profile.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={profile.photo} alt="" className="h-52 w-full object-cover" />
           ) : (
-            <div className="grid h-52 w-full place-items-center bg-gradient-to-br from-rose-100 via-fuchsia-100 to-rose-50">
+            <div className="grid h-52 w-full place-items-center bg-gradient-to-br from-rose-500/30 via-fuchsia-500/25 to-indigo-500/25">
               <span className="text-6xl" aria-hidden>
                 {profile.avatar}
               </span>
             </div>
           )}
-          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-rose-700 shadow-sm">
+          {profile.photos && profile.photos.length > 1 && (
+            <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white">
+              1/{profile.photos.length} — scroll
+            </span>
+          )}
+          <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-xs font-semibold text-rose-300 shadow">
             How others see you
           </span>
           {(profile.pronouns || profile.gender) && (
-            <span className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-white">
+            <span className="absolute right-3 top-3 rounded-full bg-white/[0.08]/80 px-2.5 py-1 text-xs font-medium text-white">
               {profile.pronouns || profile.gender}
             </span>
           )}
@@ -62,19 +74,19 @@ export default function ProfilePreviewCard({
           <div className="flex items-baseline gap-2">
             <h3 className="truncate text-lg font-bold tracking-tight">{name || "Your name"}</h3>
             {age !== null && showAge && (
-              <span className="text-lg font-medium text-slate-500">{age}</span>
+              <span className="text-lg font-medium text-white/55">{age}</span>
             )}
           </div>
           {showLocation ? (
-            <p className="mt-0.5 text-sm text-slate-500">
-              {location || <span className="italic text-slate-400">Add your city so nearby people find you</span>}
+            <p className="mt-0.5 text-sm text-white/55">
+              {location || <span className="italic text-white/40">Add your city so nearby people find you</span>}
             </p>
           ) : (
-            <p className="mt-0.5 text-sm italic text-slate-400">Location hidden</p>
+            <p className="mt-0.5 text-sm italic text-white/40">Location hidden</p>
           )}
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+          <p className="mt-3 text-sm leading-relaxed text-white/85">
             {profile.bio || (
-              <span className="italic text-slate-400">
+              <span className="italic text-white/40">
                 Your bio goes here — one or two lines about who you are when you&apos;re off the app.
               </span>
             )}
@@ -85,7 +97,7 @@ export default function ProfilePreviewCard({
               {profile.interests.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700"
+                  className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2.5 py-1 text-xs font-medium text-rose-300"
                 >
                   <span aria-hidden>{interestEmoji(tag)}</span>
                   {tag}
@@ -115,25 +127,25 @@ function SparkPreview({ profile }: { profile: Profile }) {
     .slice(0, 3);
 
   return (
-    <div className="rounded-2xl border border-rose-100 bg-white p-5">
+    <div className="rounded-3xl bg-white/[0.05] ring-1 ring-white/12 p-5">
       <div className="flex items-baseline justify-between">
         <h4 className="text-sm font-semibold">Your first sparks</h4>
-        <span className="text-xs text-slate-400">{DISCOVER_POOL.length} demo members in the pool</span>
+        <span className="text-xs text-white/40">{DISCOVER_POOL.length} demo members in the pool</span>
       </div>
       <ul className="mt-3 space-y-2.5">
         {ranked.map(({ seed, score, fits }) => {
           const shared = sharedInterests(profile.interests, seed.interests);
           return (
-            <li key={seed.name} className="flex items-center gap-3 rounded-xl bg-rose-50/50 p-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-lg shadow-sm">
+            <li key={seed.name} className="flex items-center gap-3 rounded-xl bg-white/[0.05] p-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-lg shadow">
                 {seed.emoji}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
                   {seed.name}, {seed.age}
-                  <span className="ml-1.5 text-xs font-normal text-slate-500">{seed.city}</span>
+                  <span className="ml-1.5 text-xs font-normal text-white/55">{seed.city}</span>
                 </p>
-                <p className="mt-0.5 truncate text-xs text-slate-500">
+                <p className="mt-0.5 truncate text-xs text-white/55">
                   {shared.length > 0
                     ? `Shared: ${shared.join(", ")}`
                     : `Add interests and we'll score ${seed.name.split(" ")[0]} higher`}
@@ -141,7 +153,7 @@ function SparkPreview({ profile }: { profile: Profile }) {
               </div>
               <span
                 className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                  fits ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-500"
+                  fits ? "bg-rose-600 text-white" : "bg-white/10 text-white/55"
                 }`}
                 title={fits ? "Inside your preferences" : "Outside your stated preferences"}
               >
@@ -151,7 +163,7 @@ function SparkPreview({ profile }: { profile: Profile }) {
           );
         })}
       </ul>
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 text-xs text-white/55">
         Pool score adjusted for your interests, age range and distance. You&apos;re after{" "}
         {INTENT_LABEL[profile.preferences.intent].toLowerCase()}.
       </p>

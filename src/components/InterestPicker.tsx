@@ -70,20 +70,20 @@ export default function InterestPicker({
   return (
     <div className="space-y-4">
       {/* chosen */}
-      <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
+      <div className="rounded-2xl border ring-white/10 bg-white/[0.05] p-4">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="text-sm font-medium text-slate-700">
+          <p className="text-sm font-medium text-white/85">
             Your interests
             <span className={`ml-2 text-xs font-semibold ${enough ? "text-emerald-600" : "text-rose-600"}`}>
               {selected.length}/{INTEREST_MAX}
             </span>
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-white/55">
             {enough ? "Nice spread — this drives your compatibility score." : `Pick at least ${INTEREST_MIN}.`}
           </p>
         </div>
         {selected.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">Nothing chosen yet. Tap a suggestion below or add your own.</p>
+          <p className="mt-3 text-sm text-white/55">Nothing chosen yet. Tap a suggestion below or add your own.</p>
         ) : (
           <div className="mt-3 flex flex-wrap gap-2">
             {selected.map((tag) => (
@@ -98,14 +98,14 @@ export default function InterestPicker({
             ))}
           </div>
         )}
-        {error && <p className="mt-2 text-xs font-medium text-red-600">{error}</p>}
-        {customError && <p className="mt-2 text-xs font-medium text-red-600">{customError}</p>}
+        {error && <p className="mt-2 text-xs font-medium text-rose-300">{error}</p>}
+        {customError && <p className="mt-2 text-xs font-medium text-rose-300">{customError}</p>}
       </div>
 
       {/* add your own */}
       <div className="flex flex-wrap items-end gap-2">
         <div className="min-w-40 flex-1">
-          <label htmlFor="custom-interest" className="mb-1.5 block text-xs font-medium text-slate-600">
+          <label htmlFor="custom-interest" className="mb-1.5 block text-xs font-medium text-white/70">
             Something not on the list?
           </label>
           <input
@@ -120,14 +120,14 @@ export default function InterestPicker({
             }}
             placeholder="e.g. Kente weaving"
             maxLength={24}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
+            className="w-full rounded-xl ring-1 ring-white/10 bg-white/[0.06] text-white placeholder:text-white/30 px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-rose-400/70 focus:bg-white/[0.1]"
           />
         </div>
         <button
           type="button"
           onClick={addCustom}
           disabled={!custom.trim()}
-          className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40"
+          className="rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40"
         >
           Add
         </button>
@@ -139,17 +139,17 @@ export default function InterestPicker({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search interests — hiking, jollof, karaoke…"
-          className="mb-3 w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
+          className="mb-3 w-full rounded-xl ring-1 ring-white/10 bg-white/[0.06] text-white placeholder:text-white/30 px-4 py-2 text-sm outline-none transition focus:ring-2 focus:ring-rose-400/70 focus:bg-white/[0.1]"
         />
         <div className="space-y-3">
           {suggestions.length === 0 && (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-white/55">
               Nothing matches “{query}”. Add it as your own interest above — unique is good.
             </p>
           )}
           {suggestions.map((group) => (
             <div key={group.group}>
-              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-400">{group.group}</p>
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-white/40">{group.group}</p>
               <div className="flex flex-wrap gap-2">
                 {group.items.map((item) => (
                   <Chip

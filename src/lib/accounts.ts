@@ -7,6 +7,7 @@
  */
 import { hashPassword, validateNewPassword, verifyPassword } from "./password";
 import {
+  PHOTO_MAX_COUNT,
   AccountSettings,
   Profile,
   buildProfilePatch,
@@ -18,6 +19,7 @@ import {
   validateName,
   validateBirthDate,
   validatePhotoDataUrl,
+  validatePhotoList,
 } from "./profile";
 import {
   User,
@@ -27,6 +29,7 @@ import {
   findUserByEmail,
   getStore,
   indexEmail,
+  applyGallery,
   logActivity,
   seedStarterMatch,
   unindexEmail,
@@ -181,26 +184,42 @@ function describeProfileChanges(changed: string[]): string {
   return `Updated profile — ${text}`;
 }
 
-export function setPhoto(user: User, dataUrl: unknown): { photo: string } {
+export function setPhoto(user: User, dataUrl: unknown): { photo: string; photos: string[] } {
   ensureUserReady(user);
   const photo = validatePhotoDataUrl(dataUrl);
-  user.profile.photo = photo;
+  // the single-photo endpoint keeps the gallery in sync: the new shot becomes
+  // the primary one and the previous shots follow it
+  const gallery = [photo, ...(user.profile.photos ?? []).filter((p) => p !== photo)].slice(0, PHOTO_MAX_COUNT);
+  applyGallery(user, gallery);
   user.profile.avatarPicked = true;
-  user.profile.updatedAt = new Date().toISOString();
   logActivity(user, "Added a new profile photo");
-  return { photo };
+  return { photo, photos: user.profile.photos };
 }
 
-export function clearPhoto(user: User, avatar?: unknown): { photo: null; avatar: string } {
+/** Replace the whole gallery in one save (photos[0] is the primary shot). */
+export function setGallery(user: User, photosRaw: unknown): { photos: string[]; photo: string | null } {
   ensureUserReady(user);
-  user.profile.photo = null;
+  const photos = validatePhotoList(photosRaw);
+  applyGallery(user, photos);
+  logActivity(
+    user,
+    photos.length === 0
+      ? "Cleared the photo gallery"
+      : `Updated the photo gallery — ${photos.length} photo${photos.length === 1 ? "" : "s"}`
+  );
+  return { photos, photo: user.profile.photo };
+}
+
+export function clearPhoto(user: User, avatar?: unknown): { photo: null; photos: string[]; avatar: string } {
+  ensureUserReady(user);
+  applyGallery(user, []);
   if (typeof avatar === "string" && avatar.trim()) {
     const safe = sanitizeText(avatar, 8);
     if (safe && Array.from(safe).length <= 2) user.profile.avatar = safe;
   }
   user.profile.updatedAt = new Date().toISOString();
   logActivity(user, "Removed the profile photo — using an avatar instead");
-  return { photo: null, avatar: user.profile.avatar };
+  return { photo: null, photos: user.profile.photos, avatar: user.profile.avatar };
 }
 
 /** Flip the "profile creation finished" flag (also used by "skip for now"). */

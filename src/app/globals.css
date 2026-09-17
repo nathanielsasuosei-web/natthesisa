@@ -126,3 +126,174 @@ body {
     opacity: 1;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* App surface (the phone-shaped member app at /app)                   */
+/* ------------------------------------------------------------------ */
+
+.app-bg {
+  color-scheme: dark; /* native controls (date pickers, scrollbars) belong to the dark app */
+  background-color: #120a11;
+  background-image:
+    radial-gradient(120% 70% at 50% -10%, rgb(225 29 72 / 0.42), transparent 62%),
+    radial-gradient(90% 60% at 100% 100%, rgb(192 38 211 / 0.28), transparent 60%),
+    radial-gradient(80% 50% at 0% 100%, rgb(56 189 248 / 0.12), transparent 55%);
+}
+
+/* the calendar icon in a date field would otherwise be dark-on-dark */
+.app-bg input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.55;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.safe-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* finger-friendly, tactile press */
+.press {
+  transition:
+    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.16s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.press:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.glass {
+  background-color: rgb(24 12 22 / 0.72);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+@keyframes nt-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes nt-sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(64px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nt-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes nt-heart-float {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6) rotate(var(--rot, 0deg));
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-160px) scale(1.15) rotate(var(--rot, 0deg));
+  }
+}
+
+@keyframes nt-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-14deg) scale(1);
+  }
+}
+
+@keyframes nt-shine {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+.animate-card-in {
+  animation: nt-card-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-sheet-up {
+  animation: nt-sheet-up 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-pop {
+  animation: nt-pop 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-stamp {
+  animation: nt-stamp 0.26s ease-out both;
+}
+.animate-heart {
+  animation: nt-heart-float 1.5s ease-out infinite;
+}
+.shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / 0.35) 50%, transparent 65%);
+  animation: nt-shine 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-in,
+  .animate-sheet-up,
+  .animate-pop,
+  .animate-stamp,
+  .animate-heart,
+  .shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.shine::after {
+    animation: none;
+  }
+  .press {
+    transition: none;
+  }
+  .press:active:not(:disabled) {
+    transform: none;
+  }
+}

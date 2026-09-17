@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "admin") redirect("/dashboard");
+  if (user.role !== "admin") redirect("/app/discover");
 
   return (
     <div className="min-h-screen">
@@ -26,8 +26,8 @@ export default async function AdminLayout({
             </span>
           </div>
           <nav className="flex items-center gap-2 text-sm">
-            <Link href="/dashboard" className="rounded-lg px-3 py-2 font-medium text-slate-400 transition hover:bg-slate-900 hover:text-slate-100">
-              My dashboard
+            <Link href="/app/discover" className="rounded-lg px-3 py-2 font-medium text-slate-400 transition hover:bg-slate-900 hover:text-slate-100">
+              Back to the app
             </Link>
             <span className="hidden items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-slate-300 sm:flex">
               <Avatar name={user.name} photo={user.profile?.photo} emoji={user.profile?.avatar} size={24} ring={false} />

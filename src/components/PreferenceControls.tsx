@@ -57,16 +57,16 @@ export default function PreferenceControls({
         </div>
       </Field>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-xl border ring-1 ring-white/10 bg-white/[0.05] p-4">
         <div className="flex items-baseline justify-between">
-          <p className="text-sm font-medium text-slate-700">Age range</p>
-          <p className="text-sm font-semibold text-rose-700">
+          <p className="text-sm font-medium text-white/85">Age range</p>
+          <p className="text-sm font-semibold text-rose-300">
             {value.ageMin} – {value.ageMax}
           </p>
         </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-500">Youngest I'll see {myAge ? `· you're ${myAge}` : ""}</span>
+            <span className="mb-1 block text-xs text-white/55">Youngest I'll see {myAge ? `· you're ${myAge}` : ""}</span>
             <input
               type="number"
               min={MIN_AGE}
@@ -76,11 +76,11 @@ export default function PreferenceControls({
                 const n = Math.trunc(Number(e.target.value) || MIN_AGE);
                 set("ageMin", Math.max(MIN_AGE, Math.min(n, value.ageMax)));
               }}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
+              className="w-full rounded-xl ring-1 ring-white/10 bg-white/[0.06] px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-rose-400/70 focus:bg-white/[0.1]"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-500">Oldest I'll see</span>
+            <span className="mb-1 block text-xs text-white/55">Oldest I'll see</span>
             <input
               type="number"
               min={MIN_AGE}
@@ -90,11 +90,11 @@ export default function PreferenceControls({
                 const n = Math.trunc(Number(e.target.value) || MAX_AGE);
                 set("ageMax", Math.min(MAX_AGE, Math.max(n, value.ageMin)));
               }}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
+              className="w-full rounded-xl ring-1 ring-white/10 bg-white/[0.06] px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-rose-400/70 focus:bg-white/[0.1]"
             />
           </label>
         </div>
-        {errors.ageMin && <p className="mt-2 text-xs font-medium text-red-600">{errors.ageMin}</p>}
+        {errors.ageMin && <p className="mt-2 text-xs font-medium text-rose-300">{errors.ageMin}</p>}
       </div>
 
       <Field label="Distance" hint="How far are you willing to travel for a good date?" error={errors.distanceKm}>
@@ -119,8 +119,8 @@ export default function PreferenceControls({
                 aria-pressed={active}
                 className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
                   active
-                    ? "border-rose-500 bg-rose-50 font-semibold text-rose-800 shadow-sm"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-rose-300"
+                    ? "border-rose-500 bg-rose-500/15 font-semibold text-white shadow"
+                    : "ring-1 ring-white/10 bg-white/[0.05] text-white/85 hover:bg-white/[0.1]"
                 }`}
               >
                 <span className="mr-1.5">{active ? "💘" : "♡"}</span>
@@ -141,7 +141,7 @@ export function PreferenceSummary({ value, profile }: { value: Preferences; prof
       ? "everyone"
       : value.interestedIn.map((g) => GENDER_PLURAL[g]).join(" & ");
   return (
-    <p className="text-xs text-slate-500">
+    <p className="text-xs text-white/55">
       Dating {who}, {value.ageMin}–{value.ageMax} · {value.distanceKm === 0 ? "anywhere" : `within ${value.distanceKm} km`}
       {profile?.city ? ` · ${summarizeLocation(profile)}` : ""} · {INTENT_LABEL[value.intent]}
     </p>

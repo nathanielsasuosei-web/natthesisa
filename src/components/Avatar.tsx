@@ -12,6 +12,7 @@ export default function Avatar({
   rounded = "full",
   className = "",
   ring = true,
+  tone = "light",
 }: {
   name: string;
   photo?: string | null;
@@ -20,9 +21,12 @@ export default function Avatar({
   rounded?: "full" | "2xl";
   className?: string;
   ring?: boolean;
+  /** "dark" for the app's surfaces, "light" for the admin console */
+  tone?: "light" | "dark";
 }) {
   const shape = rounded === "full" ? "rounded-full" : "rounded-2xl";
-  const ringCls = ring ? "ring-2 ring-rose-100" : "";
+  const ringCls = ring ? (tone === "dark" ? "ring-2 ring-white/25" : "ring-2 ring-rose-100") : "";
+  const wash = tone === "dark" ? "from-rose-500/45 to-fuchsia-500/30 text-white" : "from-rose-100 to-fuchsia-100 text-rose-700";
   if (photo) {
     // A data URL from the browser — plain <img> keeps the demo dependency-free.
     // eslint-disable-next-line @next/next/no-img-element
@@ -41,7 +45,7 @@ export default function Avatar({
     <span
       aria-hidden
       style={{ width: size, height: size, fontSize: Math.round(size * (emoji ? 0.5 : 0.36)) }}
-      className={`grid shrink-0 place-items-center bg-gradient-to-br from-rose-100 to-fuchsia-100 font-semibold text-rose-700 ${shape} ${ringCls} ${className}`}
+      className={`grid shrink-0 place-items-center bg-gradient-to-br ${wash} font-semibold ${shape} ${ringCls} ${className}`}
     >
       {emoji && emoji.trim() ? emoji : initials(name)}
     </span>

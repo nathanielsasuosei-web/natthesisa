@@ -9,7 +9,7 @@ import PasswordField from "./PasswordField";
 import { Alert, Button, TextInput, fieldsFrom, messageFrom, sendJson } from "./forms";
 
 /** Step 1 of joining: identity only. Age/location/bio/interests come next. */
-export default function SignupForm() {
+export default function SignupForm({ maxBirthDate }: { maxBirthDate?: string } = {}) {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", birthDate: "", password: "", confirm: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -21,12 +21,18 @@ export default function SignupForm() {
     setErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
   };
 
-  const maxDate = useMemo(() => {
-    // the newest birthday that still clears the age gate
-    const d = new Date();
-    d.setUTCFullYear(d.getUTCFullYear() - MIN_AGE);
-    return d.toISOString().slice(0, 10);
-  }, []);
+  // the newest birthday that still clears the age gate — computed on the server
+  // (and passed in) so the input's `max` can't differ between renders
+  const maxDate = useMemo(
+    () =>
+      maxBirthDate ??
+      (() => {
+        const d = new Date();
+        d.setUTCFullYear(d.getUTCFullYear() - MIN_AGE);
+        return d.toISOString().slice(0, 10);
+      })(),
+    [maxBirthDate]
+  );
 
   function clientValidate(): boolean {
     const next: Record<string, string> = {};
@@ -77,7 +83,7 @@ export default function SignupForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+    <form onSubmit={submit} className="space-y-4" noValidate>
       {banner && <Alert tone="error">{banner}</Alert>}
 
       <TextInput
@@ -127,13 +133,13 @@ export default function SignupForm() {
         {busy ? "Creating your account…" : "Create account & build my profile"}
       </Button>
 
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-white/45">
         Next we&apos;ll ask for a photo, your city, a bio and who you&apos;d like to meet — about a
         minute, and you can change any of it later.
       </p>
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-white/55">
         Already have an account?{" "}
-        <Link href="/login" className="font-semibold text-rose-600 hover:text-rose-500">
+        <Link href="/login" className="font-semibold text-rose-300 hover:text-rose-200">
           Sign in
         </Link>
       </p>

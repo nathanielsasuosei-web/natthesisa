@@ -65,8 +65,8 @@ export default async function LandingPage() {
             <a href="#features" className="hidden rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900 sm:block">Features</a>
             <a href="#pricing" className="hidden rounded-lg px-3 py-2 text-slate-600 transition hover:text-slate-900 sm:block">Membership</a>
             {user ? (
-              <Link href="/dashboard" className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-500">
-                Open my matches
+              <Link href="/app/discover" className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-500">
+                Open my deck
               </Link>
             ) : (
               <>
@@ -126,36 +126,67 @@ export default async function LandingPage() {
             </a>
           </div>
 
-          {/* Product mock */}
-          <div className="animate-fade-up mx-auto mt-16 max-w-4xl" style={{ animationDelay: "0.45s" }}>
-            <div className="animate-float rounded-2xl border border-rose-200/80 bg-white/85 shadow-2xl shadow-rose-900/10 backdrop-blur">
-              <div className="flex items-center gap-1.5 border-b border-rose-100 px-4 py-3">
-                <span className="size-2.5 rounded-full bg-red-400" />
-                <span className="size-2.5 rounded-full bg-amber-400" />
-                <span className="size-2.5 rounded-full bg-emerald-400" />
-                <span className="ml-3 text-xs text-slate-400">{site.name.toLowerCase()} / matches</span>
+          {/* Product mock — the deck, in the shape the app actually ships in */}
+          <div className="animate-fade-up mx-auto mt-16 flex max-w-4xl flex-col items-center gap-8 lg:flex-row lg:justify-center lg:gap-14" style={{ animationDelay: "0.45s" }}>
+            <div className="animate-float relative w-[280px] shrink-0 overflow-hidden rounded-[2.25rem] bg-[#120a11] text-left text-white shadow-2xl shadow-rose-900/25 ring-1 ring-white/15">
+              <div className="flex items-center justify-between px-4 pb-2 pt-3">
+                <span className="flex items-center gap-1.5 text-xs font-bold">
+                  <span className="grid size-5 place-items-center rounded-md bg-gradient-to-br from-rose-500 to-fuchsia-600 text-[9px]">♥</span>
+                  {site.name}
+                </span>
+                <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] font-semibold text-white/70 ring-1 ring-white/10">Premium</span>
               </div>
-              <div className="grid gap-4 p-6 text-left sm:grid-cols-3">
-                <div className="rounded-xl border border-rose-100 bg-white/80 p-4">
-                  <p className="text-xs font-medium text-slate-500">New match</p>
-                  <p className="mt-1 text-lg font-semibold">Adjoa, 26 🐙</p>
-                  <span className="mt-2 inline-block rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">93% compatible</span>
+              <div className="px-4">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 via-rose-500 to-fuchsia-600 p-4 shadow-xl">
+                  <div className="flex gap-1">
+                    <span className="h-0.5 flex-1 rounded-full bg-white" />
+                    <span className="h-0.5 flex-1 rounded-full bg-white/35" />
+                    <span className="h-0.5 flex-1 rounded-full bg-white/35" />
+                  </div>
+                  <span className="mt-3 inline-block rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-semibold">93% match</span>
+                  <p aria-hidden className="py-4 text-center text-5xl">🦋</p>
+                  <p className="text-lg font-bold leading-tight">
+                    Adjoa, 26 <span className="text-base font-light text-white/75">📍 Osu</span>
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/85">
+                    Runs a pottery studio, terrible at texting first, brilliant at choosing restaurants.
+                  </p>
+                  <span className="absolute right-3 top-16 rotate-[10deg] rounded-lg border-2 border-emerald-300 px-2 py-0.5 text-[11px] font-black uppercase tracking-widest text-emerald-200">
+                    Like
+                  </span>
                 </div>
-                <div className="rounded-xl border border-rose-100 bg-white/80 p-4">
-                  <p className="text-xs font-medium text-slate-500">Likes used</p>
-                  <p className="mt-1 text-lg font-semibold">1,284 / 2,000</p>
-                  <div className="mt-3 h-2 rounded-full bg-rose-100">
-                    <div className="h-2 w-[64%] rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
+                <div className="mt-3 flex items-center justify-center gap-2.5">
+                  <span className="grid size-9 place-items-center rounded-full bg-white text-xs font-black text-rose-600 shadow-lg">✕</span>
+                  <span className="grid size-11 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-base shadow-lg">♥</span>
+                  <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 text-xs shadow-lg">★</span>
+                </div>
+                <div className="mt-3 flex items-center justify-around rounded-2xl bg-white/[0.06] px-2 py-2 text-[9px] font-semibold text-white/60 ring-1 ring-white/10">
+                  <span className="text-rose-300">Discover</span>
+                  <span>Matches</span>
+                  <span>Profile</span>
+                  <span>Settings</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-sm space-y-3 text-left">
+              {[
+                ["🃏", "Swipe a real deck", "Cards are ranked by your age range, distance, gender preference and shared interests — and a like only becomes a match when it's mutual."],
+                ["📸", "Up to six photos", "Drag or tap through a match's gallery, their bio and one prompt answer, then decide."],
+                ["💳", "Limits that behave", "Plan allowances, match slots, invoices and perks are enforced on the server, and the meters under the deck tell you the truth."],
+              ].map(([emoji, title, body]) => (
+                <div key={title} className="flex gap-3 rounded-2xl border border-rose-100 bg-white/85 p-4 backdrop-blur">
+                  <span aria-hidden className="text-xl">{emoji}</span>
+                  <div>
+                    <p className="font-semibold">{title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-600">{body}</p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-rose-100 bg-white/80 p-4">
-                  <p className="text-xs font-medium text-slate-500">Membership renews</p>
-                  <p className="mt-1 text-lg font-semibold">Oct 12</p>
-                  <p className="mt-2 text-xs text-slate-400">
-                    Premium · {formatMoney(getPlan("premium").monthly)}/mo
-                  </p>
-                </div>
-              </div>
+              ))}
+              <p className="pt-1 text-xs text-slate-500">
+                Membership from {formatMoney(getPlan("free").monthly)} to {formatMoney(getPlan("elite").monthly)}/mo —
+                prices in {site.currency.label} ({site.currency.symbol}).
+              </p>
             </div>
           </div>
         </div>
