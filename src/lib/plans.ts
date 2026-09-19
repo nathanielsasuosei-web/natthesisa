@@ -5,19 +5,17 @@ export interface Plan {
   id: PlanId;
   name: string;
   tagline: string;
-  /** price per month */
   monthly: number;
-  /** price per year (≈ 2 months free) */
   yearly: number;
   limits: {
-    /** max active matches, null = unlimited */
-    matches: number | null;
-    /** max likes & interactions per billing period, null = unlimited */
-    likesPerPeriod: number | null;
+    courses: number | null;
   };
   entitlements: {
-    insights: boolean;
-    export: boolean;
+    allCourses: boolean;
+    certificates: boolean;
+    downloads: boolean;
+    advancedInsights: boolean;
+    mentorship: boolean;
     activityLog: boolean;
   };
   features: string[];
@@ -27,51 +25,74 @@ export interface Plan {
 export const PLANS: Plan[] = [
   {
     id: "free",
-    name: "Free",
-    tagline: "Dip a toe in",
+    name: "Explorer",
+    tagline: "Build your first real skills",
     monthly: 0,
     yearly: 0,
-    limits: { matches: 3, likesPerPeriod: 25 },
-    entitlements: { insights: false, export: false, activityLog: false },
+    limits: { courses: 2 },
+    entitlements: {
+      allCourses: false,
+      certificates: false,
+      downloads: false,
+      advancedInsights: false,
+      mentorship: false,
+      activityLog: false,
+    },
     features: [
-      "3 active matches",
-      "25 likes per billing period",
-      "Basic profile",
-      "Community support",
+      "2 complete starter courses",
+      "Preview lessons in every course",
+      "Projects and coding exercises",
+      "Basic progress tracking",
+      "Community access",
     ],
   },
   {
     id: "premium",
-    name: "Premium",
-    tagline: "For serious daters",
-    monthly: 99,
-    yearly: 990,
+    name: "Pro",
+    tagline: "Everything you need to become job-ready",
+    monthly: 149,
+    yearly: 1_490,
+    limits: { courses: null },
+    entitlements: {
+      allCourses: true,
+      certificates: true,
+      downloads: true,
+      advancedInsights: true,
+      mentorship: false,
+      activityLog: true,
+    },
     featured: true,
-    limits: { matches: 25, likesPerPeriod: 2000 },
-    entitlements: { insights: true, export: true, activityLog: false },
     features: [
-      "25 active matches",
-      "2,000 likes per billing period",
-      "Love insights & compatibility stats",
-      "Export your match history (CSV)",
-      "Priority email support",
+      "Unlimited access to every course",
+      "Portfolio-ready guided projects",
+      "Completion certificates",
+      "Downloadable learning resources",
+      "Advanced progress insights",
+      "Priority community support",
     ],
   },
   {
     id: "elite",
-    name: "Elite",
-    tagline: "All-in on love",
-    monthly: 399,
-    yearly: 3990,
-    limits: { matches: null, likesPerPeriod: null },
-    entitlements: { insights: true, export: true, activityLog: true },
+    name: "Mentor",
+    tagline: "Personal guidance, faster growth",
+    monthly: 349,
+    yearly: 3_490,
+    limits: { courses: null },
+    entitlements: {
+      allCourses: true,
+      certificates: true,
+      downloads: true,
+      advancedInsights: true,
+      mentorship: true,
+      activityLog: true,
+    },
     features: [
-      "Unlimited matches",
-      "Unlimited likes",
-      "Everything in Premium",
-      "Full activity timeline",
-      "Profile boost (demo)",
-      "Dedicated matchmaker support",
+      "Everything in Pro",
+      "Two 1:1 mentor sessions each month",
+      "Personal learning roadmap",
+      "Portfolio and code reviews",
+      "Career preparation sessions",
+      "Private learner community",
     ],
   },
 ];
@@ -79,23 +100,18 @@ export const PLANS: Plan[] = [
 export const PLAN_TIER: Record<PlanId, number> = { free: 0, premium: 1, elite: 2 };
 
 export function getPlan(id: PlanId): Plan {
-  const plan = PLANS.find((p) => p.id === id);
+  const plan = PLANS.find((item) => item.id === id);
   if (!plan) throw new Error(`Unknown plan: ${id}`);
   return plan;
 }
 
 export function priceFor(id: PlanId, cycle: BillingCycle): number {
-  return cycle === "yearly" ? getPlan(id).yearly : getPlan(id).monthly;
+  const plan = getPlan(id);
+  return cycle === "yearly" ? plan.yearly : plan.monthly;
 }
 
 export function cycleDays(cycle: BillingCycle): number {
   return cycle === "yearly" ? 365 : 30;
-}
-
-export { fmtMoney as formatMoney } from "./format";
-
-export function describeLimit(n: number | null): string {
-  return n === null ? "Unlimited" : n.toLocaleString("en-US");
 }
 
 export function isUpgrade(from: PlanId, to: PlanId): boolean {
@@ -105,3 +121,5 @@ export function isUpgrade(from: PlanId, to: PlanId): boolean {
 export function isDowngrade(from: PlanId, to: PlanId): boolean {
   return PLAN_TIER[to] < PLAN_TIER[from];
 }
+
+export { fmtMoney as formatMoney } from "./format";

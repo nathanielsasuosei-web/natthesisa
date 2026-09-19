@@ -1,54 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import Icon from "./Icon";
 
 export default function ExportButton() {
-  const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-  async function exportCsv() {
+  async function download() {
     if (busy) return;
     setBusy(true);
-    setMsg(null);
+    setMessage(null);
     try {
-      const res = await fetch("/api/export");
-      if (res.status === 403) {
-        setMsg("Exporting your match history requires Premium or higher.");
+      const response = await fetch("/api/export");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setMessage(data.error ?? "Export failed.");
         return;
       }
-      if (!res.ok) {
-        setMsg("Export failed — please try again.");
-        return;
-      }
-      const blob = await res.blob();
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "sparks-matches.csv";
-      a.click();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "codemasterghana-learning-progress.csv";
+      anchor.click();
       URL.revokeObjectURL(url);
-      setMsg("Downloaded ✓");
+      setMessage("Downloaded");
     } catch {
-      setMsg("Network error — please try again.");
+      setMessage("Network error");
     } finally {
       setBusy(false);
-      setTimeout(() => setMsg(null), 4000);
+      setTimeout(() => setMessage(null), 3000);
     }
   }
 
   return (
-    <div className="flex items-center gap-3">
-      {msg && <span className="text-xs font-medium text-slate-500">{msg}</span>}
-      <button
-        onClick={exportCsv}
-        disabled={busy}
-        className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:opacity-60"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4">
-          <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" />
-        </svg>
-        {busy ? "Exporting…" : "Export CSV"}
-      </button>
+    <div className="flex items-center gap-2">
+      {message && <span className="text-[10px] font-semibold text-[#77717e]">{message}</span>}
+      <button onClick={download} disabled={busy} className="inline-flex items-center gap-2 rounded-xl border border-[#ddd9e2] bg-white px-3.5 py-2.5 text-xs font-bold text-[#544e5b] transition hover:border-violet-300 disabled:opacity-60"><Icon name="download" size={15} />{busy ? "Exporting…" : "Export progress"}</button>
     </div>
   );
 }

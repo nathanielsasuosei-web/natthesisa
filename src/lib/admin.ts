@@ -1,5 +1,6 @@
+import { COURSES, coursePercent, getCourse } from "./courses";
 import { PLANS, PlanId, getPlan, priceFor } from "./plans";
-import { User, getStore, logActivity } from "./store";
+import { User, completedLessonCount, getStore, logActivity } from "./store";
 import { changePlan } from "./subscription";
 
 export class AdminError extends Error {
@@ -12,10 +13,10 @@ export class AdminError extends Error {
   }
 }
 
-/** Shape of a member row sent to the admin UI (no nested detail). */
 export interface AdminUserRow {
   id: string;
   name: string;
+  email: string;
   role: "member" | "admin";
   suspended: boolean;
   createdAt: string;
@@ -24,175 +25,170 @@ export interface AdminUserRow {
   cycle: string;
   cancelAtPeriodEnd: boolean;
   periodEnd: string;
-  matches: number;
-  dates: number;
-  likesUsed: number;
-  likeLimit: number | null;
+  coursesStarted: number;
+  coursesCompleted: number;
+  lessonsCompleted: number;
+  lifetimeMinutes: number;
   invoices: number;
   revenue: number;
 }
 
 export function toAdminRow(user: User): AdminUserRow {
-  const plan = getPlan(user.subscription.planId);
+  const progress = Object.values(user.progress);
+  const completedCourses = progress.filter((item) => {
+    const course = getCourse(item.courseId);
+    return course ? coursePercent(course, item.completedLessonIds) === 100 : false;
+  }).length;
   return {
     id: user.id,
     name: user.name,
-    role: user.role ?? "member",
-    suspended: user.suspended ?? false,
+    email: user.email,
+    role: user.role,
+    suspended: user.suspended,
     createdAt: user.createdAt,
     planId: user.subscription.planId,
-    planName: plan.name,
+    planName: getPlan(user.subscription.planId).name,
     cycle: user.subscription.cycle,
     cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd,
     periodEnd: user.subscription.currentPeriodEnd,
-    matches: user.matches.length,
-    dates: user.matches.reduce((n, m) => n + m.dateIdeas.length, 0),
-    likesUsed: user.usage.count,
-    likeLimit: plan.limits.likesPerPeriod,
+    coursesStarted: progress.length,
+    coursesCompleted: completedCourses,
+    lessonsCompleted: completedLessonCount(user),
+    lifetimeMinutes: user.lifetimeMinutes,
     invoices: user.invoices.length,
-    revenue: user.invoices.reduce((n, i) => n + i.amount, 0),
+    revenue: user.invoices.reduce((sum, invoice) => sum + invoice.amount, 0),
   };
 }
 
 export interface AdminStats {
   totalUsers: number;
-  members: number;
+  learners: number;
   admins: number;
   suspended: number;
-  totalMatches: number;
-  totalDates: number;
-  datesBeenOn: number;
-  totalLikes: number;
+  activeLearners: number;
+  lessonsCompleted: number;
+  learningMinutes: number;
+  certificatesEarned: number;
   totalRevenue: number;
   invoiceCount: number;
   byPlan: Array<{ planId: PlanId; planName: string; count: number }>;
+  coursePerformance: Array<{
+    courseId: string;
+    title: string;
+    enrollments: number;
+    completions: number;
+    lessonsCompleted: number;
+  }>;
 }
 
 export function computeStats(): AdminStats {
   const users = [...getStore().users.values()];
-  const byPlan = PLANS.map((p) => ({
-    planId: p.id,
-    planName: p.name,
-    count: users.filter((u) => u.subscription.planId === p.id).length,
+  const learners = users.filter((user) => user.role === "member");
+  const byPlan = PLANS.map((plan) => ({
+    planId: plan.id,
+    planName: plan.name,
+    count: learners.filter((user) => user.subscription.planId === plan.id).length,
   }));
+  const coursePerformance = COURSES.map((course) => {
+    const records = learners
+      .map((user) => user.progress[course.id])
+      .filter((item) => Boolean(item));
+    return {
+      courseId: course.id,
+      title: course.shortTitle,
+      enrollments: records.length,
+      completions: records.filter((item) => coursePercent(course, item.completedLessonIds) === 100).length,
+      lessonsCompleted: records.reduce((sum, item) => sum + item.completedLessonIds.length, 0),
+    };
+  });
+  const certificatesEarned = coursePerformance.reduce((sum, item) => sum + item.completions, 0);
   return {
     totalUsers: users.length,
-    members: users.filter((u) => (u.role ?? "member") === "member").length,
-    admins: users.filter((u) => u.role === "admin").length,
-    suspended: users.filter((u) => u.suspended).length,
-    totalMatches: users.reduce((n, u) => n + u.matches.length, 0),
-    totalDates: users.reduce(
-      (n, u) => n + u.matches.reduce((m, x) => m + x.dateIdeas.length, 0),
-      0
-    ),
-    datesBeenOn: users.reduce(
-      (n, u) =>
-        n + u.matches.reduce((m, x) => m + x.dateIdeas.filter((d) => d.done).length, 0),
-      0
-    ),
-    totalLikes: users.reduce((n, u) => n + u.usage.count, 0),
+    learners: learners.length,
+    admins: users.filter((user) => user.role === "admin").length,
+    suspended: users.filter((user) => user.suspended).length,
+    activeLearners: learners.filter((user) => user.usage.history.some((day) => day.count > 0)).length,
+    lessonsCompleted: learners.reduce((sum, user) => sum + completedLessonCount(user), 0),
+    learningMinutes: learners.reduce((sum, user) => sum + user.lifetimeMinutes, 0),
+    certificatesEarned,
     totalRevenue: users.reduce(
-      (n, u) => n + u.invoices.reduce((m, i) => m + i.amount, 0),
+      (sum, user) => sum + user.invoices.reduce((invoiceSum, invoice) => invoiceSum + invoice.amount, 0),
       0
     ),
-    invoiceCount: users.reduce((n, u) => n + u.invoices.length, 0),
+    invoiceCount: users.reduce((sum, user) => sum + user.invoices.length, 0),
     byPlan,
+    coursePerformance,
   };
 }
 
-function getTargetUser(userId: string): User {
-  const target = getStore().users.get(userId);
-  if (!target) throw new AdminError("User not found.", "NOT_FOUND", 404);
-  if (target.role === undefined)
-    target.role = target.name.toLowerCase() === "admin" ? "admin" : "member";
-  if (target.suspended === undefined) target.suspended = false;
-  return target;
+function targetUser(userId: string): User {
+  const user = getStore().users.get(userId);
+  if (!user) throw new AdminError("Learner not found.", "NOT_FOUND", 404);
+  return user;
 }
-
-/* ------------------------------ actions ------------------------------ */
 
 export function adminSuspendUser(admin: User, userId: string, suspended: boolean): User {
-  const target = getTargetUser(userId);
-  if (target.id === admin.id) {
-    throw new AdminError("You can't suspend your own admin account.", "SELF_ACTION");
-  }
-  if (target.role === "admin") {
-    throw new AdminError("Admins can't be suspended.", "TARGET_ADMIN");
-  }
-  target.suspended = suspended;
-  logActivity(
-    target,
-    suspended ? "Account suspended by an administrator" : "Account reinstated by an administrator"
-  );
-  logActivity(admin, `${suspended ? "Suspended" : "Reinstated"} member “${target.name}”`);
-  return target;
+  const user = targetUser(userId);
+  if (user.id === admin.id) throw new AdminError("You cannot pause your own account.", "SELF_ACTION");
+  if (user.role === "admin") throw new AdminError("Administrator accounts cannot be paused.", "TARGET_ADMIN");
+  user.suspended = suspended;
+  logActivity(user, suspended ? "Account paused by an administrator" : "Account restored by an administrator", "admin");
+  logActivity(admin, `${suspended ? "Paused" : "Restored"} ${user.name}'s account`, "admin");
+  return user;
 }
 
-export function adminSetRole(admin: User, userId: string, role: "member" | "admin"): User {
-  const target = getTargetUser(userId);
-  if (target.id === admin.id && role === "member") {
-    throw new AdminError("You can't demote your own admin account.", "SELF_ACTION");
+export function adminSetRole(admin: User, userId: string, role: User["role"]): User {
+  const user = targetUser(userId);
+  if (user.id === admin.id && role === "member") {
+    throw new AdminError("You cannot remove your own administrator access.", "SELF_ACTION");
   }
-  if (target.role === role) return target;
-  target.role = role;
-  if (role === "admin") target.suspended = false;
-  logActivity(
-    target,
-    role === "admin" ? "Promoted to administrator" : "Admin access removed"
-  );
-  logActivity(admin, `${role === "admin" ? "Promoted" : "Demoted"} “${target.name}” ${role === "admin" ? "to admin" : "to member"}`);
-  return target;
+  if (user.role === role) return user;
+  user.role = role;
+  if (role === "admin") user.suspended = false;
+  logActivity(user, role === "admin" ? "Administrator access granted" : "Administrator access removed", "admin");
+  logActivity(admin, `${role === "admin" ? "Promoted" : "Demoted"} ${user.name}`, "admin");
+  return user;
 }
 
-/**
- * Admin plan override ("comp"): sets the plan immediately in either direction,
- * without charging an invoice — a gift, not a purchase.
- */
 export function adminSetPlan(admin: User, userId: string, planId: PlanId): User {
-  const target = getTargetUser(userId);
-  if (target.subscription.planId === planId) return target;
-  const before = getPlan(target.subscription.planId).name;
-  // upgrades reuse the normal engine but we strip the invoice it creates (comp'd)
-  const invoicesBefore = target.invoices.length;
-  const result = changePlan(target, planId, target.subscription.cycle);
+  const user = targetUser(userId);
+  if (user.subscription.planId === planId) return user;
+  const before = getPlan(user.subscription.planId).name;
+  const invoicesBefore = user.invoices.length;
+  const result = changePlan(user, planId, user.subscription.cycle);
   if (result.mode === "scheduled") {
-    // force downgrades to apply immediately for admin overrides
-    target.subscription.planId = planId;
-    target.subscription.pendingPlanId = null;
+    user.subscription.planId = planId;
+    user.subscription.pendingPlanId = null;
+    user.subscription.cancelAtPeriodEnd = false;
   }
-  if (target.invoices.length > invoicesBefore) target.invoices.shift();
-  logActivity(target, `Plan changed from ${before} to ${getPlan(planId).name} by an administrator (comp'd)`);
-  logActivity(admin, `Set “${target.name}” to the ${getPlan(planId).name} plan (comp'd)`);
-  return target;
+  while (user.invoices.length > invoicesBefore) user.invoices.shift();
+  logActivity(user, `Plan changed from ${before} to ${getPlan(planId).name} by an administrator`, "admin");
+  logActivity(admin, `Comped ${getPlan(planId).name} access for ${user.name}`, "admin");
+  return user;
 }
 
-export function adminResetLikes(admin: User, userId: string): User {
-  const target = getTargetUser(userId);
-  target.usage.count = 0;
-  target.usage.history = target.usage.history.map((h) => ({ ...h, count: 0 }));
-  logActivity(target, "Like allowance reset by an administrator");
-  logActivity(admin, `Reset the like allowance for “${target.name}”`);
-  return target;
+export function adminResetProgress(admin: User, userId: string): User {
+  const user = targetUser(userId);
+  user.progress = {};
+  user.usage = { ...user.usage, minutes: 0, history: user.usage.history.map((day) => ({ ...day, count: 0 })) };
+  user.lifetimeMinutes = 0;
+  logActivity(user, "Learning progress reset by an administrator", "admin");
+  logActivity(admin, `Reset learning progress for ${user.name}`, "admin");
+  return user;
 }
 
 export function adminDeleteUser(admin: User, userId: string): void {
-  const target = getTargetUser(userId);
-  if (target.id === admin.id) {
-    throw new AdminError("You can't delete your own admin account.", "SELF_ACTION");
-  }
-  if (target.role === "admin") {
-    throw new AdminError("Admins can't be deleted from the console.", "TARGET_ADMIN");
-  }
+  const user = targetUser(userId);
+  if (user.id === admin.id) throw new AdminError("You cannot delete your own account.", "SELF_ACTION");
+  if (user.role === "admin") throw new AdminError("Demote this administrator before deleting the account.", "TARGET_ADMIN");
   getStore().users.delete(userId);
-  logActivity(admin, `Deleted the account of “${target.name}”`);
+  logActivity(admin, `Deleted ${user.name}'s account`, "admin");
 }
 
-/** Yearly-equivalent monthly recurring revenue estimate across active paid members. */
 export function estimateMrr(): number {
-  const users = [...getStore().users.values()];
-  return users.reduce((n, u) => {
-    if (u.subscription.cancelAtPeriodEnd) return n;
-    const price = priceFor(u.subscription.planId, u.subscription.cycle);
-    return n + (u.subscription.cycle === "yearly" ? Math.round(price / 12) : price);
+  return [...getStore().users.values()].reduce((sum, user) => {
+    if (user.role === "admin" || user.subscription.cancelAtPeriodEnd) return sum;
+    const amount = priceFor(user.subscription.planId, user.subscription.cycle);
+    return sum + (user.subscription.cycle === "yearly" ? Math.round(amount / 12) : amount);
   }, 0);
 }
