@@ -2,14 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  PLANS,
-  PlanId,
-  BillingCycle,
-  PLAN_TIER,
-  formatMoney,
-} from "@/lib/plans";
+import { BillingCycle, PLAN_TIER, PLANS, PlanId, formatMoney } from "@/lib/plans";
 import { fmtDate } from "@/lib/format";
+import Icon from "./Icon";
 
 interface Props {
   currentPlanId: PlanId;
@@ -17,271 +12,111 @@ interface Props {
   pendingPlanId: PlanId | null;
   cancelAtPeriodEnd: boolean;
   periodEnd: string;
+  cardLabel: string;
 }
 
-interface ConfirmState {
+interface CheckoutState {
   planId: PlanId;
   cycle: BillingCycle;
   kind: "upgrade" | "downgrade" | "cycle";
 }
 
-export default function PlansGrid({
-  currentPlanId,
-  currentCycle,
-  pendingPlanId,
-  cancelAtPeriodEnd,
-  periodEnd,
-}: Props) {
+export default function PlansGrid({ currentPlanId, currentCycle, pendingPlanId, cancelAtPeriodEnd, periodEnd, cardLabel }: Props) {
   const router = useRouter();
   const [cycle, setCycle] = useState<BillingCycle>(currentCycle);
-  const [confirming, setConfirming] = useState<ConfirmState | null>(null);
+  const [checkout, setCheckout] = useState<CheckoutState | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
-  async function submitChange() {
-    if (!confirming || busy) return;
+  async function changePlan() {
+    if (!checkout || busy) return;
     setBusy(true);
-    setError(null);
+    setMessage(null);
     try {
-      const res = await fetch("/api/subscription", {
+      const response = await fetch("/api/subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "changePlan", planId: confirming.planId, cycle: confirming.cycle }),
+        body: JSON.stringify({ action: "changePlan", planId: checkout.planId, cycle: checkout.cycle }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? "Something went wrong.");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setMessage({ type: "error", text: data.error ?? "Your plan could not be changed." });
         return;
       }
-      setConfirming(null);
-      setNotice(
-        data.mode === "upgraded"
-          ? `You're now on ${data.planName} — enjoy! Charged ${formatMoney(data.charged)} today.`
-          : data.mode === "scheduled"
-            ? "Downgrade scheduled — it takes effect when the current period ends."
-            : data.mode === "cycle"
-              ? "Billing cycle updated."
-              : "Done."
-      );
+      const target = PLANS.find((plan) => plan.id === checkout.planId)!;
+      setMessage({
+        type: "ok",
+        text: data.mode === "scheduled"
+          ? `Your change to ${target.name} is scheduled for ${fmtDate(periodEnd)}.`
+          : data.charged > 0
+            ? `Welcome to ${target.name}. Demo payment of ${formatMoney(data.charged)} completed.`
+            : `You are now on ${target.name}.`,
+      });
+      setCheckout(null);
       router.refresh();
     } catch {
-      setError("Network error — please try again.");
+      setMessage({ type: "error", text: "Network error. Please try again." });
     } finally {
       setBusy(false);
     }
   }
 
-  async function undoPending() {
+  async function clearPending() {
     if (busy) return;
     setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "clearPending" }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Something went wrong.");
-        return;
-      }
-      setNotice("Scheduled change removed.");
+    const response = await fetch("/api/subscription", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "clearPending" }) });
+    if (response.ok) {
+      setMessage({ type: "ok", text: "Scheduled plan change removed." });
       router.refresh();
-    } finally {
-      setBusy(false);
+    } else {
+      const data = await response.json().catch(() => ({}));
+      setMessage({ type: "error", text: data.error ?? "Could not remove the change." });
     }
+    setBusy(false);
   }
 
   return (
     <div>
-      {/* Cycle toggle */}
-      <div className="mb-6 flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white p-1 w-fit mx-auto">
-        {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
-          <button
-            key={c}
-            onClick={() => setCycle(c)}
-            className={[
-              "rounded-full px-5 py-2 text-sm font-semibold capitalize transition",
-              cycle === c ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-800",
-            ].join(" ")}
-          >
-            {c}
-            {c === "yearly" && (
-              <span className={`ml-1.5 text-[10px] font-bold uppercase ${cycle === c ? "text-emerald-300" : "text-emerald-600"}`}>
-                −17%
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="mx-auto mb-8 flex w-fit items-center rounded-xl border border-[#e1dde5] bg-white p-1 shadow-sm">
+        {(["monthly", "yearly"] as BillingCycle[]).map((item) => <button key={item} onClick={() => setCycle(item)} className={`rounded-lg px-5 py-2 text-xs font-extrabold capitalize transition ${cycle === item ? "bg-[#1b1822] text-white" : "text-[#77717e] hover:text-[#312c37]"}`}>{item}{item === "yearly" && <span className={`ml-1.5 text-[8px] font-black uppercase ${cycle === item ? "text-[#c2f1df]" : "text-emerald-600"}`}>save 17%</span>}</button>)}
       </div>
 
-      {(notice || error) && (
-        <p className={`mx-auto mb-6 w-fit rounded-lg px-4 py-2 text-sm font-medium ${error ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"}`}>
-          {error ?? notice}
-        </p>
-      )}
+      {message && <div className={`mx-auto mb-6 w-fit rounded-xl border px-4 py-2.5 text-xs font-semibold ${message.type === "ok" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>{message.text}</div>}
 
-      {/* Cards */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="open-plan-grid grid gap-0 lg:grid-cols-3">
         {PLANS.map((plan) => {
-          const isCurrent = plan.id === currentPlanId;
-          const isPending = plan.id === pendingPlanId;
+          const current = plan.id === currentPlanId;
+          const pending = plan.id === pendingPlanId;
           const upgrade = PLAN_TIER[plan.id] > PLAN_TIER[currentPlanId];
           const downgrade = PLAN_TIER[plan.id] < PLAN_TIER[currentPlanId];
-          const price = plan.id === currentPlanId ? undefined : cycle === "yearly" ? plan.yearly : plan.monthly;
-
-          let cta: { label: string; kind: ConfirmState["kind"] } | null = null;
-          if (isPending) cta = null;
-          else if (isCurrent && cycle !== currentCycle && !cancelAtPeriodEnd)
-            cta = { label: `Switch to ${cycle} billing`, kind: "cycle" };
-          else if (upgrade) cta = { label: `Upgrade to ${plan.name}`, kind: "upgrade" };
-          else if (downgrade) cta = { label: `Downgrade to ${plan.name}`, kind: "downgrade" };
-
+          const price = cycle === "yearly" ? plan.yearly : plan.monthly;
+          let action: CheckoutState | null = null;
+          if (!pending && current && plan.id !== "free" && cycle !== currentCycle && !cancelAtPeriodEnd) action = { planId: plan.id, cycle, kind: "cycle" };
+          else if (!pending && upgrade) action = { planId: plan.id, cycle, kind: "upgrade" };
+          else if (!pending && downgrade) action = { planId: plan.id, cycle, kind: "downgrade" };
           return (
-            <div
-              key={plan.id}
-              className={[
-                "relative flex flex-col rounded-2xl border bg-white p-7",
-                plan.featured && !isCurrent ? "border-rose-600 shadow-xl shadow-rose-600/10" : "",
-                isCurrent ? "border-emerald-500 ring-1 ring-emerald-500" : "border-slate-200",
-              ].join(" ")}
-            >
-              {isCurrent && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
-                  {cancelAtPeriodEnd ? "Current — cancelling" : "Your plan"}
-                </span>
-              )}
-              {isPending && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold text-white">
-                  Scheduled for {fmtDate(periodEnd)}
-                </span>
-              )}
-
-              <h3 className="font-semibold">{plan.name}</h3>
-              <p className="mt-1 text-sm text-slate-500">{plan.tagline}</p>
-              <p className="mt-5">
-                <span className="text-4xl font-bold tracking-tight">{formatMoney(cycle === "yearly" ? plan.yearly : plan.monthly)}</span>
-                <span className="text-slate-500"> /{cycle === "yearly" ? "yr" : "mo"}</span>
-              </p>
-
-              <ul className="mt-6 flex-1 space-y-2.5 text-sm text-slate-600">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 size-4 shrink-0 text-emerald-500">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-7">
-                {isPending ? (
-                  <button
-                    onClick={undoPending}
-                    disabled={busy}
-                    className="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:border-rose-300 disabled:opacity-50"
-                  >
-                    Keep {plan.name} — undo switch
-                  </button>
-                ) : cta ? (
-                  <button
-                    onClick={() => setConfirming({ planId: plan.id, cycle, kind: cta.kind })}
-                    disabled={busy}
-                    className={[
-                      "w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50",
-                      cta.kind === "upgrade"
-                        ? "bg-rose-600 text-white hover:bg-rose-500"
-                        : cta.kind === "downgrade"
-                          ? "border border-slate-300 text-slate-700 hover:border-slate-400"
-                          : "bg-slate-900 text-white hover:bg-slate-700",
-                    ].join(" ")}
-                  >
-                    {cta.label}
-                  </button>
-                ) : (
-                  <span className={[
-                    "block w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold",
-                    isCurrent ? "border border-emerald-500 bg-emerald-50 text-emerald-700" : "text-slate-400",
-                  ].join(" ")}>
-                    {isCurrent ? (cancelAtPeriodEnd ? "Active until period end" : "Current plan") : "—"}
-                  </span>
-                )}
-              </div>
-            </div>
+            <article key={plan.id} data-featured={plan.featured} className="open-plan flex flex-col transition">
+              {current && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#6d4aff] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white">{cancelAtPeriodEnd ? "Active until period end" : "Current plan"}</span>}
+              {pending && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#ff7448] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white">Scheduled {fmtDate(periodEnd)}</span>}
+              {plan.featured && !current && <span className="absolute right-5 top-5 rounded-full bg-[#ffcf59] px-2.5 py-1 text-[8px] font-black uppercase text-[#4a3600]">Most popular</span>}
+              <span className={`grid size-10 place-items-center rounded-xl ${plan.id === "elite" ? "bg-[#fff2e9] text-[#e45f35]" : "bg-[#f0ecff] text-[#6d4aff]"}`}><Icon name={plan.id === "free" ? "book" : plan.id === "premium" ? "spark" : "trophy"} size={19} /></span>
+              <h3 className="mt-5 text-lg font-black">{plan.name}</h3><p className="mt-1 text-xs text-[#817a87]">{plan.tagline}</p>
+              <p className="mt-6"><span className="text-4xl font-black tracking-[-.055em]">{formatMoney(price)}</span><span className="text-xs text-[#8d8694]"> / {cycle === "yearly" ? "year" : "month"}</span></p>{cycle === "yearly" && plan.monthly > 0 && <p className="mt-1 text-[9px] text-[#9c95a2]">Equivalent to {formatMoney(Math.round(plan.yearly / 12))}/month</p>}
+              <div className="my-6 h-px bg-[#e6e2e9]" />
+              <ul className="flex-1 space-y-3 text-xs text-[#625c68]">{plan.features.map((feature) => <li key={feature} className="flex items-start gap-2.5"><span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={9} /></span>{feature}</li>)}</ul>
+              <div className="mt-7">{pending ? <button onClick={clearPending} disabled={busy} className="w-full rounded-xl border border-[#ffc8b3] bg-[#fff3ec] px-4 py-3 text-xs font-extrabold text-[#d95b35]">Undo scheduled change</button> : action ? <button onClick={() => setCheckout(action)} disabled={busy} className={`w-full rounded-xl px-4 py-3 text-xs font-extrabold transition hover:-translate-y-0.5 ${plan.featured && !current ? "bg-[#6d4aff] text-white hover:bg-[#7959f1]" : action.kind === "downgrade" ? "border border-[#ded9e3] text-[#655f6b]" : "bg-[#6d4aff] text-white"}`}>{action.kind === "upgrade" ? `Choose ${plan.name}` : action.kind === "downgrade" ? `Move to ${plan.name}` : `Use ${cycle} billing`}</button> : <div className="rounded-xl border border-[#e4e0e8] px-4 py-3 text-center text-xs font-bold text-[#918a97]">{current ? "Your current plan" : "Not available"}</div>}</div>
+            </article>
           );
         })}
       </div>
 
-      {/* Confirm modal */}
-      {confirming && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 p-6 backdrop-blur-sm"
-          onClick={() => !busy && setConfirming(null)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {(() => {
-              const plan = PLANS.find((p) => p.id === confirming.planId)!;
-              const price = confirming.cycle === "yearly" ? plan.yearly : plan.monthly;
-              const isUpgradeKind = confirming.kind === "upgrade";
-              return (
-                <>
-                  <h3 className="text-lg font-bold">
-                    {isUpgradeKind
-                      ? `Upgrade to ${plan.name}?`
-                      : confirming.kind === "downgrade"
-                        ? `Schedule downgrade to ${plan.name}?`
-                        : `Switch to ${confirming.cycle} billing?`}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                    {isUpgradeKind && (
-                      <>
-                        Your new period starts today and you'll be charged{" "}
-                        <strong>{formatMoney(price)}</strong> ({confirming.cycle}). Your likes allowance resets.
-                      </>
-                    )}
-                    {confirming.kind === "downgrade" && (
-                      <>
-                        You keep your current features until <strong>{fmtDate(periodEnd)}</strong>, then
-                        move to <strong>{plan.name}</strong> ({confirming.cycle}). No charge today.
-                      </>
-                    )}
-                    {confirming.kind === "cycle" && (
-                      <>
-                        You'll be charged <strong>{formatMoney(price)}</strong> today for a new{" "}
-                        {confirming.cycle} period of {plan.name}.
-                      </>
-                    )}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-400">Demo — no real payment will be taken.</p>
-                  {error && <p className="mt-3 text-sm font-medium text-red-600">{error}</p>}
-                  <div className="mt-6 flex justify-end gap-2">
-                    <button
-                      onClick={() => setConfirming(null)}
-                      disabled={busy}
-                      className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-400"
-                    >
-                      Not now
-                    </button>
-                    <button
-                      onClick={submitChange}
-                      disabled={busy}
-                      className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-60"
-                    >
-                      {busy ? "Working…" : isUpgradeKind ? "Confirm upgrade" : confirming.kind === "downgrade" ? "Schedule downgrade" : "Confirm switch"}
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      {checkout && (() => {
+        const plan = PLANS.find((item) => item.id === checkout.planId)!;
+        const amount = checkout.cycle === "yearly" ? plan.yearly : plan.monthly;
+        const scheduled = checkout.kind === "downgrade";
+        return <div className="fixed inset-0 z-50 grid place-items-center bg-[#15121c]/60 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setCheckout(null); }}><div role="dialog" aria-modal="true" className="w-full max-w-md overflow-hidden rounded-[24px] bg-white shadow-2xl"><div className="flex items-start justify-between border-b border-[#ece8ef] p-6"><div><p className="text-[9px] font-black uppercase tracking-[.14em] text-[#6d4aff]">{scheduled ? "Plan change" : "Secure checkout"}</p><h2 className="mt-1.5 text-xl font-black tracking-[-.035em]">{scheduled ? `Move to ${plan.name}?` : `Upgrade to ${plan.name}`}</h2></div><button onClick={() => !busy && setCheckout(null)} className="grid size-8 place-items-center rounded-lg bg-[#f3f1f5] text-[#77717e]"><Icon name="close" size={15} /></button></div><div className="p-6"><div className="rounded-2xl bg-[#f7f5fa] p-4"><div className="flex items-center justify-between"><div><p className="text-xs font-extrabold">{plan.name} plan</p><p className="mt-1 text-[10px] capitalize text-[#918a97]">{checkout.cycle} billing</p></div><p className="text-lg font-black">{formatMoney(amount)}</p></div></div>{scheduled ? <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-900">You keep your current plan until <strong>{fmtDate(periodEnd)}</strong>. No payment is collected today.</div> : <><div className="mt-5"><p className="text-[10px] font-black uppercase tracking-wider text-[#817a87]">Payment method</p><div className="mt-2 flex items-center gap-3 rounded-xl border border-[#ded9e3] p-3.5"><span className="grid size-9 place-items-center rounded-lg bg-[#172b85] text-[9px] font-black italic text-white">VISA</span><div className="flex-1"><p className="text-xs font-bold">{cardLabel}</p><p className="mt-0.5 text-[9px] text-[#918a97]">Demo payment method</p></div><Icon name="check" size={15} className="text-emerald-600" /></div></div><div className="mt-5 flex items-center gap-2 text-[9px] leading-4 text-[#918a97]"><Icon name="shield" size={14} className="shrink-0 text-emerald-600" /> This demonstration simulates a successful payment. No real card is charged.</div></>}
+                <button onClick={changePlan} disabled={busy} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#5e3ce8] disabled:opacity-60">{busy ? "Processing…" : scheduled ? "Schedule plan change" : `Confirm & pay ${formatMoney(amount)}`} {!busy && <Icon name="arrow-right" size={16} />}</button><p className="mt-3 text-center text-[9px] text-[#aaa4b0]">By continuing, you agree to the subscription terms.</p></div></div></div>;
+      })()}
     </div>
   );
 }

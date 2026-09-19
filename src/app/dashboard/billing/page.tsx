@@ -1,139 +1,41 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
+import { requireCurrentUser } from "@/lib/require-user";
 import { getPlan } from "@/lib/plans";
-import { site } from "@/config/site";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import BillingActions from "@/components/BillingActions";
+import Icon from "@/components/Icon";
+
+export const metadata: Metadata = { title: "Billing" };
 
 export default async function BillingPage() {
-  const user = (await getCurrentUser())!;
-  const plan = getPlan(user.subscription.planId);
-  const sub = user.subscription;
-  const pending = sub.pendingPlanId ? getPlan(sub.pendingPlanId) : null;
-
-  const status = sub.cancelAtPeriodEnd
-    ? {
-        label: "Cancelling",
-        cls: "bg-amber-100 text-amber-700",
-        note: `Your ${plan.name} membership stays active until ${fmtDate(sub.currentPeriodEnd)}, then moves to Free.`,
-      }
-    : pending
-      ? {
-          label: "Change scheduled",
-          cls: "bg-rose-100 text-rose-700",
-          note: `Switches to ${pending.name} on ${fmtDate(sub.currentPeriodEnd)}.`,
-        }
-      : {
-          label: "Active",
-          cls: "bg-emerald-100 text-emerald-700",
-          note: `Renews automatically on ${fmtDate(sub.currentPeriodEnd)}.`,
-        };
+  const user = await requireCurrentUser();
+  const subscription = user.subscription;
+  const plan = getPlan(subscription.planId);
+  const pending = subscription.pendingPlanId ? getPlan(subscription.pendingPlanId) : null;
+  const amount = subscription.cycle === "yearly" ? plan.yearly : plan.monthly;
+  const status = subscription.cancelAtPeriodEnd ? { label: "Cancelling", style: "bg-amber-100 text-amber-800", note: `Access continues until ${fmtDate(subscription.currentPeriodEnd)}.` } : pending ? { label: "Change scheduled", style: "bg-orange-100 text-orange-800", note: `Moves to ${pending.name} on ${fmtDate(subscription.currentPeriodEnd)}.` } : { label: "Active", style: "bg-emerald-100 text-emerald-700", note: plan.id === "free" ? "No charge on the Explorer plan." : `Renews on ${fmtDate(subscription.currentPeriodEnd)}.` };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Manage your membership, billing cycle and invoices. All amounts in {site.currency.label} ({site.currency.symbol}).
-        </p>
-      </div>
+    <div className="space-y-10">
+      <header><p className="text-xs font-bold text-[#8a8390]">Subscription & payments</p><h1 className="mt-1 text-2xl font-black tracking-[-.04em] sm:text-3xl">Billing</h1><p className="mt-1.5 text-sm text-[#756f7b]">Manage your plan, payment method and invoice history.</p></header>
 
-      {/* Current membership */}
-      <section className="rounded-2xl border border-rose-100 bg-white p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold">{plan.name} membership</h2>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${status.cls}`}>{status.label}</span>
-            </div>
-            <p className="mt-2 text-sm text-slate-600">
-              {fmtMoney(sub.cycle === "yearly" ? plan.yearly : plan.monthly)} billed {sub.cycle}
-              {plan.id === "free" && " — no charge"}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">{status.note}</p>
+      <section className="open-surface overflow-hidden rounded-[24px] border border-[#e5e1e8] bg-white shadow-[0_10px_32px_rgba(31,24,45,.04)]">
+        <div className="grid lg:grid-cols-[1fr_260px]">
+          <div className="p-5 sm:p-7"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2.5"><h2 className="text-xl font-black tracking-[-.035em]">{plan.name} plan</h2><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-wider ${status.style}`}>{status.label}</span></div><p className="mt-2 text-xs text-[#77717e]">{status.note}</p></div><Link href="/dashboard/plans" className="inline-flex items-center gap-1.5 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-[10px] font-extrabold text-white">Compare plans <Icon name="arrow-right" size={13} /></Link></div>
+            <div className="mt-7 grid gap-4 border-y border-[#efecf1] py-5 sm:grid-cols-3"><div><p className="text-[9px] font-bold text-[#918a97]">Plan price</p><p className="mt-1 text-xs font-extrabold">{fmtMoney(amount)} <span className="font-medium text-[#918a97]">/ {subscription.cycle === "yearly" ? "year" : "month"}</span></p></div><div><p className="text-[9px] font-bold text-[#918a97]">Current period</p><p className="mt-1 text-xs font-extrabold">{fmtDate(subscription.currentPeriodStart)} — {fmtDate(subscription.currentPeriodEnd)}</p></div><div><p className="text-[9px] font-bold text-[#918a97]">Billing cycle</p><p className="mt-1 text-xs font-extrabold capitalize">{subscription.cycle}</p></div></div>
+            <div className="mt-5"><BillingActions planId={subscription.planId} cycle={subscription.cycle} cancelAtPeriodEnd={subscription.cancelAtPeriodEnd} pendingPlanName={pending?.name ?? null} isFree={plan.id === "free"} /></div>
           </div>
-          <Link
-            href="/dashboard/plans"
-            className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500"
-          >
-            {plan.id === "elite" ? "Compare plans" : "Change plan"}
-          </Link>
-        </div>
-
-        <dl className="mt-6 grid gap-4 border-t border-rose-50 pt-6 text-sm sm:grid-cols-3">
-          <div>
-            <dt className="text-slate-500">Current period</dt>
-            <dd className="mt-0.5 font-medium">
-              {fmtDate(sub.currentPeriodStart)} → {fmtDate(sub.currentPeriodEnd)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Billing cycle</dt>
-            <dd className="mt-0.5 font-medium capitalize">{sub.cycle}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Payment method</dt>
-            <dd className="mt-0.5 font-medium">
-              {user.paymentMethod.brand} •••• {user.paymentMethod.last4}
-              <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-400">Demo</span>
-            </dd>
-          </div>
-        </dl>
-
-        <div className="mt-6 border-t border-rose-50 pt-6">
-          <BillingActions
-            planId={sub.planId}
-            planName={plan.name}
-            cycle={sub.cycle}
-            cancelAtPeriodEnd={sub.cancelAtPeriodEnd}
-            pendingPlanName={pending?.name ?? null}
-            isFree={plan.id === "free"}
-          />
+          <div className="border-t border-[#ece9ef] p-5 lg:border-l lg:border-t-0 lg:pl-7"><p className="text-[9px] font-black uppercase tracking-[.13em] text-[#817a87]">Payment method</p><div className="mt-4 rounded-2xl bg-gradient-to-br from-[#202a67] to-[#10152f] p-4 text-white shadow-lg"><div className="flex items-center justify-between"><span className="text-[9px] font-black italic tracking-wider">VISA</span><Icon name="card" size={17} className="text-white/60" /></div><p className="mt-8 font-mono text-sm tracking-[.17em]">•••• •••• •••• {user.paymentMethod.last4}</p><div className="mt-4 flex justify-between text-[8px] uppercase text-white/55"><span>{user.name}</span><span>12/29</span></div></div><button disabled className="mt-3 w-full rounded-xl border border-[#ded9e3] bg-white py-2.5 text-[10px] font-bold text-[#aaa4b0]">Update card in production</button><p className="mt-3 flex gap-1.5 text-[8px] leading-4 text-[#918a97]"><Icon name="shield" size={12} className="shrink-0 text-emerald-600" /> Demo card only. No real payment details are stored.</p></div>
         </div>
       </section>
 
-      {/* Invoices */}
-      <section className="rounded-2xl border border-rose-100 bg-white">
-        <div className="border-b border-rose-50 p-6">
-          <h2 className="font-semibold">Invoice history</h2>
-          <p className="mt-1 text-sm text-slate-500">Every membership change and renewal issues an invoice.</p>
-        </div>
-        {user.invoices.length === 0 ? (
-          <p className="p-6 text-sm text-slate-500">
-            No invoices yet. Upgrades and renewals will appear here automatically.
-          </p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-rose-50 text-left text-xs uppercase tracking-wide text-slate-400">
-                <th className="px-6 py-3 font-medium">Invoice</th>
-                <th className="px-6 py-3 font-medium">Date</th>
-                <th className="px-6 py-3 font-medium">Description</th>
-                <th className="px-6 py-3 text-right font-medium">Amount</th>
-                <th className="px-6 py-3 text-right font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {user.invoices.map((inv) => (
-                <tr key={inv.id} className="border-b border-rose-50/60 last:border-0">
-                  <td className="px-6 py-3.5 font-mono text-xs text-slate-500">{inv.number}</td>
-                  <td className="px-6 py-3.5 text-slate-600">{fmtDate(inv.date)}</td>
-                  <td className="px-6 py-3.5 text-slate-700">{inv.description}</td>
-                  <td className="px-6 py-3.5 text-right font-medium">{fmtMoney(inv.amount)}</td>
-                  <td className="px-6 py-3.5 text-right">
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">{inv.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <section className="open-surface overflow-hidden rounded-[22px] border border-[#e5e1e8] bg-white">
+        <div className="flex items-center justify-between border-b border-[#ece9ef] px-5 py-4 sm:px-6"><div><h2 className="text-sm font-extrabold">Invoice history</h2><p className="mt-1 text-[10px] text-[#918a97]">A record of every completed plan payment.</p></div><Icon name="download" size={17} className="text-[#918a97]" /></div>
+        {user.invoices.length ? <div className="overflow-x-auto"><table className="w-full min-w-[650px] text-left"><thead><tr className="border-b border-[#efecf1] bg-[#faf9fb] text-[8px] font-black uppercase tracking-wider text-[#918a97]"><th className="px-6 py-3">Invoice</th><th className="px-4 py-3">Description</th><th className="px-4 py-3">Date</th><th className="px-4 py-3 text-right">Amount</th><th className="px-6 py-3 text-right">Status</th></tr></thead><tbody>{user.invoices.map((invoice) => <tr key={invoice.id} className="border-b border-[#f0edf2] last:border-0"><td className="px-6 py-4 font-mono text-[10px] font-bold text-[#5e3de0]">{invoice.number}</td><td className="px-4 py-4 text-[10px] font-semibold text-[#5f5965]">{invoice.description}</td><td className="px-4 py-4 text-[10px] text-[#817a87]">{fmtDate(invoice.date)}</td><td className="px-4 py-4 text-right text-[10px] font-extrabold">{fmtMoney(invoice.amount)}</td><td className="px-6 py-4 text-right"><span className="rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">Paid</span></td></tr>)}</tbody></table></div> : <div className="px-6 py-12 text-center"><span className="mx-auto grid size-11 place-items-center rounded-2xl bg-[#f0edf3] text-[#817a87]"><Icon name="card" size={20} /></span><p className="mt-3 text-xs font-extrabold">No invoices yet</p><p className="mt-1 text-[10px] text-[#918a97]">Paid plan purchases will appear here.</p></div>}
       </section>
 
-      <p className="rounded-xl border border-rose-100 bg-white p-4 text-xs text-slate-500">
-        This is a demo — payments are simulated and data is stored in memory. Cancellations keep your
-        paid perks until the end of the period you've already paid for, just like the real thing.
-      </p>
+      <div className="open-callout flex gap-3 text-[#5971a7]"><Icon name="shield" size={18} className="mt-0.5 shrink-0 text-[#3f67c8]" /><div><p className="text-xs font-extrabold text-[#294b9b]">Demonstration payment system</p><p className="mt-1 text-[10px] leading-5 text-[#5971a7]">Plan rules, invoices, cancellation and access control are functional. Payments are simulated; connect a verified payment provider and database before accepting money.</p></div></div>
     </div>
   );
 }

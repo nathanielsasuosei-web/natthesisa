@@ -1,47 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/session";
-import { site } from "@/config/site";
-import AnimatedBackground from "@/components/AnimatedBackground";
+import { getCurrentAdmin } from "@/lib/session";
+import Logo from "@/components/Logo";
+import Icon from "@/components/Icon";
 
-export default async function AdminLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  if (user.role !== "admin") redirect("/dashboard");
-
+export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const user = await getCurrentAdmin();
+  if (!user) redirect("/admin-sign-in");
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-white">
-              <span className="grid size-7 place-items-center rounded-lg bg-rose-600 text-sm font-bold">♥</span>
-              {site.name}
-            </Link>
-            <span className="rounded-full bg-rose-500/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-rose-300">
-              Admin console
-            </span>
-          </div>
-          <nav className="flex items-center gap-2 text-sm">
-            <Link href="/dashboard" className="rounded-lg px-3 py-2 font-medium text-slate-400 transition hover:bg-slate-900 hover:text-slate-100">
-              My dashboard
-            </Link>
-            <span className="hidden items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-slate-300 sm:flex">
-              <span className="grid size-6 place-items-center rounded-full bg-rose-500/20 text-xs font-semibold text-rose-300">
-                {user.name.slice(0, 1).toUpperCase()}
-              </span>
-              {user.name}
-            </span>
-          </nav>
-        </div>
+    <div className="min-h-screen bg-[#f6f6f3]">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1b1822] text-white">
+        <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between px-5 sm:px-8"><div className="flex items-center gap-3"><Logo inverse /><span className="h-5 w-px bg-white/15" /><span className="inline-flex items-center gap-1.5 rounded-full bg-[#6d4aff]/20 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#c6b9ff]"><Icon name="admin" size={11} /> Admin</span></div><nav className="flex items-center gap-2"><Link href="/dashboard" className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] font-bold text-[#aaa4b1] transition hover:bg-white/[.06] hover:text-white"><Icon name="home" size={15} /> <span className="hidden sm:inline">Learner dashboard</span></Link><Link href="/dashboard/account" className="grid size-9 place-items-center rounded-xl bg-white/[.07] text-xs font-black text-[#c5b8ff]">{user.name.slice(0, 1)}</Link></nav></div>
       </header>
-
-      <main className="relative">
-        <AnimatedBackground variant="subtle" />
-        <div className="relative mx-auto max-w-6xl px-6 py-8">{children}</div>
-      </main>
+      <main className="mx-auto max-w-[1320px] px-4 py-7 sm:px-8 sm:py-9">{children}</main>
     </div>
   );
 }
