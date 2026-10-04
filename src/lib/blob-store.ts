@@ -13,8 +13,19 @@ import { Readable } from "node:stream";
  *   Local disk         otherwise: `.data/uploads`. Right for development, and
  *                      fine on a host with a persistent volume.
  *
- * The keys are stored as the same relative names on both backends, so switching
- * backends does not change the metadata a lesson record holds.
+ * On the Storage backend there are two ways to hand a file to the browser,
+ * chosen by SUPABASE_BUCKET_PUBLIC:
+ *
+ *   Public bucket URL  a stable `/object/public/{bucket}/{key}` URL. Supabase's
+ *                      CDN caches it, so the second viewer of a video is served
+ *                      from the edge. Chosen when SUPABASE_BUCKET_PUBLIC=1.
+ *   Signed URL         a one-hour URL created per view. Works with a private
+ *                      bucket, and expires, so a copied link stops working.
+ *
+ * Either way the app decides who gets a URL in the first place: the route checks
+ * the viewer's account, plan and lesson access before redirecting. The keys are
+ * stored as the same relative names on all paths, so switching backends — or
+ * switching a bucket between public and private — changes no stored metadata.
  */
 
 export type BlobBackend = "supabase" | "disk";
@@ -40,13 +51,27 @@ export function storageConfigured(): boolean {
 
 /** One line describing where files go right now, for status output. */
 export function storageSummary(): string {
-  if (storageConfigured()) return `Supabase Storage · bucket “${bucketName()}” · ${supabaseUrl()}/storage/v1`;
+  if (storageConfigured()) {
+    const style = publicBucket() ? "public bucket URLs" : "signed URLs";
+    return `Supabase Storage · bucket “${bucketName()}” · ${style} · ${supabaseUrl()}/storage/v1`;
+  }
   const relative = path.relative(process.cwd(), uploadsDir());
   return `local disk · ${relative && !relative.startsWith("..") ? relative : uploadsDir()}`;
 }
 
 export function blobBackend(): BlobBackend {
   return storageConfigured() ? "supabase" : "disk";
+}
+
+/**
+ * True when the bucket is public and the app should hand out its permanent
+ * object URLs. Opt in with `SUPABASE_BUCKET_PUBLIC=1` *after* clicking "Make
+ * public" on the bucket in the dashboard: if the flag is set but the bucket is
+ * still private, the URLs the app hands out are refused by Supabase, so the
+ * default stays on signed URLs, which work either way.
+ */
+export function publicBucket(): boolean {
+  return /^(1|true|yes|on)$/i.test((process.env.SUPABASE_BUCKET_PUBLIC ?? "").trim());
 }
 
 export function backendReason(): string {
@@ -171,13 +196,47 @@ export async function statBlob(key: string): Promise<BlobStat | null> {
   };
 }
 
+/** Appends Supabase's `?download=<name>` suffix, which makes the CDN answer
+ * with `Content-Disposition: attachment` instead of displaying the file. */
+function withDownload(url: string, downloadName?: string): string {
+  return downloadName
+    ? `${url}${url.includes("?") ? "&" : "?"}download=${encodeURIComponent(downloadName)}`
+    : url;
+}
+
 /**
- * A short-lived URL the browser can fetch directly.
+ * The permanent URL of an object in a public bucket. No request is made: this
+ * is string building, exactly as Supabase's own `getPublicUrl` does. The bucket
+ * itself has to be public for the URL to be served.
+ */
+export function publicBlobUrl(key: string, downloadName?: string): string | null {
+  if (blobBackend() === "disk") return null;
+  return withDownload(`${supabaseUrl()}/storage/v1/object/public/${bucketName()}/${encodeURIComponent(key)}`, downloadName);
+}
+
+/**
+ * The URL to send the browser to, whichever style this deployment uses.
  *
  * Storage only: the browser streams from Supabase's CDN instead of through the
  * app, which is what makes large videos seek properly and keeps the bytes off
  * the server. Returns null on the disk backend, where the caller streams the
  * file itself.
+ */
+export async function blobUrl(
+  key: string,
+  expiresInSeconds = 3600,
+  downloadName?: string
+): Promise<string | null> {
+  if (blobBackend() === "disk") return null;
+  if (publicBucket()) return publicBlobUrl(key, downloadName);
+  return signedBlobUrl(key, expiresInSeconds, downloadName);
+}
+
+/**
+ * A one-hour URL the browser can fetch directly, for private buckets.
+ *
+ * Storage only. Costs one request to Supabase per view; a public bucket with
+ * `SUPABASE_BUCKET_PUBLIC=1` skips it (see `blobUrl`).
  */
 export async function signedBlobUrl(
   key: string,
@@ -201,7 +260,7 @@ export async function signedBlobUrl(
     : `${supabaseUrl()}/storage/v1${relative.startsWith("/") ? "" : "/"}${relative}`;
   // Storage honours `download` on a signed URL, so a "Download" click still
   // saves the file under its real name even though the bytes come from Supabase.
-  return downloadName ? `${absolute}${absolute.includes("?") ? "&" : "?"}download=${encodeURIComponent(downloadName)}` : absolute;
+  return withDownload(absolute, downloadName);
 }
 
 export interface BlobStream {

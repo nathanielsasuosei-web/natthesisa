@@ -22,6 +22,8 @@ import {
   bucketName,
   deleteBlob,
   diskPath,
+  publicBlobUrl,
+  publicBucket,
   putBlob,
   signedBlobUrl,
   statBlob,
@@ -73,6 +75,7 @@ console.log("  with an ephemeral filesystem set all three Supabase variables so 
 }
 
 console.log(`bucket   : ${bucketName()}`);
+console.log(`urls     : ${publicBucket() ? "public bucket URLs (SUPABASE_BUCKET_PUBLIC=1)" : "one-hour signed URLs (SUPABASE_BUCKET_PUBLIC is not set)"}`);
 console.log("");
 
 try {
@@ -101,6 +104,43 @@ if (size !== PROBE_BYTES.byteLength) {
   fail("the stored size does not match", new Error(`stored ${size ?? "nothing"} bytes, expected ${PROBE_BYTES.byteLength}`));
 }
 console.log("  ✔ read its metadata back");
+
+// Is the bucket actually public, and does the app agree with it? These two have
+// to match or files break: a public flag on a private bucket hands out URLs
+// Supabase refuses, and a private flag on a public bucket gives up the CDN.
+const publicUrl = publicBlobUrl(probeKey);
+let bucketIsPublic = false;
+if (publicUrl) {
+  const response = await fetch(publicUrl, { cache: "no-store" }).catch(() => null);
+  bucketIsPublic = Boolean(response?.ok);
+  if (response?.ok) {
+    const body = new Uint8Array(await response.arrayBuffer());
+    if (body.byteLength !== PROBE_BYTES.byteLength) bucketIsPublic = false;
+  }
+}
+if (publicBucket() && !bucketIsPublic) {
+  await deleteBlob(probeKey).catch(() => {});
+  console.error("  ✘ SUPABASE_BUCKET_PUBLIC is on, but the bucket is not public yet.");
+  console.error("");
+  console.error("Click Storage → " + bucketName() + " → Make public in the Supabase dashboard, or remove");
+  console.error("SUPABASE_BUCKET_PUBLIC to go back to one-hour signed URLs (which work either way).");
+  process.exit(1);
+}
+if (publicBucket()) {
+  console.log("  ✔ the bucket is public: the app will hand out permanent CDN URLs");
+  const downloadUrl = publicBlobUrl(probeKey, "probe.txt");
+  const download = downloadUrl ? await fetch(downloadUrl, { cache: "no-store" }).catch(() => null) : null;
+  if (!download?.ok || !/attachment/i.test(download.headers.get("content-disposition") ?? "")) {
+    console.warn("  ! ?download= did not come back as an attachment — the Download button may open the file instead");
+  } else {
+    console.log("  ✔ ?download= still arrives as an attachment, so Download keeps the real file name");
+  }
+} else if (bucketIsPublic) {
+  console.log("  ! the bucket is public, but SUPABASE_BUCKET_PUBLIC is not set");
+  console.log("    set it to 1 to serve files straight from the CDN (one less signed request per view)");
+} else {
+  console.log("  · the bucket is private: the app will sign a one-hour URL per view");
+}
 
 let url: string | null = null;
 try {
@@ -137,6 +177,10 @@ if (await statBlob(probeKey)) fail("the probe object is still there after deleti
 console.log("  ✔ deleted it again");
 
 console.log("");
-console.log("✓ Supabase Storage is ready: uploads, signed downloads and deletes all work against this bucket.");
+console.log(
+  publicBucket()
+    ? "✓ Supabase Storage is ready: uploads, public CDN URLs and deletes all work against this bucket."
+    : "✓ Supabase Storage is ready: uploads, signed downloads and deletes all work against this bucket."
+);
 console.log("  Lesson videos, slides, posters and branding images will live here instead of on the server disk.");
 process.exit(0);

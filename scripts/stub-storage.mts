@@ -12,6 +12,7 @@
  *   GET    /storage/v1/object/info/{bucket}/{key}  metadata
  *   POST   /storage/v1/object/sign/{bucket}/{key}  signed URL
  *   GET    /storage/v1/object/sign/{bucket}/{key}?token=…  the signed download
+ *   GET    /storage/v1/object/public/{bucket}/{key}        public bucket read
  *
  * Objects are kept in memory; restarting the stub clears them.
  */
@@ -91,6 +92,27 @@ const server = createServer((request, response) => {
       return response.end(object.bytes);
     }
 
+    // A public bucket serves any object with no credentials at all. The stub
+    // answers the way Supabase does for a *private* bucket when the caller
+    // flips it off, so the app's fallback to signed URLs can be exercised.
+    if (action === "object" && parts[3] === "public" && request.method === "GET") {
+      if (!process.env.STUB_BUCKET_PUBLIC) {
+        return send(response, 400, { statusCode: "400", error: "Bucket not found", message: "Bucket not found" });
+      }
+      const publicId = parts.slice(4).join("/");
+      const object = objects.get(publicId);
+      if (!object) return send(response, 404, { message: "Object not found" });
+      const headers = {
+        "Content-Type": object.contentType,
+        "Content-Length": String(object.bytes.length),
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=3600",
+      };
+      const download = url.searchParams.get("download");
+      response.writeHead(200, download ? { ...headers, "Content-Disposition": `attachment; filename="${download}"` } : headers);
+      return response.end(object.bytes);
+    }
+
     if (action === "object" && request.method === "POST") {
       if (!request.headers.authorization?.startsWith("Bearer ") || !request.headers.apikey) {
         return send(response, 401, { message: "Missing authorization" });
@@ -110,5 +132,9 @@ const server = createServer((request, response) => {
 });
 
 server.listen(port, "0.0.0.0", () => {
-  console.log(`stub storage listening on http://localhost:${port} (objects are kept in memory)`);
+  console.log(
+  `stub storage listening on http://localhost:${port} (objects are kept in memory, bucket is ${
+    process.env.STUB_BUCKET_PUBLIC ? "public" : "private"
+  })`
+);
 });

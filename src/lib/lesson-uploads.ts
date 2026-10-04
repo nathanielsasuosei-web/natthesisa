@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { readState, writeState } from "./app-state";
-import { blobBackend, deleteBlob, diskPath, putBlob, readDiskBlob, signedBlobUrl, statBlob } from "./blob-store";
+import { blobBackend, blobUrl, deleteBlob, diskPath, putBlob, readDiskBlob, statBlob } from "./blob-store";
 import { pipeline } from "node:stream/promises";
 import type { Lesson, LessonFile, LessonSection } from "./courses";
 
@@ -469,11 +469,12 @@ export type StoredContent =
 /**
  * Opens a stored object for a response.
  *
- * With Supabase Storage the caller redirects the browser to a short-lived
- * signed URL — the bytes come from Supabase's CDN, which supports range
- * requests natively, so a lesson video seeks properly and the server does not
- * proxy gigabytes. On the disk backend the caller streams the file itself,
- * honouring the range the player asked for.
+ * With Supabase Storage the caller redirects the browser to a URL on the CDN —
+ * permanent when the bucket is public, otherwise a one-hour signed URL. Either
+ * way the bytes come from Supabase, which supports range requests natively, so
+ * a lesson video seeks properly and the server does not proxy gigabytes. On the
+ * disk backend the caller streams the file itself, honouring the range the
+ * player asked for.
  */
 export async function openStoredFile(
   record: UploadedFileRecord,
@@ -483,7 +484,7 @@ export async function openStoredFile(
   if (!stat) return null;
 
   if (blobBackend() === "supabase") {
-    const url = await signedBlobUrl(record.storedName, 3600, options.downloadName);
+    const url = await blobUrl(record.storedName, 3600, options.downloadName);
     return url ? { kind: "redirect", url } : null;
   }
   const stream = readDiskBlob(record.storedName, options.range);
@@ -501,7 +502,7 @@ export async function storedBlobRedirect(
 ): Promise<string | null> {
   if (blobBackend() !== "supabase") return null;
   if (!(await statBlob(record.storedName))) return null;
-  return signedBlobUrl(record.storedName, 3600, downloadName);
+  return blobUrl(record.storedName, 3600, downloadName);
 }
 
 /** Size of a stored object, or null when it is not there. */

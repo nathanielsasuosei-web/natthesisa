@@ -44,9 +44,10 @@ export async function GET(
 
   const download = req.nextUrl.searchParams.get("download") === "1";
 
-  // With Supabase Storage the browser is sent to a short-lived signed URL: the
-  // bytes come from Supabase's CDN (which serves range requests itself, so a
-  // long video seeks properly) instead of being proxied through this route.
+  // With Supabase Storage the browser is sent to a URL on Supabase's CDN — the
+  // bucket's permanent public URL, or a one-hour signed one when it is private.
+  // Either way the CDN serves range requests itself, so a long video seeks
+  // properly, and the bytes never pass through this route.
   const redirect = await storedBlobRedirect(file, download ? file.name : undefined);
   if (redirect) return NextResponse.redirect(redirect, 302);
 

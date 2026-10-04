@@ -101,15 +101,29 @@ up both. The bytes themselves go to one of two places:
 Supabase Storage is the production choice: the bytes live outside the app, so
 uploads survive a redeploy on a host with an ephemeral filesystem, and the
 browser streams large videos from Supabase's CDN instead of through the server.
-Access is still gated in the app: `/api/lesson-files/...` checks the viewer's
-plan and marks the lesson as started, then redirects to a one-hour signed URL.
-A signed URL works against a **private** bucket too, so make the bucket private
-if you prefer — either way a Pro-only video stays Pro-only, because the app is
-what decides who gets a URL.
-
 Create the bucket once (Storage → New bucket) before the first upload; without
 it, uploads fail with a message telling you so, and `npm run storage:check`
 tells you the same thing without uploading anything.
+
+Then decide how the browser gets each file. Either way the app is the gate:
+`/api/lesson-files/...` checks the viewer's account, plan and lesson access and
+marks the lesson as started **before** it hands out a URL, so a Pro-only video
+stays Pro-only.
+
+| Bucket | `SUPABASE_BUCKET_PUBLIC` | What the browser receives |
+| --- | --- | --- |
+| Private | unset | A one-hour signed URL, created per view. Expires, so a copied link stops working. |
+| Public (Storage → bucket → Make public) | `1` | The bucket's permanent `/object/public/...` URL, cached by Supabase's CDN. |
+
+Public is what you want when a video is watched more than once: the CDN answers
+the second viewer instead of the origin, and no request is spent minting a URL.
+The trade-off is real — a public URL does not expire, so it keeps working for
+anyone it is forwarded to. Signed URLs are the safer default for paid material;
+`npm run storage:check` reports which mode you are in and refuses to pass if
+`SUPABASE_BUCKET_PUBLIC` is set but the bucket is still private.
+
+Set `SUPABASE_BUCKET_PUBLIC=1` only *after* clicking Make public in the
+dashboard, or run `npm run storage:check` and let it tell you.
 
 Verify the round trip from the terminal before uploading a large video:
 
@@ -275,7 +289,7 @@ Supabase gives you two different things, and they are not interchangeable:
 | --- | --- | --- |
 | **Database connection string** (Project settings → Database → Connection string → URI) | `DATABASE_URL` | The database itself. This is what signs learners up and stores progress. |
 | **Publishable key** (`sb_publishable_…`, Project settings → API keys) | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser-safe. For Supabase client features (Storage uploads, Realtime); row level security is what protects data. |
-| **Secret key** (`sb_secret_…`) | `SUPABASE_SECRET_KEY` | Server-only, **bypasses row level security**. For admin features such as signing Storage uploads; never exposed to the browser. |
+| **Secret key** (`sb_secret_…`) | `SUPABASE_SECRET_KEY` | Server-only, **bypasses row level security**. For admin features such as uploading to Storage and signing URLs; never exposed to the browser. |
 
 The API keys do **not** connect the database — `DATABASE_URL` does, and it
 carries its own password. Adding the keys without the connection string changes
