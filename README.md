@@ -248,6 +248,25 @@ interrupted write on its own. A normal stop (SIGTERM/SIGINT, including
 `Ctrl-C` and the platform stopping the server) is checkpointed cleanly and
 always reopens with every account intact.
 
+### Supabase API keys vs the database
+
+Supabase gives you two different things, and they are not interchangeable:
+
+| What you have | Where it goes | What it can do |
+| --- | --- | --- |
+| **Database connection string** (Project settings → Database → Connection string → URI) | `DATABASE_URL` | The database itself. This is what signs learners up and stores progress. |
+| **Publishable key** (`sb_publishable_…`, Project settings → API keys) | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser-safe. For Supabase client features (Storage uploads, Realtime); row level security is what protects data. |
+| **Secret key** (`sb_secret_…`) | `SUPABASE_SECRET_KEY` | Server-only, **bypasses row level security**. For admin features such as signing Storage uploads; never exposed to the browser. |
+
+The API keys do **not** connect the database — `DATABASE_URL` does, and it
+carries its own password. Adding the keys without the connection string changes
+nothing the app does, which is why `npm run db:check` reports the driver in use
+and `npm run supabase:check` reports whether the key pair works against the
+project (and which storage buckets exist for lesson files).
+
+Store both keys in `.env.local` locally and in the host's environment variables
+when deployed. `.env.local` is git-ignored; `.env.example` only has placeholders.
+
 ### Supabase (or any hosted Postgres)
 
 1. Create a project at [supabase.com](https://supabase.com).
@@ -406,8 +425,9 @@ Production checklist:
    belong in the platform's environment variables.
 5. Lesson files, images and branding still live on the server filesystem
    (`.data/uploads`). On a host with an ephemeral disk, attach a volume or move
-   them to Supabase Storage before publishing real lessons. Accounts, progress
-   and invoices are already in Postgres and need no extra work.
+   them to Supabase Storage before publishing real lessons — that is what the
+   publishable and secret keys above are for. Accounts, progress and invoices
+   are already in Postgres and need no extra work.
 
 Payments are the one part still simulated: plans activate without charging a
 card, as described in [Connect real payments safely](#connect-real-payments-safely).
