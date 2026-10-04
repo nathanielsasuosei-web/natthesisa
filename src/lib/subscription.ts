@@ -36,9 +36,10 @@ function startNewPeriod(user: User, cycle: BillingCycle): void {
   user.usage = freshUsage();
 }
 
-export function syncSubscription(user: User): void {
+/** Rolls a lapsed billing period over. Returns true when the row changed. */
+export async function syncSubscription(user: User): Promise<boolean> {
   const subscription = user.subscription;
-  if (Date.now() < new Date(subscription.currentPeriodEnd).getTime()) return;
+  if (Date.now() < new Date(subscription.currentPeriodEnd).getTime()) return false;
 
   const pending = subscription.pendingPlanId;
   const wasCancelling = subscription.cancelAtPeriodEnd;
@@ -51,7 +52,7 @@ export function syncSubscription(user: User): void {
 
   const price = priceFor(nextPlan, subscription.cycle);
   if (price > 0) {
-    addInvoice(user, price, `${getPlan(nextPlan).name} plan — ${subscription.cycle} renewal`);
+    await addInvoice(user, price, `${getPlan(nextPlan).name} plan — ${subscription.cycle} renewal`);
   }
   if (wasCancelling && !pending) {
     logActivity(user, "Subscription ended — moved to the Explorer plan", "billing");
@@ -60,13 +61,14 @@ export function syncSubscription(user: User): void {
   } else {
     logActivity(user, `${getPlan(nextPlan).name} subscription renewed`, "billing");
   }
+  return true;
 }
 
-export function changePlan(
+export async function changePlan(
   user: User,
   planId: PlanId,
   cycle?: BillingCycle
-): ChangeResult {
+): Promise<ChangeResult> {
   const subscription = user.subscription;
   const target = getPlan(planId);
 
@@ -78,7 +80,7 @@ export function changePlan(
     subscription.cancelAtPeriodEnd = false;
     subscription.pendingPlanId = null;
     startNewPeriod(user, nextCycle);
-    if (price > 0) addInvoice(user, price, `${target.name} plan — ${nextCycle} purchase`);
+    if (price > 0) await addInvoice(user, price, `${target.name} plan — ${nextCycle} purchase`);
     logActivity(user, `Upgraded to ${target.name} (${nextCycle})`, "billing");
     return { mode: "upgraded", charged: price };
   }
@@ -94,7 +96,7 @@ export function changePlan(
     subscription.cycle = cycle;
     const price = priceFor(planId, cycle);
     startNewPeriod(user, cycle);
-    if (price > 0) addInvoice(user, price, `${target.name} plan — switched to ${cycle} billing`);
+    if (price > 0) await addInvoice(user, price, `${target.name} plan — switched to ${cycle} billing`);
     logActivity(user, `Switched ${target.name} to ${cycle} billing`, "billing");
     return { mode: "cycle", charged: price };
   }

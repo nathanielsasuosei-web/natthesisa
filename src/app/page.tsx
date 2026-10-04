@@ -16,10 +16,6 @@ const lessonCount = contentTotals().lessons;
 export const revalidate = 0;
 
 export default async function LandingPage() {
-  // Arena can launch this same app directly into the admin workspace for a
-  // focused preview; normal development and production still show marketing.
-  if (process.env.ADMIN_PREVIEW === "1") redirect("/admin");
-
   const user = await getCurrentUser();
   const appHref = user?.role === "admin" ? "/admin" : "/dashboard";
 
@@ -227,7 +223,7 @@ export default async function LandingPage() {
               </article>
             ))}
           </div>
-          <p className="mt-5 text-center text-[11px] text-[#98919e]">Prices shown in {site.currency.label}. Payments are simulated in this demonstration build.</p>
+          <p className="mt-5 text-center text-[11px] text-[#98919e]">Prices shown in {site.currency.label}. No card is charged in this build — plans activate immediately.</p>
         </section>
 
         <section className="relative overflow-hidden border-y border-[#6040e5] bg-[#6d4aff] text-white">

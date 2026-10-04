@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { computeStats, estimateMrr, toAdminRow } from "@/lib/admin";
 import { getCurrentAdmin } from "@/lib/session";
 import { isOwner } from "@/lib/owner";
-import { getStore } from "@/lib/store";
+import { listUsers } from "@/lib/store";
 import { fmtMinutes, fmtMoney } from "@/lib/format";
 import AdminUsersTable from "@/components/AdminUsersTable";
 import Icon from "@/components/Icon";
@@ -14,9 +14,9 @@ export const metadata: Metadata = { title: "Admin console" };
 export default async function AdminPage() {
   const admin = await getCurrentAdmin();
   if (!admin) redirect("/admin-sign-in");
-  const stats = computeStats();
-  const mrr = estimateMrr();
-  const users = [...getStore().users.values()].map(toAdminRow).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const stats = await computeStats();
+  const mrr = await estimateMrr();
+  const users = (await listUsers()).map(toAdminRow);
   const maxEnrollment = Math.max(...stats.coursePerformance.map((item) => item.enrollments), 1);
   const cards = [
     { label: "Total learners", value: stats.learners.toLocaleString(), note: `${stats.activeLearners} active this week`, icon: "users", style: "bg-violet-100 text-violet-700" },

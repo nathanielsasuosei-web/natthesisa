@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { canAccessLesson, getCourse } from "@/lib/courses";
 import { contentPercent, findContentLesson } from "@/lib/course-content";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
-import { getOrCreateProgress, recordLessonProgress } from "@/lib/store";
+import { getOrCreateProgress, recordLessonProgress, saveUser } from "@/lib/store";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
 
   const completed = body.completed !== false;
   const progress = recordLessonProgress(user, course.id, lesson.id, completed);
+  await saveUser(user);
   return NextResponse.json({
     ok: true,
     completed,
@@ -40,5 +41,6 @@ export async function PUT(req: NextRequest) {
   const course = getCourse(typeof body.courseId === "string" ? body.courseId : "");
   if (!course) return NextResponse.json({ error: "Course not found." }, { status: 404 });
   const progress = getOrCreateProgress(user, course.id);
+  await saveUser(user);
   return NextResponse.json({ ok: true, progress });
 }

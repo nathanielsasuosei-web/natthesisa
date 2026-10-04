@@ -9,7 +9,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 ### Student experience
 
 - Responsive marketing website with curriculum, testimonials and pricing
-- Account creation and sign-in flows
+- Real accounts: scrypt-hashed passwords, signed session cookies, and signup /
+  sign-in / sign-out / password-change flows backed by PostgreSQL
 - Searchable/filterable course library
 - Six learning paths across web, mobile, backend and computer science
 - Full course pages with modules, lessons, access rules and instructor details
@@ -29,6 +30,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - End-of-period downgrades and cancellation
 - Invoice history and server-side course entitlements
 - Interactive checkout using a clearly labelled **demo payment method**
+- Subscriptions, invoices and usage stored per account in the database, so a
+  learner's plan and billing history survive a restart
 
 > No real money moves in this repository. The billing engine and checkout UX are functional, but payment success is simulated. Connect a verified provider such as Paystack, Flutterwave or Stripe and process plan changes from a verified webhook before production.
 
@@ -42,6 +45,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Reset learner progress
 - Promote/demote administrators
 - Delete learner accounts
+- Suspend/restore, plan changes and deletions are all written to the database
 - Server-side protection for every administrator action
 
 ### Owner-only lesson uploads
@@ -102,10 +106,17 @@ before deploying, or the upload endpoints return a clear "cannot write" error.
 
 ```bash
 npm install
+cp .env.example .env.local   # then fill in OWNER_EMAIL / OWNER_PASSWORD
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+Without a `DATABASE_URL` the app runs on an embedded PostgreSQL (PGlite) in
+`.data/pg`, so accounts, progress and invoices persist across restarts with no
+database server to install. The first request against an empty database creates
+the tables and the owner account from `OWNER_EMAIL` / `OWNER_PASSWORD`. Then sign
+in at `/admin-sign-in` and change that password from the account page.
 
 Other useful commands:
 
@@ -113,16 +124,27 @@ Other useful commands:
 npm run build       # production build + TypeScript validation
 npm run typecheck   # TypeScript only
 npm start           # run the production build
+npm run db:check    # which database is in use + account counts
+npm run db:schema   # write db/schema.sql for a hosted Postgres
 ```
 
-## Demo accounts
+## Accounts
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Student | `student@codemasterghana.dev` | `student123` |
-| Administrator | `admin@codemasterghana.dev` | `admin123` |
+Accounts are real: credentials are hashed with scrypt, sessions are signed
+cookies, and everything a learner does (profile, progress, invoices, activity)
+is written to PostgreSQL before the request answers.
 
-The login page also has one-click buttons for both accounts.
+- **Learners** sign up on `/login`. Password rules are enforced on the server:
+  8+ characters, not a common password, and mixed letters and numbers.
+- **The owner** is the single admin account created from `OWNER_EMAIL` and
+  `OWNER_PASSWORD` on first run. Only that account can publish lessons. Sign in
+  at `/admin-sign-in`, then change the password from `/dashboard/account` —
+  after that the environment variables are only used if no owner exists.
+- **Administrators** can suspend or change the plan of any learner from
+  `/admin`. Suspended accounts cannot sign in.
+
+There are no demo accounts and nothing is seeded: an empty database stays empty
+until the owner signs in and someone signs up.
 
 ## Where each part of the code lives
 
@@ -133,9 +155,11 @@ This is the “what to paste where” map for continuing the build.
 | 1. Brand | `src/config/site.ts` | Name, tagline, support email and currency |
 | 2. Plans | `src/lib/plans.ts` | Plan names, prices, features and entitlements |
 | 3. Course content | `src/lib/courses.ts` | Courses, modules, lessons, examples and challenges |
-| 4. User data | `src/lib/store.ts` | Accounts, progress, usage, invoices and demo seed data |
-| 5. Sessions | `src/lib/session.ts` | Session-cookie lookup and role checks |
-| 6. Account API | `src/app/api/auth/*`, `src/app/api/account/route.ts` | Sign up, sign in, sign out and profile updates |
+| 4. User data | `src/lib/store.ts` | Accounts, progress, usage and invoices, read and written through Postgres |
+| 5. Sessions | `src/lib/session.ts` | Signed session cookies and role checks |
+| 6. Account API | `src/app/api/auth/*`, `src/app/api/account/route.ts` | Sign up, sign in, sign out, profile and password changes |
+| 6a. Database | `src/lib/db.ts`, `src/lib/schema.ts`, `src/lib/bootstrap.ts`, `scripts/*.mts` | Postgres/PGlite driver, schema, first-run setup and CLI reports |
+| 6b. Passwords | `src/lib/passwords.ts` | scrypt hashing, verification and strength rules |
 | 7. Progress API | `src/app/api/progress/route.ts` | Start courses and complete/uncomplete lessons |
 | 8. Billing engine | `src/lib/subscription.ts` | Upgrade, downgrade, renew, cancel and resume rules |
 | 9. Billing API | `src/app/api/subscription/route.ts` | Authenticated plan actions |
@@ -190,23 +214,77 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Use 
 
 Course cards, catalog filtering, progress calculation, admin analytics and access checks all read from this one catalog automatically. Lessons the owner publishes from `/admin/lessons` are merged on top of this catalog at request time (see `src/lib/course-content.ts`), so nothing here needs to be edited to add new material.
 
-## Connect a real database
+## Database
 
-The current `src/lib/store.ts` is an in-memory demo store. It survives development hot reloads but resets when the server process restarts and cannot safely serve multiple production instances.
+The app talks to PostgreSQL through `src/lib/db.ts` (the `pg` driver) and keeps
+the schema in `src/lib/schema.ts`, which is the single source of truth for both
+the runtime and the exported SQL.
 
-For production:
+| Situation | What happens |
+| --- | --- |
+| `DATABASE_URL` set | Every query goes to that Postgres server (`pg`, connection pool, 15s statement timeout, SSL for non-local hosts) |
+| `DATABASE_URL` unset | Embedded PostgreSQL (PGlite) at `.data/pg` — real Postgres, real files, no server to install |
+| Production build, no `DATABASE_URL` | Refuses to start unless `ALLOW_EMBEDDED_DB=1` |
 
-1. Create PostgreSQL tables for `users`, `profiles`, `subscriptions`, `invoices`, `course_progress`, `lesson_progress` and `activity_events`.
-2. Add Prisma or Drizzle and place the database client in `src/lib/db.ts`.
-3. Replace store reads/writes in `src/lib/store.ts`, `src/lib/admin.ts` and `src/lib/subscription.ts` with database transactions.
-4. Use unique constraints on email and payment-provider references.
-5. Keep course access checks in the server APIs—not only in the UI.
+The first request creates anything missing (`create table if not exists …`), so a
+fresh database needs no manual step. You can still paste the SQL into a hosted
+provider yourself:
 
-## Connect real authentication
+```bash
+npm run db:schema > db/schema.sql   # already committed
+```
 
-The included account system is intentionally self-contained for the demo. Before production, use Auth.js, Clerk or Supabase Auth, with email verification and password reset.
+An embedded database is a single process, so it cannot recover from being killed
+mid-write: PGlite can leave a data directory that PostgreSQL refuses to start
+from. The app handles that itself — the unreadable directory is moved aside to
+`.data/pg.broken-<timestamp>` (nothing is deleted) and a new, empty one is
+created, with a clear line in the logs. Accounts in it are lost, which is
+exactly why a hosted `DATABASE_URL` is the production path: it recovers from an
+interrupted write on its own. A normal stop (SIGTERM/SIGINT, including
+`Ctrl-C` and the platform stopping the server) is checkpointed cleanly and
+always reopens with every account intact.
 
-Whichever provider you choose, keep `getCurrentUser()` and `getCurrentAdmin()` in `src/lib/session.ts` as the application boundary. The rest of the app already calls those helpers, so the replacement remains localized.
+### Supabase (or any hosted Postgres)
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Copy the **pooled** connection string (Project settings → Database →
+   Connection pooling → URI, port `6543`). Serverless hosts open a new
+   connection per request, and the pooler is what keeps that affordable.
+3. Put it in `.env.local` (and in your host's environment variables):
+   `DATABASE_URL=postgresql://postgres.PROJECT:PASSWORD@...pooler.supabase.com:6543/postgres`
+4. Either run `npm run db:schema` and paste the output into the Supabase SQL
+   editor, or just start the app — it creates the tables on the first request.
+5. Set `SESSION_SECRET` (32+ random characters) and `OWNER_EMAIL` /
+   `OWNER_PASSWORD`, then sign in once to create the owner.
+
+Verify from the terminal with `npm run db:check` — it prints the driver, the
+server version, the owner account and the account counts.
+
+Everything is one `users` table. A learner's whole record (subscription, usage,
+progress, invoices, activity, profile) lives in JSONB columns beside their
+account row, so a page of the dashboard is one row read instead of a join
+across six tables. If the app outgrows that, split the JSONB columns into
+`course_progress`, `lesson_progress`, `invoices` and `activity_events` tables —
+the shapes are documented in `src/lib/store.ts`.
+
+## Authentication
+
+Sign-in is implemented in this repository rather than delegated to a provider:
+
+- Passwords are hashed with **scrypt** (`scrypt$N$r$p$salt$hash`), per-user
+  salt, compared in constant time. Hashes from the earlier format still verify
+  and are upgraded to scrypt on the next successful sign-in.
+- Sessions are a signed cookie (`codara_session` = `userId.expiry.hmac`),
+  HttpOnly, 30 days, `SameSite=None; Secure` when served over HTTPS so the Arena
+  preview iframe can use it. Rotating `SESSION_SECRET` invalidates all sessions.
+- Sign-in failures are throttled (8 per 10 minutes per IP + email), and the
+  error message never reveals whether an email exists.
+- Changing a password requires the current one and re-applies the strength
+  rules. Suspended accounts are rejected before any password is checked.
+
+Swapping in Auth.js, Clerk or Supabase Auth later is still localized: keep
+`getCurrentUser()` / `getCurrentAdmin()` in `src/lib/session.ts` as the boundary,
+because the rest of the app only calls those helpers.
 
 ## Connect real payments safely
 
@@ -226,6 +304,13 @@ Do **not** call `changePlan()` from an unverified “payment successful” brows
 
 ## Data and access behavior
 
+- Accounts live in PostgreSQL. Every signup, profile edit, password change,
+  completed lesson, plan change and invoice is committed before the response is
+  sent, so restarting the server (or redeploying) changes nothing a learner sees.
+- Passwords are never stored in plain text: `src/lib/passwords.ts` hashes them
+  with scrypt and a per-account salt, and sign-in compares in constant time.
+- Sessions are signed, not random lookups: the cookie cannot be edited to become
+  another account without `SESSION_SECRET`.
 - Course content is checked on the server in both lesson pages and the progress API.
 - Preview lessons are accessible even when the full course is locked.
 - A paused learner can view existing data but cannot save progress or alter a subscription.
@@ -256,4 +341,20 @@ The repository includes `vercel.json` and is ready for Vercel preview deployment
 npm run build
 ```
 
-Before a public production launch, replace the demo store, authentication and payment simulation described above, then configure secrets in the deployment platform rather than committing `.env` files.
+Production checklist:
+
+1. Create the hosted Postgres database and set `DATABASE_URL` to its pooled
+   connection string (see [Database](#database)).
+2. Set `SESSION_SECRET` to 32+ random characters. Without it a fresh filesystem
+   generates a new secret and every existing session is signed out.
+3. Set `OWNER_EMAIL` and `OWNER_PASSWORD` for the first deploy, then sign in and
+   change the password from `/dashboard/account`.
+4. Keep `.env.local` out of the repository — it is git-ignored, and secrets
+   belong in the platform's environment variables.
+5. Lesson files, images and branding still live on the server filesystem
+   (`.data/uploads`). On a host with an ephemeral disk, attach a volume or move
+   them to Supabase Storage before publishing real lessons. Accounts, progress
+   and invoices are already in Postgres and need no extra work.
+
+Payments are the one part still simulated: plans activate without charging a
+card, as described in [Connect real payments safely](#connect-real-payments-safely).

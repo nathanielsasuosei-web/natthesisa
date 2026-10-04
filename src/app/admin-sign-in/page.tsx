@@ -9,8 +9,6 @@ import Logo from "@/components/Logo";
 export const metadata: Metadata = { title: "Administrator sign in" };
 
 export default async function AdminSignInPage() {
-  if (process.env.ADMIN_PREVIEW === "1") redirect("/admin");
-
   const user = await getCurrentUser();
   if (user?.role === "admin") redirect("/admin");
 

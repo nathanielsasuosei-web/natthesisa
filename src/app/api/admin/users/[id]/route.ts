@@ -21,16 +21,16 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
   try {
     if (body.action === "suspend" && typeof body.suspended === "boolean") {
-      return NextResponse.json({ ok: true, user: toAdminRow(adminSuspendUser(admin, id, body.suspended)) });
+      return NextResponse.json({ ok: true, user: toAdminRow(await adminSuspendUser(admin, id, body.suspended)) });
     }
     if (body.action === "setRole" && (body.role === "member" || body.role === "admin")) {
-      return NextResponse.json({ ok: true, user: toAdminRow(adminSetRole(admin, id, body.role)) });
+      return NextResponse.json({ ok: true, user: toAdminRow(await adminSetRole(admin, id, body.role)) });
     }
     if (body.action === "setPlan" && PLAN_IDS.includes(body.planId)) {
-      return NextResponse.json({ ok: true, user: toAdminRow(adminSetPlan(admin, id, body.planId)) });
+      return NextResponse.json({ ok: true, user: toAdminRow(await adminSetPlan(admin, id, body.planId)) });
     }
     if (body.action === "resetProgress") {
-      return NextResponse.json({ ok: true, user: toAdminRow(adminResetProgress(admin, id)) });
+      return NextResponse.json({ ok: true, user: toAdminRow(await adminResetProgress(admin, id)) });
     }
     return NextResponse.json({ error: "Unknown or incomplete admin action." }, { status: 400 });
   } catch (error) {
@@ -47,7 +47,7 @@ export async function DELETE(_req: NextRequest, context: { params: Promise<{ id:
   if (!admin) return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
   const { id } = await context.params;
   try {
-    adminDeleteUser(admin, id);
+    await adminDeleteUser(admin, id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof AdminError) {
