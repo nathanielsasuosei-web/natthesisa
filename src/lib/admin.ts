@@ -188,7 +188,7 @@ export async function adminSetPlan(admin: User, userId: string, planId: PlanId):
 export async function adminResetProgress(admin: User, userId: string): Promise<User> {
   const user = await targetUser(userId);
   user.progress = {};
-  user.usage = { ...user.usage, minutes: 0, history: user.usage.history.map((day) => ({ ...day, count: 0 })) };
+  user.usage = { ...user.usage, minutes: 0, history: user.usage.history.map((day) => ({ ...day, count: 0 })), creditedLessonIds: [] };
   user.lifetimeMinutes = 0;
   logActivity(user, "Learning progress reset by an administrator", "admin");
   logActivity(admin, `Reset learning progress for ${user.name}`, "admin");

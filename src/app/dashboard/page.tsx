@@ -2,7 +2,7 @@ import Link from "next/link";
 import { COURSES, getCourse } from "@/lib/courses";
 import { contentLessons, contentPercent } from "@/lib/course-content";
 import { getPlan } from "@/lib/plans";
-import { completedLessonCount } from "@/lib/store";
+import { completedLessonCount, learningStreak } from "@/lib/store";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "@/components/CourseVisual";
@@ -24,14 +24,7 @@ export default async function DashboardPage() {
     : undefined;
   const lessonsDone = completedLessonCount(user);
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
-  const streak = (() => {
-    let days = 0;
-    for (let index = user.usage.history.length - 1; index >= 0; index -= 1) {
-      if (user.usage.history[index].count <= 0) break;
-      days += 1;
-    }
-    return days;
-  })();
+  const streak = learningStreak(user);
   const recommendations = COURSES.filter((course) => !user.progress[course.id]).slice(0, 2);
 
   return (

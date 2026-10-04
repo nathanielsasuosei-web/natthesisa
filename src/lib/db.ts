@@ -1,4 +1,4 @@
-import { renameSync } from "node:fs";
+import { mkdirSync, renameSync } from "node:fs";
 import path from "node:path";
 import { SCHEMA_STATEMENTS } from "./schema";
 
@@ -111,12 +111,17 @@ async function createDriver(): Promise<Driver> {
  */
 async function openEmbedded(directory: string): Promise<PGliteDb> {
   const { PGlite } = await import("@electric-sql/pglite");
+  // PGlite creates its own data directory with a non-recursive mkdir, so a
+  // missing parent (a fresh checkout, or a deployment where `.data` is not part
+  // of the image) makes it fail with ENOENT before PostgreSQL even starts.
+  mkdirSync(directory, { recursive: true });
   try {
     const db = new PGlite(directory);
     await db.query("select 1"); // forces startup, so a broken directory fails here
     return db;
   } catch (error) {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    mkdirSync(path.dirname(directory), { recursive: true });
     const quarantine = `${directory}.broken-${stamp}`;
     try {
       renameSync(directory, quarantine);

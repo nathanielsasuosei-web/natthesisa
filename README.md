@@ -311,6 +311,15 @@ Do **not** call `changePlan()` from an unverified “payment successful” brows
   with scrypt and a per-account salt, and sign-in compares in constant time.
 - Sessions are signed, not random lookups: the cookie cannot be edited to become
   another account without `SESSION_SECRET`.
+- The dashboard's weekly view is a rolling seven-day window that ends today, and
+  the streak counts consecutive days back from today (an empty today does not
+  break it — the day is not over). Both roll forward on the first request of a
+  new day, so the numbers describe the current week rather than the week the
+  account was created.
+- Completing a lesson adds its duration to the learner's totals once. Unmarking
+  it and completing it again does not count the same lesson twice, so learning
+  time and the weekly goal cannot drift upwards. Resetting a learner's progress
+  from the admin console clears those credits so the lessons count again.
 - Course content is checked on the server in both lesson pages and the progress API.
 - Preview lessons are accessible even when the full course is locked.
 - A paused learner can view existing data but cannot save progress or alter a subscription.

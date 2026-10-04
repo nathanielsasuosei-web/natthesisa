@@ -51,6 +51,14 @@ export interface LearningUsage {
   periodStart: string;
   minutes: number;
   history: DayUsage[];
+  /**
+   * Lessons whose duration has already been added to `minutes` and
+   * `lifetimeMinutes`. A lesson contributes its time once: unmarking it and
+   * marking it complete again must not count the same lesson twice, which is
+   * what made "learning time" and the weekly goal drift upwards. Optional so
+   * records written before this field existed still load.
+   */
+  creditedLessonIds?: string[];
 }
 
 export interface PaymentMethod {
@@ -117,6 +125,7 @@ export function freshUsage(values: number[] = []): LearningUsage {
     periodStart: new Date().toISOString(),
     minutes: values.reduce((sum, value) => sum + value, 0),
     history,
+    creditedLessonIds: [],
   };
 }
 
@@ -429,14 +438,23 @@ export function recordLessonProgress(
   const lesson = findContentLesson(course, lessonId);
   if (!lesson) throw new Error("Lesson not found");
 
+  // The window may be stale if this is the first request of a new day, so roll
+  // it before recording the time.
+  syncUsageWindow(user);
   const progress = getOrCreateProgress(user, courseId);
   const alreadyComplete = progress.completedLessonIds.includes(lessonId);
   if (completed && !alreadyComplete) {
     progress.completedLessonIds.push(lessonId);
-    user.usage.minutes += lesson.duration;
-    user.lifetimeMinutes += lesson.duration;
-    const today = user.usage.history.find((item) => item.date === todayKey());
-    if (today) today.count += lesson.duration;
+    const credited = user.usage.creditedLessonIds ?? (user.usage.creditedLessonIds = []);
+    if (!credited.includes(lessonId)) {
+      // First time this lesson is completed: count the time once. Undoing and
+      // redoing it later must not add the same duration again.
+      credited.push(lessonId);
+      user.usage.minutes += lesson.duration;
+      user.lifetimeMinutes += lesson.duration;
+      const today = user.usage.history.find((item) => item.date === todayKey());
+      if (today) today.count += lesson.duration;
+    }
     logActivity(user, `Completed “${lesson.title}” in ${course.shortTitle}`, "learning");
   } else if (!completed && alreadyComplete) {
     progress.completedLessonIds = progress.completedLessonIds.filter((id) => id !== lessonId);
@@ -446,10 +464,50 @@ export function recordLessonProgress(
   return progress;
 }
 
+/**
+ * Keeps `usage.history` a rolling seven-day window that ends today.
+ *
+ * Without this the window stays where `freshUsage()` left it — on the day the
+ * account was created — so from the next day on the dashboard chart, the
+ * "minutes this week" figure and the weekly goal all describe a week that has
+ * already passed, and today's minutes have nowhere to be recorded.
+ *
+ * When the window moves, `todayKey()` cannot appear twice, so the caller must
+ * persist the result (every route that changes progress calls `saveUser`);
+ * otherwise a server restart would roll the window again and could land on a
+ * different day.
+ */
+export function syncUsageWindow(user: User): boolean {
+  const history = user.usage.history;
+  if (!history.length) {
+    user.usage = { ...freshUsage(), minutes: user.usage.minutes };
+    return true;
+  }
+  if (history[history.length - 1].date === todayKey()) return false;
+
+  const counts = new Map(history.map((day) => [day.date, day.count]));
+  const rolled: DayUsage[] = [];
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = todayKey(addDays(new Date(), -offset));
+    rolled.push({ date, count: counts.get(date) ?? 0 });
+  }
+  user.usage = { ...user.usage, history: rolled };
+  return true;
+}
+
+/**
+ * Consecutive days of learning, counting back from today.
+ *
+ * An empty today does not break a streak: the day is not over yet, so counting
+ * starts from yesterday. Only a full day with no activity ends it.
+ */
 export function learningStreak(user: User): number {
+  const history = user.usage.history;
+  let index = history.length - 1;
+  if (index >= 0 && history[index].count <= 0) index -= 1;
   let streak = 0;
-  for (let index = user.usage.history.length - 1; index >= 0; index -= 1) {
-    if (user.usage.history[index].count <= 0) break;
+  for (; index >= 0; index -= 1) {
+    if (history[index].count <= 0) break;
     streak += 1;
   }
   return streak;

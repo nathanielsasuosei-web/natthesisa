@@ -2,7 +2,7 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { cookies, headers } from "next/headers";
-import { User, getUserById, saveUser, touchLastSeen } from "./store";
+import { User, getUserById, saveUser, syncUsageWindow, touchLastSeen } from "./store";
 import { ensureReady } from "./bootstrap";
 import { syncSubscription } from "./subscription";
 import { isOwner } from "./owner";
@@ -140,8 +140,12 @@ export async function getCurrentUser(): Promise<User | null> {
   const user = await getUserById(payload.userId);
   if (!user) return null;
 
-  // Rolls the billing period over if it lapsed while the learner was away.
-  if (await syncSubscription(user)) {
+  // Both of these are day-boundary housekeeping: the billing period rolls over
+  // when it lapses, and the seven-day activity window has to end today or the
+  // dashboard keeps describing last week. Persisted only when something moved.
+  const periodRolled = await syncSubscription(user);
+  const windowRolled = syncUsageWindow(user);
+  if (periodRolled || windowRolled) {
     await saveUser(user);
   }
   return user;
