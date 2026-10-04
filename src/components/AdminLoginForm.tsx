@@ -76,12 +76,17 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
         cache: "no-store",
         body: JSON.stringify({ mode: "signin", email, password }),
       });
-      const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => null) as { error?: string; role?: string } | null;
       if (!response.ok) {
-        setError(data.error ?? "Administrator sign-in failed.");
+        setError(
+          data?.error ??
+            (response.status >= 500
+              ? "Sign-in is temporarily unavailable. Please try again. If this keeps happening, check the database connection."
+              : "Administrator sign-in failed.")
+        );
         return;
       }
-      if (data.role !== "admin") {
+      if (data?.role !== "admin") {
         // A learner who lands here is signed in now, so send them somewhere
         // useful instead of leaving them stuck on an error.
         setNotAdmin(true);
