@@ -102,11 +102,22 @@ export async function POST(req: NextRequest) {
   }
 
   const user = await findUserByEmail(email);
-  if (!user || !verifyPassword(user, password)) {
+  if (!user) {
+    // Sign-up already reports when an email is taken, so naming this case here
+    // reveals nothing new — and it turns a dead end into a next step, which is
+    // what a learner who typed an email from an older database needs.
     noteFailedAttempt(attemptsKey);
-    // One message for both cases, so the form cannot be used to discover which
-    // email addresses have accounts.
-    return NextResponse.json({ error: "Email or password is incorrect." }, { status: 401 });
+    return NextResponse.json(
+      { error: "No account exists for that email yet.", code: "NO_ACCOUNT" },
+      { status: 401 }
+    );
+  }
+  if (!verifyPassword(user, password)) {
+    noteFailedAttempt(attemptsKey);
+    return NextResponse.json(
+      { error: "That password does not match this account.", code: "BAD_PASSWORD" },
+      { status: 401 }
+    );
   }
 
   attempts().delete(attemptsKey);

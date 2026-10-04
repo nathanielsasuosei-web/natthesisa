@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
 
 type Mode = "signin" | "signup";
@@ -11,9 +11,6 @@ interface Props {
 }
 
 export default function AuthForm({ initialMode = "signin" }: Props) {
-  // Keep the router initialized for compatibility with already-open preview
-  // tabs during hot reload; successful auth still uses a full navigation.
-  useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,29 +18,34 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  async function authenticate(payload?: { email: string; password: string }) {
+  async function authenticate() {
     if (busy) return;
-    const useEmail = payload?.email ?? email;
-    const usePassword = payload?.password ?? password;
     if (mode === "signup" && name.trim().length < 2) {
       setError("Please enter your full name.");
       return;
     }
-    if (!useEmail.trim() || !usePassword) {
+    if (!email.trim() || !password) {
       setError("Enter your email and password.");
       return;
     }
     setBusy(true);
     setError(null);
+    setNotice(null);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: payload ? "signin" : mode, name, email: useEmail, password: usePassword }),
+        body: JSON.stringify({ mode, name, email, password }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        if (data.code === "NO_ACCOUNT" && mode === "signin") {
+          // Not an error to stare at: offer the account creation this email needs.
+          setNotice(data.error ?? "No account exists for that email yet.");
+          return;
+        }
         setError(data.error ?? "We could not sign you in.");
         return;
       }
@@ -60,6 +62,7 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
   function changeMode(next: Mode) {
     setMode(next);
     setError(null);
+    setNotice(null);
   }
 
   return (
@@ -91,12 +94,29 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
         </label>
 
         {mode === "signup" && <p className="text-[11px] leading-5 text-[#89828f]">By creating an account, you agree to codemasterghana&apos;s Terms and Privacy Policy.</p>}
+        {notice && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">
+            {notice}{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setError(null);
+                setNotice("Choose a password to finish creating your account — at least 8 characters with a number or symbol.");
+              }}
+              className="font-extrabold underline"
+            >
+              Create an account with this email
+            </button>
+          </div>
+        )}
         {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}</div>}
         <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white shadow-[0_9px_25px_rgba(109,74,255,.22)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] disabled:translate-y-0 disabled:cursor-wait disabled:opacity-65">
           {busy ? "Opening your workspace…" : mode === "signup" ? "Create free account" : "Sign in to codemasterghana"} {!busy && <Icon name="arrow-right" size={16} />}
         </button>
       </form>
 
+      <EmbedNotice />
     </div>
   );
 }

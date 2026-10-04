@@ -87,18 +87,59 @@ interface CookieOptions {
   maxAge: number;
 }
 
-async function cookieOptions(maxAge: number): Promise<CookieOptions> {
-  let secure = process.env.NODE_ENV === "production";
+/**
+ * How the session cookie must be marked for the request we are answering.
+ *
+ * The Arena preview runs this app inside a cross-site iframe. A cookie written
+ * with `SameSite=Lax` is not sent from an embedded frame, so signing in would
+ * appear to succeed and then bounce straight back to the sign-in page — the
+ * login looks broken when the cookie is the problem. `SameSite=None` is what
+ * embedded frames need, and browsers require it to be `Secure` over HTTPS.
+ *
+ * A reverse proxy does not always forward `x-forwarded-proto`, so several
+ * independent signals are checked. Local development over plain HTTP stays on
+ * `Lax`, which is what a normal browser tab wants.
+ */
+async function cookieContext(): Promise<{ secure: boolean; reason: string }> {
+  const production = process.env.NODE_ENV === "production";
   try {
-    // Arena serves the preview inside a cross-site iframe over HTTPS. A
-    // SameSite=Lax cookie is not sent there, so when the request arrives over
-    // HTTPS we use SameSite=None (which browsers require to be Secure).
     const header = await headers();
-    if (header.get("x-forwarded-proto")?.split(",")[0]?.trim() === "https") secure = true;
+    const proto = header.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() ?? "";
+    const site = header.get("sec-fetch-site")?.toLowerCase() ?? "";
+    const dest = header.get("sec-fetch-dest")?.toLowerCase() ?? "";
+    const host = header.get("x-forwarded-host") ?? header.get("host") ?? "";
+    const hostname = host.split(":")[0].replace(/^\[|\]$/g, "").toLowerCase();
+    const local = /^(localhost|127\.0\.0\.1|::1|0\.0\.0\.0)$/.test(hostname);
+    const proxied = Boolean(
+      header.get("x-forwarded-for") ?? header.get("x-forwarded-host") ?? header.get("x-real-ip")
+    );
+
+    if (proto === "https") return { secure: true, reason: "x-forwarded-proto=https" };
+    if (!local && (site === "cross-site" || site === "same-site")) {
+      return { secure: true, reason: `sec-fetch-site=${site}` };
+    }
+    if (!local && dest === "iframe") return { secure: true, reason: "sec-fetch-dest=iframe" };
+    if (!local && proxied) return { secure: true, reason: "behind a proxy on a non-local host" };
+    if (production) return { secure: true, reason: "production build" };
+    return { secure: false, reason: `plain http on ${hostname || "an unknown host"}` };
   } catch {
-    /* headers() is unavailable outside a request; keep the default */
+    // headers() is unavailable outside a request (e.g. during a build).
+    return { secure: production, reason: "outside a request" };
   }
-  return {
+}
+
+async function cookieOptions(maxAge: number): Promise<CookieOptions> {
+  const { secure, reason } = await cookieContext();
+  // Log the decision once per process: if a session ever fails to stick, this
+  // line says exactly what the browser was sent and why.
+  const store = globalThis as unknown as { __codaraCookieNote?: boolean };
+  if (!store.__codaraCookieNote) {
+    store.__codaraCookieNote = true;
+    console.info(
+      `[codemasterghana] session cookie: SameSite=${secure ? "None" : "Lax"} Secure=${secure} (${reason})`
+    );
+  }
+return {
     httpOnly: true,
     sameSite: secure ? "none" : "lax",
     secure,

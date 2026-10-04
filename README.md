@@ -136,10 +136,14 @@ is written to PostgreSQL before the request answers.
 
 - **Learners** sign up on `/login`. Password rules are enforced on the server:
   8+ characters, not a common password, and mixed letters and numbers.
-- **The owner** is the single admin account created from `OWNER_EMAIL` and
-  `OWNER_PASSWORD` on first run. Only that account can publish lessons. Sign in
-  at `/admin-sign-in`, then change the password from `/dashboard/account` —
-  after that the environment variables are only used if no owner exists.
+- **The owner** is the single admin account. Set `OWNER_EMAIL` and
+  `OWNER_PASSWORD` and it is created on the first request; if you would rather
+  not keep credentials in the environment, open `/admin-sign-in` on an empty
+  database and it offers a one-time "Set up the owner account" form instead
+  (that route closes itself as soon as an owner exists, and refuses entirely
+  when `OWNER_EMAIL`/`OWNER_PASSWORD` are set). Only the owner can publish
+  lessons. Sign in at `/admin-sign-in`, then change the password from
+  `/dashboard/account`.
 - **Administrators** can suspend or change the plan of any learner from
   `/admin`. Suspended accounts cannot sign in.
 
@@ -277,8 +281,19 @@ Sign-in is implemented in this repository rather than delegated to a provider:
 - Sessions are a signed cookie (`codara_session` = `userId.expiry.hmac`),
   HttpOnly, 30 days, `SameSite=None; Secure` when served over HTTPS so the Arena
   preview iframe can use it. Rotating `SESSION_SECRET` invalidates all sessions.
-- Sign-in failures are throttled (8 per 10 minutes per IP + email), and the
-  error message never reveals whether an email exists.
+- Sign-in failures are throttled (8 per 10 minutes per IP + email) and the
+  message says which of the two things went wrong: an email with no account is
+  offered account creation in one tap, a wrong password is named as such.
+  (Sign-up already reports when an email is taken, so this reveals nothing new.)
+- The session cookie is `SameSite=None; Secure` whenever the app is served over
+  HTTPS or from an embedded frame, because a `Lax` cookie is not sent from the
+  preview iframe and signing in would appear to work and then bounce back to the
+  sign-in page. Several signals are checked (`x-forwarded-proto`, `Sec-Fetch-*`,
+  proxy headers) because a proxy does not always forward the scheme. Plain
+  `http://localhost` development keeps `Lax`, and the server logs which signal
+  decided it, once per process. Browsers that block third-party cookies outright
+  cannot hold any cookie inside a frame: the sign-in page detects the frame and
+  offers to open the app in its own tab, where the cookie is first-party.
 - Changing a password requires the current one and re-applies the strength
   rules. Suspended accounts are rejected before any password is checked.
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import Logo from "./Logo";
@@ -27,7 +27,6 @@ interface Props {
 
 export default function SidebarNav({ userName, userEmail, planName, weeklyMinutes, weeklyGoal, isAdmin, compact = false }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   const active = (href: string) => href === "/dashboard" ? pathname === href : pathname.startsWith(href);
@@ -36,8 +35,9 @@ export default function SidebarNav({ userName, userEmail, planName, weeklyMinute
     if (busy) return;
     setBusy(true);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
-    router.push("/");
-    router.refresh();
+    // Full navigation: the session cookie has just been cleared, and a client
+    // router push can keep serving the signed-in shell from its cache.
+    window.location.replace("/");
   }
 
   if (compact) {

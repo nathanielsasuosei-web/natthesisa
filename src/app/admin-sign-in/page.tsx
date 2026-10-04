@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import AdminLoginForm from "@/components/AdminLoginForm";
+import { ownerAccount } from "@/lib/store";
 import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 
@@ -11,6 +12,11 @@ export const metadata: Metadata = { title: "Administrator sign in" };
 export default async function AdminSignInPage() {
   const user = await getCurrentUser();
   if (user?.role === "admin") redirect("/admin");
+
+  // Offer first-run setup only when nobody owns the platform yet and the
+  // environment has not configured the owner account.
+  const configured = Boolean(process.env.OWNER_EMAIL?.trim() && process.env.OWNER_PASSWORD);
+  const setupAvailable = !configured && !(await ownerAccount());
 
   return (
     <main className="grid min-h-screen bg-[#f8f8f5] lg:grid-cols-[.9fr_1.1fr]">
@@ -23,7 +29,7 @@ export default async function AdminSignInPage() {
         <p className="relative text-[10px] text-[#686170]">Authorized administrators only · Demo environment</p>
       </section>
 
-      <section className="relative flex min-h-screen items-center justify-center px-5 py-12 sm:px-8"><div className="absolute left-5 top-5 lg:hidden"><Logo /></div><Link href="/" className="absolute right-6 top-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#77717e] hover:text-[#5e3ce8]"><Icon name="arrow-left" size={14} /> Home</Link><div className="w-full max-w-[440px] border-y border-[#ded9e3] py-8"><AdminLoginForm currentUserName={user?.name} /><p className="mt-6 text-center text-[10px] text-[#918a97]">Student? <Link href="/login" className="font-bold text-[#6543e8]">Go to student sign in</Link></p></div></section>
+      <section className="relative flex min-h-screen items-center justify-center px-5 py-12 sm:px-8"><div className="absolute left-5 top-5 lg:hidden"><Logo /></div><Link href="/" className="absolute right-6 top-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#77717e] hover:text-[#5e3ce8]"><Icon name="arrow-left" size={14} /> Home</Link><div className="w-full max-w-[440px] border-y border-[#ded9e3] py-8"><AdminLoginForm currentUserName={user?.name} setupAvailable={setupAvailable} /><p className="mt-6 text-center text-[10px] text-[#918a97]">Student? <Link href="/login" className="font-bold text-[#6543e8]">Go to student sign in</Link></p></div></section>
     </main>
   );
 }
