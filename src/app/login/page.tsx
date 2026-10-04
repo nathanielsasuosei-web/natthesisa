@@ -39,6 +39,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <Link href="/" className="absolute right-6 top-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#77717e] transition hover:text-[#5e3ce8]"><Icon name="arrow-left" size={14} /> Back to home</Link>
         <div className="w-full max-w-[430px] border-y border-[#ded9e3] py-8">
           <AuthForm initialMode={initialMode} />
+          <p className="mt-6 text-center text-[10px] text-[#918a97]">
+            Owner or administrator?{" "}
+            <Link href="/admin-sign-in" className="font-bold text-[#6543e8]">
+              Sign in here
+            </Link>
+          </p>
         </div>
       </section>
     </main>

@@ -10,9 +10,13 @@ interface Props {
   progress?: number;
   locked?: boolean;
   hrefBase?: "public" | "dashboard";
+  /** Lesson count including lessons published by the owner. */
+  lessonCount?: number;
+  /** Total minutes including lessons published by the owner. */
+  minutes?: number;
 }
 
-export default function CourseCard({ course, progress, locked = false, hrefBase = "dashboard" }: Props) {
+export default function CourseCard({ course, progress, locked = false, hrefBase = "dashboard", lessonCount, minutes }: Props) {
   const lessons = getCourseLessons(course);
   const href = hrefBase === "dashboard" ? `/dashboard/courses/${course.slug}` : "/login";
   const showVisual = hrefBase === "dashboard";
@@ -39,8 +43,8 @@ export default function CourseCard({ course, progress, locked = false, hrefBase 
         <h3 className="mt-2.5 text-[17px] font-bold leading-snug tracking-[-.025em] text-[#1b1822] transition group-hover:text-[#5a39e7]">{course.title}</h3>
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#716b7b]">{course.description}</p>
         <div className="mt-4 flex items-center gap-4 text-xs text-[#817b8b]">
-          <span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> {lessons.length} lessons</span>
-          <span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {fmtMinutes(getCourseMinutes(course))}</span>
+          <span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> {lessonCount ?? lessons.length} lessons</span>
+          <span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {fmtMinutes(minutes ?? getCourseMinutes(course))}</span>
           <span>{course.level}</span>
         </div>
         {progress !== undefined ? (

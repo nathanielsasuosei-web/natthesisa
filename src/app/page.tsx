@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { COURSES, getCourseLessons } from "@/lib/courses";
+import { COURSES } from "@/lib/courses";
+import { contentTotals } from "@/lib/course-content";
 import { PLANS, formatMoney } from "@/lib/plans";
 import { site } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
@@ -9,13 +10,12 @@ import CourseCard from "@/components/CourseCard";
 import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 
-const lessonCount = COURSES.reduce((sum, course) => sum + getCourseLessons(course).length, 0);
+const lessonCount = contentTotals().lessons;
+
+// Lessons can be published at any time from the owner console.
+export const revalidate = 0;
 
 export default async function LandingPage() {
-  // Arena can launch this same app directly into the admin workspace for a
-  // focused preview; normal development and production still show marketing.
-  if (process.env.ADMIN_PREVIEW === "1") redirect("/admin");
-
   const user = await getCurrentUser();
   const appHref = user?.role === "admin" ? "/admin" : "/dashboard";
 
@@ -223,7 +223,7 @@ export default async function LandingPage() {
               </article>
             ))}
           </div>
-          <p className="mt-5 text-center text-[11px] text-[#98919e]">Prices shown in {site.currency.label}. Payments are simulated in this demonstration build.</p>
+          <p className="mt-5 text-center text-[11px] text-[#98919e]">Prices shown in {site.currency.label}. No card is charged in this build — plans activate immediately.</p>
         </section>
 
         <section className="relative overflow-hidden border-y border-[#6040e5] bg-[#6d4aff] text-white">
@@ -237,7 +237,7 @@ export default async function LandingPage() {
       <footer className="border-t border-black/[.07] bg-[#f2f1ed] py-12">
         <div className="mx-auto grid max-w-[1120px] gap-10 px-5 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div><Logo /><p className="mt-4 max-w-xs text-sm leading-6 text-[#77717d]">Practical technology education for curious people ready to build.</p></div>
-          <div><p className="text-xs font-black uppercase tracking-wider">Learn</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#courses" className="block hover:text-[#5c3be4]">Courses</a><a href="#pricing" className="block hover:text-[#5c3be4]">Pricing</a><Link href="/login" className="block hover:text-[#5c3be4]">Student login</Link></div></div>
+          <div><p className="text-xs font-black uppercase tracking-wider">Learn</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#courses" className="block hover:text-[#5c3be4]">Courses</a><a href="#pricing" className="block hover:text-[#5c3be4]">Pricing</a><Link href="/login" className="block hover:text-[#5c3be4]">Student login</Link><Link href="/admin-sign-in" className="block hover:text-[#5c3be4]">Administrator sign in</Link></div></div>
           <div><p className="text-xs font-black uppercase tracking-wider">Company</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#how-it-works" className="block hover:text-[#5c3be4]">How it works</a><a href="#stories" className="block hover:text-[#5c3be4]">Stories</a><a href={`mailto:${site.supportEmail}`} className="block hover:text-[#5c3be4]">Contact</a></div></div>
           <div><p className="text-xs font-black uppercase tracking-wider">Build your future</p><p className="mt-4 text-sm leading-6 text-[#746e7a]">New lessons and projects are added to every learning path.</p></div>
         </div>

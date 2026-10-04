@@ -7,6 +7,7 @@ import {
   clearPendingChange,
   resumeSubscription,
 } from "@/lib/subscription";
+import { saveUser } from "@/lib/store";
 import { BillingCycle, PlanId, getPlan } from "@/lib/plans";
 
 const PLAN_IDS: PlanId[] = ["free", "premium", "elite"];
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest) {
         if (cycle !== undefined && !CYCLES.includes(cycle)) {
           return NextResponse.json({ error: "Unknown billing cycle." }, { status: 400 });
         }
-        const result = changePlan(user, planId, cycle);
+        const result = await changePlan(user, planId, cycle);
+        await saveUser(user);
         return NextResponse.json({
           ok: true,
           mode: result.mode,
@@ -41,14 +43,17 @@ export async function POST(req: NextRequest) {
       }
       case "cancel": {
         cancelSubscription(user);
+        await saveUser(user);
         return NextResponse.json({ ok: true });
       }
       case "resume": {
         resumeSubscription(user);
+        await saveUser(user);
         return NextResponse.json({ ok: true });
       }
       case "clearPending": {
         clearPendingChange(user);
+        await saveUser(user);
         return NextResponse.json({ ok: true });
       }
       default:

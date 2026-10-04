@@ -20,6 +20,42 @@ export default function AccountForm({ name: initialName, email, profile: initial
   const [weeklyGoal, setWeeklyGoal] = useState(initialProfile.weeklyGoal);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+
+  async function changePassword(event: React.FormEvent) {
+    event.preventDefault();
+    if (passwordBusy) return;
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: "error", text: "The two new passwords do not match." });
+      return;
+    }
+    setPasswordBusy(true);
+    setPasswordMessage(null);
+    try {
+      const response = await fetch("/api/account", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setPasswordMessage({ type: "error", text: data.error ?? "Your password could not be changed." });
+        return;
+      }
+      setPasswordMessage({ type: "ok", text: "Password changed. Use it the next time you sign in." });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      setPasswordMessage({ type: "error", text: "Network error. Your password was not changed." });
+    } finally {
+      setPasswordBusy(false);
+    }
+  }
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -49,7 +85,8 @@ export default function AccountForm({ name: initialName, email, profile: initial
   const inputClass = "mt-1.5 w-full rounded-xl border border-[#ded9e3] bg-white px-3.5 py-2.5 text-xs font-medium text-[#38323e] transition placeholder:text-[#aaa4b0] focus:border-[#7a5af0] focus:ring-4 focus:ring-violet-100";
 
   return (
-    <form onSubmit={save} className="space-y-5">
+    <div className="space-y-5">
+      <form onSubmit={save} className="space-y-5">
       <section className="open-surface">
         <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">Profile details</h2><p className="mt-1 text-[10px] text-[#918a97]">How your name and learning goal appear in codemasterghana.</p></div>
         <div className="grid gap-5 py-6 sm:grid-cols-2">
@@ -70,6 +107,22 @@ export default function AccountForm({ name: initialName, email, profile: initial
 
       {message && <div className={`rounded-xl border px-4 py-3 text-xs font-semibold ${message.type === "ok" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>{message.text}</div>}
       <div className="flex justify-end"><button type="submit" disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-[0_8px_22px_rgba(109,74,255,.2)] transition hover:-translate-y-0.5 disabled:opacity-60"><Icon name="check" size={15} />{busy ? "Saving…" : "Save changes"}</button></div>
-    </form>
+      </form>
+
+      <section className="open-surface">
+        <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">Password</h2><p className="mt-1 text-[10px] text-[#918a97]">Your password is hashed with scrypt before it is stored. Changing it signs nobody else out — the new password is required at your next sign-in.</p></div>
+        <div className="grid gap-5 py-6 sm:grid-cols-3">
+          <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Current password</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" className={inputClass} /></label>
+          <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">New password</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" placeholder="At least 8 characters" className={inputClass} /></label>
+          <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Repeat new password</span><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" className={inputClass} /></label>
+        </div>
+        {passwordMessage && <div className={`mb-4 rounded-xl border px-4 py-3 text-xs font-semibold ${passwordMessage.type === "ok" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>{passwordMessage.text}</div>}
+        <div className="flex justify-end pb-1">
+          <button type="button" onClick={changePassword} disabled={passwordBusy || !currentPassword || !newPassword} className="inline-flex items-center gap-2 rounded-xl border border-[#ddd9e2] bg-white px-5 py-3 text-xs font-extrabold text-[#5e5864] transition hover:border-violet-300 disabled:opacity-50">
+            <Icon name="lock" size={14} /> {passwordBusy ? "Updating…" : "Change password"}
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }

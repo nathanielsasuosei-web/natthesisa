@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { COURSES, coursePercent, getCourse, getCourseLessons } from "@/lib/courses";
+import { COURSES, getCourse } from "@/lib/courses";
+import { contentLessons, contentPercent } from "@/lib/course-content";
 import { getPlan } from "@/lib/plans";
-import { completedLessonCount } from "@/lib/store";
+import { completedLessonCount, learningStreak } from "@/lib/store";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "@/components/CourseVisual";
@@ -16,21 +17,14 @@ export default async function DashboardPage() {
   const progressRecords = Object.values(user.progress).sort((a, b) => b.lastAccessedAt.localeCompare(a.lastAccessedAt));
   const currentProgress = progressRecords[0];
   const currentCourse = currentProgress ? getCourse(currentProgress.courseId) : undefined;
-  const currentPercent = currentCourse ? coursePercent(currentCourse, currentProgress.completedLessonIds) : 0;
-  const currentLessons = currentCourse ? getCourseLessons(currentCourse) : [];
+  const currentPercent = currentCourse ? contentPercent(currentCourse, currentProgress.completedLessonIds) : 0;
+  const currentLessons = currentCourse ? contentLessons(currentCourse) : [];
   const nextLesson = currentCourse
     ? currentLessons.find((lesson) => !currentProgress.completedLessonIds.includes(lesson.id)) ?? currentLessons.at(-1)
     : undefined;
   const lessonsDone = completedLessonCount(user);
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
-  const streak = (() => {
-    let days = 0;
-    for (let index = user.usage.history.length - 1; index >= 0; index -= 1) {
-      if (user.usage.history[index].count <= 0) break;
-      days += 1;
-    }
-    return days;
-  })();
+  const streak = learningStreak(user);
   const recommendations = COURSES.filter((course) => !user.progress[course.id]).slice(0, 2);
 
   return (
@@ -52,7 +46,7 @@ export default async function DashboardPage() {
           { label: "Lessons completed", value: String(lessonsDone), note: `${progressRecords.length} course${progressRecords.length === 1 ? "" : "s"} started`, icon: "check", iconStyle: "bg-violet-100 text-violet-700" },
           { label: "Learning time", value: fmtMinutes(user.lifetimeMinutes), note: `${weeklyMinutes} min this week`, icon: "clock", iconStyle: "bg-cyan-100 text-cyan-700" },
           { label: "Current streak", value: `${streak} day${streak === 1 ? "" : "s"}`, note: streak ? "Keep showing up" : "Learn today to begin", icon: "flame", iconStyle: "bg-orange-100 text-orange-700" },
-          { label: "Certificates", value: String(progressRecords.filter((record) => { const course = getCourse(record.courseId); return course && coursePercent(course, record.completedLessonIds) === 100; }).length), note: plan.entitlements.certificates ? "Share your achievement" : "Available with Pro", icon: "certificate", iconStyle: "bg-emerald-100 text-emerald-700" },
+          { label: "Certificates", value: String(progressRecords.filter((record) => { const course = getCourse(record.courseId); return course && contentPercent(course, record.completedLessonIds) === 100; }).length), note: plan.entitlements.certificates ? "Share your achievement" : "Available with Pro", icon: "certificate", iconStyle: "bg-emerald-100 text-emerald-700" },
         ].map((stat, index) => (
           <article key={stat.label} className="open-stat animate-fade-up" style={{ animationDelay: `${index * .05}s` }}>
             <div className="flex items-center justify-between"><span className={`grid size-9 place-items-center rounded-xl ${stat.iconStyle}`}><Icon name={stat.icon as "clock"} size={18} /></span><Icon name="chevron-right" size={15} className="text-[#bbb5c0]" /></div>

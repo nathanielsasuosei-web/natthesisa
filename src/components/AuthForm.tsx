@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
 
 type Mode = "signin" | "signup";
@@ -11,9 +11,6 @@ interface Props {
 }
 
 export default function AuthForm({ initialMode = "signin" }: Props) {
-  // Keep the router initialized for compatibility with already-open preview
-  // tabs during hot reload; successful auth still uses a full navigation.
-  useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,29 +18,34 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  async function authenticate(payload?: { email: string; password: string }) {
+  async function authenticate() {
     if (busy) return;
-    const useEmail = payload?.email ?? email;
-    const usePassword = payload?.password ?? password;
     if (mode === "signup" && name.trim().length < 2) {
       setError("Please enter your full name.");
       return;
     }
-    if (!useEmail.trim() || !usePassword) {
+    if (!email.trim() || !password) {
       setError("Enter your email and password.");
       return;
     }
     setBusy(true);
     setError(null);
+    setNotice(null);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: payload ? "signin" : mode, name, email: useEmail, password: usePassword }),
+        body: JSON.stringify({ mode, name, email, password }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        if (data.code === "NO_ACCOUNT" && mode === "signin") {
+          // Not an error to stare at: offer the account creation this email needs.
+          setNotice(data.error ?? "No account exists for that email yet.");
+          return;
+        }
         setError(data.error ?? "We could not sign you in.");
         return;
       }
@@ -60,6 +62,7 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
   function changeMode(next: Mode) {
     setMode(next);
     setError(null);
+    setNotice(null);
   }
 
   return (
@@ -86,22 +89,34 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
           <div className="relative"><Icon name="mail" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" className="w-full rounded-xl border border-[#dcd8e2] bg-white py-3 pl-10 pr-3 text-sm text-[#211d27] transition placeholder:text-[#aaa4b0] focus:border-[#7a5af0] focus:ring-4 focus:ring-violet-100" /></div>
         </label>
         <label className="block">
-          <span className="mb-1.5 flex items-center justify-between text-xs font-bold text-[#4d4753]"><span>Password</span>{mode === "signin" && <span className="font-medium text-[#9a939f]">Demo authentication</span>}</span>
-          <div className="relative"><Icon name="lock" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} placeholder={mode === "signup" ? "At least 6 characters" : "Your password"} className="w-full rounded-xl border border-[#dcd8e2] bg-white py-3 pl-10 pr-12 text-sm text-[#211d27] transition placeholder:text-[#aaa4b0] focus:border-[#7a5af0] focus:ring-4 focus:ring-violet-100" /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-[10px] font-bold text-[#817a89] hover:bg-[#f3f1f5]">{showPassword ? "Hide" : "Show"}</button></div>
+          <span className="mb-1.5 flex items-center justify-between text-xs font-bold text-[#4d4753]"><span>Password</span>{mode === "signin" && <span className="font-medium text-[#9a939f]">Stored securely</span>}</span>
+          <div className="relative"><Icon name="lock" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} placeholder={mode === "signup" ? "At least 8 characters" : "Your password"} className="w-full rounded-xl border border-[#dcd8e2] bg-white py-3 pl-10 pr-12 text-sm text-[#211d27] transition placeholder:text-[#aaa4b0] focus:border-[#7a5af0] focus:ring-4 focus:ring-violet-100" /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-[10px] font-bold text-[#817a89] hover:bg-[#f3f1f5]">{showPassword ? "Hide" : "Show"}</button></div>
         </label>
 
         {mode === "signup" && <p className="text-[11px] leading-5 text-[#89828f]">By creating an account, you agree to codemasterghana&apos;s Terms and Privacy Policy.</p>}
+        {notice && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">
+            {notice}{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setError(null);
+                setNotice("Choose a password to finish creating your account — at least 8 characters with a number or symbol.");
+              }}
+              className="font-extrabold underline"
+            >
+              Create an account with this email
+            </button>
+          </div>
+        )}
         {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}</div>}
         <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white shadow-[0_9px_25px_rgba(109,74,255,.22)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] disabled:translate-y-0 disabled:cursor-wait disabled:opacity-65">
           {busy ? "Opening your workspace…" : mode === "signup" ? "Create free account" : "Sign in to codemasterghana"} {!busy && <Icon name="arrow-right" size={16} />}
         </button>
       </form>
 
-      <div className="my-6 flex items-center gap-3"><span className="h-px flex-1 bg-[#e5e1e8]" /><span className="text-[10px] font-bold uppercase tracking-wider text-[#aaa4b0]">or explore the demo</span><span className="h-px flex-1 bg-[#e5e1e8]" /></div>
-      <div className="grid gap-x-5 sm:grid-cols-2">
-        <a href="/api/auth/demo?role=student" aria-disabled={busy} className="border-t border-[#ddd9e2] py-3 text-left transition hover:border-[#a999e2]"><span className="block text-xs font-extrabold text-[#37313d]">Student demo</span><span className="mt-0.5 block text-[10px] text-[#8d8694]">Courses & progress</span></a>
-        <a href="/api/auth/demo?role=admin" aria-disabled={busy} className="border-t border-[#ddd9e2] py-3 text-left transition hover:border-[#a999e2]"><span className="block text-xs font-extrabold text-[#37313d]">Admin demo</span><span className="mt-0.5 block text-[10px] text-[#8d8694]">Monitor learners</span></a>
-      </div>
+      <EmbedNotice />
     </div>
   );
 }

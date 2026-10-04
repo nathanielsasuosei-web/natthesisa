@@ -1,6 +1,20 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { BillingCycle, PlanId, cycleDays, getPlan } from "./plans";
-import { getCourse, getCourseLessons } from "./courses";
+import { randomUUID } from "node:crypto";
+import { BillingCycle, PlanId, cycleDays } from "./plans";
+import { getCourse } from "./courses";
+import { findContentLesson } from "./course-content";
+import { hashPassword, verifyPasswordHash } from "./passwords";
+import { ensureSchema, query, queryOne } from "./db";
+import type { UserRow } from "./schema";
+
+/**
+ * Learner accounts, stored in PostgreSQL.
+ *
+ * Every account is a row in `users` (see `src/lib/schema.ts`). The learning
+ * record that belongs to an account — subscription, weekly usage, course
+ * progress, invoices, activity and profile — is kept alongside it so a page
+ * needs one row instead of a join per section. Mutating functions change the
+ * in-memory object; call `saveUser()` before the request finishes.
+ */
 
 export interface Invoice {
   id: string;
@@ -37,6 +51,14 @@ export interface LearningUsage {
   periodStart: string;
   minutes: number;
   history: DayUsage[];
+  /**
+   * Lessons whose duration has already been added to `minutes` and
+   * `lifetimeMinutes`. A lesson contributes its time once: unmarking it and
+   * marking it complete again must not count the same lesson twice, which is
+   * what made "learning time" and the weekly goal drift upwards. Optional so
+   * records written before this field existed still load.
+   */
+  creditedLessonIds?: string[];
 }
 
 export interface PaymentMethod {
@@ -64,9 +86,10 @@ export interface User {
   name: string;
   email: string;
   passwordHash: string;
-  passwordSalt: string;
   createdAt: string;
   role: "member" | "admin";
+  /** True for the single site owner - the only account that can publish lessons. */
+  owner: boolean;
   suspended: boolean;
   subscription: Subscription;
   usage: LearningUsage;
@@ -77,13 +100,6 @@ export interface User {
   paymentMethod: PaymentMethod;
   profile: LearnerProfile;
 }
-
-export interface Store {
-  users: Map<string, User>;
-}
-
-const g = globalThis as unknown as { __codaraStore?: Store };
-let invoiceCounter = 1007;
 
 export function uid(): string {
   return randomUUID();
@@ -109,6 +125,7 @@ export function freshUsage(values: number[] = []): LearningUsage {
     periodStart: new Date().toISOString(),
     minutes: values.reduce((sum, value) => sum + value, 0),
     history,
+    creditedLessonIds: [],
   };
 }
 
@@ -124,153 +141,249 @@ export function makeSubscription(planId: PlanId, cycle: BillingCycle): Subscript
   };
 }
 
-function passwordDigest(password: string, salt: string): string {
-  return createHash("sha256").update(`${salt}:${password}`).digest("hex");
-}
-
-function credentials(password: string): Pick<User, "passwordHash" | "passwordSalt"> {
-  const passwordSalt = randomBytes(16).toString("hex");
-  return { passwordSalt, passwordHash: passwordDigest(password, passwordSalt) };
+function defaultProfile(overrides: Partial<LearnerProfile> = {}): LearnerProfile {
+  const profile: LearnerProfile = {
+    headline: "Learning one project at a time.",
+    track: "Full-stack developer",
+    experience: "Just starting",
+    weeklyGoal: 180,
+  };
+  // `{ ...defaults, track: undefined }` would blank the default, so only
+  // defined values are applied.
+  if (overrides.headline !== undefined) profile.headline = overrides.headline;
+  if (overrides.track !== undefined) profile.track = overrides.track;
+  if (overrides.experience !== undefined) profile.experience = overrides.experience;
+  if (overrides.weeklyGoal !== undefined) profile.weeklyGoal = overrides.weeklyGoal;
+  return profile;
 }
 
 export function verifyPassword(user: User, password: string): boolean {
-  return passwordDigest(password, user.passwordSalt) === user.passwordHash;
+  return verifyPasswordHash(user.passwordHash, password).ok;
 }
 
-interface MakeUserOptions {
-  id?: string;
+/** True when this account's stored hash should be upgraded on next sign-in. */
+export function passwordNeedsRehash(user: User, password: string): boolean {
+  return verifyPasswordHash(user.passwordHash, password).needsRehash;
+}
+
+export function setPassword(user: User, password: string): void {
+  user.passwordHash = hashPassword(password);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Row mapping                                                                */
+/* -------------------------------------------------------------------------- */
+
+function iso(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
+function fromRow(row: UserRow): User {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    passwordHash: row.password_hash,
+    createdAt: iso(row.created_at),
+    role: row.role === "admin" ? "admin" : "member",
+    owner: row.owner,
+    suspended: row.suspended,
+    subscription: row.subscription as Subscription,
+    usage: row.usage as LearningUsage,
+    lifetimeMinutes: row.lifetime_minutes,
+    progress: (row.progress ?? {}) as Record<string, CourseProgress>,
+    invoices: (row.invoices ?? []) as Invoice[],
+    activityLog: (row.activity_log ?? []) as ActivityEvent[],
+    paymentMethod: row.payment_method as PaymentMethod,
+    profile: { ...defaultProfile(), ...((row.profile ?? {}) as Partial<LearnerProfile>) },
+  };
+}
+
+const COLUMNS =
+  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, invoices, activity_log, payment_method, profile, created_at";
+
+function json(value: unknown): string {
+  return JSON.stringify(value ?? null);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reads                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export async function listUsers(): Promise<User[]> {
+  await ensureSchema();
+  const rows = await query<UserRow>(`select ${COLUMNS} from users order by created_at desc`);
+  return rows.map(fromRow);
+}
+
+export async function getUserById(id: string): Promise<User | null> {
+  if (!id) return null;
+  await ensureSchema();
+  const row = await queryOne<UserRow>(`select ${COLUMNS} from users where id = $1`, [id]);
+  return row ? fromRow(row) : null;
+}
+
+export async function findUserByEmail(email: string): Promise<User | undefined> {
+  const needle = email.trim().toLowerCase();
+  if (!needle) return undefined;
+  await ensureSchema();
+  const row = await queryOne<UserRow>(`select ${COLUMNS} from users where lower(email) = $1`, [needle]);
+  return row ? fromRow(row) : undefined;
+}
+
+export async function ownerAccount(): Promise<User | null> {
+  await ensureSchema();
+  const row = await queryOne<UserRow>(`select ${COLUMNS} from users where owner limit 1`);
+  return row ? fromRow(row) : null;
+}
+
+export async function emailTaken(email: string): Promise<boolean> {
+  return Boolean(await findUserByEmail(email));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Writes                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export async function saveUser(user: User): Promise<void> {
+  await ensureSchema();
+  await query(
+    `insert into users (
+       id, email, name, password_hash, role, owner, suspended,
+       subscription, usage, lifetime_minutes, progress, invoices, activity_log,
+       payment_method, profile, created_at, updated_at
+     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, now())
+     on conflict (id) do update set
+       email = excluded.email,
+       name = excluded.name,
+       password_hash = excluded.password_hash,
+       role = excluded.role,
+       owner = excluded.owner,
+       suspended = excluded.suspended,
+       subscription = excluded.subscription,
+       usage = excluded.usage,
+       lifetime_minutes = excluded.lifetime_minutes,
+       progress = excluded.progress,
+       invoices = excluded.invoices,
+       activity_log = excluded.activity_log,
+       payment_method = excluded.payment_method,
+       profile = excluded.profile,
+       updated_at = now()`,
+    [
+      user.id,
+      user.email.trim().toLowerCase(),
+      user.name,
+      user.passwordHash,
+      user.role,
+      user.owner,
+      user.suspended,
+      json(user.subscription),
+      json(user.usage),
+      Math.max(0, Math.round(user.lifetimeMinutes)),
+      json(user.progress),
+      json(user.invoices),
+      json(user.activityLog),
+      json(user.paymentMethod),
+      json(user.profile),
+      user.createdAt,
+    ]
+  );
+}
+
+export async function touchLastSeen(userId: string): Promise<void> {
+  await ensureSchema();
+  await query("update users set last_seen_at = now() where id = $1", [userId]);
+}
+
+export class AccountExistsError extends Error {
+  constructor() {
+    super("An account with that email already exists.");
+    this.name = "AccountExistsError";
+  }
+}
+
+interface CreateUserOptions {
   name: string;
   email: string;
   password: string;
-  planId?: PlanId;
   role?: User["role"];
-  weeklyGoal?: number;
+  owner?: boolean;
+  planId?: PlanId;
   track?: LearnerProfile["track"];
-  history?: number[];
+  weeklyGoal?: number;
 }
 
-function makeUser(options: MakeUserOptions): User {
+export async function createAccount(options: CreateUserOptions): Promise<User> {
+  await ensureSchema();
   const now = new Date().toISOString();
-  const usage = freshUsage(options.history);
-  return {
-    id: options.id ?? uid(),
+  const user: User = {
+    id: uid(),
     name: options.name.trim().slice(0, 60),
-    email: options.email.trim().toLowerCase().slice(0, 120),
-    ...credentials(options.password),
+    email: options.email.trim().toLowerCase().slice(0, 160),
+    passwordHash: hashPassword(options.password),
     createdAt: now,
     role: options.role ?? "member",
+    owner: options.owner ?? false,
     suspended: false,
     subscription: makeSubscription(options.planId ?? "free", "monthly"),
-    usage,
-    lifetimeMinutes: usage.minutes,
+    usage: freshUsage(),
+    lifetimeMinutes: 0,
     progress: {},
     invoices: [],
     activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242", provider: "demo" },
-    profile: {
-      headline: "Learning one project at a time.",
-      track: options.track ?? "Full-stack developer",
-      experience: "Just starting",
-      weeklyGoal: options.weeklyGoal ?? 180,
-    },
+    profile: defaultProfile({ track: options.track, weeklyGoal: options.weeklyGoal }),
   };
-}
 
-function seedProgress(user: User, courseId: string, completedCount: number, daysAgo = 0): void {
-  const course = getCourse(courseId);
-  if (!course) return;
-  const allLessons = getCourseLessons(course);
-  const lastAccessedAt = addDays(new Date(), -daysAgo).toISOString();
-  user.progress[courseId] = {
-    courseId,
-    completedLessonIds: allLessons.slice(0, completedCount).map((item) => item.id),
-    startedAt: addDays(new Date(), -Math.max(daysAgo + 8, 10)).toISOString(),
-    lastAccessedAt,
-  };
-}
-
-function initializeStore(): Store {
-  const store: Store = { users: new Map<string, User>() };
-  g.__codaraStore = store;
-
-  const admin = makeUser({
-    id: "codara-admin",
-    name: "codemasterghana Admin",
-    email: "admin@codemasterghana.dev",
-    password: "admin123",
-    planId: "elite",
-    role: "admin",
-    track: "Full-stack developer",
-    history: [12, 18, 0, 24, 16, 8, 0],
-  });
-  logActivity(admin, "Administrator account created", "admin");
-
-  const demo = makeUser({
-    id: "codara-student-demo",
-    name: "Amara Mensah",
-    email: "student@codemasterghana.dev",
-    password: "student123",
-    planId: "premium",
-    weeklyGoal: 240,
-    track: "Web developer",
-    history: [28, 42, 18, 54, 0, 36, 22],
-  });
-  demo.profile.headline = "Future frontend engineer building in public.";
-  seedProgress(demo, "web-foundations", 5, 1);
-  seedProgress(demo, "javascript-zero-to-builder", 2, 0);
-  addInvoice(demo, getPlan("premium").monthly, "Pro plan — monthly subscription");
-  logActivity(demo, "Completed “CSS foundations” in Web Development Foundations", "learning");
-  logActivity(demo, "Started JavaScript: Zero to Builder", "learning");
-
-  const kwame = makeUser({
-    id: "codara-student-kwame",
-    name: "Kwame Boateng",
-    email: "kwame@example.com",
-    password: randomBytes(16).toString("hex"),
-    planId: "free",
-    track: "Computer science",
-    history: [0, 20, 15, 0, 25, 18, 0],
-  });
-  seedProgress(kwame, "computer-science-essentials", 3, 1);
-  logActivity(kwame, "Started Computer Science Essentials", "learning");
-
-  const lina = makeUser({
-    id: "codara-student-lina",
-    name: "Lina Osei",
-    email: "lina@example.com",
-    password: randomBytes(16).toString("hex"),
-    planId: "elite",
-    track: "App developer",
-    history: [45, 30, 55, 40, 30, 62, 20],
-  });
-  seedProgress(lina, "web-foundations", 7, 12);
-  seedProgress(lina, "mobile-apps-react-native", 4, 0);
-  addInvoice(lina, getPlan("elite").monthly, "Mentor plan — monthly subscription");
-  logActivity(lina, "Completed Web Development Foundations", "learning");
-
-  const suspended = makeUser({
-    id: "codara-student-jordan",
-    name: "Jordan Nartey",
-    email: "jordan@example.com",
-    password: randomBytes(16).toString("hex"),
-    planId: "premium",
-    track: "Full-stack developer",
-    history: [0, 0, 0, 0, 0, 0, 0],
-  });
-  suspended.suspended = true;
-  seedProgress(suspended, "backend-node-apis", 1, 18);
-  addInvoice(suspended, getPlan("premium").monthly, "Pro plan — monthly subscription");
-  logActivity(suspended, "Account suspended by an administrator", "admin");
-
-  for (const user of [admin, demo, kwame, lina, suspended]) {
-    store.users.set(user.id, user);
+  try {
+    await saveUser(user);
+  } catch (error) {
+    // 23505 = unique_violation: another request created the same email first.
+    if (typeof error === "object" && error && "code" in error && (error as { code?: string }).code === "23505") {
+      throw new AccountExistsError();
+    }
+    throw error;
   }
-  return store;
+  return user;
 }
 
-export function getStore(): Store {
-  return g.__codaraStore ?? initializeStore();
+/** Sign-up used by the public form. */
+export async function createUser(name: string, email: string, password: string): Promise<User> {
+  const user = await createAccount({ name, email, password });
+  logActivity(user, "Account created on the Explorer plan", "account");
+  await saveUser(user);
+  return user;
 }
+
+/** First-run creation of the single owner account (see `db.ts`). */
+export async function createOwnerAccount(email: string, password: string, preferredName?: string): Promise<User> {
+  // Without OWNER_NAME the display name is guessed from the email handle, which
+  // turns admin@codemasterghana.dev into "Admin" — so the console would greet
+  // the owner by a placeholder instead of their name.
+  const handle = email.split("@")[0].replace(/[._-]+/g, " ").trim();
+  const fallback = handle ? handle.replace(/\b\w/g, (letter) => letter.toUpperCase()).slice(0, 60) : "Site owner";
+  const name = preferredName?.trim().slice(0, 60) || fallback;
+  const user = await createAccount({
+    name,
+    email,
+    password,
+    role: "admin",
+    owner: true,
+    planId: "elite",
+  });
+  logActivity(user, "Owner account created", "admin");
+  await saveUser(user);
+  return user;
+}
+
+export async function deleteAccount(userId: string): Promise<void> {
+  await ensureSchema();
+  await query("delete from users where id = $1", [userId]);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Account activity                                                           */
+/* -------------------------------------------------------------------------- */
 
 export function logActivity(
   user: User,
@@ -281,12 +394,14 @@ export function logActivity(
   if (user.activityLog.length > 250) user.activityLog.pop();
 }
 
-export function addInvoice(user: User, amount: number, description: string): Invoice | null {
+/** Invoice numbers come from a database sequence, so they stay unique. */
+export async function addInvoice(user: User, amount: number, description: string): Promise<Invoice | null> {
   if (amount <= 0) return null;
-  invoiceCounter += 1;
+  await ensureSchema();
+  const row = await queryOne<{ number: string }>("select nextval('invoice_number_seq')::text as number");
   const invoice: Invoice = {
     id: uid(),
-    number: `CDR-${invoiceCounter}`,
+    number: `CDR-${row?.number ?? Date.now()}`,
     date: new Date().toISOString(),
     amount,
     description,
@@ -297,18 +412,9 @@ export function addInvoice(user: User, amount: number, description: string): Inv
   return invoice;
 }
 
-export function findUserByEmail(email: string): User | undefined {
-  const needle = email.trim().toLowerCase();
-  if (!needle) return undefined;
-  return [...getStore().users.values()].find((user) => user.email === needle);
-}
-
-export function createUser(name: string, email: string, password: string): User {
-  const user = makeUser({ name, email, password });
-  logActivity(user, "Learner account created on the Explorer plan", "account");
-  getStore().users.set(user.id, user);
-  return user;
-}
+/* -------------------------------------------------------------------------- */
+/* Learning                                                                   */
+/* -------------------------------------------------------------------------- */
 
 export function getOrCreateProgress(user: User, courseId: string): CourseProgress {
   const existing = user.progress[courseId];
@@ -333,17 +439,26 @@ export function recordLessonProgress(
 ): CourseProgress {
   const course = getCourse(courseId);
   if (!course) throw new Error("Course not found");
-  const lesson = getCourseLessons(course).find((item) => item.id === lessonId);
+  const lesson = findContentLesson(course, lessonId);
   if (!lesson) throw new Error("Lesson not found");
 
+  // The window may be stale if this is the first request of a new day, so roll
+  // it before recording the time.
+  syncUsageWindow(user);
   const progress = getOrCreateProgress(user, courseId);
   const alreadyComplete = progress.completedLessonIds.includes(lessonId);
   if (completed && !alreadyComplete) {
     progress.completedLessonIds.push(lessonId);
-    user.usage.minutes += lesson.duration;
-    user.lifetimeMinutes += lesson.duration;
-    const today = user.usage.history.find((item) => item.date === todayKey());
-    if (today) today.count += lesson.duration;
+    const credited = user.usage.creditedLessonIds ?? (user.usage.creditedLessonIds = []);
+    if (!credited.includes(lessonId)) {
+      // First time this lesson is completed: count the time once. Undoing and
+      // redoing it later must not add the same duration again.
+      credited.push(lessonId);
+      user.usage.minutes += lesson.duration;
+      user.lifetimeMinutes += lesson.duration;
+      const today = user.usage.history.find((item) => item.date === todayKey());
+      if (today) today.count += lesson.duration;
+    }
     logActivity(user, `Completed “${lesson.title}” in ${course.shortTitle}`, "learning");
   } else if (!completed && alreadyComplete) {
     progress.completedLessonIds = progress.completedLessonIds.filter((id) => id !== lessonId);
@@ -353,10 +468,50 @@ export function recordLessonProgress(
   return progress;
 }
 
+/**
+ * Keeps `usage.history` a rolling seven-day window that ends today.
+ *
+ * Without this the window stays where `freshUsage()` left it — on the day the
+ * account was created — so from the next day on the dashboard chart, the
+ * "minutes this week" figure and the weekly goal all describe a week that has
+ * already passed, and today's minutes have nowhere to be recorded.
+ *
+ * When the window moves, `todayKey()` cannot appear twice, so the caller must
+ * persist the result (every route that changes progress calls `saveUser`);
+ * otherwise a server restart would roll the window again and could land on a
+ * different day.
+ */
+export function syncUsageWindow(user: User): boolean {
+  const history = user.usage.history;
+  if (!history.length) {
+    user.usage = { ...freshUsage(), minutes: user.usage.minutes };
+    return true;
+  }
+  if (history[history.length - 1].date === todayKey()) return false;
+
+  const counts = new Map(history.map((day) => [day.date, day.count]));
+  const rolled: DayUsage[] = [];
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = todayKey(addDays(new Date(), -offset));
+    rolled.push({ date, count: counts.get(date) ?? 0 });
+  }
+  user.usage = { ...user.usage, history: rolled };
+  return true;
+}
+
+/**
+ * Consecutive days of learning, counting back from today.
+ *
+ * An empty today does not break a streak: the day is not over yet, so counting
+ * starts from yesterday. Only a full day with no activity ends it.
+ */
 export function learningStreak(user: User): number {
+  const history = user.usage.history;
+  let index = history.length - 1;
+  if (index >= 0 && history[index].count <= 0) index -= 1;
   let streak = 0;
-  for (let index = user.usage.history.length - 1; index >= 0; index -= 1) {
-    if (user.usage.history[index].count <= 0) break;
+  for (; index >= 0; index -= 1) {
+    if (history[index].count <= 0) break;
     streak += 1;
   }
   return streak;
