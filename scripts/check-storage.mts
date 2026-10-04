@@ -37,6 +37,13 @@ function fail(step: string, error: unknown): never {
   const detail = error instanceof Error ? error.message : String(error);
   console.error(`  ✘ ${step}: ${detail}`);
   console.error("");
+  // A network failure is not a configuration mistake, and the fix is different.
+  if (/fetch failed|ENOTFOUND|ECONNREFUSED|timeout|network/i.test(detail)) {
+    console.error("The storage settings look complete, but this machine could not reach the project at all.");
+    console.error("Run `npm run storage:check` from your own machine or from the host that deploys the app.");
+    console.error("(The Arena preview sandbox has no route to supabase.com.)");
+    process.exit(1);
+  }
   console.error("Fix the storage settings in .env.local (and in the host's environment variables),");
   console.error("then run this check again: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, SUPABASE_BUCKET.");
   process.exit(1);

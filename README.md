@@ -101,10 +101,15 @@ up both. The bytes themselves go to one of two places:
 Supabase Storage is the production choice: the bytes live outside the app, so
 uploads survive a redeploy on a host with an ephemeral filesystem, and the
 browser streams large videos from Supabase's CDN instead of through the server.
-Access is still gated in the app — `/api/lesson-files/...` checks the viewer's
-plan and marks the lesson as started before it redirects to a one-hour signed
-URL, so a Pro-only video stays Pro-only — which is why the bucket itself can be
-public.
+Access is still gated in the app: `/api/lesson-files/...` checks the viewer's
+plan and marks the lesson as started, then redirects to a one-hour signed URL.
+A signed URL works against a **private** bucket too, so make the bucket private
+if you prefer — either way a Pro-only video stays Pro-only, because the app is
+what decides who gets a URL.
+
+Create the bucket once (Storage → New bucket) before the first upload; without
+it, uploads fail with a message telling you so, and `npm run storage:check`
+tells you the same thing without uploading anything.
 
 Verify the round trip from the terminal before uploading a large video:
 
