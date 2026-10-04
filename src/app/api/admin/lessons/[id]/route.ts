@@ -12,7 +12,7 @@ export async function DELETE(_req: Request, context: { params: Promise<{ id: str
   if (!owner) return NextResponse.json(OWNER_ONLY_ERROR, { status: 403 });
   const { id } = await context.params;
 
-  const removed = deleteUploadedLesson(id);
+  const removed = await deleteUploadedLesson(id);
   if (!removed) return NextResponse.json({ error: "That lesson no longer exists." }, { status: 404 });
   return NextResponse.json({ ok: true, id: removed.id, title: removed.title });
 }

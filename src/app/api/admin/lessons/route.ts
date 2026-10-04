@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const record = createUploadedLesson({
+    const record = await createUploadedLesson({
       id: lessonId,
       courseId: course.id,
       moduleId: existingModule ? existingModule.id : "new",
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
     console.error("lesson could not be stored", error);
     return NextResponse.json(
       {
-        error: `The lesson was uploaded but could not be saved to disk. Check that the server can write to its data folder.`,
+        error: `The lesson was uploaded but its details could not be saved. Check the database connection and try again.`,
       },
       { status: 500 }
     );

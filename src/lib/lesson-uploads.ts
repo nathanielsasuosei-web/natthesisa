@@ -1,8 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
-import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createWriteStream } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { readState, writeState } from "./app-state";
+import { blobBackend, deleteBlob, diskPath, putBlob, readDiskBlob, signedBlobUrl, statBlob } from "./blob-store";
 import { pipeline } from "node:stream/promises";
 import type { Lesson, LessonFile, LessonSection } from "./courses";
 
@@ -114,15 +116,8 @@ export function dataDir(): string {
   return process.env.LESSON_DATA_DIR?.trim() || path.join(process.cwd(), ".data");
 }
 
-function lessonsFile(): string {
-  return path.join(dataDir(), "lessons.json");
-}
 
-export function uploadsDir(): string {
-  return path.join(dataDir(), "uploads");
-}
-
-const g = globalThis as unknown as { __codaraUploadedLessons?: UploadedLessonRecord[] };
+const STATE_KEY = "lessons";
 
 function isRecord(value: unknown): value is UploadedLessonRecord {
   if (!value || typeof value !== "object") return false;
@@ -130,28 +125,31 @@ function isRecord(value: unknown): value is UploadedLessonRecord {
   return typeof record.id === "string" && typeof record.courseId === "string" && typeof record.title === "string";
 }
 
-/** Reads (and caches) the lesson index. Never throws, so pages cannot crash on a bad file. */
+/**
+ * The lesson index, cached in memory and stored in the database.
+ *
+ * It used to be `.data/lessons.json`, which vanished on hosts that reset the
+ * filesystem between deploys. Reading stays synchronous (the content helpers
+ * that call this are synchronous); the cache is filled by `hydrateState()`
+ * during first-run setup, before any authenticated request is served.
+ */
 export function listUploadedLessons(): UploadedLessonRecord[] {
-  if (g.__codaraUploadedLessons) return g.__codaraUploadedLessons;
-  let lessons: UploadedLessonRecord[] = [];
-  try {
-    const file = lessonsFile();
-    if (existsSync(file)) {
-      const parsed: unknown = JSON.parse(readFileSync(file, "utf8"));
-      if (Array.isArray(parsed)) lessons = parsed.filter(isRecord);
-    }
-  } catch (error) {
-    console.error("Could not read uploaded lessons from disk", error);
-    lessons = [];
-  }
-  g.__codaraUploadedLessons = lessons;
-  return lessons;
+  const stored = readState<unknown>(STATE_KEY, []);
+  return Array.isArray(stored) ? stored.filter(isRecord) : [];
 }
 
-function persist(lessons: UploadedLessonRecord[]): void {
-  mkdirSync(dataDir(), { recursive: true });
-  writeFileSync(lessonsFile(), `${JSON.stringify(lessons, null, 2)}\n`, "utf8");
-  g.__codaraUploadedLessons = lessons;
+/** Writes the index through to the database. Callers await this. */
+async function persist(lessons: UploadedLessonRecord[]): Promise<void> {
+  await writeState(STATE_KEY, lessons);
+}
+
+/** Removes a stored object, logging rather than throwing. */
+export async function removeStoredBlob(storedName: string): Promise<void> {
+  try {
+    await deleteBlob(storedName);
+  } catch (error) {
+    console.error(`Could not delete stored file ${storedName}`, error);
+  }
 }
 
 export function getUploadedLessonsForCourse(courseId: string): UploadedLessonRecord[] {
@@ -211,7 +209,7 @@ export interface NewUploadedLessonInput {
   createdByEmail: string;
 }
 
-export function createUploadedLesson(input: NewUploadedLessonInput): UploadedLessonRecord {
+export async function createUploadedLesson(input: NewUploadedLessonInput): Promise<UploadedLessonRecord> {
   const objectives = input.objectives.length
     ? input.objectives
     : [
@@ -248,11 +246,11 @@ export function createUploadedLesson(input: NewUploadedLessonInput): UploadedLes
     createdAt: new Date().toISOString(),
   };
 
-  persist([...listUploadedLessons(), record]);
+  await persist([...listUploadedLessons(), record]);
   return record;
 }
 
-export function deleteUploadedLesson(lessonId: string): UploadedLessonRecord | null {
+export async function deleteUploadedLesson(lessonId: string): Promise<UploadedLessonRecord | null> {
   const lessons = listUploadedLessons();
   const record = lessons.find((lesson) => lesson.id === lessonId);
   if (!record) return null;
@@ -260,19 +258,14 @@ export function deleteUploadedLesson(lessonId: string): UploadedLessonRecord | n
   for (const file of record.files) {
     for (const stored of [file.storedName, file.poster?.storedName]) {
       if (!stored) continue;
-      try {
-        const target = uploadedFilePath(stored);
-        if (existsSync(target)) rmSync(target);
-      } catch (error) {
-        console.error(`Could not delete uploaded file ${stored}`, error);
-      }
+      await removeStoredBlob(stored);
     }
   }
-  persist(lessons.filter((lesson) => lesson.id !== lessonId));
+  await persist(lessons.filter((lesson) => lesson.id !== lessonId));
   return record;
 }
 
-function persistWithFile(lessonId: string, fileId: string, update: (file: UploadedFileRecord) => UploadedFileRecord): UploadedFileRecord | null {
+async function persistWithFile(lessonId: string, fileId: string, update: (file: UploadedFileRecord) => UploadedFileRecord): Promise<UploadedFileRecord | null> {
   const lessons = listUploadedLessons();
   const lesson = lessons.find((item) => item.id === lessonId);
   if (!lesson) return null;
@@ -280,28 +273,22 @@ function persistWithFile(lessonId: string, fileId: string, update: (file: Upload
   if (index === -1) return null;
   const updated = update(lesson.files[index]);
   lesson.files[index] = updated;
-  persist(lessons);
+  await persist(lessons);
   return updated;
 }
 
 /** Saves video edits (trim / mute / poster) for an already-uploaded file. */
-export function saveFileEdits(
+export async function saveFileEdits(
   lessonId: string,
   fileId: string,
   edits: { trimStart: number; trimEnd: number | null; muted: boolean },
   poster: UploadedFileRecord | null | undefined
-): UploadedFileRecord | null {
-  return persistWithFile(lessonId, fileId, (file) => {
+): Promise<UploadedFileRecord | null> {
+  const previousPosterStored = listUploadedLessons()
+    .find((lesson) => lesson.id === lessonId)
+    ?.files.find((item) => item.id === fileId)?.poster?.storedName;
+  const updated = await persistWithFile(lessonId, fileId, (file) => {
     if (file.kind !== "video") return file;
-    const previousPoster = file.poster ?? null;
-    if (poster !== undefined && previousPoster && previousPoster.storedName !== poster?.storedName) {
-      try {
-        const stale = uploadedFilePath(previousPoster.storedName);
-        if (existsSync(stale)) rmSync(stale);
-      } catch (error) {
-        console.error("Could not remove the previous poster", error);
-      }
-    }
     return {
       ...file,
       trimStart: Math.max(0, edits.trimStart),
@@ -311,20 +298,26 @@ export function saveFileEdits(
       editedAt: new Date().toISOString(),
     };
   });
+  // The replaced poster object is removed only after the new record is stored,
+  // so a failure here cannot leave the file pointing at nothing.
+  if (poster !== undefined && previousPosterStored && previousPosterStored !== poster?.storedName) {
+    await removeStoredBlob(previousPosterStored);
+  }
+  return updated;
 }
 
 /** Swaps in an edited picture, keeping the file's id and place in the lesson. */
-export function replaceFileContents(
+export async function replaceFileContents(
   lessonId: string,
   fileId: string,
   saved: UploadedFileRecord
-): UploadedFileRecord | null {
+): Promise<UploadedFileRecord | null> {
   const previous = listUploadedLessons()
     .find((lesson) => lesson.id === lessonId)
     ?.files.find((file) => file.id === fileId);
   if (!previous) return null;
 
-  const updated = persistWithFile(lessonId, fileId, (file) => ({
+  const updated = await persistWithFile(lessonId, fileId, (file) => ({
     ...file,
     name: saved.name,
     storedName: saved.storedName,
@@ -335,28 +328,21 @@ export function replaceFileContents(
   }));
 
   if (updated && previous.storedName !== saved.storedName) {
-    try {
-      const stale = uploadedFilePath(previous.storedName);
-      if (existsSync(stale)) rmSync(stale);
-    } catch (error) {
-      console.error("Could not remove the replaced file", error);
-    }
+    await removeStoredBlob(previous.storedName);
   }
   return updated;
 }
 
-export function removeFilePoster(lessonId: string, fileId: string): UploadedFileRecord | null {
-  const updated = persistWithFile(lessonId, fileId, (file) => {
-    if (file.poster) {
-      try {
-        const stale = uploadedFilePath(file.poster.storedName);
-        if (existsSync(stale)) rmSync(stale);
-      } catch (error) {
-        console.error("Could not remove the poster", error);
-      }
-    }
-    return { ...file, poster: null, editedAt: new Date().toISOString() };
-  });
+export async function removeFilePoster(lessonId: string, fileId: string): Promise<UploadedFileRecord | null> {
+  const posterStored = listUploadedLessons()
+    .find((lesson) => lesson.id === lessonId)
+    ?.files.find((item) => item.id === fileId)?.poster?.storedName;
+  const updated = await persistWithFile(lessonId, fileId, (file) => ({
+    ...file,
+    poster: null,
+    editedAt: new Date().toISOString(),
+  }));
+  if (posterStored) await removeStoredBlob(posterStored);
   return updated;
 }
 
@@ -379,7 +365,13 @@ export interface SavedFileResult {
   record: UploadedFileRecord;
 }
 
-/** Streams a browser upload onto disk, enforcing the size limit while writing. */
+/**
+ * Stores a browser upload, enforcing the type and size limits while writing.
+ *
+ * On the disk backend the bytes stream straight to a file, so a large video
+ * never sits in memory. On Supabase Storage the bytes are sent in one request
+ * (`putBlob`), which is what the Storage REST API expects.
+ */
 export async function saveUploadedFile(file: File, lessonId: string): Promise<SavedFileResult> {
   const kind = fileKindForName(file.name || "");
   if (!kind) {
@@ -395,35 +387,58 @@ export async function saveUploadedFile(file: File, lessonId: string): Promise<Sa
   const extension = safeExtension(file.name || "");
   const digest = createHash("sha256").update(`${lessonId}:${file.name}:${Date.now()}`).digest("hex").slice(0, 12);
   const storedName = `${lessonId}__${digest}${extension}`;
-  const destination = uploadedFilePath(storedName);
-
-  mkdirSync(uploadsDir(), { recursive: true });
-
+  const mime = mimeForUpload(file.name || "", file.type);
   let written = 0;
-  const source = Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]);
-  try {
-    await pipeline(
-      source,
-      async function* (chunks) {
-        for await (const chunk of chunks) {
-          written += (chunk as Buffer).length;
-          if (written > MAX_FILE_BYTES) throw new UploadError(`“${file.name}” is larger than the 200 MB limit.`, 413);
-          yield chunk as Buffer;
-        }
-      },
-      createWriteStream(destination)
-    );
-  } catch (error) {
+
+  if (blobBackend() === "supabase") {
+    let bytes: Uint8Array;
     try {
-      if (existsSync(destination)) rmSync(destination);
+      bytes = new Uint8Array(await file.arrayBuffer());
     } catch {
-      /* ignore cleanup failures */
+      throw new UploadError(`“${file.name}” could not be read. Try uploading it again.`, 500);
     }
-    if (error instanceof UploadError) throw error;
-    throw new UploadError(
-      `“${file.name}” could not be saved. Check that the server can write to ${dataDir()}.`,
-      500
-    );
+    if (bytes.byteLength > MAX_FILE_BYTES) {
+      throw new UploadError(`“${file.name}” is larger than the 200 MB limit.`, 413);
+    }
+    try {
+      await putBlob(storedName, bytes, mime);
+      written = bytes.byteLength;
+    } catch (error) {
+      throw new UploadError(
+        `“${file.name}” could not be uploaded to Supabase Storage. ${
+          error instanceof Error ? error.message : "Check the storage settings."
+        }`,
+        500
+      );
+    }
+  } else {
+    const destination = diskPath(storedName);
+    mkdirSync(path.dirname(destination), { recursive: true });
+    const source = Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]);
+    try {
+      await pipeline(
+        source,
+        async function* (chunks) {
+          for await (const chunk of chunks) {
+            written += (chunk as Buffer).length;
+            if (written > MAX_FILE_BYTES) throw new UploadError(`“${file.name}” is larger than the 200 MB limit.`, 413);
+            yield chunk as Buffer;
+          }
+        },
+        createWriteStream(destination)
+      );
+    } catch (error) {
+      try {
+        if (existsSync(destination)) rmSync(destination);
+      } catch {
+        /* ignore cleanup failures */
+      }
+      if (error instanceof UploadError) throw error;
+      throw new UploadError(
+        `“${file.name}” could not be saved. Check that the server can write to ${dataDir()}.`,
+        500
+      );
+    }
   }
 
   return {
@@ -431,7 +446,7 @@ export async function saveUploadedFile(file: File, lessonId: string): Promise<Sa
       id: randomUUID(),
       name: path.basename(file.name || storedName).slice(0, 160),
       storedName,
-      mime: mimeForUpload(file.name || "", file.type),
+      mime,
       size: written,
       kind,
       uploadedAt: new Date().toISOString(),
@@ -447,25 +462,55 @@ export class UploadError extends Error {
   }
 }
 
-export function uploadedFilePath(storedName: string): string {
-  // path.basename keeps a crafted stored name from escaping the data folder.
-  return path.join(uploadsDir(), path.basename(storedName));
+export type StoredContent =
+  | { kind: "redirect"; url: string }
+  | { kind: "stream"; body: ReadableStream; size: number };
+
+/**
+ * Opens a stored object for a response.
+ *
+ * With Supabase Storage the caller redirects the browser to a short-lived
+ * signed URL — the bytes come from Supabase's CDN, which supports range
+ * requests natively, so a lesson video seeks properly and the server does not
+ * proxy gigabytes. On the disk backend the caller streams the file itself,
+ * honouring the range the player asked for.
+ */
+export async function openStoredFile(
+  record: UploadedFileRecord,
+  options: { range?: { start: number; end: number }; downloadName?: string } = {}
+): Promise<StoredContent | null> {
+  const stat = await statBlob(record.storedName);
+  if (!stat) return null;
+
+  if (blobBackend() === "supabase") {
+    const url = await signedBlobUrl(record.storedName, 3600, options.downloadName);
+    return url ? { kind: "redirect", url } : null;
+  }
+  const stream = readDiskBlob(record.storedName, options.range);
+  return stream ? { kind: "stream", body: stream.body, size: stream.size } : null;
 }
 
-export interface StoredFile {
-  path: string;
-  size: number;
+/**
+ * The URL to send the browser to when object storage is in use, or null to
+ * stream from disk. Also null when the object is missing, so the caller can
+ * answer 410 rather than redirecting to a broken link.
+ */
+export async function storedBlobRedirect(
+  record: UploadedFileRecord,
+  downloadName?: string
+): Promise<string | null> {
+  if (blobBackend() !== "supabase") return null;
+  if (!(await statBlob(record.storedName))) return null;
+  return signedBlobUrl(record.storedName, 3600, downloadName);
 }
 
-export function locateUploadedFile(record: UploadedFileRecord): StoredFile | null {
-  const target = uploadedFilePath(record.storedName);
-  if (!existsSync(target)) return null;
-  const stats = statSync(target);
-  if (!stats.isFile()) return null;
-  return { path: target, size: stats.size };
+/** Size of a stored object, or null when it is not there. */
+export async function storedBlobSize(record: UploadedFileRecord): Promise<number | null> {
+  const stat = await statBlob(record.storedName);
+  return stat ? stat.size : null;
 }
 
-export function readFileRange(filePath: string, start: number, end: number): ReadableStream {
-  const stream = createReadStream(filePath, { start, end });
-  return Readable.toWeb(stream) as unknown as ReadableStream;
+/** Reads a byte range from the disk backend. */
+export function diskBlobRange(record: UploadedFileRecord, start: number, end: number): ReadableStream | null {
+  return readDiskBlob(record.storedName, { start, end })?.body ?? null;
 }

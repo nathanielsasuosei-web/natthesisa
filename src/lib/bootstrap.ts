@@ -1,3 +1,4 @@
+import { hydrateState } from "./app-state";
 import { databaseInfo, ensureSchema } from "./db";
 import { createOwnerAccount, ownerAccount, saveUser } from "./store";
 
@@ -17,6 +18,9 @@ const g = globalThis as unknown as { __codaraReady?: Promise<void> };
 
 async function setup(): Promise<void> {
   await ensureSchema();
+  // Published lessons and branding are read synchronously from a cache that has
+  // to be filled from the database first.
+  await hydrateState();
 
   const existing = await ownerAccount();
   if (existing) {

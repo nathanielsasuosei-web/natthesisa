@@ -89,18 +89,32 @@ but lesson publishing is owner-only and enforced on the server:
 - The owner account cannot be paused, deleted or demoted, and only the owner can
   grant or remove administrator access.
 
-Uploads are stored on disk and survive server restarts:
+Lesson records, file metadata and the owner's branding profile live with the
+accounts, in the database (`app_state` rows), so backing up the database backs
+up both. The bytes themselves go to one of two places:
 
-```
-.data/lessons.json    lesson records + file metadata          (git-ignored)
-.data/branding.json   owner photo, logo and display details   (git-ignored)
-.data/uploads/*       the uploaded videos, PDFs, slides, images (git-ignored)
+| Configuration | Where files go |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SECRET_KEY` + `SUPABASE_BUCKET` all set | **Supabase Storage**, in that bucket |
+| Any of the three missing | **Local disk**, under `.data/uploads` (git-ignored) |
+
+Supabase Storage is the production choice: the bytes live outside the app, so
+uploads survive a redeploy on a host with an ephemeral filesystem, and the
+browser streams large videos from Supabase's CDN instead of through the server.
+Access is still gated in the app — `/api/lesson-files/...` checks the viewer's
+plan and marks the lesson as started before it redirects to a one-hour signed
+URL, so a Pro-only video stays Pro-only — which is why the bucket itself can be
+public.
+
+Verify the round trip from the terminal before uploading a large video:
+
+```bash
+npm run storage:check   # writes a probe object, reads it back, deletes it
+npm run db:check        # also reports which backend is in use
 ```
 
-Set `LESSON_DATA_DIR` to write somewhere else, and `OWNER_EMAIL` to move
-ownership to a different account. On hosts with a read-only file system (for
-example serverless platforms) point `LESSON_DATA_DIR` at a writable volume
-before deploying, or the upload endpoints return a clear "cannot write" error.
+Set `LESSON_DATA_DIR` to put the disk fallback somewhere else, and `OWNER_EMAIL`
+to move ownership to a different account.
 
 ## Run locally
 
@@ -169,7 +183,7 @@ This is the “what to paste where” map for continuing the build.
 | 9. Billing API | `src/app/api/subscription/route.ts` | Authenticated plan actions |
 | 10. Admin rules | `src/lib/admin.ts`, `src/app/api/admin/*` | Metrics and protected account-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
-| 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/course-content.ts` | Disk store for owner lessons and the merge with the catalog |
+| 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/blob-store.ts`, `src/lib/app-state.ts`, `src/lib/course-content.ts` | Storage/disk blobs for owner lessons, their metadata in `app_state`, and the merge with the catalog |
 | 10c. Upload API | `src/app/api/admin/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
 | 10d. Owner console | `src/app/admin/lessons/page.tsx`, `src/components/OwnerLessonManager.tsx` | The upload form and published-lesson list |
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/admin/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
@@ -260,9 +274,20 @@ Supabase gives you two different things, and they are not interchangeable:
 
 The API keys do **not** connect the database — `DATABASE_URL` does, and it
 carries its own password. Adding the keys without the connection string changes
-nothing the app does, which is why `npm run db:check` reports the driver in use
-and `npm run supabase:check` reports whether the key pair works against the
-project (and which storage buckets exist for lesson files).
+nothing about where accounts are stored, which is why `npm run db:check` reports
+the driver in use and `npm run supabase:check` reports whether the key pair
+works against the project (and which storage buckets exist).
+
+What the keys *are* used for today is **file storage**: with a bucket named in
+`SUPABASE_BUCKET` (create it once in Storage → New bucket; `lesson-files` is the
+conventional name) lesson uploads and branding images are written to that bucket
+instead of the local disk. Three commands tell you where you stand:
+
+```bash
+npm run db:check        # driver, owner, accounts, and which file backend is in use
+npm run supabase:check  # does the key pair work, and which buckets exist
+npm run storage:check   # write → sign → download → delete against the bucket
+```
 
 Store both keys in `.env.local` locally and in the host's environment variables
 when deployed. `.env.local` is git-ignored; `.env.example` only has placeholders.
@@ -423,11 +448,15 @@ Production checklist:
    change the password from `/dashboard/account`.
 4. Keep `.env.local` out of the repository — it is git-ignored, and secrets
    belong in the platform's environment variables.
-5. Lesson files, images and branding still live on the server filesystem
-   (`.data/uploads`). On a host with an ephemeral disk, attach a volume or move
-   them to Supabase Storage before publishing real lessons — that is what the
-   publishable and secret keys above are for. Accounts, progress and invoices
-   are already in Postgres and need no extra work.
+5. Set `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `SUPABASE_BUCKET`
+   so lesson files and branding images live in Supabase Storage rather than on
+   the server filesystem. Create the bucket once in the dashboard, then run
+   `npm run storage:check` with the deployment's environment variables to
+   confirm uploads, signed downloads and deletes all work. Without those three
+   variables the app falls back to `.data/uploads`, which is lost on a host with
+   an ephemeral disk (`npm run db:check` prints which backend is in use).
+   Accounts, progress, invoices and the uploaded-lesson records are already in
+   Postgres and need no extra work.
 
 Payments are the one part still simulated: plans activate without charging a
 card, as described in [Connect real payments safely](#connect-real-payments-safely).

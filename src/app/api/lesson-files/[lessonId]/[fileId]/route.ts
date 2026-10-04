@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { canAccessLesson } from "@/lib/courses";
 import { findContentLesson, findUploadedLessonCourse } from "@/lib/course-content";
-import { getUploadedLesson, locateUploadedFile, readFileRange } from "@/lib/lesson-uploads";
+import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -42,10 +42,19 @@ export async function GET(
   const file = lesson.files.find((candidate) => candidate.id === fileId);
   if (!file) return NextResponse.json({ error: "File not found." }, { status: 404 });
 
-  const stored = locateUploadedFile(file);
-  if (!stored) return NextResponse.json({ error: "The uploaded file is missing from the server." }, { status: 410 });
-
   const download = req.nextUrl.searchParams.get("download") === "1";
+
+  // With Supabase Storage the browser is sent to a short-lived signed URL: the
+  // bytes come from Supabase's CDN (which serves range requests itself, so a
+  // long video seeks properly) instead of being proxied through this route.
+  const redirect = await storedBlobRedirect(file, download ? file.name : undefined);
+  if (redirect) return NextResponse.redirect(redirect, 302);
+
+  const size = await storedBlobSize(file);
+  if (size === null) {
+    return NextResponse.json({ error: "The uploaded file is missing from storage." }, { status: 410 });
+  }
+  const stored = { size };
   const disposition = download ? "attachment" : "inline";
   const asciiName = file.name.replace(/[^\x20-\x7e]/g, "_").replace(/"/g, "");
   const headers = new Headers({
@@ -74,10 +83,10 @@ export async function GET(
       }
       headers.set("Content-Range", `bytes ${start}-${end}/${stored.size}`);
       headers.set("Content-Length", String(end - start + 1));
-      return new NextResponse(readFileRange(stored.path, start, end), { status: 206, headers });
+      return new NextResponse(diskBlobRange(file, start, end), { status: 206, headers });
     }
   }
 
   headers.set("Content-Length", String(stored.size));
-  return new NextResponse(readFileRange(stored.path, 0, stored.size - 1), { status: 200, headers });
+  return new NextResponse(diskBlobRange(file, 0, stored.size - 1), { status: 200, headers });
 }

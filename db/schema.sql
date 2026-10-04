@@ -4,6 +4,12 @@
 -- Run this once against your database (Supabase SQL editor, psql, Neon console).
 -- Every statement is idempotent, so re-running it is safe.
 
+create table if not exists app_state (
+     key        text primary key,
+     value      jsonb not null,
+     updated_at timestamptz not null default now()
+   );
+
 create table if not exists users (
      id                text primary key,
      email             text not null,

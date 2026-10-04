@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { brandingAsset } from "@/lib/branding";
 import { getCurrentUser } from "@/lib/session";
-import { locateUploadedFile, readFileRange } from "@/lib/lesson-uploads";
+import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,10 +24,14 @@ export async function GET(_req: Request, context: { params: Promise<{ asset: str
   const record = brandingAsset(asset);
   if (!record) return NextResponse.json({ error: `No ${asset} has been uploaded yet.` }, { status: 404 });
 
-  const stored = locateUploadedFile(record);
-  if (!stored) return NextResponse.json({ error: "That image is missing from the server." }, { status: 410 });
+  const redirect = await storedBlobRedirect(record);
+  if (redirect) return NextResponse.redirect(redirect, 302);
 
-  return new NextResponse(readFileRange(stored.path, 0, stored.size - 1), {
+  const size = await storedBlobSize(record);
+  if (size === null) return NextResponse.json({ error: "That image is missing from storage." }, { status: 410 });
+  const stored = { size };
+
+  return new NextResponse(diskBlobRange(record, 0, size - 1), {
     status: 200,
     headers: {
       "Content-Type": record.mime || "image/png",

@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ lesso
         return NextResponse.json({ error: "Edited files must be images." }, { status: 415 });
       }
       const saved = await saveUploadedFile(file, lessonId);
-      const updated = replaceFileContents(lessonId, fileId, saved.record);
+      const updated = await replaceFileContents(lessonId, fileId, saved.record);
       if (!updated) return NextResponse.json({ error: "That file no longer exists." }, { status: 404 });
     } else if (existing.kind === "video") {
       const trimStart = numberField(form, "trimStart") ?? existing.trimStart ?? 0;
@@ -73,8 +73,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ lesso
       if (trimEnd !== null && trimEnd <= trimStart + 0.1) {
         return NextResponse.json({ error: "The trim end must come after the trim start." }, { status: 400 });
       }
-      if (form.get("removePoster") === "true") removeFilePoster(lessonId, fileId);
-      const updated = saveFileEdits(lessonId, fileId, { trimStart, trimEnd, muted }, poster);
+      if (form.get("removePoster") === "true") await removeFilePoster(lessonId, fileId);
+      const updated = await saveFileEdits(lessonId, fileId, { trimStart, trimEnd, muted }, poster);
       if (!updated) return NextResponse.json({ error: "That file no longer exists." }, { status: 404 });
     } else {
       return NextResponse.json({ error: "Only pictures and videos can be edited." }, { status: 415 });

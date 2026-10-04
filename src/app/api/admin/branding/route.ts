@@ -9,7 +9,7 @@ import {
   saveBranding,
   saveBrandingAsset,
 } from "@/lib/branding";
-import { UploadError } from "@/lib/lesson-uploads";
+import { removeStoredBlob, UploadError } from "@/lib/lesson-uploads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,14 +58,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    if (form.get("removePhoto") === "true") clearBrandingAsset("photo", owner.name);
-    if (form.get("removeLogo") === "true") clearBrandingAsset("logo", owner.name);
+    if (form.get("removePhoto") === "true") await clearBrandingAsset("photo", owner.name);
+    if (form.get("removeLogo") === "true") await clearBrandingAsset("logo", owner.name);
 
     const displayName = text(form, "displayName", 80);
     const roleTitle = text(form, "roleTitle", 60);
     const hasDetails = form.has("displayName") || form.has("roleTitle");
     if (hasDetails) {
-      saveBranding(
+      await saveBranding(
         {
           ...(form.has("displayName") ? { displayName } : {}),
           ...(form.has("roleTitle") ? { roleTitle } : {}),
@@ -77,8 +77,18 @@ export async function POST(req: NextRequest) {
     for (const asset of ["photo", "logo"] as const) {
       const file = form.get(asset);
       if (file instanceof File && file.size > 0) {
+        const replaced = brandingAsset(asset);
         const record = await saveBrandingAsset(file, asset);
-        saveBranding({ [asset]: record } as { photo?: typeof record; logo?: typeof record }, owner.name);
+        await saveBranding({ [asset]: record } as { photo?: typeof record; logo?: typeof record }, owner.name);
+        // Only once the replacement is recorded do we drop the object it
+        // replaced — otherwise a failed save would leave the profile pointing
+        // at a file that no longer exists. Without this, every new photo or
+        // logo would leave the old one sitting in the bucket forever.
+        if (replaced && replaced.storedName !== record.storedName) {
+          await removeStoredBlob(replaced.storedName).catch((error) => {
+            console.error("branding: could not remove the replaced object", error);
+          });
+        }
       }
     }
   } catch (error) {

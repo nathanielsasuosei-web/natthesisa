@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { canAccessLesson } from "@/lib/courses";
 import { findContentLesson, findUploadedLessonCourse } from "@/lib/course-content";
-import { getUploadedLesson, locateUploadedFile, readFileRange } from "@/lib/lesson-uploads";
+import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -31,10 +31,14 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
   const poster = file?.poster;
   if (!poster) return NextResponse.json({ error: "This video has no thumbnail." }, { status: 404 });
 
-  const stored = locateUploadedFile(poster);
-  if (!stored) return NextResponse.json({ error: "The thumbnail is missing from the server." }, { status: 410 });
+  const redirect = await storedBlobRedirect(poster);
+  if (redirect) return NextResponse.redirect(redirect, 302);
 
-  return new NextResponse(readFileRange(stored.path, 0, stored.size - 1), {
+  const size = await storedBlobSize(poster);
+  if (size === null) return NextResponse.json({ error: "The thumbnail is missing from storage." }, { status: 410 });
+  const stored = { size };
+
+  return new NextResponse(diskBlobRange(poster, 0, size - 1), {
     status: 200,
     headers: {
       "Content-Type": poster.mime || "image/jpeg",

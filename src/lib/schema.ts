@@ -13,6 +13,10 @@
  * on pgcrypto or on a PostgreSQL version newer than 12. Indexes and constraints are declared so the database — not the
  * application — is what guarantees unique emails and valid rows.
  *
+ * `app_state` holds non-user content the owner publishes (their lesson index and
+ * branding). It lives here rather than in JSON files on the server's disk,
+ * which is wiped on redeploy by hosts with an ephemeral filesystem.
+ *
  * Deliberately denormalised: the per-learner learning record (progress,
  * invoices, activity, usage) is kept in JSONB columns next to the account row.
  * That keeps reads to a single row and matches the domain objects the app
@@ -21,6 +25,12 @@
  * tables — the shapes are documented in `src/lib/store.ts`.
  */
 export const SCHEMA_STATEMENTS: string[] = [
+
+  `create table if not exists app_state (
+     key        text primary key,
+     value      jsonb not null,
+     updated_at timestamptz not null default now()
+   )`,
 
   `create table if not exists users (
      id                text primary key,
