@@ -50,6 +50,10 @@ The site **owner** is the single account allowed to publish lessons and upload
 teaching materials. Most administrator controls stay with the admin console,
 but lesson publishing is owner-only and enforced on the server:
 
+- The owner adds a **profile photo and logo** once (plus the name and role line
+  to show). Both are attached to every lesson he publishes: the lesson reader
+  shows a "Lesson by" block with the photo, name, role and logo, and course
+  pages show the photo and logo in the instructor panel.
 - The owner writes a lesson (title, minutes, summary, content, optional code,
   objectives, practice challenge) and drops it into any course module — or into
   a brand-new module.
@@ -70,8 +74,9 @@ but lesson publishing is owner-only and enforced on the server:
 Uploads are stored on disk and survive server restarts:
 
 ```
-.data/lessons.json   lesson records + file metadata   (git-ignored)
-.data/uploads/*      the uploaded videos, PDFs, slides (git-ignored)
+.data/lessons.json    lesson records + file metadata          (git-ignored)
+.data/branding.json   owner photo, logo and display details   (git-ignored)
+.data/uploads/*       the uploaded videos, PDFs, slides, images (git-ignored)
 ```
 
 Set `LESSON_DATA_DIR` to write somewhere else, and `OWNER_EMAIL` to move
@@ -125,6 +130,7 @@ This is the “what to paste where” map for continuing the build.
 | 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/course-content.ts` | Disk store for owner lessons and the merge with the catalog |
 | 10c. Upload API | `src/app/api/admin/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
 | 10d. Owner console | `src/app/admin/lessons/page.tsx`, `src/components/OwnerLessonManager.tsx` | The upload form and published-lesson list |
+| 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/admin/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
 | 12. Student UI | `src/app/dashboard/*` | Overview, library, progress, plans, billing and account |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
@@ -216,6 +222,10 @@ Do **not** call `changePlan()` from an unverified “payment successful” brows
 - Lesson materials are streamed through an access-checked route
   (`/api/lesson-files/...`), so a locked lesson's video or PDF cannot be opened
   by copying the URL.
+- The owner's photo and logo are also served through an access-checked route
+  (`/api/branding/photo`, `/api/branding/logo`): signed-in learners can load
+  them, anonymous visitors get `401`, and only the owner can replace or remove
+  them. Photos and logos must be image files (PNG, JPG, WEBP, GIF or AVIF).
 
 ## Deployment
 

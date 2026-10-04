@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { fmtBytes, fmtDate } from "@/lib/format";
+import type { OwnerBrandingView } from "./OwnerBrandingCard";
 import Icon from "./Icon";
 
 export interface OwnerCourseOption {
@@ -27,6 +28,7 @@ export interface OwnerLessonRow {
 interface Props {
   courses: OwnerCourseOption[];
   lessons: OwnerLessonRow[];
+  branding?: OwnerBrandingView;
 }
 
 const NEW_MODULE = "__new__";
@@ -43,7 +45,7 @@ const FILE_ICON: Record<string, "video" | "file" | "book" | "courses"> = {
   other: "file",
 };
 
-export default function OwnerLessonManager({ courses, lessons }: Props) {
+export default function OwnerLessonManager({ courses, lessons, branding }: Props) {
   const router = useRouter();
   const [courseId, setCourseId] = useState(courses[0]?.id ?? "");
   const [moduleId, setModuleId] = useState(courses[0]?.modules[0]?.id ?? NEW_MODULE);
@@ -204,7 +206,35 @@ export default function OwnerLessonManager({ courses, lessons }: Props) {
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[#1b1822] text-[#c4b7ff]"><Icon name="upload" size={20} /></span>
         </div>
 
-        <form onSubmit={publish} className="mt-6 space-y-4">
+        {branding && (
+          <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-[#e8e4ec] bg-[#fbfafc] p-3.5">
+            <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#e4e0e8] bg-white">
+              {branding.hasPhoto && branding.photoHref ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={`${branding.photoHref}?v=${branding.updatedAt ?? ""}`} alt={branding.displayName} className="size-full object-cover" />
+              ) : (
+                <Icon name="user" size={18} className="text-[#b3acb9]" />
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] font-extrabold text-[#332e39]">{branding.displayName}</p>
+              <p className="mt-0.5 truncate text-[10px] text-[#918a97]">{branding.roleTitle}</p>
+            </div>
+            {branding.hasLogo && branding.logoHref ? (
+              <span className="grid h-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#e4e0e8] bg-[#1b1822] px-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${branding.logoHref}?v=${branding.updatedAt ?? ""}`} alt={`${branding.displayName} logo`} className="h-7 w-auto object-contain" />
+              </span>
+            ) : null}
+            <p className="w-full text-[9px] leading-4 text-[#a19aa7]">
+              {branding.hasPhoto || branding.hasLogo
+                ? "This photo and logo will appear on the lesson you publish below."
+                : "Add your photo and logo above to have them appear on every lesson you publish."}
+            </p>
+          </div>
+        )}
+
+        <form onSubmit={publish} className="mt-5 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className={LABEL}>Course</span>
@@ -338,7 +368,13 @@ export default function OwnerLessonManager({ courses, lessons }: Props) {
                   <div className="min-w-0">
                     <p className="truncate text-xs font-extrabold text-[#332e39]">{lesson.title}</p>
                     <p className="mt-1 text-[9px] text-[#918a97]">{lesson.courseTitle} · {lesson.moduleTitle} · {lesson.duration} min</p>
-                    <p className="mt-0.5 text-[9px] text-[#aaa4b0]">Published {fmtDate(lesson.createdAt)} by {lesson.createdBy}</p>
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      {branding?.hasPhoto && branding.photoHref ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={`${branding.photoHref}?v=${branding.updatedAt ?? ""}`} alt="" className="size-4 rounded-full object-cover" />
+                      ) : null}
+                      <p className="text-[9px] text-[#aaa4b0]">Published {fmtDate(lesson.createdAt)} by {lesson.createdBy}</p>
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {lesson.preview && <span className="rounded-full bg-[#f0ecff] px-2 py-1 text-[8px] font-black uppercase text-[#5e3de0]">Preview</span>}

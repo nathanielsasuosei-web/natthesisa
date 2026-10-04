@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { canAccessLesson, getCourse } from "@/lib/courses";
 import { contentLessons, contentModules, contentPercent, findContentLesson } from "@/lib/course-content";
+import { brandingSummary } from "@/lib/branding";
 import { getCurrentUser } from "@/lib/session";
 import { getOrCreateProgress } from "@/lib/store";
 import Icon from "@/components/Icon";
@@ -41,6 +42,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   progress.lastAccessedAt = new Date().toISOString();
   const complete = progress.completedLessonIds.includes(lesson.id);
   const percent = contentPercent(course, progress.completedLessonIds);
+  const ownerBranding = lesson.source === "owner" ? brandingSummary(course.instructor.name) : null;
   const previousLesson = lessons[lessonIndex - 1];
   const nextLesson = lessons[lessonIndex + 1];
   const nextAccessible = nextLesson ? canAccessLesson(user.subscription.planId, course, nextLesson) : false;
@@ -80,6 +82,31 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
             ))}
 
             <section className="mt-10 border-y border-[#f0cdbb] py-1"><div className="flex items-center gap-3 border-b border-[#ffe0cf] py-4"><span className="grid size-9 place-items-center rounded-xl bg-[#ff7448] text-white"><Icon name="terminal" size={18} /></span><div><p className="text-[9px] font-black uppercase tracking-[.14em] text-[#d95a33]">Try it yourself</p><h2 className="mt-0.5 text-sm font-extrabold">Lesson challenge</h2></div></div><div className="py-5"><p className="text-sm font-semibold leading-6 text-[#5d4e4c]">{lesson.challenge}</p><label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-[#f2d9cb] bg-white/70 p-3"><input type="checkbox" className="size-4 accent-[#6d4aff]" /><span className="text-xs font-bold text-[#6b5c59]">I completed this practice task</span></label></div></section>
+
+            {ownerBranding && (
+              <section className="mt-10 flex flex-wrap items-center gap-4 border-y border-[#e6e2e9] py-5">
+                <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#e4e0e8] bg-[#f7f6f8]">
+                  {ownerBranding.photoHref ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={ownerBranding.photoHref} alt={ownerBranding.name} className="size-full object-cover" />
+                  ) : (
+                    <Icon name="user" size={24} className="text-[#aaa4b0]" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] font-black uppercase tracking-[.14em] text-[#6d4aff]">Lesson by</p>
+                  <p className="mt-1 text-sm font-extrabold text-[#332e39]">{ownerBranding.name}</p>
+                  <p className="mt-0.5 text-[10px] text-[#918a97]">{ownerBranding.role}</p>
+                </div>
+                {ownerBranding.logoHref && (
+                  <span className="grid h-12 shrink-0 place-items-center rounded-xl bg-[#1b1822] px-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={ownerBranding.logoHref} alt={`${ownerBranding.name} logo`} className="h-7 w-auto object-contain" />
+                  </span>
+                )}
+                {lesson.files?.length ? <span className="rounded-full bg-[#f0ecff] px-3 py-1.5 text-[9px] font-black uppercase tracking-wide text-[#5e3de0]">{lesson.files.length} material{lesson.files.length === 1 ? "" : "s"}</span> : null}
+              </section>
+            )}
 
             {lesson.files?.length ? <LessonMaterials files={lesson.files} /> : null}
 

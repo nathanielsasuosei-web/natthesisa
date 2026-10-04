@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { canAccessCourse, canAccessLesson, getCourse } from "@/lib/courses";
-import { contentLessons, contentMinutes, contentModules, contentPercent } from "@/lib/course-content";
+import { contentLessons, contentMinutes, contentModules, contentPercent, ownerLessonsForCourse } from "@/lib/course-content";
+import { brandingSummary } from "@/lib/branding";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "@/components/CourseVisual";
@@ -26,6 +27,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const lessons = contentLessons(course);
   const modules = contentModules(course);
   const hasAccess = canAccessCourse(user.subscription.planId, course);
+  const ownerBranding = ownerLessonsForCourse(course.id).length ? brandingSummary(course.instructor.name) : null;
   const nextLesson = lessons.find((lesson) => !completed.includes(lesson.id) && canAccessLesson(user.subscription.planId, course, lesson)) ?? lessons.find((lesson) => canAccessLesson(user.subscription.planId, course, lesson));
 
   return (
@@ -82,7 +84,15 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           {progress && (
             <section className="open-surface py-5"><div className="flex items-center gap-4"><ProgressRing value={percent} size={66} stroke={6} /><div><h2 className="text-sm font-extrabold">Your progress</h2><p className="mt-1 text-[10px] leading-4 text-[#918a97]">{completed.length} of {lessons.length} lessons complete</p></div></div><div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#eeeaf1]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div></section>
           )}
-          <section className="open-surface py-5"><p className="text-[9px] font-black uppercase tracking-[.14em] text-[#918a97]">Your instructor</p><div className="mt-4 flex items-center gap-3"><span className="grid size-11 place-items-center rounded-2xl bg-[#1b1822] text-xs font-black text-[#c2b4ff]">{course.instructor.initials}</span><div><p className="text-xs font-extrabold">{course.instructor.name}</p><p className="mt-0.5 text-[10px] text-[#918a97]">{course.instructor.role}</p></div></div></section>
+          <section className="open-surface py-5"><p className="text-[9px] font-black uppercase tracking-[.14em] text-[#918a97]">Your instructor</p><div className="mt-4 flex items-center gap-3"><span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[#1b1822] text-xs font-black text-[#c2b4ff]">{ownerBranding?.photoHref ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={ownerBranding.photoHref} alt={ownerBranding.name} className="size-full object-cover" />
+            ) : course.instructor.initials}</span><div className="min-w-0"><p className="text-xs font-extrabold">{ownerBranding?.name ?? course.instructor.name}</p><p className="mt-0.5 text-[10px] text-[#918a97]">{ownerBranding?.role ?? course.instructor.role}</p></div>{ownerBranding?.logoHref ? (
+              <span className="ml-auto grid h-9 shrink-0 place-items-center rounded-lg bg-[#1b1822] px-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={ownerBranding.logoHref} alt={`${ownerBranding.name} logo`} className="h-5 w-auto object-contain" />
+              </span>
+            ) : null}</div></section>
           <section className="open-surface overflow-hidden"><div className="border-l-2 border-[#ff7448] py-1 pl-4"><span className="grid size-9 place-items-center rounded-xl bg-[#ff7448] text-white"><Icon name="briefcase" size={18} /></span><p className="mt-4 text-[9px] font-black uppercase tracking-[.14em] text-[#d75b35]">Course project</p><h2 className="mt-1.5 text-sm font-extrabold leading-5">{course.project}</h2></div><div className="pt-4 text-[10px] leading-5 text-[#7d7683]">Apply every module in a guided project you can refine, publish and add to your portfolio.</div></section>
           {!hasAccess && <section className="rounded-[22px] bg-[#6d4aff] p-5 text-white"><Icon name="spark" size={22} /><h2 className="mt-3 text-sm font-extrabold">Unlock every course</h2><p className="mt-1.5 text-[10px] leading-5 text-violet-100">Pro includes this course, certificates, downloads and the full learning library.</p><Link href="/dashboard/plans" className="mt-4 block rounded-xl bg-white px-3 py-2.5 text-center text-[10px] font-black text-[#5c3be1]">See Pro plan</Link></section>}
         </aside>

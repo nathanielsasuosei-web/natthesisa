@@ -6,8 +6,10 @@ import { ownerLessonCount, ownerLessonSummaries } from "@/lib/course-content";
 import { getCurrentAdmin } from "@/lib/session";
 import { OWNER_ONLY_ERROR, isOwner } from "@/lib/owner";
 import { MAX_FILES_PER_LESSON } from "@/lib/lesson-uploads";
+import { getBranding } from "@/lib/branding";
 import Icon from "@/components/Icon";
 import OwnerLessonManager, { type OwnerCourseOption, type OwnerLessonRow } from "@/components/OwnerLessonManager";
+import OwnerBrandingCard, { type OwnerBrandingView } from "@/components/OwnerBrandingCard";
 
 export const metadata: Metadata = { title: "Lesson uploads" };
 
@@ -53,6 +55,21 @@ export default async function AdminLessonsPage() {
     })),
   }));
 
+  const branding = getBranding();
+  const brandingView: OwnerBrandingView = {
+    displayName: branding.displayName || admin.name,
+    roleTitle: branding.roleTitle,
+    hasPhoto: Boolean(branding.photo),
+    hasLogo: Boolean(branding.logo),
+    photoHref: branding.photo ? "/api/branding/photo" : null,
+    logoHref: branding.logo ? "/api/branding/logo" : null,
+    photoName: branding.photo?.name ?? null,
+    logoName: branding.logo?.name ?? null,
+    photoSize: branding.photo?.size ?? null,
+    logoSize: branding.logo?.size ?? null,
+    updatedAt: branding.updatedAt,
+  };
+
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -69,7 +86,9 @@ export default async function AdminLessonsPage() {
         </div>
       </header>
 
-      <OwnerLessonManager courses={courses} lessons={lessons} />
+      <OwnerBrandingCard initial={brandingView} />
+
+      <OwnerLessonManager courses={courses} lessons={lessons} branding={brandingView} />
 
       <div className="open-callout flex gap-3">
         <Icon name="shield" size={18} className="mt-0.5 shrink-0 text-[#3f67c8]" />
