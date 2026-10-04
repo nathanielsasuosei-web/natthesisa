@@ -271,6 +271,35 @@ across six tables. If the app outgrows that, split the JSONB columns into
 `course_progress`, `lesson_progress`, `invoices` and `activity_events` tables —
 the shapes are documented in `src/lib/store.ts`.
 
+## Signing in as the owner
+
+Two doors, and only one of them is for the owner:
+
+| Door | Who it is for |
+| --- | --- |
+| `/login` | Learners. Signing in with an admin/owner account still lands on `/admin`. |
+| `/admin-sign-in` | The owner and any administrator. Linked from the site footer and from `/login`. |
+
+The owner account is created on the first request against an empty database,
+from whichever of these you use:
+
+1. `OWNER_EMAIL` + `OWNER_PASSWORD` (+ optional `OWNER_NAME`) in the environment —
+   the deployment path. `OWNER_NAME` is the display name in the console and the
+   lesson byline; it is kept in step with the account, so leave it unset to
+   manage the name from the account page instead.
+2. The one-time **"Set up the owner account"** form on `/admin-sign-in`, shown
+   only while no owner exists and no environment credentials are set. It closes
+   itself the moment an owner exists.
+
+Once the row exists, the password stored in the database is what counts, so
+changing it from `/dashboard/account` sticks and the environment variables are
+no longer consulted. If the database is ever reset, the owner is created again
+from the environment — or, with no environment credentials, from the setup form.
+
+The owner account cannot be locked out from the console: suspending, demoting or
+deleting it is refused with `403 OWNER_PROTECTED`, and the single-owner index in
+the schema makes a second owner impossible.
+
 ## Authentication
 
 Sign-in is implemented in this repository rather than delegated to a provider:

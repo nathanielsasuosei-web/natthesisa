@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
@@ -17,6 +18,7 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notAdmin, setNotAdmin] = useState(false);
 
   /**
    * Creates the owner account when none exists yet, so a fresh database can be
@@ -66,6 +68,7 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
     }
     setBusy(true);
     setError(null);
+    setNotAdmin(false);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -79,6 +82,9 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
         return;
       }
       if (data.role !== "admin") {
+        // A learner who lands here is signed in now, so send them somewhere
+        // useful instead of leaving them stuck on an error.
+        setNotAdmin(true);
         setError("This account does not have administrator access.");
         return;
       }
@@ -113,7 +119,19 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
           <label className="block"><span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Owner email</span><div className="relative"><Icon name="mail" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" placeholder="you@example.com" className={fieldClass} /></div></label>
           <label className="block"><span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Choose a password</span><div className="relative"><Icon name="lock" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" placeholder="At least 8 characters" className={`${fieldClass} pr-12`} /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-[10px] font-bold text-[#817a89] hover:bg-[#f3f1f5]">{showPassword ? "Hide" : "Show"}</button></div></label>
           <label className="block"><span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Repeat the password</span><div className="relative"><Icon name="lock" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type={showPassword ? "text" : "password"} value={repeat} onChange={(event) => setRepeat(event.target.value)} autoComplete="new-password" className={fieldClass} /></div></label>
-          {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}</div>}
+          {error && (
+          <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">
+            {error}
+            {notAdmin && (
+              <>
+                {" "}
+                <Link href="/dashboard" className="font-extrabold underline">
+                  Go to your learner dashboard
+                </Link>
+              </>
+            )}
+          </div>
+        )}
           <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white shadow-[0_9px_25px_rgba(109,74,255,.22)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] disabled:opacity-60">{busy ? "Creating the owner account…" : "Create owner account"}{!busy && <Icon name="arrow-right" size={16} />}</button>
           <p className="text-[11px] leading-5 text-[#89828f]">This option disappears once an owner exists. On a deployment, set OWNER_EMAIL and OWNER_PASSWORD instead so the account is created on first start.</p>
         </form>
@@ -124,6 +142,7 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
         <label className="block"><span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Password</span><div className="relative"><Icon name="lock" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Enter admin password" className={`${fieldClass} pr-12`} /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-[10px] font-bold text-[#817a89] hover:bg-[#f3f1f5]">{showPassword ? "Hide" : "Show"}</button></div></label>
         {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}</div>}
         <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#dcd8e2] bg-[#1b1822] px-4 py-3.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#2b2733] disabled:opacity-60">{busy ? "Verifying access…" : "Sign in as administrator"}{!busy && <Icon name="arrow-right" size={16} />}</button>
+        <p className="text-[10px] leading-5 text-[#9a939f]">The owner account is created on first start from <span className="font-mono">OWNER_EMAIL</span> and <span className="font-mono">OWNER_PASSWORD</span>. Change that password from the learner account page once you are in.</p>
       </form>
 
       <EmbedNotice />

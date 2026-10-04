@@ -356,9 +356,13 @@ export async function createUser(name: string, email: string, password: string):
 }
 
 /** First-run creation of the single owner account (see `db.ts`). */
-export async function createOwnerAccount(email: string, password: string): Promise<User> {
+export async function createOwnerAccount(email: string, password: string, preferredName?: string): Promise<User> {
+  // Without OWNER_NAME the display name is guessed from the email handle, which
+  // turns admin@codemasterghana.dev into "Admin" — so the console would greet
+  // the owner by a placeholder instead of their name.
   const handle = email.split("@")[0].replace(/[._-]+/g, " ").trim();
-  const name = handle ? handle.replace(/\b\w/g, (letter) => letter.toUpperCase()).slice(0, 60) : "Site owner";
+  const fallback = handle ? handle.replace(/\b\w/g, (letter) => letter.toUpperCase()).slice(0, 60) : "Site owner";
+  const name = preferredName?.trim().slice(0, 60) || fallback;
   const user = await createAccount({
     name,
     email,

@@ -1,5 +1,5 @@
 import { databaseInfo, ensureSchema } from "./db";
-import { createOwnerAccount, ownerAccount } from "./store";
+import { createOwnerAccount, ownerAccount, saveUser } from "./store";
 
 /**
  * First-run setup, in one place.
@@ -18,7 +18,18 @@ const g = globalThis as unknown as { __codaraReady?: Promise<void> };
 async function setup(): Promise<void> {
   await ensureSchema();
 
-  if (await ownerAccount()) return;
+  const existing = await ownerAccount();
+  if (existing) {
+    // Keep the configured display name in step with the environment. Only the
+    // name is touched here — never the password, which belongs to the account.
+    const preferred = process.env.OWNER_NAME?.trim().slice(0, 60);
+    if (preferred && preferred !== existing.name) {
+      existing.name = preferred;
+      await saveUser(existing);
+      console.info(`[codemasterghana] Owner display name set to ${preferred} from OWNER_NAME`);
+    }
+    return;
+  }
 
   const email = process.env.OWNER_EMAIL?.trim().toLowerCase();
   const password = process.env.OWNER_PASSWORD;
@@ -29,7 +40,7 @@ async function setup(): Promise<void> {
     return;
   }
 
-  await createOwnerAccount(email, password);
+  await createOwnerAccount(email, password, process.env.OWNER_NAME);
   console.info(`[codemasterghana] Owner account created for ${email}`);
 }
 
