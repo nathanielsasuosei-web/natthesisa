@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canAccessLesson, coursePercent, getCourse, getLesson } from "@/lib/courses";
+import { canAccessLesson, getCourse } from "@/lib/courses";
+import { contentPercent, findContentLesson } from "@/lib/course-content";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getOrCreateProgress, recordLessonProgress } from "@/lib/store";
 
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
   const courseId = typeof body.courseId === "string" ? body.courseId : "";
   const lessonId = typeof body.lessonId === "string" ? body.lessonId : "";
   const course = getCourse(courseId);
-  const lesson = course ? getLesson(course, lessonId) : undefined;
+  const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Course or lesson not found." }, { status: 404 });
   if (!canAccessLesson(user.subscription.planId, course, lesson)) {
     return NextResponse.json(
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     completed,
-    percent: coursePercent(course, progress.completedLessonIds),
+    percent: contentPercent(course, progress.completedLessonIds),
     completedLessonIds: progress.completedLessonIds,
   });
 }

@@ -12,6 +12,17 @@ export interface LessonSection {
   language?: string;
 }
 
+export interface LessonFile {
+  id: string;
+  name: string;
+  size: number;
+  mime: string;
+  kind: "video" | "pdf" | "slides" | "image" | "other";
+  uploadedAt: string;
+  /** URL the learner opens to stream, view or download the file. */
+  href: string;
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -21,6 +32,10 @@ export interface Lesson {
   sections: LessonSection[];
   challenge: string;
   preview?: boolean;
+  /** "owner" marks a lesson published from the owner console. */
+  source?: "catalog" | "owner";
+  /** Materials attached by the owner (video, PDF, slides, images). */
+  files?: LessonFile[];
 }
 
 export interface CourseModule {

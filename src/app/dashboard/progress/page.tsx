@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { COURSES, coursePercent, getCourse, getCourseLessons } from "@/lib/courses";
+import { COURSES, getCourse } from "@/lib/courses";
+import { contentLessons, contentPercent } from "@/lib/course-content";
 import { requireCurrentUser } from "@/lib/require-user";
 import { completedLessonCount } from "@/lib/store";
 import { getPlan } from "@/lib/plans";
@@ -19,13 +20,13 @@ export default async function ProgressPage() {
     .map((progress) => ({ progress, course: getCourse(progress.courseId) }))
     .filter((item): item is { progress: typeof item.progress; course: NonNullable<typeof item.course> } => Boolean(item.course))
     .sort((a, b) => b.progress.lastAccessedAt.localeCompare(a.progress.lastAccessedAt));
-  const completedCourses = records.filter(({ course, progress }) => coursePercent(course, progress.completedLessonIds) === 100);
+  const completedCourses = records.filter(({ course, progress }) => contentPercent(course, progress.completedLessonIds) === 100);
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
   const activeDays = user.usage.history.filter((day) => day.count > 0).length;
   const totalLessons = completedLessonCount(user);
   const categoryProgress = ["Web Development", "App Development", "Computer Science", "Backend"].map((category) => {
     const courses = COURSES.filter((course) => course.category === category);
-    const total = courses.reduce((sum, course) => sum + getCourseLessons(course).length, 0);
+    const total = courses.reduce((sum, course) => sum + contentLessons(course).length, 0);
     const done = courses.reduce((sum, course) => sum + (user.progress[course.id]?.completedLessonIds.length ?? 0), 0);
     return { category, percent: total ? Math.round((done / total) * 100) : 0 };
   });
@@ -51,7 +52,7 @@ export default async function ProgressPage() {
 
       <section>
         <div className="mb-4 flex items-end justify-between"><div><h2 className="text-base font-black tracking-[-.025em]">Course progress</h2><p className="mt-1 text-xs text-[#89828f]">Your active learning paths</p></div><Link href="/dashboard/courses" className="text-[11px] font-bold text-[#6543e8]">Explore courses →</Link></div>
-        {records.length ? <div className="open-list">{records.map(({ course, progress }) => { const percent = coursePercent(course, progress.completedLessonIds); const lessonTotal = getCourseLessons(course).length; const next = getCourseLessons(course).find((lesson) => !progress.completedLessonIds.includes(lesson.id)); return <article key={course.id} className="grid gap-5 py-5 sm:grid-cols-[180px_1fr] sm:items-center"><CourseVisual course={course} className="min-h-36 overflow-hidden rounded-xl" compact /><div className="p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-wider text-[#6d4aff]">{course.category}</p><h3 className="mt-1 text-sm font-extrabold leading-5">{course.shortTitle}</h3></div><span className="text-sm font-black text-[#5e3de0]">{percent}%</span></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#eeebf1]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div><div className="mt-2 flex justify-between text-[9px] text-[#9a939f]"><span>{progress.completedLessonIds.length} of {lessonTotal} lessons</span><span>Last opened {fmtDate(progress.lastAccessedAt)}</span></div><Link href={next ? `/learn/${course.id}/${next.id}` : `/dashboard/courses/${course.slug}`} className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black text-[#5f3ee1]">{percent === 100 ? "Review course" : "Continue learning"} <Icon name="arrow-right" size={12} /></Link></div></article>; })}</div> : <div className="border-y border-dashed border-[#d9d4df] px-6 py-12 text-center"><Icon name="book" size={26} className="mx-auto text-[#918a97]" /><h3 className="mt-3 text-sm font-extrabold">No courses started yet</h3><Link href="/dashboard/courses" className="mt-3 inline-block text-xs font-bold text-[#6543e8]">Choose your first course →</Link></div>}
+        {records.length ? <div className="open-list">{records.map(({ course, progress }) => { const percent = contentPercent(course, progress.completedLessonIds); const courseLessons = contentLessons(course); const lessonTotal = courseLessons.length; const next = courseLessons.find((lesson) => !progress.completedLessonIds.includes(lesson.id)); return <article key={course.id} className="grid gap-5 py-5 sm:grid-cols-[180px_1fr] sm:items-center"><CourseVisual course={course} className="min-h-36 overflow-hidden rounded-xl" compact /><div className="p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-wider text-[#6d4aff]">{course.category}</p><h3 className="mt-1 text-sm font-extrabold leading-5">{course.shortTitle}</h3></div><span className="text-sm font-black text-[#5e3de0]">{percent}%</span></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#eeebf1]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div><div className="mt-2 flex justify-between text-[9px] text-[#9a939f]"><span>{progress.completedLessonIds.length} of {lessonTotal} lessons</span><span>Last opened {fmtDate(progress.lastAccessedAt)}</span></div><Link href={next ? `/learn/${course.id}/${next.id}` : `/dashboard/courses/${course.slug}`} className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black text-[#5f3ee1]">{percent === 100 ? "Review course" : "Continue learning"} <Icon name="arrow-right" size={12} /></Link></div></article>; })}</div> : <div className="border-y border-dashed border-[#d9d4df] px-6 py-12 text-center"><Icon name="book" size={26} className="mx-auto text-[#918a97]" /><h3 className="mt-3 text-sm font-extrabold">No courses started yet</h3><Link href="/dashboard/courses" className="mt-3 inline-block text-xs font-bold text-[#6543e8]">Choose your first course →</Link></div>}
       </section>
 
       <section className="open-columns grid gap-0 xl:grid-cols-2">

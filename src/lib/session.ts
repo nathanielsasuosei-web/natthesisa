@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { User, getStore } from "./store";
 import { syncSubscription } from "./subscription";
+import { isOwner } from "./owner";
 
 export const SESSION_COOKIE = "codara_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -35,6 +36,16 @@ export async function getCurrentAdmin(): Promise<User | null> {
   if (isArenaPreview()) return demoUser("codara-admin");
   const user = await getCurrentUser();
   return user?.role === "admin" ? user : null;
+}
+
+/**
+ * The site owner: the only account allowed to publish lessons. Every lesson
+ * upload route calls this, so the rule is enforced on the server and never
+ * only in the interface.
+ */
+export async function getCurrentOwner(): Promise<User | null> {
+  const admin = await getCurrentAdmin();
+  return isOwner(admin) ? admin : null;
 }
 
 export function isSuspended(user: User): boolean {

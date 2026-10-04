@@ -1,7 +1,9 @@
-import { COURSES, coursePercent, getCourse } from "./courses";
+import { COURSES, getCourse } from "./courses";
+import { contentPercent } from "./course-content";
 import { PLANS, PlanId, getPlan, priceFor } from "./plans";
 import { User, completedLessonCount, getStore, logActivity } from "./store";
 import { changePlan } from "./subscription";
+import { OWNER_IMMUTABLE_ERROR, isOwner } from "./owner";
 
 export class AdminError extends Error {
   code: string;
@@ -18,6 +20,7 @@ export interface AdminUserRow {
   name: string;
   email: string;
   role: "member" | "admin";
+  owner: boolean;
   suspended: boolean;
   createdAt: string;
   planId: PlanId;
@@ -37,13 +40,14 @@ export function toAdminRow(user: User): AdminUserRow {
   const progress = Object.values(user.progress);
   const completedCourses = progress.filter((item) => {
     const course = getCourse(item.courseId);
-    return course ? coursePercent(course, item.completedLessonIds) === 100 : false;
+    return course ? contentPercent(course, item.completedLessonIds) === 100 : false;
   }).length;
   return {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
+    owner: isOwner(user),
     suspended: user.suspended,
     createdAt: user.createdAt,
     planId: user.subscription.planId,
@@ -97,7 +101,7 @@ export function computeStats(): AdminStats {
       courseId: course.id,
       title: course.shortTitle,
       enrollments: records.length,
-      completions: records.filter((item) => coursePercent(course, item.completedLessonIds) === 100).length,
+      completions: records.filter((item) => contentPercent(course, item.completedLessonIds) === 100).length,
       lessonsCompleted: records.reduce((sum, item) => sum + item.completedLessonIds.length, 0),
     };
   });
@@ -129,6 +133,7 @@ function targetUser(userId: string): User {
 
 export function adminSuspendUser(admin: User, userId: string, suspended: boolean): User {
   const user = targetUser(userId);
+  if (isOwner(user)) throw new AdminError(OWNER_IMMUTABLE_ERROR.error, OWNER_IMMUTABLE_ERROR.code, 403);
   if (user.id === admin.id) throw new AdminError("You cannot pause your own account.", "SELF_ACTION");
   if (user.role === "admin") throw new AdminError("Administrator accounts cannot be paused.", "TARGET_ADMIN");
   user.suspended = suspended;
@@ -138,7 +143,14 @@ export function adminSuspendUser(admin: User, userId: string, suspended: boolean
 }
 
 export function adminSetRole(admin: User, userId: string, role: User["role"]): User {
+  // Only the owner decides who holds administrator access.
+  if (!isOwner(admin)) {
+    throw new AdminError("Only the site owner can change administrator access.", "OWNER_ONLY", 403);
+  }
   const user = targetUser(userId);
+  if (isOwner(user)) {
+    throw new AdminError("The owner account always keeps administrator access.", "OWNER_PROTECTED", 403);
+  }
   if (user.id === admin.id && role === "member") {
     throw new AdminError("You cannot remove your own administrator access.", "SELF_ACTION");
   }
@@ -179,6 +191,7 @@ export function adminResetProgress(admin: User, userId: string): User {
 
 export function adminDeleteUser(admin: User, userId: string): void {
   const user = targetUser(userId);
+  if (isOwner(user)) throw new AdminError(OWNER_IMMUTABLE_ERROR.error, OWNER_IMMUTABLE_ERROR.code, 403);
   if (user.id === admin.id) throw new AdminError("You cannot delete your own account.", "SELF_ACTION");
   if (user.role === "admin") throw new AdminError("Demote this administrator before deleting the account.", "TARGET_ADMIN");
   getStore().users.delete(userId);

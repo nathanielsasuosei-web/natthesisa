@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { COURSES, coursePercent, getCourseLessons } from "@/lib/courses";
+import { COURSES } from "@/lib/courses";
+import { contentLessons, contentPercent } from "@/lib/course-content";
 import { getPlan } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/session";
 
@@ -18,14 +19,14 @@ export async function GET() {
   for (const progress of Object.values(user.progress)) {
     const course = COURSES.find((item) => item.id === progress.courseId);
     if (!course) continue;
-    const percent = coursePercent(course, progress.completedLessonIds);
+    const percent = contentPercent(course, progress.completedLessonIds);
     rows.push(
       [
         course.title,
         percent === 100 ? "completed" : "in progress",
         String(percent),
         String(progress.completedLessonIds.length),
-        String(getCourseLessons(course).length),
+        String(contentLessons(course).length),
         progress.lastAccessedAt,
       ]
         .map((value) => `"${value.replaceAll('"', '""')}"`)

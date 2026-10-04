@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { computeStats, estimateMrr, toAdminRow } from "@/lib/admin";
 import { getCurrentAdmin } from "@/lib/session";
+import { isOwner } from "@/lib/owner";
 import { getStore } from "@/lib/store";
 import { fmtMinutes, fmtMoney } from "@/lib/format";
 import AdminUsersTable from "@/components/AdminUsersTable";
@@ -37,7 +39,20 @@ export default async function AdminPage() {
         <article className="open-column rounded-[22px] border border-[#e2dee7] bg-white p-5 sm:p-6"><div><h2 className="text-sm font-extrabold">Plan distribution</h2><p className="mt-1 text-[10px] text-[#918a97]">Current learner access</p></div><div className="mt-6 space-y-5">{stats.byPlan.map((plan, index) => { const percent = stats.learners ? Math.round((plan.count / stats.learners) * 100) : 0; const colors = ["bg-[#b8aae9]", "bg-[#6d4aff]", "bg-[#ff7448]"]; return <div key={plan.planId}><div className="mb-2 flex justify-between text-[10px]"><span className="font-bold text-[#5f5965]">{plan.planName}</span><span className="font-black">{plan.count} <span className="font-medium text-[#9a939f]">· {percent}%</span></span></div><div className="h-2 overflow-hidden rounded-full bg-[#eeeaf1]"><div className={`h-full rounded-full ${colors[index]}`} style={{ width: `${percent}%` }} /></div></div>; })}</div><div className="mt-7 border-l-2 border-[#6d4aff] py-1 pl-4"><div className="flex items-center gap-2"><Icon name="spark" size={16} className="text-[#6d4aff]" /><p className="text-[10px] font-extrabold">Conversion snapshot</p></div><p className="mt-2 text-[9px] leading-4 text-[#817a87]">{stats.learners ? Math.round(((stats.byPlan[1].count + stats.byPlan[2].count) / stats.learners) * 100) : 0}% of learners currently have paid access.</p></div></article>
       </section>
 
-      <AdminUsersTable initialUsers={users} adminId={admin.id} />
+      {isOwner(admin) && (
+        <section className="open-column flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-[#e2dee7] bg-white p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#ffcf59]/25 text-[#8a6d00]"><Icon name="crown" size={19} /></span>
+            <div>
+              <h2 className="text-sm font-extrabold">You are the site owner</h2>
+              <p className="mt-1 text-[10px] leading-5 text-[#918a97]">Only this account can publish lessons and attach videos, PDFs or slide decks to a course.</p>
+            </div>
+          </div>
+          <Link href="/admin/lessons" className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_8px_22px_rgba(109,74,255,.2)] transition hover:-translate-y-0.5 hover:bg-[#5d3ce2]"><Icon name="upload" size={15} /> Upload a lesson</Link>
+        </section>
+      )}
+
+      <AdminUsersTable initialUsers={users} adminId={admin.id} viewerIsOwner={isOwner(admin)} />
       <div className="open-callout flex gap-3 text-[#5870a5]"><Icon name="shield" size={18} className="mt-0.5 shrink-0 text-[#3f67c8]" /><p className="text-[10px] leading-5 text-[#5870a5]"><strong className="text-[#294a96]">Admin controls are server-enforced.</strong> Paused learners cannot save progress or change plans. Comped plan changes do not create an invoice, and administrators cannot pause or delete their own account.</p></div>
     </div>
   );

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { coursePercent, getCourse } from "@/lib/courses";
+import { getCourse } from "@/lib/courses";
+import { contentPercent } from "@/lib/course-content";
 import { requireCurrentUser } from "@/lib/require-user";
 import { getPlan } from "@/lib/plans";
 import { fmtDate } from "@/lib/format";
@@ -17,7 +18,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
   const course = getCourse(courseId);
   if (!course) notFound();
   const progress = user.progress[course.id];
-  const complete = progress && coursePercent(course, progress.completedLessonIds) === 100;
+  const complete = progress && contentPercent(course, progress.completedLessonIds) === 100;
   const entitled = getPlan(user.subscription.planId).entitlements.certificates;
 
   if (!complete || !entitled) {

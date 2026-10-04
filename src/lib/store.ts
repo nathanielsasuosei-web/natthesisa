@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { BillingCycle, PlanId, cycleDays, getPlan } from "./plans";
 import { getCourse, getCourseLessons } from "./courses";
+import { findContentLesson } from "./course-content";
 
 export interface Invoice {
   id: string;
@@ -67,6 +68,8 @@ export interface User {
   passwordSalt: string;
   createdAt: string;
   role: "member" | "admin";
+  /** True for the single site owner - the only account that can publish lessons. */
+  owner: boolean;
   suspended: boolean;
   subscription: Subscription;
   usage: LearningUsage;
@@ -144,6 +147,7 @@ interface MakeUserOptions {
   password: string;
   planId?: PlanId;
   role?: User["role"];
+  owner?: boolean;
   weeklyGoal?: number;
   track?: LearnerProfile["track"];
   history?: number[];
@@ -159,6 +163,7 @@ function makeUser(options: MakeUserOptions): User {
     ...credentials(options.password),
     createdAt: now,
     role: options.role ?? "member",
+    owner: options.owner ?? false,
     suspended: false,
     subscription: makeSubscription(options.planId ?? "free", "monthly"),
     usage,
@@ -200,10 +205,11 @@ function initializeStore(): Store {
     password: "admin123",
     planId: "elite",
     role: "admin",
+    owner: true,
     track: "Full-stack developer",
     history: [12, 18, 0, 24, 16, 8, 0],
   });
-  logActivity(admin, "Administrator account created", "admin");
+  logActivity(admin, "Owner account created on this device", "admin");
 
   const demo = makeUser({
     id: "codara-student-demo",
@@ -333,7 +339,7 @@ export function recordLessonProgress(
 ): CourseProgress {
   const course = getCourse(courseId);
   if (!course) throw new Error("Course not found");
-  const lesson = getCourseLessons(course).find((item) => item.id === lessonId);
+  const lesson = findContentLesson(course, lessonId);
   if (!lesson) throw new Error("Lesson not found");
 
   const progress = getOrCreateProgress(user, courseId);

@@ -44,6 +44,41 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Delete learner accounts
 - Server-side protection for every administrator action
 
+### Owner-only lesson uploads
+
+The site **owner** is the single account allowed to publish lessons and upload
+teaching materials. Most administrator controls stay with the admin console,
+but lesson publishing is owner-only and enforced on the server:
+
+- The owner writes a lesson (title, minutes, summary, content, optional code,
+  objectives, practice challenge) and drops it into any course module — or into
+  a brand-new module.
+- Video (mp4/webm/mov), PDF, slide decks, images and zip files can be attached
+  in the same step. Up to 5 files, 200 MB each, with a live upload progress bar.
+- Lessons marked **free preview** open for every signed-in learner; all other
+  materials follow the course plan, so Pro-only lessons stay locked.
+- Uploaded lessons appear immediately in the course curriculum, the lesson
+  reader, dashboard progress, certificates, analytics, the CSV export and the
+  admin engagement charts.
+- The owner can delete a published lesson, which also removes its files.
+- Learners, and administrators who are not the owner, get `403 OWNER_ONLY` from
+  every upload endpoint (`GET`/`POST /api/admin/lessons`,
+  `DELETE /api/admin/lessons/[id]`) and never see the owner console in the nav.
+- The owner account cannot be paused, deleted or demoted, and only the owner can
+  grant or remove administrator access.
+
+Uploads are stored on disk and survive server restarts:
+
+```
+.data/lessons.json   lesson records + file metadata   (git-ignored)
+.data/uploads/*      the uploaded videos, PDFs, slides (git-ignored)
+```
+
+Set `LESSON_DATA_DIR` to write somewhere else, and `OWNER_EMAIL` to move
+ownership to a different account. On hosts with a read-only file system (for
+example serverless platforms) point `LESSON_DATA_DIR` at a writable volume
+before deploying, or the upload endpoints return a clear "cannot write" error.
+
 ## Run locally
 
 ```bash
@@ -86,6 +121,10 @@ This is the “what to paste where” map for continuing the build.
 | 8. Billing engine | `src/lib/subscription.ts` | Upgrade, downgrade, renew, cancel and resume rules |
 | 9. Billing API | `src/app/api/subscription/route.ts` | Authenticated plan actions |
 | 10. Admin rules | `src/lib/admin.ts`, `src/app/api/admin/*` | Metrics and protected account-management actions |
+| 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
+| 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/course-content.ts` | Disk store for owner lessons and the merge with the catalog |
+| 10c. Upload API | `src/app/api/admin/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
+| 10d. Owner console | `src/app/admin/lessons/page.tsx`, `src/components/OwnerLessonManager.tsx` | The upload form and published-lesson list |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
 | 12. Student UI | `src/app/dashboard/*` | Overview, library, progress, plans, billing and account |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
@@ -127,7 +166,7 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Use 
 }
 ```
 
-Course cards, catalog filtering, progress calculation, admin analytics and access checks all read from this one catalog automatically.
+Course cards, catalog filtering, progress calculation, admin analytics and access checks all read from this one catalog automatically. Lessons the owner publishes from `/admin/lessons` are merged on top of this catalog at request time (see `src/lib/course-content.ts`), so nothing here needs to be edited to add new material.
 
 ## Connect a real database
 
@@ -172,6 +211,11 @@ Do **not** call `changePlan()` from an unverified “payment successful” brows
 - Downgrades preserve paid access until the current period ends.
 - Cancelling preserves access until the paid period ends, then returns the account to Explorer.
 - Administrator plan overrides do not issue invoices.
+- Only the owner account can publish or delete lessons; every other account
+  receives `403` from the upload APIs even if they call them directly.
+- Lesson materials are streamed through an access-checked route
+  (`/api/lesson-files/...`), so a locked lesson's video or PDF cannot be opened
+  by copying the URL.
 
 ## Deployment
 

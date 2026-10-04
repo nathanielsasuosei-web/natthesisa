@@ -17,3 +17,6 @@ npm-debug.log*
 
 # typescript
 *.tsbuildinfo
+
+# owner-uploaded lessons and lesson materials (runtime data)
+/.data/

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { COURSES, getCourseLessons } from "@/lib/courses";
+import { COURSES } from "@/lib/courses";
+import { contentTotals } from "@/lib/course-content";
 import { PLANS, formatMoney } from "@/lib/plans";
 import { site } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
@@ -9,7 +10,10 @@ import CourseCard from "@/components/CourseCard";
 import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 
-const lessonCount = COURSES.reduce((sum, course) => sum + getCourseLessons(course).length, 0);
+const lessonCount = contentTotals().lessons;
+
+// Lessons can be published at any time from the owner console.
+export const revalidate = 0;
 
 export default async function LandingPage() {
   // Arena can launch this same app directly into the admin workspace for a
