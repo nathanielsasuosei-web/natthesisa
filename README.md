@@ -57,6 +57,20 @@ but lesson publishing is owner-only and enforced on the server:
 - The owner writes a lesson (title, minutes, summary, content, optional code,
   objectives, practice challenge) and drops it into any course module — or into
   a brand-new module.
+- **Pictures and videos can be edited in the console**, before or after upload:
+  - *Pictures* (the owner's photo and logo, and image lesson materials) open a
+    canvas editor with crop presets (square, wide, freeform), pan, zoom,
+    rotate, flip, and brightness / contrast / saturation. Applying re-exports
+    the image at the edited size, so the file the learner downloads is the
+    edited one.
+  - *Videos* open a trim editor: drag the start and end handles or use
+    "Set start / Set end here", mute the clip, and capture any frame as the
+    thumbnail learners see. The original file is kept — the trim, mute and
+    poster are saved with the lesson and honoured by the player, so nothing has
+    to be re-encoded.
+  - Every edited file is marked **Edited** in the console, and a published
+    lesson's materials can be re-edited at any time; replacing a picture
+    deletes the file it replaced.
 - Video (mp4/webm/mov), PDF, slide decks, images and zip files can be attached
   in the same step. Up to 5 files, 200 MB each, with a live upload progress bar.
 - Lessons marked **free preview** open for every signed-in learner; all other
@@ -131,6 +145,8 @@ This is the “what to paste where” map for continuing the build.
 | 10c. Upload API | `src/app/api/admin/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
 | 10d. Owner console | `src/app/admin/lessons/page.tsx`, `src/components/OwnerLessonManager.tsx` | The upload form and published-lesson list |
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/admin/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
+| 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
+| 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/admin/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
 | 12. Student UI | `src/app/dashboard/*` | Overview, library, progress, plans, billing and account |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
@@ -222,6 +238,11 @@ Do **not** call `changePlan()` from an unverified “payment successful” brows
 - Lesson materials are streamed through an access-checked route
   (`/api/lesson-files/...`), so a locked lesson's video or PDF cannot be opened
   by copying the URL.
+- Video edits are metadata: `trimStart`, `trimEnd`, `muted` and the poster image
+  are stored next to the file and applied by the player
+  (`src/components/TrimmedVideo.tsx`), so a trimmed lesson plays only the kept
+  range. The thumbnail is served through an access-checked route, and pictures
+  are re-exported so an edited image replaces the original file on disk.
 - The owner's photo and logo are also served through an access-checked route
   (`/api/branding/photo`, `/api/branding/logo`): signed-in learners can load
   them, anonymous visitors get `401`, and only the owner can replace or remove

@@ -1,5 +1,6 @@
 import type { LessonFile } from "@/lib/courses";
 import { fmtBytes } from "@/lib/format";
+import TrimmedVideo from "./TrimmedVideo";
 import Icon from "./Icon";
 
 const KIND_LABEL: Record<LessonFile["kind"], string> = {
@@ -41,11 +42,7 @@ export default function LessonMaterials({ files }: { files: LessonFile[] }) {
                 <a href={`${file.href}?download=1`} className="inline-flex items-center gap-1.5 rounded-lg bg-[#1b1822] px-3 py-2 text-[10px] font-bold text-white transition hover:bg-[#2b2733]"><Icon name="download" size={12} /> Download</a>
               </div>
             </div>
-            {file.kind === "video" && (
-              <video controls preload="metadata" playsInline className="aspect-video w-full bg-black" src={file.href}>
-                Your browser cannot play this video. Use the download button above.
-              </video>
-            )}
+            {file.kind === "video" && <TrimmedVideo file={file} />}
             {file.kind === "image" && (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={file.href} alt={file.name} className="max-h-[520px] w-full bg-[#0f0d13] object-contain" />

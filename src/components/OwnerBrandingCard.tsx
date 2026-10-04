@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { fmtBytes, fmtDate } from "@/lib/format";
+import ImageEditor, { SQUARE_PRESETS, WIDE_PRESETS } from "./media/ImageEditor";
 import Icon from "./Icon";
 
 export interface OwnerBrandingView {
@@ -23,6 +24,11 @@ interface Props {
   initial: OwnerBrandingView;
 }
 
+/** Adds a cache-busting version, but leaves local blob: previews untouched. */
+function withVersion(href: string, version: string | null): string {
+  return href.startsWith("blob:") ? href : `${href}?v=${version ?? ""}`;
+}
+
 const FIELD =
   "w-full rounded-xl border border-[#dcd8e2] bg-white px-3.5 py-2.5 text-xs text-[#211d27] transition placeholder:text-[#aaa4b0] focus:border-[#7a5af0] focus:ring-4 focus:ring-violet-100";
 const LABEL = "mb-1.5 block text-[10px] font-black uppercase tracking-[.11em] text-[#6d6672]";
@@ -36,22 +42,31 @@ export default function OwnerBrandingCard({ initial }: Props) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [removeLogo, setRemoveLogo] = useState(false);
+  const [editor, setEditor] = useState<{ target: "photo" | "logo"; source: File | string; name: string; preview: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState<{ error?: boolean; text: string } | null>(null);
 
-  function pick(setter: (file: File | null) => void, list: FileList | null) {
+  function pick(target: "photo" | "logo", list: FileList | null) {
     const file = list?.[0] ?? null;
-    if (file && !file.type.startsWith("image/")) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
       setMessage({ error: true, text: "Choose an image file (PNG, JPG, WEBP, GIF or AVIF)." });
       return;
     }
-    if (file && file.size > 200 * 1024 * 1024) {
+    if (file.size > 200 * 1024 * 1024) {
       setMessage({ error: true, text: "That image is larger than the 200 MB limit." });
       return;
     }
     setMessage(null);
-    setter(file);
+    // Straight into the picture editor so it is cropped and tuned before saving.
+    setEditor({ target, source: file, name: file.name, preview: null });
+  }
+
+  function editSaved(target: "photo" | "logo") {
+    const href = target === "photo" ? state.photoHref : state.logoHref;
+    if (!href) return;
+    setEditor({ target, source: `${href}?v=${state.updatedAt ?? ""}`, name: target === "photo" ? "profile-photo.png" : "logo.png", preview: null });
   }
 
   function save(event: React.FormEvent) {
@@ -61,8 +76,8 @@ export default function OwnerBrandingCard({ initial }: Props) {
     const payload = new FormData();
     payload.set("displayName", displayName.trim());
     payload.set("roleTitle", roleTitle.trim());
-    if (photoFile) payload.set("photo", photoFile);
-    if (logoFile) payload.set("logo", logoFile);
+    if (photoFile && !removePhoto) payload.set("photo", photoFile);
+    if (logoFile && !removeLogo) payload.set("logo", logoFile);
     if (removePhoto && !photoFile) payload.set("removePhoto", "true");
     if (removeLogo && !logoFile) payload.set("removeLogo", "true");
 
@@ -111,6 +126,35 @@ export default function OwnerBrandingCard({ initial }: Props) {
     xhr.send(payload);
   }
 
+  if (editor) {
+    return (
+      <ImageEditor
+        source={editor.source}
+        name={editor.name}
+        title={editor.target === "photo" ? "Edit your profile photo" : "Edit your logo"}
+        hint={editor.target === "photo" ? "Square works best · drag to reposition, scroll to zoom" : "A wide shape with a transparent background works best"}
+        presets={editor.target === "photo" ? SQUARE_PRESETS : WIDE_PRESETS}
+        defaultPreset={editor.target === "photo" ? "square" : "wide"}
+        outputLongEdge={editor.target === "photo" ? 1024 : 1200}
+        preferPng={editor.target === "logo"}
+        onApply={(result) => {
+          if (editor.target === "photo") {
+            setPhotoFile(result.file);
+            setRemovePhoto(false);
+            setState((current) => ({ ...current, hasPhoto: true, photoHref: URL.createObjectURL(result.file), photoName: result.file.name, photoSize: result.file.size }));
+          } else {
+            setLogoFile(result.file);
+            setRemoveLogo(false);
+            setState((current) => ({ ...current, hasLogo: true, logoHref: URL.createObjectURL(result.file), logoName: result.file.name, logoSize: result.file.size }));
+          }
+          setMessage({ text: "Edits applied — press “Save photo & logo” to publish them." });
+          setEditor(null);
+        }}
+        onCancel={() => setEditor(null)}
+      />
+    );
+  }
+
   return (
     <section className="open-surface rounded-[22px] border border-[#e2dee7] bg-white p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
@@ -133,21 +177,25 @@ export default function OwnerBrandingCard({ initial }: Props) {
             <span className={LABEL}>Profile photo</span>
             <div className="mt-1 flex items-center gap-4">
               <span className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#e4e0e8] bg-white">
-                {photoFile ? (
+                {state.hasPhoto && state.photoHref && !removePhoto ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={URL.createObjectURL(photoFile)} alt="New profile photo" className="size-full object-cover" />
-                ) : state.hasPhoto && state.photoHref && !removePhoto ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={`${state.photoHref}?v=${state.updatedAt ?? ""}`} alt="Profile photo" className="size-full object-cover" />
+                  <img src={withVersion(state.photoHref, state.updatedAt)} alt="Profile photo" className="size-full object-cover" />
                 ) : (
                   <Icon name="user" size={26} className="text-[#b3acb9]" />
                 )}
               </span>
               <div className="min-w-0">
-                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#ddd9e2] bg-white px-3 py-2 text-[10px] font-bold text-[#5e5864] transition hover:border-violet-300">
-                  <Icon name="upload" size={12} /> {state.hasPhoto ? "Replace photo" : "Choose photo"}
-                  <input type="file" accept="image/*" className="sr-only" onChange={(event) => { pick(setPhotoFile, event.target.files); event.target.value = ""; }} />
-                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#ddd9e2] bg-white px-3 py-2 text-[10px] font-bold text-[#5e5864] transition hover:border-violet-300">
+                    <Icon name="upload" size={12} /> {state.hasPhoto ? "Replace" : "Choose photo"}
+                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { pick("photo", event.target.files); event.target.value = ""; }} />
+                  </label>
+                  {state.hasPhoto && state.photoHref && (
+                    <button type="button" onClick={() => editSaved("photo")} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d0fb] bg-[#f4f1ff] px-3 py-2 text-[10px] font-bold text-[#5e3de0]">
+                      <Icon name="spark" size={12} /> Edit photo
+                    </button>
+                  )}
+                </div>
                 {(state.hasPhoto || photoFile) && (
                   <button type="button" onClick={() => { setPhotoFile(null); setRemovePhoto(true); }} className={`mt-2 block text-[10px] font-bold ${removePhoto ? "text-[#9a939f]" : "text-red-600"}`}>
                     {removePhoto ? "Will be removed on save" : "Remove photo"}
@@ -169,21 +217,25 @@ export default function OwnerBrandingCard({ initial }: Props) {
             <span className={LABEL}>Logo</span>
             <div className="mt-1 flex items-center gap-4">
               <span className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#e4e0e8] bg-[#1b1822]">
-                {logoFile ? (
+                {state.hasLogo && state.logoHref && !removeLogo ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={URL.createObjectURL(logoFile)} alt="New logo" className="size-full object-contain p-2" />
-                ) : state.hasLogo && state.logoHref && !removeLogo ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={`${state.logoHref}?v=${state.updatedAt ?? ""}`} alt="Logo" className="size-full object-contain p-2" />
+                  <img src={withVersion(state.logoHref, state.updatedAt)} alt="Logo" className="size-full object-contain p-2" />
                 ) : (
                   <Icon name="layers" size={24} className="text-[#6f6880]" />
                 )}
               </span>
               <div className="min-w-0">
-                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#ddd9e2] bg-white px-3 py-2 text-[10px] font-bold text-[#5e5864] transition hover:border-violet-300">
-                  <Icon name="upload" size={12} /> {state.hasLogo ? "Replace logo" : "Choose logo"}
-                  <input type="file" accept="image/*" className="sr-only" onChange={(event) => { pick(setLogoFile, event.target.files); event.target.value = ""; }} />
-                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#ddd9e2] bg-white px-3 py-2 text-[10px] font-bold text-[#5e5864] transition hover:border-violet-300">
+                    <Icon name="upload" size={12} /> {state.hasLogo ? "Replace" : "Choose logo"}
+                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { pick("logo", event.target.files); event.target.value = ""; }} />
+                  </label>
+                  {state.hasLogo && state.logoHref && (
+                    <button type="button" onClick={() => editSaved("logo")} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d0fb] bg-[#f4f1ff] px-3 py-2 text-[10px] font-bold text-[#5e3de0]">
+                      <Icon name="spark" size={12} /> Edit logo
+                    </button>
+                  )}
+                </div>
                 {(state.hasLogo || logoFile) && (
                   <button type="button" onClick={() => { setLogoFile(null); setRemoveLogo(true); }} className={`mt-2 block text-[10px] font-bold ${removeLogo ? "text-[#9a939f]" : "text-red-600"}`}>
                     {removeLogo ? "Will be removed on save" : "Remove logo"}

@@ -52,6 +52,11 @@ export default async function AdminLessonsPage() {
       kind: file.kind,
       size: file.size,
       href: `/api/lesson-files/${record.id}/${file.id}`,
+      trimStart: file.trimStart ?? 0,
+      trimEnd: file.trimEnd ?? null,
+      muted: file.muted ?? false,
+      poster: file.poster ? `/api/lesson-files/${record.id}/${file.id}/poster` : null,
+      edited: Boolean(file.editedAt),
     })),
   }));
 

@@ -21,6 +21,14 @@ export interface LessonFile {
   uploadedAt: string;
   /** URL the learner opens to stream, view or download the file. */
   href: string;
+  /** Video edits made by the owner in the console. */
+  trimStart?: number;
+  trimEnd?: number | null;
+  muted?: boolean;
+  /** Thumbnail captured by the owner, served from the poster route. */
+  poster?: string | null;
+  /** True when the owner edited this file after uploading it. */
+  edited?: boolean;
 }
 
 export interface Lesson {

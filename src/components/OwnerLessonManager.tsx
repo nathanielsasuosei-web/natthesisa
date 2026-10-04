@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { fmtBytes, fmtDate } from "@/lib/format";
+import { isEditableImage, isEditableVideo, type VideoEdits } from "@/lib/media";
 import type { OwnerBrandingView } from "./OwnerBrandingCard";
+import ImageEditor from "./media/ImageEditor";
+import VideoEditor from "./media/VideoEditor";
 import Icon from "./Icon";
 
 export interface OwnerCourseOption {
@@ -11,6 +14,19 @@ export interface OwnerCourseOption {
   title: string;
   shortTitle: string;
   modules: Array<{ id: string; title: string }>;
+}
+
+export interface OwnerLessonFileRow {
+  id: string;
+  name: string;
+  kind: string;
+  size: number;
+  href: string;
+  trimStart?: number;
+  trimEnd?: number | null;
+  muted?: boolean;
+  poster?: string | null;
+  edited?: boolean;
 }
 
 export interface OwnerLessonRow {
@@ -22,7 +38,7 @@ export interface OwnerLessonRow {
   preview: boolean;
   createdAt: string;
   createdBy: string;
-  files: Array<{ id: string; name: string; kind: string; size: number; href: string }>;
+  files: OwnerLessonFileRow[];
 }
 
 interface Props {
@@ -30,6 +46,18 @@ interface Props {
   lessons: OwnerLessonRow[];
   branding?: OwnerBrandingView;
 }
+
+interface DraftFile {
+  key: string;
+  file: File;
+  edits?: VideoEdits;
+  posterFile?: File | null;
+  posterPreview?: string | null;
+}
+
+type EditorTarget =
+  | { mode: "draft"; key: string; kind: "image" | "video"; src: string }
+  | { mode: "published"; lessonId: string; fileId: string; kind: "image" | "video"; name: string; src: string; edits?: VideoEdits; poster: string | null };
 
 const NEW_MODULE = "__new__";
 
@@ -45,6 +73,8 @@ const FILE_ICON: Record<string, "video" | "file" | "book" | "courses"> = {
   other: "file",
 };
 
+let draftCounter = 0;
+
 export default function OwnerLessonManager({ courses, lessons, branding }: Props) {
   const router = useRouter();
   const [courseId, setCourseId] = useState(courses[0]?.id ?? "");
@@ -59,11 +89,12 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
   const [objectives, setObjectives] = useState("");
   const [challenge, setChallenge] = useState("");
   const [preview, setPreview] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<DraftFile[]>([]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState<{ error?: boolean; text: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editor, setEditor] = useState<EditorTarget | null>(null);
 
   const course = useMemo(() => courses.find((item) => item.id === courseId), [courses, courseId]);
   const creatingModule = moduleId === NEW_MODULE;
@@ -82,16 +113,92 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
       setMessage({ error: true, text: `“${tooBig.name}” is larger than the 200 MB limit.` });
       return;
     }
-    const combined = [...files, ...picked].slice(0, 5);
-    if (files.length + picked.length > 5) {
+    const drafts: DraftFile[] = picked.map((file) => ({ key: `draft-${(draftCounter += 1)}`, file }));
+    if (files.length + drafts.length > 5) {
       setMessage({ error: true, text: "Up to 5 files can be attached to one lesson." });
-    } else {
-      setMessage(null);
+      return;
     }
-    setFiles(combined);
+    setMessage(null);
+    setFiles([...files, ...drafts]);
+  }
+
+  function removeDraft(key: string) {
+    const target = files.find((item) => item.key === key);
+    if (target?.posterPreview) URL.revokeObjectURL(target.posterPreview);
+    setFiles(files.filter((item) => item.key !== key));
+  }
+
+  function openDraftEditor(draft: DraftFile) {
+    const kind = isEditableImage(draft.file.name, draft.file.type)
+      ? "image"
+      : isEditableVideo(draft.file.name, draft.file.type)
+        ? "video"
+        : null;
+    if (!kind) {
+      setMessage({ error: true, text: "Pictures (PNG, JPG, WEBP) and videos (MP4, WEBM, MOV) can be edited." });
+      return;
+    }
+    setEditor({ mode: "draft", key: draft.key, kind, src: URL.createObjectURL(draft.file) });
+  }
+
+  function closeEditor() {
+    if (editor && editor.mode === "draft") URL.revokeObjectURL(editor.src);
+    setEditor(null);
+  }
+
+  function applyDraftImage(edited: File) {
+    if (!editor || editor.mode !== "draft") return;
+    const key = editor.key;
+    setFiles((current) => current.map((item) => (item.key === key ? { ...item, file: edited } : item)));
+    setMessage({ text: `“${edited.name}” is edited and ready to upload.` });
+    closeEditor();
+  }
+
+  function applyDraftVideo(result: { edits: VideoEdits; posterFile: File | null; posterPreview: string | null }) {
+    if (!editor || editor.mode !== "draft") return;
+    const key = editor.key;
+    setFiles((current) =>
+      current.map((item) => {
+        if (item.key !== key) return item;
+        if (item.posterPreview && item.posterPreview !== result.posterPreview) URL.revokeObjectURL(item.posterPreview);
+        return { ...item, edits: result.edits, posterFile: result.posterFile, posterPreview: result.posterPreview };
+      })
+    );
+    setMessage({ text: "Video edits applied — they will be saved with the lesson." });
+    closeEditor();
+  }
+
+  async function applyPublishedEdit(
+    payload: { file?: File } | { trimStart: number; trimEnd: number | null; muted: boolean; poster: File | null; removePoster: boolean }
+  ) {
+    if (!editor || editor.mode !== "published") return;
+    const form = new FormData();
+    if ("file" in payload && payload.file) {
+      form.set("file", payload.file);
+    } else if ("trimStart" in payload) {
+      form.set("trimStart", String(payload.trimStart));
+      form.set("trimEnd", payload.trimEnd === null ? "null" : String(payload.trimEnd));
+      form.set("muted", String(payload.muted));
+      if (payload.poster) form.set("poster", payload.poster);
+      if (payload.removePoster) form.set("removePoster", "true");
+    }
+    try {
+      const response = await fetch(`/api/admin/lesson-files/${editor.lessonId}/${editor.fileId}`, { method: "PATCH", body: form });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setMessage({ error: true, text: data.error ?? "The edit could not be saved." });
+        return;
+      }
+      setMessage({ text: `“${editor.name}” was updated.` });
+      router.refresh();
+    } catch {
+      setMessage({ error: true, text: "Network error. The edit was not saved." });
+    }
+    closeEditor();
   }
 
   function resetForm() {
+    for (const item of files) if (item.posterPreview) URL.revokeObjectURL(item.posterPreview);
     setTitle("");
     setSummary("");
     setBody("");
@@ -131,7 +238,15 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
     payload.set("objectives", objectives);
     payload.set("challenge", challenge.trim());
     payload.set("preview", String(preview));
-    for (const file of files) payload.append("files", file);
+    files.forEach((item, index) => {
+      payload.append("files", item.file);
+      if (item.edits) {
+        payload.set(`edit_${index}_trimStart`, String(item.edits.trimStart));
+        payload.set(`edit_${index}_trimEnd`, item.edits.trimEnd === null ? "null" : String(item.edits.trimEnd));
+        payload.set(`edit_${index}_muted`, String(item.edits.muted));
+      }
+      if (item.posterFile) payload.set(`poster_${index}`, item.posterFile);
+    });
 
     setBusy(true);
     setProgress(files.length ? 1 : 25);
@@ -200,7 +315,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
             </span>
             <h2 className="mt-3 text-base font-black tracking-[-.03em]">Publish a lesson</h2>
             <p className="mt-1 text-[11px] leading-5 text-[#8a8390]">
-              Write the lesson and attach the video, PDF or slides. It appears in the course straight away for every learner with access.
+              Write the lesson, then attach video, PDFs or slides — each picture and video can be cropped, trimmed and tuned before it goes live.
             </p>
           </div>
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[#1b1822] text-[#c4b7ff]"><Icon name="upload" size={20} /></span>
@@ -309,16 +424,37 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
               <span className="text-[10px] text-[#9a939f]">mp4 · webm · mov · pdf · pptx · key · png · jpg · zip</span>
               <input type="file" multiple className="sr-only" onChange={(event) => { pickFiles(event.target.files); event.target.value = ""; }} />
             </label>
+
             {files.length > 0 && (
               <ul className="mt-3 space-y-2">
-                {files.map((file, index) => (
-                  <li key={`${file.name}-${index}`} className="flex items-center gap-3 rounded-xl border border-[#e8e4ec] bg-white px-3 py-2">
-                    <Icon name="file" size={15} className="text-[#6543e8]" />
-                    <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-[#4d4753]">{file.name}</span>
-                    <span className="text-[10px] text-[#9a939f]">{fmtBytes(file.size)}</span>
-                    <button type="button" onClick={() => setFiles(files.filter((_, position) => position !== index))} className="grid size-6 place-items-center rounded-lg text-[#aaa4b0] transition hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${file.name}`}><Icon name="close" size={12} /></button>
-                  </li>
-                ))}
+                {files.map((item) => {
+                  const editable = isEditableImage(item.file.name, item.file.type) || isEditableVideo(item.file.name, item.file.type);
+                  return (
+                    <li key={item.key} className="flex items-center gap-3 rounded-xl border border-[#e8e4ec] bg-white px-3 py-2">
+                      {item.posterPreview ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={item.posterPreview} alt="" className="h-9 w-16 shrink-0 rounded-md object-cover" />
+                      ) : (
+                        <Icon name={FILE_ICON[isEditableVideo(item.file.name, item.file.type) ? "video" : "file"]} size={15} className="shrink-0 text-[#6543e8]" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[11px] font-semibold text-[#4d4753]">{item.file.name}</p>
+                        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[9px] text-[#9a939f]">
+                          <span>{fmtBytes(item.file.size)}</span>
+                          {item.edits && (item.edits.trimStart > 0 || item.edits.trimEnd !== null || item.edits.muted) && (
+                            <span className="rounded-full bg-[#f0ecff] px-2 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]">Edited</span>
+                          )}
+                        </p>
+                      </div>
+                      {editable && (
+                        <button type="button" onClick={() => openDraftEditor(item)} className="shrink-0 rounded-lg border border-[#d9d0fb] bg-[#f4f1ff] px-2.5 py-1.5 text-[9px] font-bold text-[#5e3de0]">
+                          {isEditableVideo(item.file.name, item.file.type) ? "Trim / edit" : "Crop / edit"}
+                        </button>
+                      )}
+                      <button type="button" onClick={() => removeDraft(item.key)} className="grid size-6 shrink-0 place-items-center rounded-lg text-[#aaa4b0] transition hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${item.file.name}`}><Icon name="close" size={12} /></button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -383,13 +519,26 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
                 </div>
                 {lesson.files.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {lesson.files.map((file) => (
-                      <a key={file.id} href={file.href} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[#e4e0e8] bg-[#fbfafc] px-2 py-1.5 text-[9px] font-semibold text-[#5d5763] transition hover:border-violet-300">
-                        <Icon name={FILE_ICON[file.kind] ?? "file"} size={11} className="text-[#6543e8]" />
-                        <span className="truncate">{file.name}</span>
-                        <span className="text-[#a19aa7]">{fmtBytes(file.size)}</span>
-                      </a>
-                    ))}
+                    {lesson.files.map((file) => {
+                      const editable = isEditableImage(file.name, file.kind === "image" ? "image/" : "") || isEditableVideo(file.name, file.kind === "video" ? "video/" : "");
+                      return (
+                        <span key={file.id} className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[#e4e0e8] bg-[#fbfafc] px-2 py-1.5 text-[9px] font-semibold text-[#5d5763]">
+                          <Icon name={FILE_ICON[file.kind] ?? "file"} size={11} className="text-[#6543e8]" />
+                          <a href={file.href} target="_blank" rel="noreferrer" className="max-w-[150px] truncate hover:text-[#5e3de0]">{file.name}</a>
+                          <span className="text-[#a19aa7]">{fmtBytes(file.size)}</span>
+                          {file.edited && <span className="rounded-full bg-[#f0ecff] px-1.5 py-0.5 text-[8px] font-black uppercase text-[#5e3de0]">Edited</span>}
+                          {editable && (
+                            <button
+                              type="button"
+                              onClick={() => setEditor({ mode: "published", lessonId: lesson.id, fileId: file.id, kind: file.kind === "video" ? "video" : "image", name: file.name, src: file.href, edits: { trimStart: file.trimStart ?? 0, trimEnd: file.trimEnd ?? null, muted: file.muted ?? false }, poster: file.poster ?? null })}
+                              className="rounded-md border border-[#d9d0fb] bg-white px-1.5 py-0.5 text-[8px] font-black uppercase text-[#5e3de0]"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
               </li>
@@ -397,6 +546,50 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
           </ul>
         )}
       </section>
+
+      {editor?.mode === "draft" && editor.kind === "image" && (
+        <ImageEditor
+          source={editor.src}
+          name={files.find((item) => item.key === editor.key)?.file.name ?? "picture.png"}
+          title="Edit picture before upload"
+          presets={undefined}
+          onApply={(result) => applyDraftImage(result.file)}
+          onCancel={closeEditor}
+        />
+      )}
+
+      {editor?.mode === "draft" && editor.kind === "video" && (
+        <VideoEditor
+          src={editor.src}
+          name={files.find((item) => item.key === editor.key)?.file.name ?? "video.mp4"}
+          initial={files.find((item) => item.key === editor.key)?.edits}
+          existingPoster={files.find((item) => item.key === editor.key)?.posterPreview ?? null}
+          onApply={applyDraftVideo}
+          onCancel={closeEditor}
+        />
+      )}
+
+      {editor?.mode === "published" && editor.kind === "image" && (
+        <ImageEditor
+          source={editor.src}
+          name={editor.name}
+          title={`Edit “${editor.name}”`}
+          hint="Changes replace the live picture immediately when you apply."
+          onApply={(result) => void applyPublishedEdit({ file: result.file })}
+          onCancel={closeEditor}
+        />
+      )}
+
+      {editor?.mode === "published" && editor.kind === "video" && (
+        <VideoEditor
+          src={editor.src}
+          name={editor.name}
+          initial={editor.edits}
+          existingPoster={editor.poster}
+          onApply={(result) => void applyPublishedEdit({ trimStart: result.edits.trimStart, trimEnd: result.edits.trimEnd, muted: result.edits.muted, poster: result.posterFile, removePoster: result.removePoster })}
+          onCancel={closeEditor}
+        />
+      )}
     </div>
   );
 }

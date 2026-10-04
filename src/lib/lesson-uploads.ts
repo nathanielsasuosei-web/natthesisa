@@ -31,6 +31,16 @@ export interface UploadedFileRecord {
   size: number;
   kind: UploadedFileKind;
   uploadedAt: string;
+  /** Video trimming applied in the owner's video editor. */
+  trimStart?: number;
+  /** Seconds; missing/null means "play to the end". */
+  trimEnd?: number | null;
+  /** True when the owner muted the clip. */
+  muted?: boolean;
+  /** Thumbnail captured in the video editor. */
+  poster?: UploadedFileRecord | null;
+  /** When the owner last edited this file. */
+  editedAt?: string;
 }
 
 export interface UploadedLessonRecord {
@@ -171,11 +181,18 @@ export function uploadedLessonToLesson(record: UploadedLessonRecord): Lesson {
       kind: file.kind,
       uploadedAt: file.uploadedAt,
       href: `/api/lesson-files/${record.id}/${file.id}`,
+      trimStart: file.trimStart ?? 0,
+      trimEnd: file.trimEnd ?? null,
+      muted: file.muted ?? false,
+      poster: file.poster ? `/api/lesson-files/${record.id}/${file.id}/poster` : null,
+      edited: Boolean(file.editedAt || file.trimStart || file.muted || file.poster),
     })),
   };
 }
 
 export interface NewUploadedLessonInput {
+  /** Reuse the id the upload route already gave the files. */
+  id?: string;
   courseId: string;
   moduleId: string;
   moduleTitle: string | null;
@@ -213,7 +230,7 @@ export function createUploadedLesson(input: NewUploadedLessonInput): UploadedLes
   ];
 
   const record: UploadedLessonRecord = {
-    id: randomUUID(),
+    id: input.id ?? randomUUID(),
     courseId: input.courseId,
     moduleId: input.moduleId,
     moduleTitle: input.moduleTitle,
@@ -241,15 +258,106 @@ export function deleteUploadedLesson(lessonId: string): UploadedLessonRecord | n
   if (!record) return null;
 
   for (const file of record.files) {
-    try {
-      const target = uploadedFilePath(file.storedName);
-      if (existsSync(target)) rmSync(target);
-    } catch (error) {
-      console.error(`Could not delete uploaded file ${file.storedName}`, error);
+    for (const stored of [file.storedName, file.poster?.storedName]) {
+      if (!stored) continue;
+      try {
+        const target = uploadedFilePath(stored);
+        if (existsSync(target)) rmSync(target);
+      } catch (error) {
+        console.error(`Could not delete uploaded file ${stored}`, error);
+      }
     }
   }
   persist(lessons.filter((lesson) => lesson.id !== lessonId));
   return record;
+}
+
+function persistWithFile(lessonId: string, fileId: string, update: (file: UploadedFileRecord) => UploadedFileRecord): UploadedFileRecord | null {
+  const lessons = listUploadedLessons();
+  const lesson = lessons.find((item) => item.id === lessonId);
+  if (!lesson) return null;
+  const index = lesson.files.findIndex((item) => item.id === fileId);
+  if (index === -1) return null;
+  const updated = update(lesson.files[index]);
+  lesson.files[index] = updated;
+  persist(lessons);
+  return updated;
+}
+
+/** Saves video edits (trim / mute / poster) for an already-uploaded file. */
+export function saveFileEdits(
+  lessonId: string,
+  fileId: string,
+  edits: { trimStart: number; trimEnd: number | null; muted: boolean },
+  poster: UploadedFileRecord | null | undefined
+): UploadedFileRecord | null {
+  return persistWithFile(lessonId, fileId, (file) => {
+    if (file.kind !== "video") return file;
+    const previousPoster = file.poster ?? null;
+    if (poster !== undefined && previousPoster && previousPoster.storedName !== poster?.storedName) {
+      try {
+        const stale = uploadedFilePath(previousPoster.storedName);
+        if (existsSync(stale)) rmSync(stale);
+      } catch (error) {
+        console.error("Could not remove the previous poster", error);
+      }
+    }
+    return {
+      ...file,
+      trimStart: Math.max(0, edits.trimStart),
+      trimEnd: edits.trimEnd,
+      muted: edits.muted,
+      ...(poster !== undefined ? { poster } : {}),
+      editedAt: new Date().toISOString(),
+    };
+  });
+}
+
+/** Swaps in an edited picture, keeping the file's id and place in the lesson. */
+export function replaceFileContents(
+  lessonId: string,
+  fileId: string,
+  saved: UploadedFileRecord
+): UploadedFileRecord | null {
+  const previous = listUploadedLessons()
+    .find((lesson) => lesson.id === lessonId)
+    ?.files.find((file) => file.id === fileId);
+  if (!previous) return null;
+
+  const updated = persistWithFile(lessonId, fileId, (file) => ({
+    ...file,
+    name: saved.name,
+    storedName: saved.storedName,
+    mime: saved.mime,
+    size: saved.size,
+    kind: "image",
+    editedAt: new Date().toISOString(),
+  }));
+
+  if (updated && previous.storedName !== saved.storedName) {
+    try {
+      const stale = uploadedFilePath(previous.storedName);
+      if (existsSync(stale)) rmSync(stale);
+    } catch (error) {
+      console.error("Could not remove the replaced file", error);
+    }
+  }
+  return updated;
+}
+
+export function removeFilePoster(lessonId: string, fileId: string): UploadedFileRecord | null {
+  const updated = persistWithFile(lessonId, fileId, (file) => {
+    if (file.poster) {
+      try {
+        const stale = uploadedFilePath(file.poster.storedName);
+        if (existsSync(stale)) rmSync(stale);
+      } catch (error) {
+        console.error("Could not remove the poster", error);
+      }
+    }
+    return { ...file, poster: null, editedAt: new Date().toISOString() };
+  });
+  return updated;
 }
 
 export function fileKindForName(fileName: string): UploadedFileKind | null {

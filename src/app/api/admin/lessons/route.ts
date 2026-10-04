@@ -41,6 +41,11 @@ export async function GET() {
       kind: file.kind,
       size: file.size,
       href: `/api/lesson-files/${record.id}/${file.id}`,
+      trimStart: file.trimStart ?? 0,
+      trimEnd: file.trimEnd ?? null,
+      muted: file.muted ?? false,
+      poster: file.poster ? `/api/lesson-files/${record.id}/${file.id}/poster` : null,
+      edited: Boolean(file.editedAt),
     })),
   }));
   return NextResponse.json({ ok: true, count: lessons.length, lessons });
@@ -98,12 +103,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Attach at most ${MAX_FILES_PER_LESSON} files to one lesson.` }, { status: 400 });
   }
 
+  // The console sends one set of edit fields per file, indexed in upload order:
+  //   edit_0_trimStart / edit_0_trimEnd / edit_0_muted and poster_0 (an image).
+  function editNumber(index: number, key: string): number | null {
+    const raw = form.get(`edit_${index}_${key}`);
+    if (typeof raw !== "string" || raw.trim() === "") return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  }
+
   const lessonId = randomUUID();
   const files: UploadedFileRecord[] = [];
   try {
-    for (const file of uploads) {
+    for (const [index, file] of uploads.entries()) {
       const saved = await saveUploadedFile(file, lessonId);
-      files.push(saved.record);
+      const record = saved.record;
+
+      if (record.kind === "video") {
+        const trimStart = Math.max(0, editNumber(index, "trimStart") ?? 0);
+        const trimEnd = form.get(`edit_${index}_trimEnd`) === "null" ? null : editNumber(index, "trimEnd");
+        if (trimEnd !== null && trimEnd <= trimStart + 0.1) {
+          return NextResponse.json({ error: `The trim end for “${file.name}” must come after the trim start.` }, { status: 400 });
+        }
+        const posterEntry = form.get(`poster_${index}`);
+        let poster: UploadedFileRecord | null = null;
+        if (posterEntry instanceof File && posterEntry.size > 0) {
+          poster = (await saveUploadedFile(posterEntry, lessonId)).record;
+        }
+        record.trimStart = trimStart;
+        record.trimEnd = trimEnd;
+        record.muted = form.get(`edit_${index}_muted`) === "true";
+        record.poster = poster;
+        if (trimStart > 0 || trimEnd !== null || record.muted || poster) record.editedAt = new Date().toISOString();
+      }
+
+      files.push(record);
     }
   } catch (error) {
     if (error instanceof UploadError) {
@@ -115,6 +149,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const record = createUploadedLesson({
+      id: lessonId,
       courseId: course.id,
       moduleId: existingModule ? existingModule.id : "new",
       moduleTitle: existingModule ? null : newModuleTitle,
