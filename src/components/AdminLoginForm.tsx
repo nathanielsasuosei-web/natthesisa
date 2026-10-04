@@ -78,12 +78,16 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
       });
       const data = await response.json().catch(() => null) as { error?: string; role?: string } | null;
       if (!response.ok) {
-        setError(
-          data?.error ??
-            (response.status >= 500
-              ? "Sign-in is temporarily unavailable. Please try again. If this keeps happening, check the database connection."
-              : "Administrator sign-in failed.")
-        );
+        const serverMessage = typeof data?.error === "string" ? data.error.trim() : "";
+        if (serverMessage) {
+          setError(serverMessage);
+        } else if (response.status === 404) {
+          setError("The sign-in service was not found (HTTP 404). Refresh the page; if this continues, this deployment may need to be updated.");
+        } else if (response.status >= 500) {
+          setError("Sign-in is temporarily unavailable. Please try again. If this keeps happening, check the server logs and database connection.");
+        } else {
+          setError(`The sign-in service returned an unexpected response (HTTP ${response.status}). Refresh and try again; if it persists, check the deployment logs.`);
+        }
         return;
       }
       if (data?.role !== "admin") {
