@@ -46,7 +46,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Passes, purchases, invoices and usage stored per account in the database, so
   a learner's access and billing history survive a restart
 
-> No real money moves in this repository. The pass and purchase UX are functional, but payment success is simulated. Connect a verified provider such as Paystack, Flutterwave or Stripe and process purchases from a verified webhook before production.
+> Students pay with Mobile Money (MTN MoMo, Telecel Cash, AT Money), cards or bank transfer through Paystack. Until the teacher adds a Paystack secret key, checkout runs in demo mode: the MoMo approval is simulated and no real money moves.
 
 ### Certificates, company pages and the public catalogue
 
@@ -234,7 +234,11 @@ This is the “what to paste where” map for continuing the build.
 | 6b. Passwords | `src/lib/passwords.ts` | scrypt hashing, verification and strength rules |
 | 7. Progress API | `src/app/api/progress/route.ts` | Start courses and complete/uncomplete lessons |
 | 8. Buying | `src/lib/purchases.ts` | Buy or extend a pass (extending from the current end date), buy a course or a lesson, and the teacher's comp grants |
-| 9. Buying API | `src/app/api/pass/route.ts`, `src/app/api/purchase/route.ts` | Authenticated purchase actions |
+| 8a. MoMo numbers | `src/lib/momo.ts` | Ghana phone validation and MTN / Telecel / AT detection (client-safe) |
+| 8b. Paystack | `src/lib/paystack.ts` | Transaction initialize + verify, webhook signature check (server-only) |
+| 8c. Checkouts | `src/lib/payments.ts`, `payments` table | Pending → paid fulfilment, idempotent webhook + return-URL handling |
+| 9. Buying API | `src/app/api/pass/route.ts`, `src/app/api/purchase/route.ts` | Authenticated purchase actions (free items only, once live payments are on) |
+| 9a. Checkout API | `src/app/api/checkout/*`, `src/app/api/webhooks/paystack/route.ts`, `src/app/checkout/verify/page.tsx` | Start a MoMo checkout, poll it, confirm demo payments, verify the provider's return, receive the webhook |
 | 10. Access rule | `src/lib/access.ts` | The one place the gate is decided: owner → free preview → active pass **and** purchase |
 | 10b. Teacher rules | `src/lib/owner-console.ts`, `src/app/api/owner/*` | Metrics, prices and protected student-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
@@ -250,7 +254,7 @@ This is the “what to paste where” map for continuing the build.
 | 11c. Public shell | `src/components/PublicHeader.tsx`, `src/components/PublicFooter.tsx` | One navigation for every public page, including the mobile menu |
 | 11d. Contact inbox | `src/lib/messages.ts`, `src/lib/message-topics.ts`, `src/app/api/contact/route.ts`, `src/components/ContactForm.tsx`, `src/app/owner/messages/page.tsx`, `src/components/OwnerMessages.tsx` | The contact form, where messages are stored, and the teacher's inbox |
 | 11e. Certificates | `src/lib/certificates.ts`, `src/app/dashboard/certificates/*`, `src/app/verify/*`, `src/app/api/owner/certificates/route.ts`, `src/components/CertificateActions.tsx`, `src/components/OwnerCertificates.tsx` | Issuing, printing, the public verification page, and the teacher's register with withdrawal |
-| 12. Student UI | `src/app/dashboard/*`, `src/components/PassOptions.tsx`, `src/components/BuyContent.tsx` | Overview, library, progress, access pass, billing, account, and the buy buttons |
+| 12. Student UI | `src/app/dashboard/*`, `src/components/PassOptions.tsx`, `src/components/BuyContent.tsx`, `src/components/CheckoutModal.tsx`, `src/components/VerifyPayment.tsx` | Overview, library, progress, access pass, billing, account, the MoMo checkout and the payment verification page |
 | 12b. Code lab | `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx` | The student editor, preview iframe and console |
 | 12c. Media studio | `src/app/owner/studio/page.tsx`, `src/components/OwnerMediaStudio.tsx` | Standalone picture and video editing for the teacher |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
@@ -669,25 +673,71 @@ Swapping in Auth.js, Clerk or Supabase Auth later is still localized: keep
 `getCurrentUser()` / `getCurrentOwner()` in `src/lib/session.ts` as the boundary,
 because the rest of the app only calls those helpers.
 
-## Connect real payments safely
+## Mobile Money payments
 
-Use this order of operations:
+Students pay in Ghana cedis through **Paystack Standard Checkout**: MTN MoMo,
+Telecel Cash and AT Money (approved with the MoMo PIN on the student's own
+phone), plus cards and bank transfers on the same secure page. The MoMo PIN and
+card numbers never touch this app — Paystack collects them.
 
-1. Create matching product/price records in the payment provider — one per pass
-   period, and whatever you need for course and lesson purchases.
-2. Keep the console as the source of the amounts, and map each to the provider's
-   price ID.
-3. Create a server checkout endpoint under `src/app/api/checkout/route.ts`.
-4. Redirect the student to the provider-hosted checkout.
-5. Add a webhook route under `src/app/api/webhooks/<provider>/route.ts`.
-6. Verify the webhook signature with the provider secret.
-7. Only after verification, call `buyPass()` / `buyCourse()` / `buyLesson()` in
-   `src/lib/purchases.ts` and create the invoice in the database.
-8. Make webhook handling idempotent using the provider event/reference ID.
-9. Never accept card numbers in your own forms unless your compliance scope explicitly allows it.
+### Going live (test key first, live key on launch day)
 
-Do **not** mark a purchase paid from an unverified "payment successful" browser
-redirect in production. The webhook must be the source of truth.
+1. Create a free account at [paystack.com](https://paystack.com) and activate
+   Ghana cedis (GHS) on it.
+2. Copy the **secret key** from Paystack → Settings → API keys. Start with the
+   test key (`sk_test_…`).
+3. Set `PAYSTACK_SECRET_KEY` in the environment (`.env.local` locally, the
+   host's environment variables when deployed) and redeploy.
+4. In Paystack → Settings → Webhooks, add
+   `https://your-domain.com/api/webhooks/paystack`, so approvals confirm even
+   if the student closes their browser mid-payment.
+5. Run `npm run payments:check` — it proves the key works and prints the
+   webhook URL to register.
+6. Pay yourself GH₵1 end to end: buy the cheapest thing with a test MoMo
+   number, approve it, and check the pass opens, the invoice appears and the
+   receipt email arrives. Then swap in the live key (`sk_live_…`).
+
+Without `PAYSTACK_SECRET_KEY` the checkout runs in **demo mode**: the MoMo
+approval prompt is simulated and no real money moves, but passes, purchases,
+invoices and emails all behave exactly as they do live. The teacher console
+always shows which mode is on (demo / test / live), and the pricing page tells
+students honestly whether MoMo is live yet.
+
+### How the money flows
+
+1. The student picks their network and enters the MoMo number at checkout
+   (`src/components/CheckoutModal.tsx`).
+2. `POST /api/checkout` prices the item from the teacher's console prices and
+   writes a `pending` row to the `payments` table, keyed by a `CMG-…`
+   reference — *before* any provider is called.
+3. Live: Paystack returns an `authorization_url` and the browser goes there to
+   pay. Demo: the UI simulates the approval prompt instead.
+4. Paystack returns the browser to `/api/checkout/callback`, which verifies
+   the transaction against Paystack's API (a redirect URL proves nothing on
+   its own) and redirects to `/checkout/verify`, where the page polls
+   `/api/checkout/status` until the payment is final.
+5. Independently, Paystack posts `charge.success` to `/api/webhooks/paystack`,
+   whose HMAC-SHA512 signature is verified before anything is read from it.
+6. Both paths call `fulfillPayment()` in `src/lib/payments.ts`, which grants
+   the pass / course / lesson, raises the invoice (carrying the `CMG-…`
+   reference) and emails the receipt.
+
+Fulfilment is **idempotent**: the `payments` row flips `pending` → `paid`
+once, and every later report of the same reference (or the same provider
+event id) is a no-op — one payment can never grant twice, invoice twice or
+email twice. While live payments are on, the old direct endpoints
+(`POST /api/pass`, `POST /api/purchase`) refuse priced items with
+`402 CHECKOUT_REQUIRED`, and the demo confirm endpoint refuses everything, so
+there is no way to mint an entitlement without verified money.
+
+### Reconciling a "I paid but it is locked" message
+
+Open the teacher console's payment register (or `GET /api/owner/payments`):
+find the student's `CMG-…` reference and its status. `paid` means the
+entitlement is on the account (check the pass is active too — content needs
+both). `pending` means the student never completed the approval: ask them to
+open the payment link again from their billing page. `failed` means Paystack
+declined it (expired approval, insufficient funds) — no money moved.
 
 ## Data and access behavior
 
@@ -762,5 +812,7 @@ Production checklist:
    Accounts, progress, invoices and the uploaded-lesson records are already in
    Postgres and need no extra work.
 
-Payments are the one part still simulated: plans activate without charging a
-card, as described in [Connect real payments safely](#connect-real-payments-safely).
+6. Set `PAYSTACK_SECRET_KEY` (test key first, live key on launch day),
+   register `https://your-domain.com/api/webhooks/paystack` in the Paystack
+   dashboard, and run `npm run payments:check`. Without the key the checkout
+   runs in demo mode — see [Mobile Money payments](#mobile-money-payments).

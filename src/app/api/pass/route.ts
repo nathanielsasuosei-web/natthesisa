@@ -5,6 +5,7 @@ import { saveUser } from "@/lib/store";
 import { hasActivePass } from "@/lib/access";
 import { notifyPassPurchased } from "@/lib/email";
 import { PASS_PERIODS, isPassPeriod, passPrice } from "@/lib/plans";
+import { isPaystackConfigured } from "@/lib/paystack";
 
 /**
  * Buys an access pass — a day, a week or a month.
@@ -25,6 +26,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: `Choose a pass: ${PASS_PERIODS.join(", ")}.` },
       { status: 400 }
+    );
+  }
+
+  // While live payments are on, a pass with a price must be bought through
+  // checkout (Mobile Money / card verified by the provider). Accepting a bare
+  // POST here would let anyone mint access without paying.
+  if (isPaystackConfigured() && passPrice(period) > 0) {
+    return NextResponse.json(
+      {
+        error: "Pay for this pass with Mobile Money or a card at checkout.",
+        code: "CHECKOUT_REQUIRED",
+        checkout: { kind: "pass", period },
+      },
+      { status: 402 }
     );
   }
 

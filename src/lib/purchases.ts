@@ -15,11 +15,11 @@ import { hasActivePass, ownsCourse, ownsLesson } from "./access";
 /**
  * Payments.
  *
- * Everything here simulates a successful payment, exactly as the platform did
- * before: an invoice is raised, the entitlement is written to the account, and
- * the student is let in. Swapping in a real provider (Paystack, Flutterwave or
- * Stripe) means moving the entitlement write into a verified webhook handler —
- * the shapes below are what the database should be given either way.
+ * An invoice is raised, the entitlement is written to the account, and the
+ * student is let in. These functions grant — they do not verify money: live
+ * checkouts reach them only through `fulfillPayment()` in `payments.ts`,
+ * after Paystack has confirmed the Mobile Money / card payment via the
+ * verified webhook or the return-URL verification.
  *
  * Two things are sold:
  *   • an access pass — a day, a week or a month of access, and
@@ -48,11 +48,39 @@ export interface PassReceipt {
 }
 
 /**
+ * Where the money for a purchase came from. Passed through when a verified
+ * payment (Mobile Money, card, bank transfer) is fulfilled, so the invoice
+ * carries the provider's reference and the account remembers the method.
+ */
+export interface PaymentAttribution {
+  /** The provider's transaction reference (e.g. our `CMG-…` checkout reference). */
+  reference?: string;
+  provider?: "demo" | "paystack";
+  phone?: string;
+  network?: string;
+  channel?: "mobile_money" | "card" | "bank_transfer" | "ussd" | "qr" | "bank";
+  brand?: string;
+  last4?: string;
+}
+
+function rememberPaymentMethod(user: User, attribution?: PaymentAttribution): void {
+  if (!attribution || (!attribution.provider && !attribution.phone && !attribution.brand)) return;
+  const next = { ...user.paymentMethod };
+  if (attribution.provider) next.provider = attribution.provider;
+  if (attribution.brand) next.brand = attribution.brand;
+  if (attribution.last4) next.last4 = attribution.last4;
+  if (attribution.phone) next.phone = attribution.phone;
+  if (attribution.network) next.network = attribution.network;
+  if (attribution.channel) next.channel = attribution.channel;
+  user.paymentMethod = next;
+}
+
+/**
  * Sells a pass. A student with time left on a pass is not sold a second one
  * accidentally — the remaining days are added to the new pass, so renewing
  * early never wastes what was paid for.
  */
-export async function buyPass(user: User, period: PassPeriod): Promise<PassReceipt> {
+export async function buyPass(user: User, period: PassPeriod, attribution?: PaymentAttribution): Promise<PassReceipt> {
   if (user.suspended) {
     throw new PurchaseError("Your account is paused. Please contact your teacher for help.", "SUSPENDED", 403);
   }
@@ -72,10 +100,12 @@ export async function buyPass(user: User, period: PassPeriod): Promise<PassRecei
   }
 
   user.subscription = pass;
+  rememberPaymentMethod(user, attribution);
   const invoice = await addInvoice(
     user,
     price,
-    `${period[0].toUpperCase()}${period.slice(1)} access pass`
+    `${period[0].toUpperCase()}${period.slice(1)} access pass`,
+    attribution?.reference
   );
   logActivity(
     user,
@@ -100,14 +130,15 @@ function record(user: User, purchase: Omit<Purchase, "id" | "at">): Purchase {
 }
 
 /** Sells a whole course, including every lesson inside it. */
-export async function buyCourse(user: User, courseId: string): Promise<Purchase> {
+export async function buyCourse(user: User, courseId: string, attribution?: PaymentAttribution): Promise<Purchase> {
   const course = getCourse(courseId);
   if (!course) throw new PurchaseError("That course does not exist.", "NOT_FOUND", 404);
   if (ownsCourse(user, courseId)) {
     throw new PurchaseError("You already own this course.", "ALREADY_OWNED", 409);
   }
   const price = coursePrice(courseId);
-  const invoice = await addInvoice(user, price, `${course.title} — course purchase`);
+  rememberPaymentMethod(user, attribution);
+  const invoice = await addInvoice(user, price, `${course.title} — course purchase`, attribution?.reference);
   const purchase = record(user, {
     kind: "course",
     refId: courseId,
@@ -120,7 +151,7 @@ export async function buyCourse(user: User, courseId: string): Promise<Purchase>
 }
 
 /** Sells one lesson on its own. */
-export async function buyLesson(user: User, courseId: string, lessonId: string): Promise<Purchase> {
+export async function buyLesson(user: User, courseId: string, lessonId: string, attribution?: PaymentAttribution): Promise<Purchase> {
   const course = getCourse(courseId);
   if (!course) throw new PurchaseError("That course does not exist.", "NOT_FOUND", 404);
   const lesson = findContentLesson(course, lessonId);
@@ -134,7 +165,8 @@ export async function buyLesson(user: User, courseId: string, lessonId: string):
     throw new PurchaseError("This lesson is already included in your course purchase.", "ALREADY_OWNED", 409);
   }
   const price = lessonPrice(lessonId);
-  const invoice = await addInvoice(user, price, `${course.shortTitle} — “${lesson.title}”`);
+  rememberPaymentMethod(user, attribution);
+  const invoice = await addInvoice(user, price, `${course.shortTitle} — “${lesson.title}”`, attribution?.reference);
   const purchase = record(user, {
     kind: "lesson",
     refId: lessonId,

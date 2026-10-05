@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "db:schema": "tsx scripts/print-schema.mts > db/schema.sql",
     "db:check": "tsx scripts/check-db.mts",
+    "payments:check": "tsx scripts/check-payments.mts",
     "storage:check": "tsx scripts/check-storage.mts",
     "supabase:check": "tsx scripts/supabase-check.mts"
   },

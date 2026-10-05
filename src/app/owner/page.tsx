@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { computeOwnerStats, coursePriceRows, estimateMonthlyRevenue, lessonPriceRows, toStudentRow } from "@/lib/owner-console";
 import { pricing } from "@/lib/plans";
 import OwnerPricingCard from "@/components/OwnerPricingCard";
+import OwnerPaymentsCard from "@/components/OwnerPaymentsCard";
+import { countPendingPayments, listRecentPayments } from "@/lib/payments";
+import { isPaystackConfigured, paystackKeyMode } from "@/lib/paystack";
 import { getCurrentOwner } from "@/lib/session";
 import { isOwner } from "@/lib/owner";
 import { listUsers } from "@/lib/store";
@@ -44,6 +47,13 @@ export default async function OwnerConsolePage() {
       </section>
 
       <OwnerPricingCard initialPricing={prices} courses={coursePriceRows()} lessons={lessonPriceRows()} />
+
+      <OwnerPaymentsCard
+        payments={await listRecentPayments(50)}
+        pending={await countPendingPayments()}
+        provider={isPaystackConfigured() ? "paystack" : "demo"}
+        keyMode={paystackKeyMode()}
+      />
 
       {isOwner(owner) && (
         <section className="open-column flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-[#e2dee7] bg-white p-5 sm:p-6">

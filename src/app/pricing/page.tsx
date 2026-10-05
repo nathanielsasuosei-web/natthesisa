@@ -7,6 +7,7 @@ import { coursePrice, formatMoney, PASS_PERIODS, PERIOD_DAYS, PERIOD_LABEL, pric
 import { lessonCountsByCourse, contentTotals } from "@/lib/course-content";
 import { site } from "@/config/site";
 import InfoPage, { InfoContactStrip, InfoFaq, InfoList, InfoSection } from "@/components/InfoPage";
+import { isPaystackConfigured } from "@/lib/paystack";
 import Icon from "@/components/Icon";
 
 export const metadata: Metadata = {
@@ -145,14 +146,25 @@ export default async function PricingPage() {
       {/* ---- how to pay ----------------------------------------------------- */}
       <section>
         <h2 className="text-lg font-black tracking-[-.03em]">3. How payment works</h2>
-        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-          <p className="font-bold">This build does not take real money.</p>
-          <p className="mt-1 text-[13px]">
-            The pass and course checkout is fully working — it records your purchase, your invoice and your access in the
-            database — but no card, Mobile Money or bank details are collected and nothing is charged. You can use the
-            whole platform while it is in this state.
-          </p>
-        </div>
+        {isPaystackConfigured() ? (
+          <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+            <p className="font-bold">Mobile Money payments are live.</p>
+            <p className="mt-1 text-[13px]">
+              At checkout, enter the MoMo number to charge — MTN MoMo, Telecel Cash or AT Money — and approve the
+              charge with your MoMo PIN on your own phone. Cards and bank transfers are offered on the same secure
+              page, processed by Paystack. Every purchase creates an invoice on your account and a receipt by email.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+            <p className="font-bold">This build does not take real money.</p>
+            <p className="mt-1 text-[13px]">
+              The pass and course checkout is fully working — it records your purchase, your invoice and your access in the
+              database — but no card, Mobile Money or bank details are collected and nothing is charged. You can use the
+              whole platform while it is in this state.
+            </p>
+          </div>
+        )}
 
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {PAYMENT_METHODS.map((method) => (
@@ -186,7 +198,9 @@ export default async function PricingPage() {
           },
           {
             q: "Can I pay with MTN MoMo today?",
-            a: "Not yet — the Mobile Money integration is the next step before launch. Everything else about buying is finished, including invoices and access records, so the moment the gateway is connected the same checkout takes a MoMo payment.",
+            a: isPaystackConfigured()
+              ? "Yes — MTN MoMo, Telecel Cash and AT Money all work at checkout. Enter the number to charge, approve with your MoMo PIN on your phone, and your pass or course opens immediately."
+              : "Not yet — the Mobile Money integration is the next step before launch. Everything else about buying is finished, including invoices and access records, so the moment the gateway is connected the same checkout takes a MoMo payment.",
           },
           {
             q: "Do you offer refunds?",

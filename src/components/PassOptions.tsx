@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PASS_PERIODS, PERIOD_DAYS, PERIOD_LABEL, formatMoney, type PassPeriod } from "@/lib/pass-periods";
 import Icon from "./Icon";
+import CheckoutModal from "./CheckoutModal";
 
 interface Props {
   /** Price of each period, as the owner has set them. */
@@ -12,7 +13,9 @@ interface Props {
   active: boolean;
   /** ISO date the current pass runs out, when there is one. */
   expiresAt: string | null;
-  cardLabel: string;
+  /** Last MoMo number on the account, pre-filled at checkout when there is one. */
+  momoPhone?: string;
+  momoNetwork?: string;
 }
 
 const BLURB: Record<PassPeriod, string> = {
@@ -29,37 +32,46 @@ const BLURB: Record<PassPeriod, string> = {
  * the teacher has published, previews included. Paying opens the platform;
  * individual courses and lessons are bought inside the catalog.
  */
-export default function PassOptions({ prices, active, expiresAt, cardLabel }: Props) {
+export default function PassOptions({ prices, active, expiresAt, momoPhone, momoNetwork }: Props) {
   const router = useRouter();
   const [checkout, setCheckout] = useState<PassPeriod | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
 
-  async function buy() {
-    if (!checkout || busy) return;
+  // A pass priced at GH₵0 needs no money: keep the one-tap buy for that case.
+  async function buyFree(period: PassPeriod) {
+    if (busy) return;
     setBusy(true);
     setError(null);
     try {
       const response = await fetch("/api/pass", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ period: checkout }),
+        body: JSON.stringify({ period }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data?.error ?? "The payment could not be completed.");
+        setError(data?.error ?? "The pass could not be activated.");
         setBusy(false);
         return;
       }
-      setDone(`Your ${PERIOD_LABEL[checkout].toLowerCase()} is active. Pick a course and start learning.`);
-      setCheckout(null);
+      setDone(`Your ${PERIOD_LABEL[period].toLowerCase()} is active. Pick a course and start learning.`);
       setBusy(false);
       router.refresh();
     } catch {
-      setError("The payment could not be completed. Check your connection and try again.");
+      setError("The pass could not be activated. Check your connection and try again.");
       setBusy(false);
     }
+  }
+
+  function choose(period: PassPeriod) {
+    setError(null);
+    if (prices[period] <= 0) {
+      void buyFree(period);
+      return;
+    }
+    setCheckout(period);
   }
 
   return (
@@ -68,6 +80,12 @@ export default function PassOptions({ prices, active, expiresAt, cardLabel }: Pr
         <div role="status" className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-900">
           <Icon name="check" size={16} className="shrink-0 text-emerald-700" />
           {done}
+        </div>
+      )}
+      {error && (
+        <div role="alert" className="mb-6 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-700">
+          <Icon name="close" size={16} className="shrink-0" />
+          {error}
         </div>
       )}
 
@@ -102,12 +120,21 @@ export default function PassOptions({ prices, active, expiresAt, cardLabel }: Pr
                 ))}
               </ul>
               <button
-                onClick={() => { setError(null); setCheckout(period); }}
-                className={`mt-6 w-full rounded-xl px-4 py-3 text-xs font-extrabold transition hover:-translate-y-0.5 ${
+                onClick={() => choose(period)}
+                disabled={busy}
+                className={`mt-6 w-full rounded-xl px-4 py-3 text-xs font-extrabold transition hover:-translate-y-0.5 disabled:opacity-60 ${
                   featured ? "bg-[#6d4aff] text-white hover:bg-[#7959f1]" : "border border-[#ded9e3] bg-white text-[#655f6b]"
                 }`}
               >
-                {active ? `Add ${PERIOD_DAYS[period]} more day${PERIOD_DAYS[period] === 1 ? "" : "s"}` : `Buy the ${PERIOD_LABEL[period].toLowerCase()}`}
+                {busy
+                  ? "Please wait…"
+                  : price <= 0
+                    ? active
+                      ? `Add ${PERIOD_DAYS[period]} more day${PERIOD_DAYS[period] === 1 ? "" : "s"} — free`
+                      : `Get the ${PERIOD_LABEL[period].toLowerCase()} — free`
+                    : active
+                      ? `Add ${PERIOD_DAYS[period]} more day${PERIOD_DAYS[period] === 1 ? "" : "s"}`
+                      : `Buy the ${PERIOD_LABEL[period].toLowerCase()}`}
               </button>
             </div>
           );
@@ -122,59 +149,21 @@ export default function PassOptions({ prices, active, expiresAt, cardLabel }: Pr
       )}
 
       {checkout && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-[#15121c]/60 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setCheckout(null); }}
-        >
-          <div role="dialog" aria-modal="true" className="w-full max-w-md overflow-hidden rounded-[24px] bg-white shadow-2xl">
-            <div className="flex items-start justify-between border-b border-[#ece8ef] p-6">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[.14em] text-[#6d4aff]">Secure checkout</p>
-                <h2 className="mt-1.5 text-xl font-black tracking-[-.035em]">Buy the {PERIOD_LABEL[checkout].toLowerCase()}</h2>
-              </div>
-              <button onClick={() => !busy && setCheckout(null)} className="grid size-8 place-items-center rounded-lg bg-[#f3f1f5] text-[#77717e]" aria-label="Close">
-                <Icon name="close" size={15} />
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="rounded-2xl bg-[#f7f5fa] p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-extrabold">{PERIOD_LABEL[checkout]}</p>
-                    <p className="mt-1 text-[10px] text-[#918a97]">
-                      {PERIOD_DAYS[checkout]} day{PERIOD_DAYS[checkout] === 1 ? "" : "s"} of full access
-                    </p>
-                  </div>
-                  <p className="text-lg font-black">{formatMoney(prices[checkout])}</p>
-                </div>
-              </div>
-              <div className="mt-5">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#817a87]">Payment method</p>
-                <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#ded9e3] p-3.5">
-                  <span className="grid size-9 place-items-center rounded-lg bg-[#172b85] text-[9px] font-black italic text-white">VISA</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-bold">{cardLabel}</p>
-                    <p className="mt-0.5 text-[9px] text-[#918a97]">Demo payment method</p>
-                  </div>
-                  <Icon name="check" size={15} className="text-emerald-600" />
-                </div>
-              </div>
-              {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}</div>}
-              <div className="mt-5 flex items-center gap-2 text-[9px] leading-4 text-[#918a97]">
-                <Icon name="shield" size={14} className="shrink-0 text-emerald-600" />
-                This demonstration simulates a successful payment. No real card is charged.
-              </div>
-              <button
-                onClick={buy}
-                disabled={busy}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] disabled:opacity-60"
-              >
-                {busy ? "Taking payment…" : `Pay ${formatMoney(prices[checkout])}`}
-                {!busy && <Icon name="arrow-right" size={16} />}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CheckoutModal
+          title={`Buy the ${PERIOD_LABEL[checkout].toLowerCase()}`}
+          subtitle={`${PERIOD_DAYS[checkout]} day${PERIOD_DAYS[checkout] === 1 ? "" : "s"} of full access`}
+          amount={prices[checkout]}
+          payload={{ kind: "pass", period: checkout }}
+          defaultPhone={momoPhone}
+          defaultNetwork={momoNetwork}
+          successMessage={`Your ${PERIOD_LABEL[checkout].toLowerCase()} is active. Pick a course and start learning.`}
+          onClose={() => setCheckout(null)}
+          onSuccess={() => {
+            setCheckout(null);
+            setDone(`Your ${PERIOD_LABEL[checkout].toLowerCase()} is active. Pick a course and start learning.`);
+            router.refresh();
+          }}
+        />
       )}
     </div>
   );

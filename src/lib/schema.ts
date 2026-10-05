@@ -73,6 +73,44 @@ export const SCHEMA_STATEMENTS: string[] = [
   // Invoice numbers come from a real sequence, so they stay unique even with
   // concurrent checkouts.
   `create sequence if not exists invoice_number_seq start 1007`,
+
+  // Mobile Money / card payments, tracked from checkout to webhook.
+  //
+  // One row per checkout attempt, keyed by the reference we generate
+  // (`CMG-…`). The row is created *before* the student is sent to the payment
+  // provider, so the webhook and the return-URL verification both have
+  // something idempotent to fulfil against: whichever arrives first marks the
+  // row `paid` and grants the pass / course / lesson, and the other sees the
+  // row is already paid and does nothing. `provider_event_id` carries the
+  // provider's own event id for the same reason.
+  `create table if not exists payments (
+     reference         text primary key,
+     user_id           text not null references users(id) on delete cascade,
+     kind              text not null check (kind in ('pass', 'course', 'lesson')),
+     period            text check (period in ('daily', 'weekly', 'monthly')),
+     course_id         text,
+     lesson_id         text,
+     amount            integer not null check (amount >= 0),
+     currency          text not null default 'GHS',
+     description       text not null,
+     status            text not null default 'pending'
+                       check (status in ('pending', 'paid', 'failed', 'abandoned')),
+     provider          text not null default 'demo'
+                       check (provider in ('demo', 'paystack')),
+     phone             text,
+     network           text,
+     authorization_url text,
+     channel           text,
+     invoice_number    text,
+     provider_event_id text,
+     paid_at           timestamptz,
+     created_at        timestamptz not null default now(),
+     updated_at        timestamptz not null default now()
+   )`,
+
+  `create index if not exists payments_user_idx on payments (user_id, created_at desc)`,
+  `create index if not exists payments_status_idx on payments (status, created_at desc)`,
+  `create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null`,
 ];
 
 /**

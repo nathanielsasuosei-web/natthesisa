@@ -6,6 +6,8 @@ import { hasActivePass } from "@/lib/access";
 import { notifyContentPurchased } from "@/lib/email";
 import { getCourse } from "@/lib/courses";
 import { findContentLesson } from "@/lib/course-content";
+import { coursePrice, lessonPrice } from "@/lib/plans";
+import { isPaystackConfigured } from "@/lib/paystack";
 
 /**
  * Buys a course, or a single lesson.
@@ -30,6 +32,22 @@ export async function POST(req: NextRequest) {
   }
   if (kind === "lesson" && !lessonId) {
     return NextResponse.json({ error: "A lesson purchase needs a lesson." }, { status: 400 });
+  }
+
+  // While live payments are on, priced content must go through checkout so the
+  // provider verifies the money. A bare POST here would grant it for free.
+  if (isPaystackConfigured()) {
+    const price = kind === "course" ? coursePrice(courseId) : lessonPrice(lessonId);
+    if (price > 0) {
+      return NextResponse.json(
+        {
+          error: "Pay for this with Mobile Money or a card at checkout.",
+          code: "CHECKOUT_REQUIRED",
+          checkout: { kind, courseId, lessonId: kind === "lesson" ? lessonId : undefined },
+        },
+        { status: 402 }
+      );
+    }
   }
 
   try {

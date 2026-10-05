@@ -5,6 +5,7 @@ import { site } from "@/config/site";
 import { fmtDate } from "@/lib/format";
 import { hasActivePass } from "@/lib/access";
 import { pricing } from "@/lib/plans";
+import { isPaystackConfigured } from "@/lib/paystack";
 import PassOptions from "@/components/PassOptions";
 import Icon from "@/components/Icon";
 
@@ -62,7 +63,8 @@ export default async function PassPage() {
         prices={{ daily: prices.daily, weekly: prices.weekly, monthly: prices.monthly }}
         active={active}
         expiresAt={active ? user.subscription.expiresAt : null}
-        cardLabel={`${user.paymentMethod.brand} ending in ${user.paymentMethod.last4}`}
+        momoPhone={user.paymentMethod.phone}
+        momoNetwork={user.paymentMethod.network}
       />
 
       <section className="open-columns grid gap-0 xl:grid-cols-3">
@@ -84,8 +86,9 @@ export default async function PassPage() {
       </section>
 
       <p className="text-center text-[9px] leading-4 text-[#9a939f]">
-        Demo note: checkout and invoices are fully interactive, but no real payment is processed. Connect Paystack,
-        Flutterwave or Stripe before production.
+        {isPaystackConfigured()
+          ? "Payments are processed securely by Paystack — approve with your MoMo PIN on your own phone. We never see or store your PIN."
+          : "Demo note: checkout and invoices are fully interactive, but no real money moves. The teacher connects live Mobile Money payments from the console."}
       </p>
     </div>
   );
