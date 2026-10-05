@@ -173,7 +173,12 @@ export default async function LandingPage() {
                 const courses = COURSES.filter((course) => course.category === program.category);
                 const lessons = courses.reduce((sum, course) => sum + lessonCounts[course.id], 0);
                 return (
-                  <article key={program.id} className="flex flex-col rounded-[24px] border border-[#e8e4ec] bg-[#fbfafc] p-6">
+                  <article key={program.id} className="flex flex-col overflow-hidden rounded-[24px] border border-[#e8e4ec] bg-[#fbfafc]">
+                    {program.cover ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={program.cover} alt={`${program.name} artwork`} className="h-40 w-full object-cover" />
+                    ) : null}
+                    <div className="flex flex-1 flex-col p-6">
                     <span className="grid size-12 place-items-center rounded-2xl bg-[#6d4aff] text-white"><Icon name={program.icon === "cpu" ? "cpu" : program.icon === "briefcase" ? "briefcase" : "spark"} size={22} /></span>
                     <h3 className="mt-5 text-lg font-black tracking-[-.02em]">{program.name}</h3>
                     <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[#6d4aff]">{program.tagline}</p>
@@ -184,6 +189,7 @@ export default async function LandingPage() {
                         <li key={course.id} className="flex items-center gap-2"><Icon name="check" size={13} className="text-emerald-600" />{course.title}</li>
                       ))}
                     </ul>
+                    </div>
                   </article>
                 );
               })}

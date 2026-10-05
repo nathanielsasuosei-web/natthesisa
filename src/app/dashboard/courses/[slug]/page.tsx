@@ -70,7 +70,18 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               </div>
             </div>
           </div>
-          <CourseVisual course={course} className="min-h-56 lg:min-h-full" />
+          {course.cover ? (
+            <div className="relative min-h-56 overflow-hidden lg:min-h-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={course.cover} alt="" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+              <p className="absolute bottom-4 left-5 right-5 text-[10px] font-black uppercase tracking-[.16em] text-white/85">
+                {course.category} program
+              </p>
+            </div>
+          ) : (
+            <CourseVisual course={course} className="min-h-56 lg:min-h-full" />
+          )}
         </div>
       </section>
 

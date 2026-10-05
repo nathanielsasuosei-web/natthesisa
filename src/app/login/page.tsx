@@ -4,6 +4,9 @@ import { getCurrentUser } from "@/lib/session";
 import AuthForm from "@/components/AuthForm";
 import Logo from "@/components/Logo";
 import Icon from "@/components/Icon";
+import { brandAssets } from "@/config/branding";
+import { contentTotals } from "@/lib/course-content";
+import { PROGRAMS } from "@/lib/programs";
 
 // The page reads the session cookie, so it can never be prerendered. Saying so
 // keeps the build from attempting a static pass (and logging a failure) first.
@@ -28,6 +31,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (user) redirect(user.role === "owner" ? "/owner" : "/dashboard");
   const params = await searchParams;
   const initialMode = params.mode === "signup" ? "signup" : "signin";
+  const totals = contentTotals();
+  const careerPaths = PROGRAMS.length;
 
   return (
     <main className="grid min-h-screen bg-white lg:grid-cols-[1.05fr_.95fr]">
@@ -36,13 +41,18 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="absolute -left-32 -top-36 size-[32rem] rounded-full bg-[#6d4aff]/30 blur-3xl" />
         <div className="absolute -bottom-40 -right-32 size-[30rem] rounded-full bg-[#ff7448]/20 blur-3xl" />
         <div className="relative"><Logo inverse /></div>
+        <div className="relative mt-8 overflow-hidden rounded-[22px] border border-white/10 shadow-[0_18px_50px_rgba(0,0,0,.35)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={brandAssets.poster} alt="codemasterghana — Vibe Coding" className="h-40 w-full object-cover object-center sm:h-48" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1b1822] via-transparent to-transparent" />
+        </div>
         <div className="relative my-auto mx-auto max-w-lg py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.06] px-3 py-1.5 text-xs font-bold text-[#c3b7f8]"><Icon name="spark" size={14} /> Learn by building</span>
           <h2 className="mt-6 text-balance text-5xl font-black leading-[1.04] tracking-[-.055em]">Your next skill is closer than you think.</h2>
           <p className="mt-5 max-w-md text-base leading-7 text-[#aaa4b1]">Join focused lessons, build projects worth sharing and watch your progress become a real body of work.</p>
           <div className="mt-10 grid gap-0 border-y border-white/10 sm:grid-cols-3">
             {[
-              ["terminal", "39", "guided lessons"], ["briefcase", "15+", "real projects"], ["trophy", "3", "career paths"],
+              ["terminal", String(totals.lessons), "guided lessons"], ["briefcase", "15+", "real projects"], ["trophy", String(careerPaths), careerPaths === 1 ? "program" : "programs"],
             ].map(([icon, value, label]) => (
               <div key={label} className="border-b border-white/10 p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"><Icon name={icon as "terminal"} size={18} className="text-[#ad9aff]" /><p className="mt-4 text-xl font-black">{value}</p><p className="mt-1 text-[10px] text-[#8f8997]">{label}</p></div>
             ))}

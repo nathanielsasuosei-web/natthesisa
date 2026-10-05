@@ -1,5 +1,5 @@
 import { lesson } from "./lesson-builder";
-import { PROGRAM_COURSES } from "./programs";
+import { PROGRAMS, PROGRAM_COURSES } from "./programs";
 
 export type CourseCategory =
   | "Computer Science"
@@ -77,6 +77,11 @@ export interface Course {
   outcomes: string[];
   tags: string[];
   modules: CourseModule[];
+  /**
+   * Optional hero artwork for the course page. Filled in from the course's
+   * program (`PROGRAMS`), so it is not written twice.
+   */
+  cover?: string;
 }
 
 const CORE_COURSES: Course[] = [
@@ -682,7 +687,11 @@ const CORE_COURSES: Course[] = [
  * Every course sits under one program (its category), and each program can
  * have several courses — see `PROGRAMS` in `programs.ts`.
  */
-export const COURSES: Course[] = [...CORE_COURSES, ...PROGRAM_COURSES];
+export const COURSES: Course[] = [...CORE_COURSES, ...PROGRAM_COURSES].map((course) => {
+  // A course inherits its program's cover unless it brings its own.
+  const program = PROGRAMS.find((item) => item.category === course.category);
+  return program?.cover && !course.cover ? { ...course, cover: program.cover } : course;
+});
 
 export const CATEGORIES: Array<"All" | CourseCategory> = [
   "All",

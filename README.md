@@ -237,6 +237,35 @@ This is the “what to paste where” map for continuing the build.
 | 14. Teacher UI | `src/app/owner/*`, `src/components/OwnerStudentsTable.tsx` | Monitoring dashboard, prices and student controls |
 | 15. Design system | `src/app/globals.css`, `src/components/Icon.tsx` | Colors, motion, shared icon set and global styles |
 
+## Branding
+
+The owner's artwork lives in `public/branding/`, and everything else refers to it
+through `src/config/branding.ts`:
+
+| File | Size | Used for |
+| --- | --- | --- |
+| `logo.webp` | 1024² | The Vibe Coding program card and the sign-in panel (WebP, ~140 KB) |
+| `logo-1024.jpg` | 1024² | The same picture for anything that cannot read WebP |
+| `logo-original.jpg` | 2000² | The untouched upload, kept as the master copy |
+| `og.jpg` | 1200×630 | Link previews (`openGraph` / `twitter:card` in `src/app/layout.tsx`) |
+| `vibe-coding.jpg` | 1200×750 | The Vibe Coding course hero image |
+
+The favicon, the iOS touch icon and the PNG app icons are Next.js file
+conventions generated from the same picture: `src/app/favicon.ico` (32²),
+`src/app/icon.png` (512²) and `src/app/apple-icon.png` (180²).
+
+**The header lockup is type, not image.** The supplied picture is a poster — a
+laptop, a code wall and the tools on its screen — so at 36px in the navigation
+it would read as noise. The navbar keeps the `</>` tile plus the wordmark
+("codemaster" in ink, "ghana" in the brand accent, with "Learn. Build. Become."
+underneath where there is room), and the artwork appears at full size on the
+program card, the Vibe Coding course hero, the link preview and the sign-in
+panel. `Logo.tsx` is the single place the lockup is rendered.
+
+To swap the artwork, replace the files above and re-run the crops, or drop a new
+square image into `public/branding/` and update the paths in
+`src/config/branding.ts` — no component changes are needed.
+
 ## Programs and the catalog
 
 The catalog is one list, `COURSES` in `src/lib/courses.ts`, assembled from two

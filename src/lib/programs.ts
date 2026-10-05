@@ -26,6 +26,12 @@ export interface ProgramInfo {
   description: string;
   icon: Course["icon"];
   tone: CourseTone;
+  /**
+   * Optional cover artwork, copied from `brandAssets` by hand so this module
+   * stays free of app config. Set on the Vibe Coding program, whose courses
+   * use it as their hero image.
+   */
+  cover?: string;
 }
 
 export const PROGRAMS: ProgramInfo[] = [
@@ -58,6 +64,7 @@ export const PROGRAMS: ProgramInfo[] = [
       "Build real software by talking to an AI — and learn to read, review and fix what it writes. From a first page in an hour to an AI assistant wired into your own data.",
     icon: "spark",
     tone: "pink",
+    cover: "/branding/vibe-coding.jpg",
   },
 ];
 
