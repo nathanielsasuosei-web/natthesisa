@@ -39,3 +39,81 @@ create index if not exists users_created_at_idx on users (created_at desc);
 
 create sequence if not exists invoice_number_seq start 1007;
 
+-- ---------------------------------------------------------------------------
+-- Migrations: reshape a database made by an older build (additive only).
+-- The app runs these itself on first request; they are printed here so a
+-- manual paste heals a stale database the same way. Safe to re-run.
+-- ---------------------------------------------------------------------------
+
+alter table users add column if not exists role text not null default 'member';
+
+alter table users add column if not exists owner boolean not null default false;
+
+alter table users add column if not exists suspended boolean not null default false;
+
+alter table users add column if not exists subscription jsonb;
+
+alter table users add column if not exists usage jsonb;
+
+alter table users add column if not exists lifetime_minutes integer not null default 0;
+
+alter table users add column if not exists progress jsonb not null default '{}'::jsonb;
+
+alter table users add column if not exists invoices jsonb not null default '[]'::jsonb;
+
+alter table users add column if not exists activity_log jsonb not null default '[]'::jsonb;
+
+alter table users add column if not exists payment_method jsonb;
+
+alter table users add column if not exists profile jsonb;
+
+alter table users add column if not exists last_seen_at timestamptz;
+
+alter table users add column if not exists created_at timestamptz not null default now();
+
+alter table users add column if not exists updated_at timestamptz not null default now();
+
+alter table users add column if not exists email text;
+
+alter table users add column if not exists name text;
+
+alter table users add column if not exists password_hash text;
+
+update users set subscription = jsonb_build_object('planId', 'free', 'cycle', 'monthly', 'cancelAtPeriodEnd', false, 'pendingPlanId', null, 'currentPeriodStart', to_jsonb(now()), 'currentPeriodEnd', to_jsonb(now() + interval '30 days')) where subscription is null or subscription = '{}'::jsonb;
+
+update users set usage = jsonb_build_object('periodStart', to_jsonb(now()), 'minutes', 0, 'history', (select coalesce(jsonb_agg(jsonb_build_object('date', to_char(current_date - s, 'YYYY-MM-DD'), 'count', 0) order by s desc), '[]'::jsonb) from generate_series(0, 6) s), 'creditedLessonIds', '[]'::jsonb) where usage is null or usage = '{}'::jsonb;
+
+update users set payment_method = '{"brand":"Visa","last4":"4242","provider":"demo"}'::jsonb where payment_method is null or payment_method = '{}'::jsonb;
+
+update users set profile = '{"headline":"Learning one project at a time.","track":"Full-stack developer","experience":"Just starting","weeklyGoal":180}'::jsonb where profile is null or profile = '{}'::jsonb;
+
+alter table users alter column subscription set not null;
+
+alter table users alter column usage set not null;
+
+alter table users alter column payment_method set not null;
+
+alter table users alter column profile set not null;
+
+update users set owner = false where owner is null;
+
+update users set suspended = false where suspended is null;
+
+update users set lifetime_minutes = 0 where lifetime_minutes is null;
+
+update users set role = 'admin' where owner is true and role is distinct from 'admin';
+
+update users set role = 'member' where role is null or role not in ('member', 'admin');
+
+alter table users drop constraint if exists users_role_check;
+
+alter table users add constraint users_role_check check (role in ('member', 'admin'));
+
+alter table app_state add column if not exists value jsonb;
+
+update app_state set value = '{}'::jsonb where value is null;
+
+alter table app_state alter column value set not null;
+
+alter table app_state add column if not exists updated_at timestamptz not null default now();
+

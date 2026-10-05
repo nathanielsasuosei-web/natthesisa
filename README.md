@@ -271,6 +271,17 @@ provider yourself:
 npm run db:schema > db/schema.sql   # already committed
 ```
 
+A database made by an older build heals itself on the next request: after the
+creates, the app runs additive migrations (`ADD COLUMN IF NOT EXISTS`,
+backfills, role normalization) that reshape a stale `users` table into the
+current one. The migration only adds — it never drops, renames or retypes, so
+existing rows survive it — and unknown role words become `member` (rows
+flagged `owner` become `admin`; re-promote anyone else from `/admin`). Pasting
+`db/schema.sql` by hand heals the same way, because the migrations are printed
+in it. If a statement cannot apply (duplicate emails, a wrongly typed column),
+the server log names it — `[codemasterghana] schema statement failed …` — and
+that line is what to paste back for the hand-written fix.
+
 An embedded database is a single process, so it cannot recover from being killed
 mid-write: PGlite can leave a data directory that PostgreSQL refuses to start
 from. The app handles that itself — the unreadable directory is moved aside to

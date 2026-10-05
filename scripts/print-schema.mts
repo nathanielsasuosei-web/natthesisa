@@ -4,9 +4,11 @@
  *   npm run db:schema > db/schema.sql
  *
  * Paste the result into the Supabase SQL editor (or any Postgres client) to
- * create the tables by hand instead of letting the app create them.
+ * create the tables by hand instead of letting the app create them. The first
+ * section creates; the second reshapes databases made by older builds. Every
+ * statement is idempotent, so re-running the whole file is safe.
  */
-import { SCHEMA_STATEMENTS } from "../src/lib/schema";
+import { MIGRATION_STATEMENTS, SCHEMA_STATEMENTS } from "../src/lib/schema";
 
 const header = [
   "-- codemasterghana — database schema",
@@ -18,4 +20,17 @@ const header = [
   "",
 ];
 
-console.log(header.join("\n") + SCHEMA_STATEMENTS.map((statement) => `${statement};\n`).join("\n"));
+const migrateHeader = [
+  "-- ---------------------------------------------------------------------------",
+  "-- Migrations: reshape a database made by an older build (additive only).",
+  "-- The app runs these itself on first request; they are printed here so a",
+  "-- manual paste heals a stale database the same way. Safe to re-run.",
+  "-- ---------------------------------------------------------------------------",
+  "",
+  "",
+];
+
+const creates = SCHEMA_STATEMENTS.map((statement) => `${statement};\n`).join("\n");
+const migrates = MIGRATION_STATEMENTS.map((statement) => `${statement};\n`).join("\n");
+
+console.log(header.join("\n") + creates + "\n" + migrateHeader.join("\n") + migrates);

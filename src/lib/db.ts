@@ -1,6 +1,6 @@
 import { mkdirSync, renameSync } from "node:fs";
 import path from "node:path";
-import { SCHEMA_STATEMENTS } from "./schema";
+import { MIGRATION_STATEMENTS, SCHEMA_STATEMENTS } from "./schema";
 
 /**
  * Database connection.
@@ -254,12 +254,21 @@ export async function queryOne<T = Record<string, unknown>>(sql: string, params?
   return rows[0] ?? null;
 }
 
-/** Creates the tables on first use. Safe to call on every request. */
+/**
+ * Creates the tables on first use, then heals databases made by older builds.
+ * Safe to call on every request.
+ */
 export async function ensureSchema(): Promise<void> {
   if (!g.__codaraSchema) {
     g.__codaraSchema = (async () => {
       for (const statement of SCHEMA_STATEMENTS) {
-        await query(statement);
+        await runSchemaStatement(statement);
+      }
+      // A stale database has the tables but not the columns: the migration
+      // reshapes it in place (additive only — rows are never dropped,
+      // renamed or retyped), so deploying the new code is the whole upgrade.
+      for (const statement of MIGRATION_STATEMENTS) {
+        await runSchemaStatement(statement);
       }
     })().catch((error) => {
       g.__codaraSchema = undefined;
@@ -267,6 +276,18 @@ export async function ensureSchema(): Promise<void> {
     });
   }
   return g.__codaraSchema;
+}
+
+/** Runs one schema/migration statement, naming it in the logs if it fails. */
+async function runSchemaStatement(statement: string): Promise<void> {
+  try {
+    await query(statement);
+  } catch (error) {
+    const preview = statement.replace(/\s+/g, " ").trim().slice(0, 120);
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error(`[codemasterghana] schema statement failed (${preview}…): ${detail}`);
+    throw error;
+  }
 }
 
 /**
