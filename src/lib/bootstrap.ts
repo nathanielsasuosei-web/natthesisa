@@ -59,9 +59,21 @@ export async function ensureReady(): Promise<void> {
 }
 
 /** Used by `npm run db:check` to report the connection the app would use. */
-export async function reportDatabase(): Promise<{ driver: string; version: string | null; owner: string | null }> {
+export async function reportDatabase(): Promise<{
+  driver: string;
+  version: string | null;
+  owner: string | null;
+  source: string | null;
+  host: string | null;
+}> {
   await ensureReady();
   const info = await databaseInfo();
   const owner = await ownerAccount();
-  return { driver: info.driver, version: info.version, owner: owner?.email ?? null };
+  return {
+    driver: info.driver,
+    version: info.version,
+    owner: owner?.email ?? null,
+    source: info.source,
+    host: info.host,
+  };
 }

@@ -13,9 +13,25 @@ import { reportDatabase } from "../src/lib/bootstrap";
 
 const loaded = loadEnv(); // .env.local, the same file the app reads
 
+// Name the alternative variables so a host that injected POSTGRES_URL instead
+// of DATABASE_URL does not look like "no database configured".
+if (!process.env.DATABASE_URL?.trim()) {
+  const alternative = ["POSTGRES_URL", "POSTGRES_PRISMA_URL", "SUPABASE_DB_URL", "POSTGRES_URL_NON_POOLING"].find(
+    (name) => process.env[name]?.trim()
+  );
+  if (alternative) console.log(`note     : DATABASE_URL is not set; using ${alternative} instead`);
+}
+
 const info = await reportDatabase();
 
-console.log(`driver   : ${info.driver === "postgres" ? "DATABASE_URL (hosted Postgres)" : "embedded PGlite (.data/pg)"}`);
+console.log(
+  `driver   : ${
+    info.driver === "postgres"
+      ? `hosted Postgres (connection string from ${info.source ?? "the environment"})`
+      : "embedded PGlite (.data/pg)"
+  }`
+);
+console.log(`database : ${info.host ?? "—"}`);
 console.log(`server   : ${info.version?.split(" ").slice(0, 2).join(" ") ?? "unknown"}`);
 console.log(`data dir : ${process.env.PGLITE_DIR ?? ".data/pg (default)"}`);
 console.log(`owner    : ${info.owner ?? "not created yet (set OWNER_EMAIL + OWNER_PASSWORD)"}`);

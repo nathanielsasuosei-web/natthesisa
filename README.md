@@ -145,9 +145,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Without a `DATABASE_URL` the app runs on an embedded PostgreSQL (PGlite) in
-`.data/pg`, so accounts, progress and invoices persist across restarts with no
-database server to install. The first request against an empty database creates
+Without a database connection string the app runs on an embedded PostgreSQL
+(PGlite) in `.data/pg`, so accounts, progress and invoices persist across
+restarts with no database server to install. The first request against an empty database creates
 the tables and the owner account from `OWNER_EMAIL` / `OWNER_PASSWORD`. Then sign
 in at `/admin-sign-in` and change that password from the account page.
 
@@ -259,9 +259,18 @@ the runtime and the exported SQL.
 
 | Situation | What happens |
 | --- | --- |
-| `DATABASE_URL` set | Every query goes to that Postgres server (`pg`, connection pool, 15s statement timeout, SSL for non-local hosts) |
-| `DATABASE_URL` unset | Embedded PostgreSQL (PGlite) at `.data/pg` — real Postgres, real files, no server to install |
-| Production build, no `DATABASE_URL` | Refuses to start unless `ALLOW_EMBEDDED_DB=1` |
+| A connection string is set | Every query goes to that Postgres server (`pg`, connection pool, 15s statement timeout, 10s connect timeout, SSL for non-local hosts) |
+| No connection string set | Embedded PostgreSQL (PGlite) at `.data/pg` — real Postgres, real files, no server to install |
+| Production build, no connection string | Refuses to start unless `ALLOW_EMBEDDED_DB=1` |
+
+The connection string is read from the first of `DATABASE_URL`, `POSTGRES_URL`,
+`POSTGRES_PRISMA_URL`, `SUPABASE_DB_URL` or `POSTGRES_URL_NON_POOLING` that is
+set — in that order, so a pooled string is preferred over a direct one. The
+extra names exist because a host's own database integration usually injects
+them: connecting Supabase or Neon from the Vercel dashboard sets
+`POSTGRES_URL`, not `DATABASE_URL`, and the app now picks that up with nothing
+to copy. Whichever variable is used is named in the logs at startup and by
+`npm run db:check` / `/api/health`.
 
 The first request creates anything missing (`create table if not exists …`), so a
 fresh database needs no manual step. You can still paste the SQL into a hosted
@@ -340,9 +349,9 @@ server version, the owner account and the account counts.
 
 ### If sign-in says “check the database connection”
 
-That banner means the app cannot reach `DATABASE_URL` at all — for learners
-and the owner alike, because it is the connection, not the accounts. On
-Vercel the cause is almost always the connection string itself:
+That banner means the app cannot reach a database at all — for learners and the
+owner alike, because it is the connection, not the accounts. On Vercel the
+cause is almost always the connection string itself:
 
 1. **Use the pooler URI, never the direct host.** Supabase's direct host
    (`db.<project-ref>.supabase.co`) is IPv6-only, and Vercel has no IPv6
@@ -350,14 +359,25 @@ Vercel the cause is almost always the connection string itself:
    instead (Supabase dashboard → Project settings → Database → Connection
    pooling, port `6543`, user `postgres.<project-ref>`).
 2. Set it as `DATABASE_URL` in Vercel → Project → Settings → Environment
-   Variables, for **every** environment the deployment uses.
+   Variables, for **every** environment the deployment uses. (A connection
+   string under any of the names listed under [Database](#database) is used
+   too, so a database connected from the Vercel dashboard — which injects
+   `POSTGRES_URL` — needs nothing copied.)
 3. **Redeploy.** Vercel injects environment variables at deploy time, so
    saving alone changes nothing until the next deployment.
+4. If it still fails, **open `/api/health` on the deployment**. It answers even
+   while the database is down and reports the driver, the variable the
+   connection string came from, the host, the server version — and a
+   `database.hint` field that names the fix (the IPv6-only direct host, a
+   rejected password, a pooler username missing its `.project-ref` suffix, a
+   role without table rights, an SSL mismatch, an allowlist blocking the host,
+   or no connection string configured at all). It never reports a user, a
+   password or a database name. The admin sign-in form links to it when the
+   outage banner appears.
 
-The server log names the fix on every failure: look in Vercel → Logs for the
-`[codemasterghana] database connection failed …` line, which says whether the
-host is the IPv6-only direct one, the password was rejected, or the pooler
-username is missing its `.project-ref` suffix. The sign-in pages and APIs keep
+The same diagnosis is in the server log on every failure: look in Vercel → Logs
+for the `[codemasterghana] database connection failed …` line, which is
+followed by the same plain-language fix. The sign-in pages and APIs keep
 rendering during the outage (the setup form hides itself, the forms show the
 banner) so a database problem never looks like a broken deployment.
 
@@ -494,7 +514,9 @@ npm run build
 Production checklist:
 
 1. Create the hosted Postgres database and set `DATABASE_URL` to its pooled
-   connection string (see [Database](#database)).
+   connection string (see [Database](#database)) — or connect it from the
+   host's dashboard, which sets `POSTGRES_URL`. Open `/api/health` after the
+   first deploy: it should report `"connected": true` and the variable in use.
 2. Set `SESSION_SECRET` to 32+ random characters. Without it a fresh filesystem
    generates a new secret and every existing session is signed out.
 3. Set `OWNER_EMAIL` and `OWNER_PASSWORD` for the first deploy, then sign in and
