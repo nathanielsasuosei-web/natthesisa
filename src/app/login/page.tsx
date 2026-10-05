@@ -5,8 +5,19 @@ import AuthForm from "@/components/AuthForm";
 import Logo from "@/components/Logo";
 import Icon from "@/components/Icon";
 
+async function signedInUser() {
+  try {
+    return await getCurrentUser();
+  } catch (error) {
+    // A signed-in learner visiting during a database outage still gets the
+    // sign-in form (which explains the outage) instead of a 500 page.
+    console.error("[codemasterghana] login page: session unreadable, rendering signed out", error);
+    return null;
+  }
+}
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
-  const user = await getCurrentUser();
+  const user = await signedInUser();
   if (user) redirect(user.role === "admin" ? "/admin" : "/dashboard");
   const params = await searchParams;
   const initialMode = params.mode === "signup" ? "signup" : "signin";

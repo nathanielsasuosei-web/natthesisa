@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sessionCookie, recordSignIn } from "@/lib/session";
+import { AUTH_UNAVAILABLE_CODE, AUTH_UNAVAILABLE_MESSAGE } from "@/lib/auth-errors";
 import {
   AccountExistsError,
   createUser,
@@ -59,10 +60,7 @@ export async function POST(req: NextRequest) {
     // logs, but return a predictable message the UI can explain safely.
     console.error("authentication request failed", error);
     return NextResponse.json(
-      {
-        error: "Sign-in is temporarily unavailable. Please try again in a moment. If this keeps happening, check the database connection.",
-        code: "AUTH_UNAVAILABLE",
-      },
+      { error: AUTH_UNAVAILABLE_MESSAGE, code: AUTH_UNAVAILABLE_CODE },
       { status: 503, headers: { "Cache-Control": "no-store" } }
     );
   }

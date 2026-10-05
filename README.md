@@ -271,6 +271,17 @@ provider yourself:
 npm run db:schema > db/schema.sql   # already committed
 ```
 
+A database made by an older build heals itself on the next request: after the
+creates, the app runs additive migrations (`ADD COLUMN IF NOT EXISTS`,
+backfills, role normalization) that reshape a stale `users` table into the
+current one. The migration only adds — it never drops, renames or retypes, so
+existing rows survive it — and unknown role words become `member` (rows
+flagged `owner` become `admin`; re-promote anyone else from `/admin`). Pasting
+`db/schema.sql` by hand heals the same way, because the migrations are printed
+in it. If a statement cannot apply (duplicate emails, a wrongly typed column),
+the server log names it — `[codemasterghana] schema statement failed …` — and
+that line is what to paste back for the hand-written fix.
+
 An embedded database is a single process, so it cannot recover from being killed
 mid-write: PGlite can leave a data directory that PostgreSQL refuses to start
 from. The app handles that itself — the unreadable directory is moved aside to
@@ -326,6 +337,29 @@ when deployed. `.env.local` is git-ignored; `.env.example` only has placeholders
 
 Verify from the terminal with `npm run db:check` — it prints the driver, the
 server version, the owner account and the account counts.
+
+### If sign-in says “check the database connection”
+
+That banner means the app cannot reach `DATABASE_URL` at all — for learners
+and the owner alike, because it is the connection, not the accounts. On
+Vercel the cause is almost always the connection string itself:
+
+1. **Use the pooler URI, never the direct host.** Supabase's direct host
+   (`db.<project-ref>.supabase.co`) is IPv6-only, and Vercel has no IPv6
+   route to it — every sign-in fails. Copy the **Transaction pooler** URI
+   instead (Supabase dashboard → Project settings → Database → Connection
+   pooling, port `6543`, user `postgres.<project-ref>`).
+2. Set it as `DATABASE_URL` in Vercel → Project → Settings → Environment
+   Variables, for **every** environment the deployment uses.
+3. **Redeploy.** Vercel injects environment variables at deploy time, so
+   saving alone changes nothing until the next deployment.
+
+The server log names the fix on every failure: look in Vercel → Logs for the
+`[codemasterghana] database connection failed …` line, which says whether the
+host is the IPv6-only direct one, the password was rejected, or the pooler
+username is missing its `.project-ref` suffix. The sign-in pages and APIs keep
+rendering during the outage (the setup form hides itself, the forms show the
+banner) so a database problem never looks like a broken deployment.
 
 Everything is one `users` table. A learner's whole record (subscription, usage,
 progress, invoices, activity, profile) lives in JSONB columns beside their

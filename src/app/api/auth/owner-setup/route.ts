@@ -3,6 +3,7 @@ import { ensureReady } from "@/lib/bootstrap";
 import { passwordProblem } from "@/lib/passwords";
 import { createOwnerAccount, ownerAccount } from "@/lib/store";
 import { recordSignIn, sessionCookie } from "@/lib/session";
+import { AUTH_UNAVAILABLE_CODE, AUTH_UNAVAILABLE_MESSAGE } from "@/lib/auth-errors";
 
 /**
  * First-run owner setup.
@@ -24,17 +25,41 @@ function configuredByEnvironment(): boolean {
   return Boolean(process.env.OWNER_EMAIL?.trim() && process.env.OWNER_PASSWORD);
 }
 
+/** The JSON the owner door returns when the database cannot be reached. */
+function unavailable(): NextResponse {
+  return NextResponse.json(
+    { error: AUTH_UNAVAILABLE_MESSAGE, code: AUTH_UNAVAILABLE_CODE },
+    { status: 503, headers: { "Cache-Control": "no-store" } }
+  );
+}
+
 export async function GET() {
-  await ensureReady();
-  const owner = await ownerAccount();
-  const available = !configuredByEnvironment() && !owner;
-  return NextResponse.json({
-    available,
-    reason: configuredByEnvironment() ? "configured" : owner ? "exists" : "available",
-  });
+  try {
+    await ensureReady();
+    const owner = await ownerAccount();
+    const available = !configuredByEnvironment() && !owner;
+    return NextResponse.json({
+      available,
+      reason: configuredByEnvironment() ? "configured" : owner ? "exists" : "available",
+    });
+  } catch (error) {
+    // Same contract as the login route: a database outage is a predictable
+    // JSON 503 the UI can explain, never an HTML 500 page.
+    console.error("owner setup status check failed", error);
+    return unavailable();
+  }
 }
 
 export async function POST(req: NextRequest) {
+  try {
+    return await handleSetup(req);
+  } catch (error) {
+    console.error("owner setup request failed", error);
+    return unavailable();
+  }
+}
+
+async function handleSetup(req: NextRequest) {
   await ensureReady();
 
   if (configuredByEnvironment()) {

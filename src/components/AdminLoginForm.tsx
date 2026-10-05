@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AUTH_UNAVAILABLE_MESSAGE } from "@/lib/auth-errors";
 import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
 
@@ -79,10 +80,7 @@ export default function AdminLoginForm({ currentUserName, setupAvailable = false
       const data = await response.json().catch(() => null) as { error?: string; role?: string } | null;
       if (!response.ok) {
         setError(
-          data?.error ??
-            (response.status >= 500
-              ? "Sign-in is temporarily unavailable. Please try again. If this keeps happening, check the database connection."
-              : "Administrator sign-in failed.")
+          data?.error ?? (response.status >= 500 ? AUTH_UNAVAILABLE_MESSAGE : "Administrator sign-in failed.")
         );
         return;
       }
