@@ -16,7 +16,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Searchable/filterable course library
 - **Thirteen courses across three programs** — Computer Science, Software
   Engineering and Vibe Coding — plus web, mobile and backend paths
-- **The Code lab** (`/dashboard/code`): an HTML/CSS/JavaScript editor with a
+- **The Code lab** (`/dashboard/code`): the real VS Code editor (Monaco) with a
   file tree, live preview and console, saved per student and downloadable as a
   single HTML file
 - Full course pages with modules, lessons, access rules and instructor details
@@ -379,11 +379,15 @@ dashboard has its own compact horizontal nav (`SidebarNav` with `compact`).
 
 ## The Code lab
 
-`/dashboard/code` is a small code editor that runs entirely in the browser:
+`/dashboard/code` is the real VS Code editor (Monaco) running entirely in the
+browser:
 
 - A file tree with three templates (a starter web page, a JavaScript practice
   notebook and a mini quiz app), editable HTML, CSS and JavaScript files, and a
   live preview that re-runs as you type.
+- Monaco (the engine inside VS Code) provides syntax highlighting,
+  IntelliSense, error squiggles, the minimap and the command palette. The editor
+  and its language workers are bundled locally, so no CDN is needed.
 - A **Console** tab: the preview document is given a tiny agent that forwards
   `console.log`, warnings, errors and unhandled promise rejections to the page.
 - Work is saved to `localStorage` per account and can be downloaded as one

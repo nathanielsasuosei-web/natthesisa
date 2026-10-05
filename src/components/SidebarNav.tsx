@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import Logo from "./Logo";
+import SignOutButton from "./SignOutButton";
 
 const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/dashboard", label: "Overview", icon: "home" },
@@ -32,18 +32,8 @@ interface Props {
 
 export default function SidebarNav({ userName, userEmail, passActive, passEndsAt, weeklyMinutes, weeklyGoal, isOwner, compact = false }: Props) {
   const pathname = usePathname();
-  const [busy, setBusy] = useState(false);
 
   const active = (href: string) => href === "/dashboard" ? pathname === href : pathname.startsWith(href);
-
-  async function signOut() {
-    if (busy) return;
-    setBusy(true);
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
-    // Full navigation: the session cookie has just been cleared, and a client
-    // router push can keep serving the signed-in shell from its cache.
-    window.location.replace("/");
-  }
 
   if (compact) {
     return (
@@ -58,6 +48,7 @@ export default function SidebarNav({ userName, userEmail, passActive, passEndsAt
           {isOwner && <Link href="/owner" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold text-[#d3c8ff]"><Icon name="crown" size={14} /> Teacher console</Link>}
         </nav>
         <Link href="/dashboard/account" aria-label="Open account" className="grid size-8 shrink-0 place-items-center rounded-full bg-[#6d4aff] text-[10px] font-black text-white">{userName.slice(0, 1).toUpperCase()}</Link>
+        <SignOutButton iconOnly iconSize={15} className="grid size-8 shrink-0 place-items-center rounded-lg text-[#aaa4b2] transition hover:bg-white/[.08] hover:text-white" />
       </div>
     );
   }
@@ -97,8 +88,11 @@ export default function SidebarNav({ userName, userEmail, passActive, passEndsAt
           <div className="flex items-center gap-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#332b4c] text-xs font-black text-[#c7baff]">{userName.slice(0, 1).toUpperCase()}</span>
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-white">{userName}</p><p className="truncate text-[9px] text-[#716b79]">{userEmail}</p></div>
-            <button onClick={signOut} disabled={busy} title="Sign out" className="rounded-lg p-2 text-[#716b79] transition hover:bg-white/[.06] hover:text-white"><Icon name="logout" size={16} /></button>
           </div>
+          <SignOutButton
+            iconSize={15}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/[.09] bg-white/[.04] px-3 py-2 text-[11px] font-bold text-[#c3bccc] transition hover:border-[#ff8f9b]/40 hover:bg-[#ff8f9b]/10 hover:text-[#ffb3bc]"
+          />
           <div className="mt-2.5 inline-flex rounded-full bg-[#27232f] px-2.5 py-1 text-[9px] font-bold text-[#a9a2b0]">
             {passActive ? `Pass active · ends ${new Date(passEndsAt).toLocaleDateString()}` : "No active pass"}
           </div>
