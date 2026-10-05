@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canAccessLesson } from "@/lib/courses";
+import { accessMessage, lessonAccess } from "@/lib/access";
 import { findContentLesson, findUploadedLessonCourse } from "@/lib/course-content";
 import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 import { getCurrentUser } from "@/lib/session";
@@ -20,9 +20,10 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
   if (!located) return NextResponse.json({ error: "This lesson is no longer part of a course." }, { status: 404 });
   const mergedLesson = findContentLesson(located.course, lessonId);
   if (!mergedLesson) return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
-  if (!canAccessLesson(user.subscription.planId, located.course, mergedLesson)) {
+  const access = lessonAccess(user, located.course, mergedLesson);
+  if (!access.allowed) {
     return NextResponse.json(
-      { error: "This material is included with Pro. Upgrade to keep learning.", code: "UPGRADE_REQUIRED" },
+      { error: accessMessage(access, located.course.shortTitle), code: "ACCESS_REQUIRED", reason: access.reason },
       { status: 402 }
     );
   }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Course } from "@/lib/courses";
+import { formatMoney } from "@/lib/pass-periods";
 import { getCourseLessons, getCourseMinutes } from "@/lib/courses";
 import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "./CourseVisual";
@@ -14,9 +15,11 @@ interface Props {
   lessonCount?: number;
   /** Total minutes including lessons published by the owner. */
   minutes?: number;
+  /** What the course costs on its own, when the viewer may still buy it. */
+  price?: number;
 }
 
-export default function CourseCard({ course, progress, locked = false, hrefBase = "dashboard", lessonCount, minutes }: Props) {
+export default function CourseCard({ course, progress, locked = false, hrefBase = "dashboard", lessonCount, minutes, price }: Props) {
   const lessons = getCourseLessons(course);
   const href = hrefBase === "dashboard" ? `/dashboard/courses/${course.slug}` : "/login";
   const showVisual = hrefBase === "dashboard";
@@ -32,7 +35,7 @@ export default function CourseCard({ course, progress, locked = false, hrefBase 
           <span className="text-[11px] font-bold uppercase tracking-[.12em] text-[#6d4aff]">{course.category}</span>
           {locked ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-[#f0edf9] px-2.5 py-1 text-[10px] font-bold text-[#625c70]">
-              <Icon name="lock" size={11} /> Pro
+              <Icon name="lock" size={11} /> {price !== undefined ? formatMoney(price) : "Locked"}
             </span>
           ) : progress === 100 ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">

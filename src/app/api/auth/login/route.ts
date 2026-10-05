@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     // Database/bootstrap errors used to escape as Next.js HTML 500 pages. The
     // sign-in form could not parse those responses and showed only its generic
-    // "Administrator sign-in failed" fallback. Keep the details in server
+    // "Teacher sign-in failed" fallback. Keep the details in server
     // logs, but return a predictable message the UI can explain safely.
     console.error("authentication request failed", error);
     return NextResponse.json(

@@ -4,7 +4,6 @@ import path from "node:path";
 import { cookies, headers } from "next/headers";
 import { User, getUserById, saveUser, syncUsageWindow, touchLastSeen } from "./store";
 import { ensureReady } from "./bootstrap";
-import { syncSubscription } from "./subscription";
 import { isOwner } from "./owner";
 
 /**
@@ -174,36 +173,31 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!payload) return null;
 
   // Reading the cookie comes first on purpose: pages that call this at build
-  // time (e.g. /admin-sign-in) are signed out, so nothing here runs during
+  // time (e.g. /owner-sign-in) are signed out, so nothing here runs during
   // static prerendering. First-run setup only happens for a real session.
   await ensureReady();
 
   const user = await getUserById(payload.userId);
   if (!user) return null;
 
-  // Both of these are day-boundary housekeeping: the billing period rolls over
-  // when it lapses, and the seven-day activity window has to end today or the
-  // dashboard keeps describing last week. Persisted only when something moved.
-  const periodRolled = await syncSubscription(user);
-  const windowRolled = syncUsageWindow(user);
-  if (periodRolled || windowRolled) {
+  // The seven-day activity window has to end today or the dashboard keeps
+  // describing last week. Persisted only when the window moved. (An access
+  // pass needs no upkeep: it simply stops being active when it expires, and
+  // the purchases beside it stay put.)
+  if (syncUsageWindow(user)) {
     await saveUser(user);
   }
   return user;
 }
 
-export async function getCurrentAdmin(): Promise<User | null> {
-  const user = await getCurrentUser();
-  return user?.role === "admin" ? user : null;
-}
-
 /**
- * The site owner: the only account allowed to publish lessons. Every lesson
- * upload route calls this, so the rule is enforced on the server.
+ * The owner (the teacher): the only account allowed to publish lessons, set
+ * prices and manage students. Every owner route calls this, so the rule is
+ * enforced on the server.
  */
 export async function getCurrentOwner(): Promise<User | null> {
-  const admin = await getCurrentAdmin();
-  return isOwner(admin) ? admin : null;
+  const user = await getCurrentUser();
+  return isOwner(user) ? user : null;
 }
 
 export async function recordSignIn(user: User): Promise<void> {

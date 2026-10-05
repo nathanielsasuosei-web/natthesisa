@@ -51,7 +51,7 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
       }
       // Use a full navigation after changing the httpOnly session cookie so
       // the first protected server render always receives the new session.
-      window.location.replace(data.role === "admin" ? "/admin" : "/dashboard");
+      window.location.replace(data.role === "owner" ? "/owner" : "/dashboard");
     } catch {
       setError("Network error. Please try again.");
     } finally {

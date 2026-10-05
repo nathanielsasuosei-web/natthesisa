@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
 import { contentPercent } from "@/lib/course-content";
 import { requireCurrentUser } from "@/lib/require-user";
-import { getPlan } from "@/lib/plans";
+import { hasActivePass } from "@/lib/access";
 import { fmtDate } from "@/lib/format";
 import CertificateActions from "@/components/CertificateActions";
 import Icon from "@/components/Icon";
@@ -19,10 +19,12 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
   if (!course) notFound();
   const progress = user.progress[course.id];
   const complete = progress && contentPercent(course, progress.completedLessonIds) === 100;
-  const entitled = getPlan(user.subscription.planId).entitlements.certificates;
+  // A certificate celebrates finished work, and only an active pass opens the
+  // course in the first place — so both are checked.
+  const entitled = hasActivePass(user);
 
   if (!complete || !entitled) {
-    return <div className="mx-auto max-w-md border-y border-[#ded9e3] py-8 text-center"><span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#f0ecff] text-[#6d4aff]"><Icon name={complete ? "lock" : "certificate"} size={25} /></span><h1 className="mt-4 text-xl font-black">{complete ? "Certificate requires Pro" : "Complete the course first"}</h1><p className="mt-2 text-sm leading-6 text-[#756f7b]">{complete ? "Upgrade to create and share certificates for completed learning paths." : `Finish every lesson in ${course.title} to earn this certificate.`}</p><Link href={complete ? "/dashboard/plans" : `/dashboard/courses/${course.slug}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white">{complete ? "View plans" : "Continue course"} <Icon name="arrow-right" size={14} /></Link></div>;
+    return <div className="mx-auto max-w-md border-y border-[#ded9e3] py-8 text-center"><span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#f0ecff] text-[#6d4aff]"><Icon name={complete ? "lock" : "certificate"} size={25} /></span><h1 className="mt-4 text-xl font-black">{complete ? "Your pass has ended" : "Complete the course first"}</h1><p className="mt-2 text-sm leading-6 text-[#756f7b]">{complete ? "Buy more time on an access pass and your certificate is ready to create and share." : `Finish every lesson in ${course.title} to earn this certificate.`}</p><Link href={complete ? "/dashboard/plans" : `/dashboard/courses/${course.slug}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white">{complete ? "Buy an access pass" : "Continue course"} <Icon name="arrow-right" size={14} /></Link></div>;
   }
 
   const certificateId = `CMG-${user.id.replaceAll("-", "").slice(0, 6).toUpperCase()}-${course.id.slice(0, 4).toUpperCase()}`;

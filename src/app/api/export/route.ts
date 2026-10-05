@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import { COURSES } from "@/lib/courses";
 import { contentLessons, contentPercent } from "@/lib/course-content";
-import { getPlan } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/session";
 
+/**
+ * A student's own progress as CSV. There is one level of access now, so this
+ * is available to any signed-in student rather than being held back as an
+ * upgrade.
+ */
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
-  const plan = getPlan(user.subscription.planId);
-  if (!plan.entitlements.downloads) {
-    return NextResponse.json(
-      { error: "Progress export is available on Pro and Mentor.", code: "FORBIDDEN" },
-      { status: 403 }
-    );
-  }
 
   const rows = ["course,status,progress_percent,lessons_completed,total_lessons,last_accessed"];
   for (const progress of Object.values(user.progress)) {

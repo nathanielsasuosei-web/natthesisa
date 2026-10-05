@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { COURSES, getCourse } from "@/lib/courses";
 import { contentLessons, contentPercent } from "@/lib/course-content";
-import { getPlan } from "@/lib/plans";
+import { courseAccess } from "@/lib/access";
+import { coursePrice } from "@/lib/plans";
 import { completedLessonCount, learningStreak } from "@/lib/store";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
@@ -13,7 +14,6 @@ import UsageChart from "@/components/UsageChart";
 
 export default async function DashboardPage() {
   const user = await requireCurrentUser();
-  const plan = getPlan(user.subscription.planId);
   const progressRecords = Object.values(user.progress).sort((a, b) => b.lastAccessedAt.localeCompare(a.lastAccessedAt));
   const currentProgress = progressRecords[0];
   const currentCourse = currentProgress ? getCourse(currentProgress.courseId) : undefined;
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
           { label: "Lessons completed", value: String(lessonsDone), note: `${progressRecords.length} course${progressRecords.length === 1 ? "" : "s"} started`, icon: "check", iconStyle: "bg-violet-100 text-violet-700" },
           { label: "Learning time", value: fmtMinutes(user.lifetimeMinutes), note: `${weeklyMinutes} min this week`, icon: "clock", iconStyle: "bg-cyan-100 text-cyan-700" },
           { label: "Current streak", value: `${streak} day${streak === 1 ? "" : "s"}`, note: streak ? "Keep showing up" : "Learn today to begin", icon: "flame", iconStyle: "bg-orange-100 text-orange-700" },
-          { label: "Certificates", value: String(progressRecords.filter((record) => { const course = getCourse(record.courseId); return course && contentPercent(course, record.completedLessonIds) === 100; }).length), note: plan.entitlements.certificates ? "Share your achievement" : "Available with Pro", icon: "certificate", iconStyle: "bg-emerald-100 text-emerald-700" },
+          { label: "Certificates", value: String(progressRecords.filter((record) => { const course = getCourse(record.courseId); return course && contentPercent(course, record.completedLessonIds) === 100; }).length), note: "Share your achievement", icon: "certificate", iconStyle: "bg-emerald-100 text-emerald-700" },
         ].map((stat, index) => (
           <article key={stat.label} className="open-stat animate-fade-up" style={{ animationDelay: `${index * .05}s` }}>
             <div className="flex items-center justify-between"><span className={`grid size-9 place-items-center rounded-xl ${stat.iconStyle}`}><Icon name={stat.icon as "clock"} size={18} /></span><Icon name="chevron-right" size={15} className="text-[#bbb5c0]" /></div>
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
       <section className="open-columns grid gap-0 xl:grid-cols-[1.55fr_.85fr]">
         <div className="open-column">
           <div className="mb-4 flex items-end justify-between"><div><h2 className="text-base font-black tracking-[-.025em]">Recommended for you</h2><p className="mt-1 text-xs text-[#89828f]">Based on your {user.profile.track.toLowerCase()} goal</p></div><Link href="/dashboard/courses" className="text-[11px] font-bold text-[#6543e8]">See all courses →</Link></div>
-          <div className="grid gap-4 md:grid-cols-2">{recommendations.map((course) => <CourseCard key={course.id} course={course} locked={course.requiredPlan !== "free" && !plan.entitlements.allCourses} />)}</div>
+          <div className="grid gap-4 md:grid-cols-2">{recommendations.map((course) => <CourseCard key={course.id} course={course} locked={!courseAccess(user, course).allowed} price={coursePrice(course.id)} />)}</div>
         </div>
         <div className="open-column">
           <div className="mb-4"><h2 className="text-base font-black tracking-[-.025em]">Recent activity</h2><p className="mt-1 text-xs text-[#89828f]">Your latest milestones</p></div>

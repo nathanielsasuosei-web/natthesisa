@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canAccessLesson, getCourse } from "@/lib/courses";
+import { getCourse } from "@/lib/courses";
 import { contentPercent, findContentLesson } from "@/lib/course-content";
+import { accessMessage, lessonAccess } from "@/lib/access";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getOrCreateProgress, recordLessonProgress, saveUser } from "@/lib/store";
 
@@ -15,9 +16,10 @@ export async function POST(req: NextRequest) {
   const course = getCourse(courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Course or lesson not found." }, { status: 404 });
-  if (!canAccessLesson(user.subscription.planId, course, lesson)) {
+  const access = lessonAccess(user, course, lesson);
+  if (!access.allowed) {
     return NextResponse.json(
-      { error: "This lesson is included with Pro. Upgrade to keep learning.", code: "UPGRADE_REQUIRED" },
+      { error: accessMessage(access, course.shortTitle), code: "ACCESS_REQUIRED", reason: access.reason },
       { status: 402 }
     );
   }

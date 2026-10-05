@@ -19,8 +19,8 @@
  * on pgcrypto or on a PostgreSQL version newer than 12. Indexes and constraints are declared so the database — not the
  * application — is what guarantees unique emails and valid rows.
  *
- * `app_state` holds non-user content the owner publishes (their lesson index and
- * branding). It lives here rather than in JSON files on the server's disk,
+ * `app_state` holds non-user content the owner publishes (their lesson index,
+ * branding, prices). It lives here rather than in JSON files on the server's disk,
  * which is wiped on redeploy by hosts with an ephemeral filesystem.
  *
  * Deliberately denormalised: the per-learner learning record (progress,
@@ -43,13 +43,14 @@ export const SCHEMA_STATEMENTS: string[] = [
      email             text not null,
      name              text not null,
      password_hash     text not null,
-     role              text not null default 'member' check (role in ('member', 'admin')),
+     role              text not null default 'student' check (role in ('student', 'owner')),
      owner             boolean not null default false,
      suspended         boolean not null default false,
      subscription      jsonb not null,
      usage             jsonb not null,
      lifetime_minutes  integer not null default 0,
      progress          jsonb not null default '{}'::jsonb,
+     purchases         jsonb not null default '[]'::jsonb,
      invoices          jsonb not null default '[]'::jsonb,
      activity_log      jsonb not null default '[]'::jsonb,
      payment_method    jsonb not null,
@@ -98,6 +99,8 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table users add column if not exists usage jsonb`,
   `alter table users add column if not exists lifetime_minutes integer not null default 0`,
   `alter table users add column if not exists progress jsonb not null default '{}'::jsonb`,
+  // Purchased courses and lessons (the entitlement list next to the account).
+  `alter table users add column if not exists purchases jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists invoices jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists activity_log jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists payment_method jsonb`,
@@ -118,7 +121,24 @@ export const MIGRATION_STATEMENTS: string[] = [
   // the code reads `subscription.planId` and throws on it). Both NULL and a
   // previously backfilled '{}' are healed. Then enforce NOT NULL — the app
   // always writes these itself, so nothing new can be null in between.
-  `update users set subscription = jsonb_build_object('planId', 'free', 'cycle', 'monthly', 'cancelAtPeriodEnd', false, 'pendingPlanId', null, 'currentPeriodStart', to_jsonb(now()), 'currentPeriodEnd', to_jsonb(now() + interval '30 days')) where subscription is null or subscription = '{}'::jsonb`,
+  `update users set subscription = jsonb_build_object('period', 'monthly', 'price', 0, 'startedAt', to_jsonb(now()), 'expiresAt', to_jsonb(now())) where subscription is null or subscription = '{}'::jsonb`,
+  // Subscriptions written by an older build describe a tier and a billing
+  // cycle. They are translated here into the access pass that replaced them:
+  // a paid tier that has not lapsed keeps its remaining time (as a month
+  // pass), everything else is an ended pass. Purchases the student had made
+  // are untouched, and the plan tier no longer gates anything.
+  `update users set subscription = jsonb_build_object(
+     'period', 'monthly',
+     'price', 0,
+     'startedAt', to_jsonb(coalesce((subscription->>'currentPeriodStart')::timestamptz, now())),
+     'expiresAt', case
+       when subscription->>'planId' in ('premium', 'elite')
+         and (subscription->>'currentPeriodEnd') is not null
+         and (subscription->>'currentPeriodEnd')::timestamptz > now()
+       then to_jsonb((subscription->>'currentPeriodEnd')::timestamptz)
+       else to_jsonb(now())
+     end
+   ) where subscription->>'expiresAt' is null`,
   `update users set usage = jsonb_build_object('periodStart', to_jsonb(now()), 'minutes', 0, 'history', (select coalesce(jsonb_agg(jsonb_build_object('date', to_char(current_date - s, 'YYYY-MM-DD'), 'count', 0) order by s desc), '[]'::jsonb) from generate_series(0, 6) s), 'creditedLessonIds', '[]'::jsonb) where usage is null or usage = '{}'::jsonb`,
   `update users set payment_method = '{"brand":"Visa","last4":"4242","provider":"demo"}'::jsonb where payment_method is null or payment_method = '{}'::jsonb`,
   `update users set profile = '{"headline":"Learning one project at a time.","track":"Full-stack developer","experience":"Just starting","weeklyGoal":180}'::jsonb where profile is null or profile = '{}'::jsonb`,
@@ -132,14 +152,17 @@ export const MIGRATION_STATEMENTS: string[] = [
   `update users set suspended = false where suspended is null`,
   `update users set lifetime_minutes = 0 where lifetime_minutes is null`,
 
-  // The code only understands 'member' and 'admin'. Owner-flagged rows are
-  // administrators even when a legacy schema stored a different word
-  // ('owner', 'student', ...); anything else unknown becomes a member.
-  // Re-promote from /admin afterwards if a legacy word meant admin to you.
-  `update users set role = 'admin' where owner is true and role is distinct from 'admin'`,
-  `update users set role = 'member' where role is null or role not in ('member', 'admin')`,
+  // There are two roles: 'student' and 'owner' (the teacher). The owner-flagged
+  // row is the owner; every other account — including accounts that held
+  // administrator access under an older build — becomes a student. Nothing is
+  // lost: an administrator's learning record, purchases and invoices stay on
+  // the account, and the owner can grant access from the console.
+  // The legacy check allows only ('member', 'admin'), so it is dropped before
+  // the rows are rewritten — an update to 'owner' would be rejected otherwise.
   `alter table users drop constraint if exists users_role_check`,
-  `alter table users add constraint users_role_check check (role in ('member', 'admin'))`,
+  `update users set role = 'owner' where owner is true and role is distinct from 'owner'`,
+  `update users set role = 'student' where role is null or role not in ('student', 'owner')`,
+  `alter table users add constraint users_role_check check (role in ('student', 'owner'))`,
 
   // app_state gets the same treatment as users.
   `alter table app_state add column if not exists value jsonb`,
@@ -161,6 +184,7 @@ export interface UserRow {
   usage: unknown;
   lifetime_minutes: number;
   progress: unknown;
+  purchases: unknown;
   invoices: unknown;
   activity_log: unknown;
   payment_method: unknown;

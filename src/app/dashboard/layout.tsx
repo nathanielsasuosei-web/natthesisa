@@ -1,21 +1,22 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getPlan } from "@/lib/plans";
+import { hasActivePass } from "@/lib/access";
+import { isOwner } from "@/lib/owner";
 import SidebarNav from "@/components/SidebarNav";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const plan = getPlan(user.subscription.planId);
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
   const navProps = {
     userName: user.name,
     userEmail: user.email,
-    planName: plan.name,
+    passActive: hasActivePass(user),
+    passEndsAt: user.subscription.expiresAt,
     weeklyMinutes,
     weeklyGoal: user.profile.weeklyGoal,
-    isAdmin: user.role === "admin",
+    isOwner: isOwner(user),
   };
 
   return (

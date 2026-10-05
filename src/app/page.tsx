@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { COURSES } from "@/lib/courses";
 import { contentTotals } from "@/lib/course-content";
-import { PLANS, formatMoney } from "@/lib/plans";
+import { PASS_PERIODS, PERIOD_DAYS, PERIOD_LABEL, formatMoney, pricing } from "@/lib/plans";
 import { site } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import CourseCard from "@/components/CourseCard";
@@ -17,7 +17,8 @@ export const revalidate = 0;
 
 export default async function LandingPage() {
   const user = await getCurrentUser();
-  const appHref = user?.role === "admin" ? "/admin" : "/dashboard";
+  const prices = pricing();
+  const appHref = user?.role === "owner" ? "/owner" : "/dashboard";
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -57,8 +58,8 @@ export default async function LandingPage() {
               Explore courses
             </a>
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-[#77717f] lg:flex-col">
-              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>No card required</span>
-              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>2 courses free</span>
+              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Gateway demo — nothing is charged</span>
+              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Every lesson from one pass</span>
               <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Learn at your pace</span>
             </div>
           </div>
@@ -142,7 +143,7 @@ export default async function LandingPage() {
             <span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Choose your direction</span>
           </div>
           <div className="mt-11 grid gap-x-7 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
-            {COURSES.slice(0, 3).map((course) => <CourseCard key={course.id} course={course} hrefBase="public" locked={course.requiredPlan !== "free"} />)}
+            {COURSES.slice(0, 3).map((course) => <CourseCard key={course.id} course={course} hrefBase="public" locked />)}
           </div>
           <div className="mt-7 flex flex-wrap justify-center gap-2">
             {["HTML & CSS", "JavaScript", "React", "React Native", "Node.js", "Algorithms", "APIs", "Git & deployment"].map((tag) => (
@@ -211,19 +212,24 @@ export default async function LandingPage() {
         </section>
 
         <section id="pricing" className="mx-auto max-w-[1120px] px-5 py-24 sm:px-8">
-          <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Simple plans</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Start free. Grow when you&apos;re ready.</h2><p className="mt-4 text-sm text-[#77717e]">One plan for every stage. Cancel whenever you need to.</p></div>
+          <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">One pass, three lengths</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Pay for the time you need.</h2><p className="mt-4 text-sm text-[#77717e]">Every pass unlocks the same thing — every course and lesson. Then buy the courses you want and keep them.</p></div>
           <div className="open-plan-grid mt-12 grid gap-0 lg:grid-cols-3">
-            {PLANS.map((plan) => (
-              <article key={plan.id} data-featured={plan.featured} className="open-plan flex flex-col">
-                {plan.featured && <span className="absolute -top-3 right-6 rounded-full bg-[#ffcf59] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#493600]">Most popular</span>}
-                <h3 className="text-lg font-black">{plan.name}</h3><p className="mt-1 text-sm text-[#7b7481]">{plan.tagline}</p>
-                <p className="mt-6"><span className="text-4xl font-black tracking-[-.05em]">{formatMoney(plan.monthly)}</span><span className="text-sm text-[#8c8592]"> / month</span></p>
-                <ul className="mt-7 flex-1 space-y-3 text-sm text-[#625c69]">{plan.features.slice(0, 5).map((feature) => <li key={feature} className="flex gap-2.5"><Icon name="check" size={16} className="text-emerald-600" />{feature}</li>)}</ul>
-                <Link href="/login?mode=signup" className={`mt-8 rounded-xl px-4 py-3 text-center text-sm font-extrabold transition hover:-translate-y-0.5 ${plan.featured ? "bg-[#6d4aff] text-white hover:bg-[#7a5aff]" : "border border-[#dad5df] bg-[#faf9fb] text-[#302b37] hover:border-[#bdb3dc]"}`}>{plan.id === "free" ? "Start free" : `Choose ${plan.name}`}</Link>
+            {PASS_PERIODS.map((period) => (
+              <article key={period} data-featured={period === "monthly"} className="open-plan flex flex-col">
+                {period === "monthly" && <span className="absolute -top-3 right-6 rounded-full bg-[#ffcf59] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#493600]">Best value</span>}
+                <h3 className="text-lg font-black">{PERIOD_LABEL[period]}</h3>
+                <p className="mt-1 text-sm text-[#7b7481]">{PERIOD_DAYS[period]} day{PERIOD_DAYS[period] === 1 ? "" : "s"} of full access</p>
+                <p className="mt-6"><span className="text-4xl font-black tracking-[-.05em]">{formatMoney(prices[period])}</span><span className="text-sm text-[#8c8592]"> / {PERIOD_DAYS[period] === 1 ? "day" : `${PERIOD_DAYS[period]} days`}</span></p>
+                <ul className="mt-7 flex-1 space-y-3 text-sm text-[#625c69]">
+                  {["Every course and lesson", "Free previews to try first", "Progress and certificates", "Courses you buy stay yours"].map((feature) => (
+                    <li key={feature} className="flex gap-2.5"><Icon name="check" size={16} className="text-emerald-600" />{feature}</li>
+                  ))}
+                </ul>
+                <Link href="/login?mode=signup" className={`mt-8 rounded-xl px-4 py-3 text-center text-sm font-extrabold transition hover:-translate-y-0.5 ${period === "monthly" ? "bg-[#6d4aff] text-white hover:bg-[#7a5aff]" : "border border-[#dad5df] bg-[#faf9fb] text-[#302b37] hover:border-[#bdb3dc]"}`}>Create an account</Link>
               </article>
             ))}
           </div>
-          <p className="mt-5 text-center text-[11px] text-[#98919e]">Prices shown in {site.currency.label}. No card is charged in this build — plans activate immediately.</p>
+          <p className="mt-5 text-center text-[11px] text-[#98919e]">Prices shown in {site.currency.label}, set by your teacher. Courses and single lessons are priced separately, and no card is charged in this build.</p>
         </section>
 
         <section className="relative overflow-hidden border-y border-[#6040e5] bg-[#6d4aff] text-white">
@@ -237,7 +243,7 @@ export default async function LandingPage() {
       <footer className="border-t border-black/[.07] bg-[#f2f1ed] py-12">
         <div className="mx-auto grid max-w-[1120px] gap-10 px-5 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div><Logo /><p className="mt-4 max-w-xs text-sm leading-6 text-[#77717d]">Practical technology education for curious people ready to build.</p></div>
-          <div><p className="text-xs font-black uppercase tracking-wider">Learn</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#courses" className="block hover:text-[#5c3be4]">Courses</a><a href="#pricing" className="block hover:text-[#5c3be4]">Pricing</a><Link href="/login" className="block hover:text-[#5c3be4]">Student login</Link><Link href="/admin-sign-in" className="block hover:text-[#5c3be4]">Administrator sign in</Link></div></div>
+          <div><p className="text-xs font-black uppercase tracking-wider">Learn</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#courses" className="block hover:text-[#5c3be4]">Courses</a><a href="#pricing" className="block hover:text-[#5c3be4]">Pricing</a><Link href="/login" className="block hover:text-[#5c3be4]">Student login</Link><Link href="/owner-sign-in" className="block hover:text-[#5c3be4]">Teacher sign in</Link></div></div>
           <div><p className="text-xs font-black uppercase tracking-wider">Company</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#how-it-works" className="block hover:text-[#5c3be4]">How it works</a><a href="#stories" className="block hover:text-[#5c3be4]">Stories</a><a href={`mailto:${site.supportEmail}`} className="block hover:text-[#5c3be4]">Contact</a></div></div>
           <div><p className="text-xs font-black uppercase tracking-wider">Build your future</p><p className="mt-4 text-sm leading-6 text-[#746e7a]">New lessons and projects are added to every learning path.</p></div>
         </div>

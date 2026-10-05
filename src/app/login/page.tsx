@@ -25,7 +25,7 @@ async function signedInUser() {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
   const user = await signedInUser();
-  if (user) redirect(user.role === "admin" ? "/admin" : "/dashboard");
+  if (user) redirect(user.role === "owner" ? "/owner" : "/dashboard");
   const params = await searchParams;
   const initialMode = params.mode === "signup" ? "signup" : "signin";
 
@@ -59,7 +59,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <AuthForm initialMode={initialMode} />
           <p className="mt-6 text-center text-[10px] text-[#918a97]">
             Owner or administrator?{" "}
-            <Link href="/admin-sign-in" className="font-bold text-[#6543e8]">
+            <Link href="/owner-sign-in" className="font-bold text-[#6543e8]">
               Sign in here
             </Link>
           </p>
