@@ -3,6 +3,9 @@ import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { PurchaseError, buyCourse, buyLesson } from "@/lib/purchases";
 import { saveUser } from "@/lib/store";
 import { hasActivePass } from "@/lib/access";
+import { notifyContentPurchased } from "@/lib/email";
+import { getCourse } from "@/lib/courses";
+import { findContentLesson } from "@/lib/course-content";
 
 /**
  * Buys a course, or a single lesson.
@@ -33,6 +36,22 @@ export async function POST(req: NextRequest) {
     const purchase =
       kind === "course" ? await buyCourse(user, courseId) : await buyLesson(user, courseId, lessonId);
     await saveUser(user);
+
+    // Best-effort receipt email — never allowed to break the purchase.
+    // (buyCourse/buyLesson have already validated the course and lesson exist.)
+    const course = getCourse(courseId);
+    const item =
+      kind === "course"
+        ? course?.title ?? "Course"
+        : `${course?.shortTitle ?? "Course"} — ${course ? findContentLesson(course, lessonId)?.title ?? "lesson" : "lesson"}`;
+    await notifyContentPurchased({
+      to: user.email,
+      toName: user.name,
+      item,
+      amount: purchase.amount,
+      invoiceNumber: purchase.invoiceNumber,
+    });
+
     return NextResponse.json({
       ok: true,
       purchase,

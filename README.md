@@ -22,6 +22,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
 - Server-saved lesson completion, course percentages and activity history
+- **Student email** — receipts for every purchase, a congratulations message on
+  finishing a course, and a notice when a certificate is issued
 - Dashboard with weekly goal, streak, time learned and recommendations
 - Progress analytics, certificates, learning timeline and CSV export
 - Editable learner profile, experience level, track and weekly goal
@@ -336,6 +338,28 @@ only useful if a stranger can check it — so the important half is public.
   withdrawing one keeps the verification page answering but reports it as
   withdrawn, with the reason shown to whoever checks it. Nothing is deleted, and
   it can be restored.
+
+## Student email
+
+`src/lib/email.ts` writes to a student at the three moments that matter:
+
+- **Purchases** — buying an access pass (`/api/pass`) or a course/lesson
+  (`/api/purchase`) sends a branded receipt with the amount, the invoice number
+  and (for passes) the date the pass runs out.
+- **Course completion** — the moment the last lesson of a course is marked
+  complete (`/api/progress`), the student gets a congratulations email linking
+  to their certificate. A `completionEmailedAt` stamp on the progress record
+  guarantees it is sent exactly once, even if the lesson is unmarked and
+  re-marked.
+- **Certificates** — `issueCertificate()` emails the student when a certificate
+  is issued for the first time, with the code, the lesson and hour counts, and
+  the public verification URL.
+
+Transports are chosen from the environment: `RESEND_API_KEY` (Resend HTTP API),
+else `SMTP_HOST` (+ port/user/password via nodemailer), else a console dry run —
+so local development works with no provider configured. Every send is awaited
+inside its own try/catch: an email can never fail a purchase, a progress save or
+a certificate issue. See `.env.example` for the variables.
 
 ## The teacher's inbox
 

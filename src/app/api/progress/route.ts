@@ -4,6 +4,8 @@ import { contentPercent, findContentLesson } from "@/lib/course-content";
 import { accessMessage, lessonAccess } from "@/lib/access";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getOrCreateProgress, recordLessonProgress, saveUser } from "@/lib/store";
+import { hasFinishedCourse } from "@/lib/certificates";
+import { notifyCourseCompleted } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -27,9 +29,27 @@ export async function POST(req: NextRequest) {
   const completed = body.completed !== false;
   const progress = recordLessonProgress(user, course.id, lesson.id, completed);
   await saveUser(user);
+
+  // The last lesson was just finished: send the one-time congratulations
+  // email. The flag on the progress record keeps it to exactly one, even if
+  // the student unmarks and re-marks the lesson later.
+  let courseFinished = false;
+  if (completed && !progress.completionEmailedAt && hasFinishedCourse(user, course.id)) {
+    courseFinished = true;
+    progress.completionEmailedAt = new Date().toISOString();
+    await saveUser(user);
+    await notifyCourseCompleted({
+      to: user.email,
+      toName: user.name,
+      courseId: course.id,
+      courseTitle: course.title,
+    });
+  }
+
   return NextResponse.json({
     ok: true,
     completed,
+    courseFinished,
     percent: contentPercent(course, progress.completedLessonIds),
     completedLessonIds: progress.completedLessonIds,
   });

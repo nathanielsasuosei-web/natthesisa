@@ -96,6 +96,11 @@ export interface CourseProgress {
   completedLessonIds: string[];
   startedAt: string;
   lastAccessedAt: string;
+  /**
+   * Set once the "you finished this course" email goes out, so unmarking and
+   * re-marking the last lesson can never send it twice.
+   */
+  completionEmailedAt?: string;
 }
 
 export interface LearnerProfile {
