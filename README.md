@@ -46,6 +46,19 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
 > No real money moves in this repository. The pass and purchase UX are functional, but payment success is simulated. Connect a verified provider such as Paystack, Flutterwave or Stripe and process purchases from a verified webhook before production.
 
+### Certificates, company pages and the public catalogue
+
+- Completing a course while your pass is active issues a certificate with a
+  stable code and a QR code, printable as A4 landscape.
+- `/verify` (and `/verify/<code>`, what the QR opens) lets anyone — an employer
+  with no account — check a certificate. Withdrawn certificates say so.
+- `/courses` lists the whole catalog and each course has a public page with its
+  full description.
+- `/about`, `/pricing`, `/contact`, `/privacy` and `/terms` share one header and
+  footer with the rest of the public site.
+- The contact form stores messages for the teacher's inbox at `/owner/messages`.
+- The header collapses into a working mobile menu on phones.
+
 ### Teacher console
 
 - Site-wide student, engagement, course and revenue metrics, plus the pass
@@ -230,6 +243,11 @@ This is the “what to paste where” map for continuing the build.
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
 | 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/owner/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
+| 11a. Public catalogue | `src/app/courses/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/lib/course-info.ts`, `src/components/CourseBrief.tsx` | The whole catalog and one page per course, readable without an account — including the long description, audience, prerequisites, tools and where the course leads |
+| 11b. Company pages | `src/app/about/page.tsx`, `src/app/pricing/page.tsx`, `src/app/contact/page.tsx`, `src/app/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/components/InfoPage.tsx` | About, the payment page and the legal pages, all on one shared shell |
+| 11c. Public shell | `src/components/PublicHeader.tsx`, `src/components/PublicFooter.tsx` | One navigation for every public page, including the mobile menu |
+| 11d. Contact inbox | `src/lib/messages.ts`, `src/lib/message-topics.ts`, `src/app/api/contact/route.ts`, `src/components/ContactForm.tsx`, `src/app/owner/messages/page.tsx`, `src/components/OwnerMessages.tsx` | The contact form, where messages are stored, and the teacher's inbox |
+| 11e. Certificates | `src/lib/certificates.ts`, `src/app/dashboard/certificates/*`, `src/app/verify/*`, `src/app/api/owner/certificates/route.ts`, `src/components/CertificateActions.tsx`, `src/components/OwnerCertificates.tsx` | Issuing, printing, the public verification page, and the teacher's register with withdrawal |
 | 12. Student UI | `src/app/dashboard/*`, `src/components/PassOptions.tsx`, `src/components/BuyContent.tsx` | Overview, library, progress, access pass, billing, account, and the buy buttons |
 | 12b. Code lab | `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx` | The student editor, preview iframe and console |
 | 12c. Media studio | `src/app/owner/studio/page.tsx`, `src/components/OwnerMediaStudio.tsx` | Standalone picture and video editing for the teacher |
@@ -282,6 +300,82 @@ Engineering**, **Vibe Coding**, plus **Web Development**, **App Development** an
 **Backend** for the core paths. The catalog page, the landing page's program
 cards, the search filters, the owner console's price lists and the lesson
 counters all read from that one array.
+
+## Certificates and verification
+
+Completing every lesson in a course earns a certificate, and a certificate is
+only useful if a stranger can check it — so the important half is public.
+
+- **Issuing.** `/dashboard/certificates/<courseId>` calls `issueCertificate()`,
+  which first checks that every lesson is complete (`hasFinishedCourse`) and
+  that the pass is still active. It is **idempotent**: the code is generated
+  once and returned on every later visit, because an employer who checked last
+  week must find the same record today.
+- **The code.** `CMG-<course initials>-<year>-<6 chars>`, drawn from an alphabet
+  that leaves out `O`, `I`, `1` and `0`, so a code read off a printout cannot be
+  mistyped into a different valid code. Lookups normalise case and punctuation,
+  so `cmg-wdf-2026-yvvlrw` finds the same certificate.
+- **The public record.** Issued certificates are written to the `app_state` key
+  `certificates`, keyed by code, holding only what a verifier needs: holder
+  name, course, program, lesson count, hours, issue date and the withdrawal
+  flag. Verifying never loads a user row, so it exposes no email, no account id
+  and no payment.
+- **The verification page.** `/verify` takes a code; `/verify/<code>` is what
+  the QR code opens. It reports valid, withdrawn (with the reason) or not found,
+  and shows nothing else. Hydration is checked first (`ensureContentReady()`):
+  on a cold instance an empty cache must never be reported as "no such
+  certificate", which would make a genuine one look forged.
+- **The QR code.** Generated on the server with the `qrcode` package
+  (`verificationQrSvg`) and inlined into the printed page — no external image
+  service, and a failure returns an empty string so the page can never break.
+- **Printing.** `@media print` in `src/app/globals.css` sets A4 landscape, hides
+  navigation, footers and buttons, and tells the browser to keep the
+  certificate's colours (`print-color-adjust: exact`). "Print / save PDF" runs
+  `window.print()`.
+- **Withdrawal.** `/owner/certificates` lists every certificate ever issued;
+  withdrawing one keeps the verification page answering but reports it as
+  withdrawn, with the reason shown to whoever checks it. Nothing is deleted, and
+  it can be restored.
+
+## The teacher's inbox
+
+The contact form posts to `/api/contact`, which validates the input, drops
+honeypot submissions silently, throttles by address (6 messages per 10 minutes)
+and stores the result through `lib/messages.ts` in `app_state`. `/owner/messages`
+shows the inbox with open/answered filters, reply-by-email, mark-as-answered and
+delete. No third-party form service is involved, and the emailed reply goes to
+the address the visitor typed.
+
+## The public pages
+
+Every page outside the signed-in app shares one shell — `PublicHeader`,
+`PublicFooter` and `InfoPage` — so the navigation, the mobile menu and the legal
+links cannot drift apart:
+
+| Page | What it answers |
+| --- | --- |
+| `/courses` and `/courses/<slug>` | The whole catalog grouped by program, and one page per course with the long description, audience, prerequisites, tools, build list and where it leads (`src/lib/course-info.ts`) |
+| `/pricing` | Pass and course prices, what a pass does and does not include, and how payment will work (Mobile Money, card, bank transfer) |
+| `/about` | Who teaches, how the platform works, why certificates are verifiable |
+| `/contact` | The form, the teacher's direct email, and answers to the questions that come up most |
+| `/privacy` | What is collected, where it lives, what the teacher can see, and how to have data corrected or deleted |
+| `/terms` | Accounts, passes and purchases, refunds, certificates, acceptable use, liability, Ghanaian law |
+| `/verify` | The certificate check, open to anyone |
+
+Public pages that read owner-set data (prices, published lessons, the
+certificate index) call `ensureContentReady()` from `src/lib/bootstrap.ts`
+before rendering. Without it, an anonymous visitor on a cold instance would be
+shown default prices and the wrong lesson counts, because the state cache is
+only hydrated by a signed-in request.
+
+## Mobile navigation
+
+`PublicHeader` carries the menu for every public page. Below 768px the links
+collapse into a button (`aria-expanded`, `aria-controls="public-menu"`) that
+opens a panel containing the navigation, the verification link and the account
+actions; the panel is a real disclosure rather than a hidden div, so it works
+with a keyboard and a screen reader, and it closes when a link is chosen. The
+dashboard has its own compact horizontal nav (`SidebarNav` with `compact`).
 
 ## The Code lab
 

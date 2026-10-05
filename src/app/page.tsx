@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
+import { ensureContentReady } from "@/lib/bootstrap";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
 import { lessonCountsByCourse } from "@/lib/course-content";
@@ -11,6 +12,8 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 import CourseCard from "@/components/CourseCard";
 import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
+import PublicHeader from "@/components/PublicHeader";
+import PublicFooter from "@/components/PublicFooter";
 
 const lessonCount = contentTotals().lessons;
 
@@ -18,6 +21,7 @@ const lessonCount = contentTotals().lessons;
 export const revalidate = 0;
 
 export default async function LandingPage() {
+  await ensureContentReady();
   const user = await getCurrentUser();
   const prices = pricing();
   const lessonCounts = lessonCountsByCourse();
@@ -27,31 +31,7 @@ export default async function LandingPage() {
     <div className="relative min-h-screen overflow-hidden">
       <AnimatedBackground />
 
-      <header className="sticky top-0 z-40 border-b border-black/[.06] bg-[#f8f8f5]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between px-5 sm:px-8">
-          <Logo />
-          <nav className="hidden items-center gap-7 text-[13px] font-semibold text-[#615b69] md:flex">
-            <a href="#courses" className="transition hover:text-[#5c3be4]">Courses</a>
-            <a href="#how-it-works" className="transition hover:text-[#5c3be4]">How it works</a>
-            <a href="#pricing" className="transition hover:text-[#5c3be4]">Pricing</a>
-            <a href="#stories" className="transition hover:text-[#5c3be4]">Learner stories</a>
-          </nav>
-          <div className="flex items-center gap-2.5">
-            {user ? (
-              <Link href={appHref} className="inline-flex items-center gap-2 rounded-xl bg-[#17151f] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2a2632]">
-                Open dashboard <Icon name="arrow-right" size={15} />
-              </Link>
-            ) : (
-              <>
-                <Link href="/login" className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:bg-white sm:block">Sign in</Link>
-                <Link href="/login?mode=signup" className="rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">
-                  Start learning
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} />
 
       <main>
         <section className="relative mx-auto grid max-w-[1180px] items-center gap-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[220px_1fr] lg:gap-14 lg:pb-24 lg:pt-20">
@@ -295,15 +275,7 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-black/[.07] bg-[#f2f1ed] py-12">
-        <div className="mx-auto grid max-w-[1120px] gap-10 px-5 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div><Logo /><p className="mt-4 max-w-xs text-sm leading-6 text-[#77717d]">Practical technology education for curious people ready to build.</p></div>
-          <div><p className="text-xs font-black uppercase tracking-wider">Learn</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#courses" className="block hover:text-[#5c3be4]">Courses</a><a href="#pricing" className="block hover:text-[#5c3be4]">Pricing</a><Link href="/login" className="block hover:text-[#5c3be4]">Student login</Link><Link href="/owner-sign-in" className="block hover:text-[#5c3be4]">Teacher sign in</Link></div></div>
-          <div><p className="text-xs font-black uppercase tracking-wider">Company</p><div className="mt-4 space-y-2.5 text-sm text-[#746e7a]"><a href="#how-it-works" className="block hover:text-[#5c3be4]">How it works</a><a href="#stories" className="block hover:text-[#5c3be4]">Stories</a><a href={`mailto:${site.supportEmail}`} className="block hover:text-[#5c3be4]">Contact</a></div></div>
-          <div><p className="text-xs font-black uppercase tracking-wider">Build your future</p><p className="mt-4 text-sm leading-6 text-[#746e7a]">New lessons and projects are added to every learning path.</p></div>
-        </div>
-        <div className="mx-auto mt-10 flex max-w-[1120px] flex-col justify-between gap-3 border-t border-black/[.07] px-5 pt-6 text-xs text-[#8a838f] sm:flex-row sm:px-8"><p>© {new Date().getFullYear()} {site.name}. Built for learners.</p><p>Privacy · Terms · Accessibility</p></div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

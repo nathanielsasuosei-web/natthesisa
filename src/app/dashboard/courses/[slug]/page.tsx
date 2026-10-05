@@ -12,6 +12,7 @@ import CourseVisual from "@/components/CourseVisual";
 import Icon from "@/components/Icon";
 import ProgressRing from "@/components/ProgressRing";
 import BuyContent from "@/components/BuyContent";
+import CourseBrief from "@/components/CourseBrief";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -91,6 +92,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <h2 className="text-base font-black tracking-[-.025em]">What you&apos;ll be able to do</h2>
             <div className="mt-5 grid border-t border-[#e6e2e9] sm:grid-cols-2">{course.outcomes.map((outcome) => <div key={outcome} className="flex items-start gap-2.5 border-b border-[#e6e2e9] py-4 pr-4 sm:odd:border-r sm:even:pl-4"><span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={11} /></span><p className="text-xs font-semibold leading-5 text-[#5b5561]">{outcome}</p></div>)}</div>
           </section>
+
+          <CourseBrief course={course} bare className="[&>section]:rounded-[22px] [&>section]:border [&>section]:border-[#e6e2e9] [&>section]:bg-white [&>section]:p-5 sm:[&>section]:p-6" />
 
           <section className="open-surface overflow-hidden rounded-[22px] border border-[#e6e2e9] bg-white">
             <div className="flex items-center justify-between border-b border-[#ece9ee] p-5 sm:px-6"><div><h2 className="text-base font-black tracking-[-.025em]">Course curriculum</h2><p className="mt-1 text-[10px] text-[#918a97]">{modules.length} modules · {lessons.length} lessons · {fmtMinutes(contentMinutes(course))}</p></div>{progress && <span className="rounded-lg bg-[#f0ecff] px-2.5 py-1.5 text-[10px] font-black text-[#5e3de0]">{completed.length} complete</span>}</div>

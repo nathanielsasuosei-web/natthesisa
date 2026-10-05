@@ -5,6 +5,7 @@ import { findContentLesson } from "./course-content";
 import { hashPassword, verifyPasswordHash } from "./passwords";
 import { ensureSchema, query, queryOne } from "./db";
 import type { UserRow } from "./schema";
+import type { Certificate } from "./certificates";
 
 /**
  * Learner accounts, stored in PostgreSQL.
@@ -122,6 +123,8 @@ export interface User {
   progress: Record<string, CourseProgress>;
   /** Courses and lessons paid for. Kept when a pass lapses. */
   purchases: Purchase[];
+  /** Certificates earned by finishing a course, newest last. */
+  certificates: Certificate[];
   invoices: Invoice[];
   activityLog: ActivityEvent[];
   paymentMethod: PaymentMethod;
@@ -229,6 +232,7 @@ function fromRow(row: UserRow): User {
     lifetimeMinutes: row.lifetime_minutes,
     progress: (row.progress ?? {}) as Record<string, CourseProgress>,
     purchases: (row.purchases ?? []) as Purchase[],
+    certificates: (row.certificates ?? []) as Certificate[],
     invoices: (row.invoices ?? []) as Invoice[],
     activityLog: (row.activity_log ?? []) as ActivityEvent[],
     paymentMethod: row.payment_method as PaymentMethod,
@@ -237,7 +241,7 @@ function fromRow(row: UserRow): User {
 }
 
 const COLUMNS =
-  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, invoices, activity_log, payment_method, profile, created_at";
+  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, certificates, invoices, activity_log, payment_method, profile, created_at";
 
 function json(value: unknown): string {
   return JSON.stringify(value ?? null);
@@ -287,9 +291,9 @@ export async function saveUser(user: User): Promise<void> {
   await query(
     `insert into users (
        id, email, name, password_hash, role, owner, suspended,
-       subscription, usage, lifetime_minutes, progress, purchases, invoices,
-       activity_log, payment_method, profile, created_at, updated_at
-     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17, now())
+       subscription, usage, lifetime_minutes, progress, purchases, certificates,
+       invoices, activity_log, payment_method, profile, created_at, updated_at
+     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, now())
      on conflict (id) do update set
        email = excluded.email,
        name = excluded.name,
@@ -302,6 +306,7 @@ export async function saveUser(user: User): Promise<void> {
        lifetime_minutes = excluded.lifetime_minutes,
        progress = excluded.progress,
        purchases = excluded.purchases,
+       certificates = excluded.certificates,
        invoices = excluded.invoices,
        activity_log = excluded.activity_log,
        payment_method = excluded.payment_method,
@@ -320,6 +325,7 @@ export async function saveUser(user: User): Promise<void> {
       Math.max(0, Math.round(user.lifetimeMinutes)),
       json(user.progress),
       json(user.purchases),
+      json(user.certificates ?? []),
       json(user.invoices),
       json(user.activityLog),
       json(user.paymentMethod),
@@ -370,6 +376,7 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
     lifetimeMinutes: 0,
     progress: {},
     purchases: [],
+    certificates: [],
     invoices: [],
     activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242", provider: "demo" },

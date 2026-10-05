@@ -21,8 +21,10 @@ interface Props {
 
 export default function CourseCard({ course, progress, locked = false, hrefBase = "dashboard", lessonCount, minutes, price }: Props) {
   const lessons = getCourseLessons(course);
-  const href = hrefBase === "dashboard" ? `/dashboard/courses/${course.slug}` : "/login";
-  const showVisual = hrefBase === "dashboard";
+  // A public card must land on the course it describes. It used to point at
+  // /login, which meant "View course" took a visitor to a sign-in form.
+  const href = hrefBase === "dashboard" ? `/dashboard/courses/${course.slug}` : `/courses/${course.slug}`;
+  const showVisual = true;
   return (
     <Link
       href={href}

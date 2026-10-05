@@ -316,3 +316,53 @@ a {
   .animate-blob, .animate-grid-pan, .animate-float, .animate-pulse-ring { animation: none; }
   .animate-fade-up { animation: none; opacity: 1; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Certificates                                                        */
+/* ------------------------------------------------------------------ */
+
+/*
+ * A certificate is a document: the student saves it as a PDF from the browser
+ * and attaches it to a job application. On paper it becomes a landscape A4
+ * page with the page chrome (navigation, sidebars, buttons) removed.
+ */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Anything that is not the certificate itself. */
+  nav,
+  aside,
+  header,
+  footer,
+  button,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .dashboard-main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .certificate-sheet {
+    border-width: 6px !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Backgrounds and accent colours must survive the print pipeline. */
+  .certificate-sheet,
+  .certificate-sheet * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

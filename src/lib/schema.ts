@@ -51,6 +51,7 @@ export const SCHEMA_STATEMENTS: string[] = [
      lifetime_minutes  integer not null default 0,
      progress          jsonb not null default '{}'::jsonb,
      purchases         jsonb not null default '[]'::jsonb,
+     certificates      jsonb not null default '[]'::jsonb,
      invoices          jsonb not null default '[]'::jsonb,
      activity_log      jsonb not null default '[]'::jsonb,
      payment_method    jsonb not null,
@@ -101,6 +102,9 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table users add column if not exists progress jsonb not null default '{}'::jsonb`,
   // Purchased courses and lessons (the entitlement list next to the account).
   `alter table users add column if not exists purchases jsonb not null default '[]'::jsonb`,
+  // Certificates earned by finishing a course. Older accounts had none; the
+  // student sees one appear the next time they open a finished course.
+  `alter table users add column if not exists certificates jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists invoices jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists activity_log jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists payment_method jsonb`,
@@ -185,6 +189,7 @@ export interface UserRow {
   lifetime_minutes: number;
   progress: unknown;
   purchases: unknown;
+  certificates: unknown;
   invoices: unknown;
   activity_log: unknown;
   payment_method: unknown;

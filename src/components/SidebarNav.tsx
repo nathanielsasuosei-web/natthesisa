@@ -13,6 +13,7 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/dashboard/progress", label: "My progress", icon: "progress" },
   { href: "/dashboard/plans", label: "Access pass", icon: "spark" },
   { href: "/dashboard/billing", label: "Billing", icon: "card" },
+  { href: "/dashboard/certificates", label: "Certificates", icon: "certificate" },
   { href: "/dashboard/account", label: "My account", icon: "user" },
 ];
 

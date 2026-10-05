@@ -7,6 +7,7 @@ import Icon from "@/components/Icon";
 import { brandAssets } from "@/config/branding";
 import { contentTotals } from "@/lib/course-content";
 import { PROGRAMS } from "@/lib/programs";
+import { ensureContentReady } from "@/lib/bootstrap";
 
 // The page reads the session cookie, so it can never be prerendered. Saying so
 // keeps the build from attempting a static pass (and logging a failure) first.
@@ -31,6 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (user) redirect(user.role === "owner" ? "/owner" : "/dashboard");
   const params = await searchParams;
   const initialMode = params.mode === "signup" ? "signup" : "signin";
+  await ensureContentReady();
   const totals = contentTotals();
   const careerPaths = PROGRAMS.length;
 
@@ -68,11 +70,25 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="w-full max-w-[430px] border-y border-[#ded9e3] py-8">
           <AuthForm initialMode={initialMode} />
           <p className="mt-6 text-center text-[10px] text-[#918a97]">
-            Owner or administrator?{" "}
+            Owner or teacher?{" "}
             <Link href="/owner-sign-in" className="font-bold text-[#6543e8]">
               Sign in here
             </Link>
           </p>
+
+          <nav aria-label="Company" className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 border-t border-[#ece9f0] pt-4 text-[10px] font-bold text-[#8a8390]">
+            <Link href="/about" className="transition hover:text-[#5e3ce8]">About</Link>
+            <span aria-hidden="true" className="text-[#cfc9d5]">·</span>
+            <Link href="/pricing" className="transition hover:text-[#5e3ce8]">Pricing</Link>
+            <span aria-hidden="true" className="text-[#cfc9d5]">·</span>
+            <Link href="/contact" className="transition hover:text-[#5e3ce8]">Contact</Link>
+            <span aria-hidden="true" className="text-[#cfc9d5]">·</span>
+            <Link href="/privacy" className="transition hover:text-[#5e3ce8]">Privacy</Link>
+            <span aria-hidden="true" className="text-[#cfc9d5]">·</span>
+            <Link href="/terms" className="transition hover:text-[#5e3ce8]">Terms</Link>
+            <span aria-hidden="true" className="text-[#cfc9d5]">·</span>
+            <Link href="/verify" className="transition hover:text-[#5e3ce8]">Verify a certificate</Link>
+          </nav>
         </div>
       </section>
     </main>

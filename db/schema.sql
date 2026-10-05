@@ -23,6 +23,7 @@ create table if not exists users (
      lifetime_minutes  integer not null default 0,
      progress          jsonb not null default '{}'::jsonb,
      purchases         jsonb not null default '[]'::jsonb,
+     certificates      jsonb not null default '[]'::jsonb,
      invoices          jsonb not null default '[]'::jsonb,
      activity_log      jsonb not null default '[]'::jsonb,
      payment_method    jsonb not null,
@@ -61,6 +62,8 @@ alter table users add column if not exists lifetime_minutes integer not null def
 alter table users add column if not exists progress jsonb not null default '{}'::jsonb;
 
 alter table users add column if not exists purchases jsonb not null default '[]'::jsonb;
+
+alter table users add column if not exists certificates jsonb not null default '[]'::jsonb;
 
 alter table users add column if not exists invoices jsonb not null default '[]'::jsonb;
 

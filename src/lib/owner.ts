@@ -34,3 +34,15 @@ export const OWNER_IMMUTABLE_ERROR = {
 } as const;
 
 export type OwnerUser = User;
+
+/**
+ * The name the teacher signs certificates and lesson bylines with. Reads the
+ * environment first (deployments set OWNER_NAME), then falls back to the part
+ * of OWNER_EMAIL before the @, capitalised.
+ */
+export function ownerDisplayName(): string {
+  const configured = process.env.OWNER_NAME?.trim();
+  if (configured) return configured;
+  const local = ownerEmail().split("@")[0] ?? "Teacher";
+  return local.replace(/[._-]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
