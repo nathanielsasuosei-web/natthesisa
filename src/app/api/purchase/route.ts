@@ -1,0 +1,50 @@
+import { NextRequest, NextResponse } from "next/server";
+import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
+import { PurchaseError, buyCourse, buyLesson } from "@/lib/purchases";
+import { saveUser } from "@/lib/store";
+import { hasActivePass } from "@/lib/access";
+
+/**
+ * Buys a course, or a single lesson.
+ *
+ * Buying content does not by itself open it: an access pass must also be
+ * active (that is the rule in `access.ts`). The response says so plainly, and
+ * the UI nudges a student who has bought the content but let their pass lapse
+ * to buy more time — they never pay for the same lesson twice.
+ */
+export async function POST(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Sign in to buy this." }, { status: 401 });
+  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
+
+  const body = await req.json().catch(() => ({}));
+  const kind = body.kind === "course" || body.kind === "lesson" ? body.kind : null;
+  const courseId = typeof body.courseId === "string" ? body.courseId : "";
+  const lessonId = typeof body.lessonId === "string" ? body.lessonId : "";
+
+  if (!kind || !courseId) {
+    return NextResponse.json({ error: "Say what you are buying." }, { status: 400 });
+  }
+  if (kind === "lesson" && !lessonId) {
+    return NextResponse.json({ error: "A lesson purchase needs a lesson." }, { status: 400 });
+  }
+
+  try {
+    const purchase =
+      kind === "course" ? await buyCourse(user, courseId) : await buyLesson(user, courseId, lessonId);
+    await saveUser(user);
+    return NextResponse.json({
+      ok: true,
+      purchase,
+      // The purchase is banked either way; this is what the student still
+      // needs before the lesson opens.
+      passActive: hasActivePass(user),
+    });
+  } catch (error) {
+    if (error instanceof PurchaseError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+    }
+    console.error("[codemasterghana] purchase failed", error);
+    return NextResponse.json({ error: "The payment could not be completed." }, { status: 500 });
+  }
+}

@@ -1,6 +1,8 @@
 # codemasterghana — learning platform
 
-A polished full-stack learning-platform MVP for web development, app development and computer science. It includes learner accounts, structured courses and lessons, saved progress, payment plans, invoices and an administrator console.
+A polished full-stack learning-platform MVP for web development, app development and computer science. It includes learner accounts, structured courses and lessons, saved progress, an **access pass** sold by the day, week or month, per-course and per-lesson purchases, invoices and a **teacher console**.
+
+There are two roles and only two: **students** and the **owner** — the teacher. A student can learn only while they hold an active pass *and* have bought the course or lesson they are opening; the teacher can mark individual lessons as free previews. The teacher sets every price from the console, including the price attached to a lesson at the moment it is published.
 
 Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
@@ -12,7 +14,11 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Real accounts: scrypt-hashed passwords, signed session cookies, and signup /
   sign-in / sign-out / password-change flows backed by PostgreSQL
 - Searchable/filterable course library
-- Six learning paths across web, mobile, backend and computer science
+- **Thirteen courses across three programs** — Computer Science, Software
+  Engineering and Vibe Coding — plus web, mobile and backend paths
+- **The Code lab** (`/dashboard/code`): an HTML/CSS/JavaScript editor with a
+  file tree, live preview and console, saved per student and downloadable as a
+  single HTML file
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
 - Server-saved lesson completion, course percentages and activity history
@@ -20,39 +26,62 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Progress analytics, certificates, learning timeline and CSV export
 - Editable learner profile, experience level, track and weekly goal
 
-### Plans and payments
+### The access pass, and buying content
 
-- **Explorer** — two complete starter courses, free
-- **Pro** — full library, certificates, downloads and advanced progress
-- **Mentor** — Pro features plus mentoring and portfolio reviews
-- Monthly and yearly billing
-- Immediate upgrades and billing-cycle changes
-- End-of-period downgrades and cancellation
-- Invoice history and server-side course entitlements
-- Interactive checkout using a clearly labelled **demo payment method**
-- Subscriptions, invoices and usage stored per account in the database, so a
-  learner's plan and billing history survive a restart
+- **One pass, three lengths** — day, week or month. Every pass unlocks the same
+  thing: the whole platform, every course and every lesson.
+- **The teacher sets the prices** from the console — the pass prices, the
+  default course price and the default lesson price, and then the price of any
+  individual course or lesson. They are stored in the database, not in code.
+- **Buying content is separate.** A pass opens the door; the course or lesson
+  must still be bought before its lessons open. What a student buys stays on
+  their account, so a lapsed pass does not lose it.
+- **Free previews** are per lesson, off by default, and set by the teacher —
+  the only way a lesson opens without a pass.
+- Buying more time while a pass is active **extends** it from its current end
+  date rather than resetting it.
+- Invoice history per account, and a clearly labelled **demo payment method**
+- Passes, purchases, invoices and usage stored per account in the database, so
+  a learner's access and billing history survive a restart
 
-> No real money moves in this repository. The billing engine and checkout UX are functional, but payment success is simulated. Connect a verified provider such as Paystack, Flutterwave or Stripe and process plan changes from a verified webhook before production.
+> No real money moves in this repository. The pass and purchase UX are functional, but payment success is simulated. Connect a verified provider such as Paystack, Flutterwave or Stripe and process purchases from a verified webhook before production.
 
-### Administrator experience
+### Certificates, company pages and the public catalogue
 
-- Site-wide learner, engagement, course and revenue metrics
-- Course enrollment/completion monitoring
+- Completing a course while your pass is active issues a certificate with a
+  stable code and a QR code, printable as A4 landscape.
+- `/verify` (and `/verify/<code>`, what the QR opens) lets anyone — an employer
+  with no account — check a certificate. Withdrawn certificates say so.
+- `/courses` lists the whole catalog and each course has a public page with its
+  full description.
+- `/about`, `/pricing`, `/contact`, `/privacy` and `/terms` share one header and
+  footer with the rest of the public site.
+- The contact form stores messages for the teacher's inbox at `/owner/messages`.
+- The header collapses into a working mobile menu on phones.
+
+### Teacher console
+
+- Site-wide student, engagement, course and revenue metrics, plus the pass
+  distribution across day/week/month
+- Every student's pass, purchases, progress and lifetime minutes
+- **Prices** — the five numbers above, editable at any time, with the price of
+  each course and each lesson in toggled lists
+- **The Studio** (`/owner/studio`) — picture and video editing with no lesson
+  attached: crop, resize, rotate, flip and colour-adjust a picture, trim and
+  mute a video, capture a thumbnail and export the edited clip
 - Search and account filters
-- Pause/restore learner accounts
-- Grant any plan without charging (“comp” access)
-- Reset learner progress
-- Promote/demote administrators
-- Delete learner accounts
-- Suspend/restore, plan changes and deletions are all written to the database
-- Server-side protection for every administrator action
+- Pause/restore student accounts
+- Grant a pass, or grant one course/lesson, without charging (“comp” access)
+- Reset student progress
+- Delete student accounts
+- Every action is written to the database and protected on the server; there is
+  no administrator tier to promote anyone into
 
 ### Owner-only lesson uploads
 
-The site **owner** is the single account allowed to publish lessons and upload
-teaching materials. Most administrator controls stay with the admin console,
-but lesson publishing is owner-only and enforced on the server:
+The site **owner** is the teacher: the single account allowed to publish
+lessons, set prices and upload teaching materials. Lesson publishing and
+pricing are owner-only and enforced on the server:
 
 - The owner adds a **profile photo and logo** once (plus the name and role line
   to show). Both are attached to every lesson he publishes: the lesson reader
@@ -77,17 +106,20 @@ but lesson publishing is owner-only and enforced on the server:
     deletes the file it replaced.
 - Video (mp4/webm/mov), PDF, slide decks, images and zip files can be attached
   in the same step. Up to 5 files, 200 MB each, with a live upload progress bar.
-- Lessons marked **free preview** open for every signed-in learner; all other
-  materials follow the course plan, so Pro-only lessons stay locked.
+- The publish form carries the lesson's **price** (pre-filled with the lesson
+  default the teacher set) and the **free preview** toggle. A preview lesson
+  opens for any signed-in student with no pass and no payment; every other
+  lesson needs an active pass and a purchase.
 - Uploaded lessons appear immediately in the course curriculum, the lesson
-  reader, dashboard progress, certificates, analytics, the CSV export and the
-  admin engagement charts.
+  reader, dashboard progress, certificates, analytics, the CSV export, the
+  teacher console's engagement charts and the price list — so their price can be
+  changed later.
 - The owner can delete a published lesson, which also removes its files.
-- Learners, and administrators who are not the owner, get `403 OWNER_ONLY` from
-  every upload endpoint (`GET`/`POST /api/admin/lessons`,
-  `DELETE /api/admin/lessons/[id]`) and never see the owner console in the nav.
-- The owner account cannot be paused, deleted or demoted, and only the owner can
-  grant or remove administrator access.
+- Students get `403 OWNER_ONLY` from every upload or pricing endpoint
+  (`GET`/`POST /api/owner/lessons`, `PATCH /api/owner/pricing`,
+  `DELETE /api/owner/lessons/[id]`) and never see the teacher console in the nav.
+- The owner account cannot be paused, deleted or demoted, and there is no
+  administrator role to grant.
 
 Lesson records, file metadata and the owner's branding profile live with the
 accounts, in the database (`app_state` rows), so backing up the database backs
@@ -106,9 +138,9 @@ it, uploads fail with a message telling you so, and `npm run storage:check`
 tells you the same thing without uploading anything.
 
 Then decide how the browser gets each file. Either way the app is the gate:
-`/api/lesson-files/...` checks the viewer's account, plan and lesson access and
-marks the lesson as started **before** it hands out a URL, so a Pro-only video
-stays Pro-only.
+`/api/lesson-files/...` checks the viewer's account, pass and purchase, and lesson access and
+marks the lesson as started **before** it hands out a URL, so a locked lesson's
+video or PDF cannot be opened by copying the URL.
 
 | Bucket | `SUPABASE_BUCKET_PUBLIC` | What the browser receives |
 | --- | --- | --- |
@@ -145,11 +177,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Without a `DATABASE_URL` the app runs on an embedded PostgreSQL (PGlite) in
-`.data/pg`, so accounts, progress and invoices persist across restarts with no
-database server to install. The first request against an empty database creates
+Without a database connection string the app runs on an embedded PostgreSQL
+(PGlite) in `.data/pg`, so accounts, progress and invoices persist across
+restarts with no database server to install. The first request against an empty database creates
 the tables and the owner account from `OWNER_EMAIL` / `OWNER_PASSWORD`. Then sign
-in at `/admin-sign-in` and change that password from the account page.
+in at `/owner-sign-in` and change that password from the account page.
 
 Other useful commands:
 
@@ -169,16 +201,17 @@ is written to PostgreSQL before the request answers.
 
 - **Learners** sign up on `/login`. Password rules are enforced on the server:
   8+ characters, not a common password, and mixed letters and numbers.
-- **The owner** is the single admin account. Set `OWNER_EMAIL` and
-  `OWNER_PASSWORD` and it is created on the first request; if you would rather
-  not keep credentials in the environment, open `/admin-sign-in` on an empty
-  database and it offers a one-time "Set up the owner account" form instead
-  (that route closes itself as soon as an owner exists, and refuses entirely
-  when `OWNER_EMAIL`/`OWNER_PASSWORD` are set). Only the owner can publish
-  lessons. Sign in at `/admin-sign-in`, then change the password from
-  `/dashboard/account`.
-- **Administrators** can suspend or change the plan of any learner from
-  `/admin`. Suspended accounts cannot sign in.
+- **The owner** is the teacher — the single account that can publish lessons,
+  set prices and manage students. Set `OWNER_EMAIL` and `OWNER_PASSWORD` and it
+  is created on the first request; if you would rather not keep credentials in
+  the environment, open `/owner-sign-in` on an empty database and it offers a
+  one-time "Set up the owner account" form instead (that route closes itself as
+  soon as an owner exists, and refuses entirely when `OWNER_EMAIL` /
+  `OWNER_PASSWORD` are set). Sign in at `/owner-sign-in`, then change the
+  password from `/dashboard/account`.
+- **Students** are everyone else. A student buys an access pass and the courses
+  or lessons they want; if a student is suspended they cannot sign in, and a
+  suspended account sees a paused notice instead of any lesson.
 
 There are no demo accounts and nothing is seeded: an empty database stays empty
 until the owner signs in and someone signs up.
@@ -190,7 +223,7 @@ This is the “what to paste where” map for continuing the build.
 | Step | File or folder | Purpose |
 | --- | --- | --- |
 | 1. Brand | `src/config/site.ts` | Name, tagline, support email and currency |
-| 2. Plans | `src/lib/plans.ts` | Plan names, prices, features and entitlements |
+| 2. Passes and prices | `src/lib/pass-periods.ts` (periods, labels, defaults) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Day/week/month pass, price list, expected price of a course or lesson |
 | 3. Course content | `src/lib/courses.ts` | Courses, modules, lessons, examples and challenges |
 | 4. User data | `src/lib/store.ts` | Accounts, progress, usage and invoices, read and written through Postgres |
 | 5. Sessions | `src/lib/session.ts` | Signed session cookies and role checks |
@@ -198,25 +231,184 @@ This is the “what to paste where” map for continuing the build.
 | 6a. Database | `src/lib/db.ts`, `src/lib/schema.ts`, `src/lib/bootstrap.ts`, `scripts/*.mts` | Postgres/PGlite driver, schema, first-run setup and CLI reports |
 | 6b. Passwords | `src/lib/passwords.ts` | scrypt hashing, verification and strength rules |
 | 7. Progress API | `src/app/api/progress/route.ts` | Start courses and complete/uncomplete lessons |
-| 8. Billing engine | `src/lib/subscription.ts` | Upgrade, downgrade, renew, cancel and resume rules |
-| 9. Billing API | `src/app/api/subscription/route.ts` | Authenticated plan actions |
-| 10. Admin rules | `src/lib/admin.ts`, `src/app/api/admin/*` | Metrics and protected account-management actions |
+| 8. Buying | `src/lib/purchases.ts` | Buy or extend a pass (extending from the current end date), buy a course or a lesson, and the teacher's comp grants |
+| 9. Buying API | `src/app/api/pass/route.ts`, `src/app/api/purchase/route.ts` | Authenticated purchase actions |
+| 10. Access rule | `src/lib/access.ts` | The one place the gate is decided: owner → free preview → active pass **and** purchase |
+| 10b. Teacher rules | `src/lib/owner-console.ts`, `src/app/api/owner/*` | Metrics, prices and protected student-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
 | 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/blob-store.ts`, `src/lib/app-state.ts`, `src/lib/course-content.ts` | Storage/disk blobs for owner lessons, their metadata in `app_state`, and the merge with the catalog |
-| 10c. Upload API | `src/app/api/admin/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
-| 10d. Owner console | `src/app/admin/lessons/page.tsx`, `src/components/OwnerLessonManager.tsx` | The upload form and published-lesson list |
-| 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/admin/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
+| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing (price included) and access-checked file streaming |
+| 10d. Owner console | `src/app/owner/page.tsx`, `src/app/owner/lessons/page.tsx`, `src/components/OwnerPricingCard.tsx`, `src/components/OwnerLessonManager.tsx` | Metrics, the price editor, the upload form and the published-lesson list |
+| 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/owner/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
-| 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/admin/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
+| 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/owner/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
-| 12. Student UI | `src/app/dashboard/*` | Overview, library, progress, plans, billing and account |
+| 11a. Public catalogue | `src/app/courses/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/lib/course-info.ts`, `src/components/CourseBrief.tsx` | The whole catalog and one page per course, readable without an account — including the long description, audience, prerequisites, tools and where the course leads |
+| 11b. Company pages | `src/app/about/page.tsx`, `src/app/pricing/page.tsx`, `src/app/contact/page.tsx`, `src/app/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/components/InfoPage.tsx` | About, the payment page and the legal pages, all on one shared shell |
+| 11c. Public shell | `src/components/PublicHeader.tsx`, `src/components/PublicFooter.tsx` | One navigation for every public page, including the mobile menu |
+| 11d. Contact inbox | `src/lib/messages.ts`, `src/lib/message-topics.ts`, `src/app/api/contact/route.ts`, `src/components/ContactForm.tsx`, `src/app/owner/messages/page.tsx`, `src/components/OwnerMessages.tsx` | The contact form, where messages are stored, and the teacher's inbox |
+| 11e. Certificates | `src/lib/certificates.ts`, `src/app/dashboard/certificates/*`, `src/app/verify/*`, `src/app/api/owner/certificates/route.ts`, `src/components/CertificateActions.tsx`, `src/components/OwnerCertificates.tsx` | Issuing, printing, the public verification page, and the teacher's register with withdrawal |
+| 12. Student UI | `src/app/dashboard/*`, `src/components/PassOptions.tsx`, `src/components/BuyContent.tsx` | Overview, library, progress, access pass, billing, account, and the buy buttons |
+| 12b. Code lab | `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx` | The student editor, preview iframe and console |
+| 12c. Media studio | `src/app/owner/studio/page.tsx`, `src/components/OwnerMediaStudio.tsx` | Standalone picture and video editing for the teacher |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
-| 14. Admin UI | `src/app/admin/*`, `src/components/AdminUsersTable.tsx` | Monitoring dashboard and controls |
+| 14. Teacher UI | `src/app/owner/*`, `src/components/OwnerStudentsTable.tsx` | Monitoring dashboard, prices and student controls |
 | 15. Design system | `src/app/globals.css`, `src/components/Icon.tsx` | Colors, motion, shared icon set and global styles |
+
+## Branding
+
+The owner's artwork lives in `public/branding/`, and everything else refers to it
+through `src/config/branding.ts`:
+
+| File | Size | Used for |
+| --- | --- | --- |
+| `logo.webp` | 1024² | The Vibe Coding program card and the sign-in panel (WebP, ~140 KB) |
+| `logo-1024.jpg` | 1024² | The same picture for anything that cannot read WebP |
+| `logo-original.jpg` | 2000² | The untouched upload, kept as the master copy |
+| `og.jpg` | 1200×630 | Link previews (`openGraph` / `twitter:card` in `src/app/layout.tsx`) |
+| `vibe-coding.jpg` | 1200×750 | The Vibe Coding course hero image |
+
+The favicon, the iOS touch icon and the PNG app icons are Next.js file
+conventions generated from the same picture: `src/app/favicon.ico` (32²),
+`src/app/icon.png` (512²) and `src/app/apple-icon.png` (180²).
+
+**The header lockup is type, not image.** The supplied picture is a poster — a
+laptop, a code wall and the tools on its screen — so at 36px in the navigation
+it would read as noise. The navbar keeps the `</>` tile plus the wordmark
+("codemaster" in ink, "ghana" in the brand accent, with "Learn. Build. Become."
+underneath where there is room), and the artwork appears at full size on the
+program card, the Vibe Coding course hero, the link preview and the sign-in
+panel. `Logo.tsx` is the single place the lockup is rendered.
+
+To swap the artwork, replace the files above and re-run the crops, or drop a new
+square image into `public/branding/` and update the paths in
+`src/config/branding.ts` — no component changes are needed.
+
+## Programs and the catalog
+
+The catalog is one list, `COURSES` in `src/lib/courses.ts`, assembled from two
+places:
+
+| Part | Where | What it is |
+| --- | --- | --- |
+| Core courses | `src/lib/courses.ts` | Web foundations, JavaScript, React, React Native, Node.js and Computer Science Essentials |
+| Program courses | `src/lib/programs.ts` | The courses that complete each program, written with the same `lesson()` / `module()` helpers |
+| Program metadata | `PROGRAMS` in `src/lib/programs.ts` | Name, tagline, description, icon and tone for each program |
+
+Each course's `category` is its program: **Computer Science**, **Software
+Engineering**, **Vibe Coding**, plus **Web Development**, **App Development** and
+**Backend** for the core paths. The catalog page, the landing page's program
+cards, the search filters, the owner console's price lists and the lesson
+counters all read from that one array.
+
+## Certificates and verification
+
+Completing every lesson in a course earns a certificate, and a certificate is
+only useful if a stranger can check it — so the important half is public.
+
+- **Issuing.** `/dashboard/certificates/<courseId>` calls `issueCertificate()`,
+  which first checks that every lesson is complete (`hasFinishedCourse`) and
+  that the pass is still active. It is **idempotent**: the code is generated
+  once and returned on every later visit, because an employer who checked last
+  week must find the same record today.
+- **The code.** `CMG-<course initials>-<year>-<6 chars>`, drawn from an alphabet
+  that leaves out `O`, `I`, `1` and `0`, so a code read off a printout cannot be
+  mistyped into a different valid code. Lookups normalise case and punctuation,
+  so `cmg-wdf-2026-yvvlrw` finds the same certificate.
+- **The public record.** Issued certificates are written to the `app_state` key
+  `certificates`, keyed by code, holding only what a verifier needs: holder
+  name, course, program, lesson count, hours, issue date and the withdrawal
+  flag. Verifying never loads a user row, so it exposes no email, no account id
+  and no payment.
+- **The verification page.** `/verify` takes a code; `/verify/<code>` is what
+  the QR code opens. It reports valid, withdrawn (with the reason) or not found,
+  and shows nothing else. Hydration is checked first (`ensureContentReady()`):
+  on a cold instance an empty cache must never be reported as "no such
+  certificate", which would make a genuine one look forged.
+- **The QR code.** Generated on the server with the `qrcode` package
+  (`verificationQrSvg`) and inlined into the printed page — no external image
+  service, and a failure returns an empty string so the page can never break.
+- **Printing.** `@media print` in `src/app/globals.css` sets A4 landscape, hides
+  navigation, footers and buttons, and tells the browser to keep the
+  certificate's colours (`print-color-adjust: exact`). "Print / save PDF" runs
+  `window.print()`.
+- **Withdrawal.** `/owner/certificates` lists every certificate ever issued;
+  withdrawing one keeps the verification page answering but reports it as
+  withdrawn, with the reason shown to whoever checks it. Nothing is deleted, and
+  it can be restored.
+
+## The teacher's inbox
+
+The contact form posts to `/api/contact`, which validates the input, drops
+honeypot submissions silently, throttles by address (6 messages per 10 minutes)
+and stores the result through `lib/messages.ts` in `app_state`. `/owner/messages`
+shows the inbox with open/answered filters, reply-by-email, mark-as-answered and
+delete. No third-party form service is involved, and the emailed reply goes to
+the address the visitor typed.
+
+## The public pages
+
+Every page outside the signed-in app shares one shell — `PublicHeader`,
+`PublicFooter` and `InfoPage` — so the navigation, the mobile menu and the legal
+links cannot drift apart:
+
+| Page | What it answers |
+| --- | --- |
+| `/courses` and `/courses/<slug>` | The whole catalog grouped by program, and one page per course with the long description, audience, prerequisites, tools, build list and where it leads (`src/lib/course-info.ts`) |
+| `/pricing` | Pass and course prices, what a pass does and does not include, and how payment will work (Mobile Money, card, bank transfer) |
+| `/about` | Who teaches, how the platform works, why certificates are verifiable |
+| `/contact` | The form, the teacher's direct email, and answers to the questions that come up most |
+| `/privacy` | What is collected, where it lives, what the teacher can see, and how to have data corrected or deleted |
+| `/terms` | Accounts, passes and purchases, refunds, certificates, acceptable use, liability, Ghanaian law |
+| `/verify` | The certificate check, open to anyone |
+
+Public pages that read owner-set data (prices, published lessons, the
+certificate index) call `ensureContentReady()` from `src/lib/bootstrap.ts`
+before rendering. Without it, an anonymous visitor on a cold instance would be
+shown default prices and the wrong lesson counts, because the state cache is
+only hydrated by a signed-in request.
+
+## Mobile navigation
+
+`PublicHeader` carries the menu for every public page. Below 768px the links
+collapse into a button (`aria-expanded`, `aria-controls="public-menu"`) that
+opens a panel containing the navigation, the verification link and the account
+actions; the panel is a real disclosure rather than a hidden div, so it works
+with a keyboard and a screen reader, and it closes when a link is chosen. The
+dashboard has its own compact horizontal nav (`SidebarNav` with `compact`).
+
+## The Code lab
+
+`/dashboard/code` is a small code editor that runs entirely in the browser:
+
+- A file tree with three templates (a starter web page, a JavaScript practice
+  notebook and a mini quiz app), editable HTML, CSS and JavaScript files, and a
+  live preview that re-runs as you type.
+- A **Console** tab: the preview document is given a tiny agent that forwards
+  `console.log`, warnings, errors and unhandled promise rejections to the page.
+- Work is saved to `localStorage` per account and can be downloaded as one
+  self-contained HTML file.
+
+Student code runs inside a sandboxed iframe (`sandbox="allow-scripts
+allow-modals"`, no `allow-same-origin`), so it cannot read the session cookie or
+call the app's APIs. Nothing in the lab is uploaded or executed on the server.
+
+## The Studio (teacher)
+
+`/owner/studio` is the owner-only media tool. It uses the same editors that are
+built into lesson uploads — `ImageEditor` and `VideoEditor` in
+`src/components/media/` — without a lesson attached:
+
+- **Pictures:** crop presets or freeform, pan, zoom, rotate, flip, brightness /
+  contrast / saturation, exported as PNG or JPEG at a chosen long edge.
+- **Videos:** set the trim start and end, mute, capture any frame as a
+  thumbnail, and export the edited clip. The export plays the trimmed section
+  once and records it in the browser (`captureStream` + `MediaRecorder`), so no
+  server, no upload and no re-encode of the original file.
 
 ## Add a new course
 
-Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Use `requiredPlan: "free"` for Explorer access or `requiredPlan: "premium"` for paid access.
+Paste a new course object into the `COURSES` array in `src/lib/courses.ts` (core paths) or into `PROGRAM_COURSES` in `src/lib/programs.ts` (a program course). Courses carry no tier: the teacher's pass opens the platform, and this course's price — the course default, or an override the teacher set in the console — is what a student pays to open its lessons. Mark a lesson `preview: true` (via the last argument of `lesson(...)`) to make it free to any signed-in student.
 
 ```ts
 {
@@ -228,8 +420,7 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Use 
   category: "Computer Science",
   level: "Beginner",
   tone: "green",
-  icon: "nodes", // browser | braces | react | mobile | nodes | server
-  requiredPlan: "premium",
+  icon: "nodes", // browser | braces | react | mobile | nodes | server | cpu | layers | terminal | briefcase | spark
   instructor: { name: "Instructor Name", role: "Python Engineer", initials: "IN" },
   rating: 4.9,
   learners: 0,
@@ -249,7 +440,7 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Use 
 }
 ```
 
-Course cards, catalog filtering, progress calculation, admin analytics and access checks all read from this one catalog automatically. Lessons the owner publishes from `/admin/lessons` are merged on top of this catalog at request time (see `src/lib/course-content.ts`), so nothing here needs to be edited to add new material.
+Course cards, catalog filtering, progress calculation, teacher analytics and access checks all read from this one catalog automatically. Lessons the owner publishes from `/owner/lessons` are merged on top of this catalog at request time (see `src/lib/course-content.ts`), so nothing here needs to be edited to add new material.
 
 ## Database
 
@@ -259,9 +450,18 @@ the runtime and the exported SQL.
 
 | Situation | What happens |
 | --- | --- |
-| `DATABASE_URL` set | Every query goes to that Postgres server (`pg`, connection pool, 15s statement timeout, SSL for non-local hosts) |
-| `DATABASE_URL` unset | Embedded PostgreSQL (PGlite) at `.data/pg` — real Postgres, real files, no server to install |
-| Production build, no `DATABASE_URL` | Refuses to start unless `ALLOW_EMBEDDED_DB=1` |
+| A connection string is set | Every query goes to that Postgres server (`pg`, connection pool, 15s statement timeout, 10s connect timeout, SSL for non-local hosts) |
+| No connection string set | Embedded PostgreSQL (PGlite) at `.data/pg` — real Postgres, real files, no server to install |
+| Production build, no connection string | Refuses to start unless `ALLOW_EMBEDDED_DB=1` |
+
+The connection string is read from the first of `DATABASE_URL`, `POSTGRES_URL`,
+`POSTGRES_PRISMA_URL`, `SUPABASE_DB_URL` or `POSTGRES_URL_NON_POOLING` that is
+set — in that order, so a pooled string is preferred over a direct one. The
+extra names exist because a host's own database integration usually injects
+them: connecting Supabase or Neon from the Vercel dashboard sets
+`POSTGRES_URL`, not `DATABASE_URL`, and the app now picks that up with nothing
+to copy. Whichever variable is used is named in the logs at startup and by
+`npm run db:check` / `/api/health`.
 
 The first request creates anything missing (`create table if not exists …`), so a
 fresh database needs no manual step. You can still paste the SQL into a hosted
@@ -275,8 +475,11 @@ A database made by an older build heals itself on the next request: after the
 creates, the app runs additive migrations (`ADD COLUMN IF NOT EXISTS`,
 backfills, role normalization) that reshape a stale `users` table into the
 current one. The migration only adds — it never drops, renames or retypes, so
-existing rows survive it — and unknown role words become `member` (rows
-flagged `owner` become `admin`; re-promote anyone else from `/admin`). Pasting
+existing rows survive it — and the two roles are normalized: the row flagged
+`owner` becomes `owner`, and every other account (including one that held the
+old `admin` role) becomes `student`, keeping its progress, purchases and
+invoices. An existing paid plan is translated into the remaining time of a
+month pass. Pasting
 `db/schema.sql` by hand heals the same way, because the migrations are printed
 in it. If a statement cannot apply (duplicate emails, a wrongly typed column),
 the server log names it — `[codemasterghana] schema statement failed …` — and
@@ -340,9 +543,9 @@ server version, the owner account and the account counts.
 
 ### If sign-in says “check the database connection”
 
-That banner means the app cannot reach `DATABASE_URL` at all — for learners
-and the owner alike, because it is the connection, not the accounts. On
-Vercel the cause is almost always the connection string itself:
+That banner means the app cannot reach a database at all — for learners and the
+owner alike, because it is the connection, not the accounts. On Vercel the
+cause is almost always the connection string itself:
 
 1. **Use the pooler URI, never the direct host.** Supabase's direct host
    (`db.<project-ref>.supabase.co`) is IPv6-only, and Vercel has no IPv6
@@ -350,18 +553,29 @@ Vercel the cause is almost always the connection string itself:
    instead (Supabase dashboard → Project settings → Database → Connection
    pooling, port `6543`, user `postgres.<project-ref>`).
 2. Set it as `DATABASE_URL` in Vercel → Project → Settings → Environment
-   Variables, for **every** environment the deployment uses.
+   Variables, for **every** environment the deployment uses. (A connection
+   string under any of the names listed under [Database](#database) is used
+   too, so a database connected from the Vercel dashboard — which injects
+   `POSTGRES_URL` — needs nothing copied.)
 3. **Redeploy.** Vercel injects environment variables at deploy time, so
    saving alone changes nothing until the next deployment.
+4. If it still fails, **open `/api/health` on the deployment**. It answers even
+   while the database is down and reports the driver, the variable the
+   connection string came from, the host, the server version — and a
+   `database.hint` field that names the fix (the IPv6-only direct host, a
+   rejected password, a pooler username missing its `.project-ref` suffix, a
+   role without table rights, an SSL mismatch, an allowlist blocking the host,
+   or no connection string configured at all). It never reports a user, a
+   password or a database name. The owner sign-in form links to it when the
+   outage banner appears.
 
-The server log names the fix on every failure: look in Vercel → Logs for the
-`[codemasterghana] database connection failed …` line, which says whether the
-host is the IPv6-only direct one, the password was rejected, or the pooler
-username is missing its `.project-ref` suffix. The sign-in pages and APIs keep
+The same diagnosis is in the server log on every failure: look in Vercel → Logs
+for the `[codemasterghana] database connection failed …` line, which is
+followed by the same plain-language fix. The sign-in pages and APIs keep
 rendering during the outage (the setup form hides itself, the forms show the
 banner) so a database problem never looks like a broken deployment.
 
-Everything is one `users` table. A learner's whole record (subscription, usage,
+Everything is one `users` table. A student's whole record (pass, purchases, usage,
 progress, invoices, activity, profile) lives in JSONB columns beside their
 account row, so a page of the dashboard is one row read instead of a join
 across six tables. If the app outgrows that, split the JSONB columns into
@@ -374,8 +588,8 @@ Two doors, and only one of them is for the owner:
 
 | Door | Who it is for |
 | --- | --- |
-| `/login` | Learners. Signing in with an admin/owner account still lands on `/admin`. |
-| `/admin-sign-in` | The owner and any administrator. Linked from the site footer and from `/login`. |
+| `/login` | Students. Signing in with the owner account still lands on `/owner`. |
+| `/owner-sign-in` | The teacher (the single owner account). Linked from the site footer and from `/login`. |
 
 The owner account is created on the first request against an empty database,
 from whichever of these you use:
@@ -384,7 +598,7 @@ from whichever of these you use:
    the deployment path. `OWNER_NAME` is the display name in the console and the
    lesson byline; it is kept in step with the account, so leave it unset to
    manage the name from the account page instead.
-2. The one-time **"Set up the owner account"** form on `/admin-sign-in`, shown
+2. The one-time **"Set up the owner account"** form on `/owner-sign-in`, shown
    only while no owner exists and no environment credentials are set. It closes
    itself the moment an owner exists.
 
@@ -424,29 +638,33 @@ Sign-in is implemented in this repository rather than delegated to a provider:
   rules. Suspended accounts are rejected before any password is checked.
 
 Swapping in Auth.js, Clerk or Supabase Auth later is still localized: keep
-`getCurrentUser()` / `getCurrentAdmin()` in `src/lib/session.ts` as the boundary,
+`getCurrentUser()` / `getCurrentOwner()` in `src/lib/session.ts` as the boundary,
 because the rest of the app only calls those helpers.
 
 ## Connect real payments safely
 
 Use this order of operations:
 
-1. Create matching product/price records in the payment provider.
-2. Add provider price IDs to each plan in `src/lib/plans.ts`.
+1. Create matching product/price records in the payment provider — one per pass
+   period, and whatever you need for course and lesson purchases.
+2. Keep the console as the source of the amounts, and map each to the provider's
+   price ID.
 3. Create a server checkout endpoint under `src/app/api/checkout/route.ts`.
-4. Redirect the learner to the provider-hosted checkout.
+4. Redirect the student to the provider-hosted checkout.
 5. Add a webhook route under `src/app/api/webhooks/<provider>/route.ts`.
 6. Verify the webhook signature with the provider secret.
-7. Only after verification, update the subscription and create an invoice in the database.
+7. Only after verification, call `buyPass()` / `buyCourse()` / `buyLesson()` in
+   `src/lib/purchases.ts` and create the invoice in the database.
 8. Make webhook handling idempotent using the provider event/reference ID.
 9. Never accept card numbers in your own forms unless your compliance scope explicitly allows it.
 
-Do **not** call `changePlan()` from an unverified “payment successful” browser redirect in production. The webhook must be the source of truth.
+Do **not** mark a purchase paid from an unverified "payment successful" browser
+redirect in production. The webhook must be the source of truth.
 
 ## Data and access behavior
 
 - Accounts live in PostgreSQL. Every signup, profile edit, password change,
-  completed lesson, plan change and invoice is committed before the response is
+  completed lesson, pass or content purchase and invoice is committed before the response is
   sent, so restarting the server (or redeploying) changes nothing a learner sees.
 - Passwords are never stored in plain text: `src/lib/passwords.ts` hashes them
   with scrypt and a per-account salt, and sign-in compares in constant time.
@@ -459,15 +677,18 @@ Do **not** call `changePlan()` from an unverified “payment successful” brows
   account was created.
 - Completing a lesson adds its duration to the learner's totals once. Unmarking
   it and completing it again does not count the same lesson twice, so learning
-  time and the weekly goal cannot drift upwards. Resetting a learner's progress
-  from the admin console clears those credits so the lessons count again.
+  time and the weekly goal cannot drift upwards. Resetting a student's progress
+  from the teacher console clears those credits so the lessons count again.
 - Course content is checked on the server in both lesson pages and the progress API.
-- Preview lessons are accessible even when the full course is locked.
-- A paused learner can view existing data but cannot save progress or alter a subscription.
-- Upgrades begin a new billing period immediately and issue an invoice.
-- Downgrades preserve paid access until the current period ends.
-- Cancelling preserves access until the paid period ends, then returns the account to Explorer.
-- Administrator plan overrides do not issue invoices.
+- The access rule lives in one module (`src/lib/access.ts`) and is applied by the
+  lesson page, the course page, the progress API and every file route: owner →
+  free preview → **active pass and a purchase**.
+- Preview lessons are accessible even when the pass has lapsed or the course is
+  not bought; a suspended account is refused everywhere, previews included.
+- A pass bought while one is active extends the current expiry instead of
+  resetting it, and issues an invoice for the period bought.
+- Comp grants (a pass, a course or a lesson) do not issue invoices and do not
+  count as revenue.
 - Only the owner account can publish or delete lessons; every other account
   receives `403` from the upload APIs even if they call them directly.
 - Lesson materials are streamed through an access-checked route
@@ -494,7 +715,9 @@ npm run build
 Production checklist:
 
 1. Create the hosted Postgres database and set `DATABASE_URL` to its pooled
-   connection string (see [Database](#database)).
+   connection string (see [Database](#database)) — or connect it from the
+   host's dashboard, which sets `POSTGRES_URL`. Open `/api/health` after the
+   first deploy: it should report `"connected": true` and the variable in use.
 2. Set `SESSION_SECRET` to 32+ random characters. Without it a fresh filesystem
    generates a new secret and every existing session is signed out.
 3. Set `OWNER_EMAIL` and `OWNER_PASSWORD` for the first deploy, then sign in and

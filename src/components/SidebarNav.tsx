@@ -9,23 +9,28 @@ import Logo from "./Logo";
 const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/dashboard", label: "Overview", icon: "home" },
   { href: "/dashboard/courses", label: "Explore courses", icon: "courses" },
+  { href: "/dashboard/code", label: "Code lab", icon: "terminal" },
   { href: "/dashboard/progress", label: "My progress", icon: "progress" },
-  { href: "/dashboard/plans", label: "Plans", icon: "spark" },
+  { href: "/dashboard/plans", label: "Access pass", icon: "spark" },
   { href: "/dashboard/billing", label: "Billing", icon: "card" },
+  { href: "/dashboard/certificates", label: "Certificates", icon: "certificate" },
   { href: "/dashboard/account", label: "My account", icon: "user" },
 ];
 
 interface Props {
   userName: string;
   userEmail: string;
-  planName: string;
+  /** True while the student has time left on an access pass. */
+  passActive: boolean;
+  passEndsAt: string;
   weeklyMinutes: number;
   weeklyGoal: number;
-  isAdmin?: boolean;
+  /** The teacher's own account gets a link to the console. */
+  isOwner?: boolean;
   compact?: boolean;
 }
 
-export default function SidebarNav({ userName, userEmail, planName, weeklyMinutes, weeklyGoal, isAdmin, compact = false }: Props) {
+export default function SidebarNav({ userName, userEmail, passActive, passEndsAt, weeklyMinutes, weeklyGoal, isOwner, compact = false }: Props) {
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
 
@@ -50,7 +55,7 @@ export default function SidebarNav({ userName, userEmail, planName, weeklyMinute
               <Icon name={item.icon} size={14} /> {item.label}
             </Link>
           ))}
-          {isAdmin && <Link href="/admin" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold text-[#d3c8ff]"><Icon name="admin" size={14} /> Admin</Link>}
+          {isOwner && <Link href="/owner" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold text-[#d3c8ff]"><Icon name="crown" size={14} /> Teacher console</Link>}
         </nav>
         <Link href="/dashboard/account" aria-label="Open account" className="grid size-8 shrink-0 place-items-center rounded-full bg-[#6d4aff] text-[10px] font-black text-white">{userName.slice(0, 1).toUpperCase()}</Link>
       </div>
@@ -72,12 +77,12 @@ export default function SidebarNav({ userName, userEmail, planName, weeklyMinute
         {NAV.slice(3).map((item) => (
           <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${active(item.href) ? "bg-[#6d4aff] text-white shadow-[0_8px_20px_rgba(109,74,255,.22)]" : "text-[#9e98a6] hover:bg-white/[.05] hover:text-white"}`}>
             <Icon name={item.icon} size={18} /> {item.label}
-            {item.href.endsWith("plans") && planName === "Explorer" && <span className="ml-auto rounded-full bg-[#ffcf59] px-1.5 py-0.5 text-[8px] font-black uppercase text-[#4b3800]">Pro</span>}
+            {item.href.endsWith("plans") && !passActive && <span className="ml-auto rounded-full bg-[#ffcf59] px-1.5 py-0.5 text-[8px] font-black uppercase text-[#4b3800]">Buy pass</span>}
           </Link>
         ))}
-        {isAdmin && (
-          <Link href="/admin" className="mt-2 flex items-center gap-3 rounded-xl border border-[#6d4aff]/25 bg-[#6d4aff]/10 px-3 py-2.5 text-[13px] font-bold text-[#c6b9ff] transition hover:bg-[#6d4aff]/20">
-            <Icon name="admin" size={18} /> Admin console
+        {isOwner && (
+          <Link href="/owner" className="mt-2 flex items-center gap-3 rounded-xl border border-[#6d4aff]/25 bg-[#6d4aff]/10 px-3 py-2.5 text-[13px] font-bold text-[#c6b9ff] transition hover:bg-[#6d4aff]/20">
+            <Icon name="crown" size={18} /> Teacher console
           </Link>
         )}
       </div>
@@ -94,7 +99,9 @@ export default function SidebarNav({ userName, userEmail, planName, weeklyMinute
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-white">{userName}</p><p className="truncate text-[9px] text-[#716b79]">{userEmail}</p></div>
             <button onClick={signOut} disabled={busy} title="Sign out" className="rounded-lg p-2 text-[#716b79] transition hover:bg-white/[.06] hover:text-white"><Icon name="logout" size={16} /></button>
           </div>
-          <div className="mt-2.5 inline-flex rounded-full bg-[#27232f] px-2.5 py-1 text-[9px] font-bold text-[#a9a2b0]">{planName} plan</div>
+          <div className="mt-2.5 inline-flex rounded-full bg-[#27232f] px-2.5 py-1 text-[9px] font-bold text-[#a9a2b0]">
+            {passActive ? `Pass active · ends ${new Date(passEndsAt).toLocaleDateString()}` : "No active pass"}
+          </div>
         </div>
       </div>
     </nav>

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { canAccessLesson, getCourse } from "@/lib/courses";
+import { getCourse } from "@/lib/courses";
+import { accessMessage, lessonAccess } from "@/lib/access";
+import { coursePrice } from "@/lib/plans";
 import { contentLessons, contentModules, contentPercent, findContentLesson } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
 import { getCurrentUser } from "@/lib/session";
@@ -10,6 +12,7 @@ import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 import LessonActions from "@/components/LessonActions";
 import LessonMaterials from "@/components/LessonMaterials";
+import BuyContent from "@/components/BuyContent";
 
 export async function generateMetadata({ params }: { params: Promise<{ courseId: string; lessonId: string }> }): Promise<Metadata> {
   const { courseId, lessonId } = await params;
@@ -28,12 +31,32 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const lessons = contentLessons(course);
   const modules = contentModules(course);
   const lessonIndex = lessons.findIndex((item) => item.id === lesson.id);
-  const accessible = canAccessLesson(user.subscription.planId, course, lesson);
+  const access = lessonAccess(user, course, lesson);
+  const accessible = access.allowed;
 
   if (!accessible) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#f7f7f4] px-5">
-        <div className="w-full max-w-md border-y border-[#ded9e3] py-8 text-center"><span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="lock" size={25} /></span><h1 className="mt-5 text-xl font-black tracking-[-.035em]">This lesson is part of Pro</h1><p className="mt-2 text-sm leading-6 text-[#756f7b]">Unlock the complete {course.shortTitle} course and every other learning path.</p><Link href="/dashboard/plans" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-sm font-extrabold text-white">View plans <Icon name="arrow-right" size={16} /></Link><Link href={`/dashboard/courses/${course.slug}`} className="mt-3 block text-xs font-bold text-[#756f7b]">Back to course</Link></div>
+        <div className="w-full max-w-md border-y border-[#ded9e3] py-8 text-center">
+          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="lock" size={25} /></span>
+          <h1 className="mt-5 text-xl font-black tracking-[-.035em]">{lesson.title}</h1>
+          <p className="mt-2 text-sm leading-6 text-[#756f7b]">{accessMessage(access, course.shortTitle)}</p>
+          {access.needsPass && (
+            <Link href="/dashboard/plans" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-sm font-extrabold text-white">
+              Buy an access pass <Icon name="arrow-right" size={16} />
+            </Link>
+          )}
+          {access.needsPurchase && (
+            <div className="mt-6 space-y-3 text-left">
+              <p className="text-center text-[11px] font-bold text-[#6d6673]">
+                Buy just this lesson, or the whole of {course.shortTitle} to open every lesson in it.
+              </p>
+              <BuyContent kind="lesson" courseId={course.id} lessonId={lesson.id} price={access.price} className="block [&>button]:w-full [&>button]:justify-center" />
+              <BuyContent kind="course" courseId={course.id} price={coursePrice(course.id)} className="block [&>button]:w-full [&>button]:justify-center [&>button]:bg-white [&>button]:text-[#655f6b] [&>button]:ring-1 [&>button]:ring-[#ded9e3]" />
+            </div>
+          )}
+          <Link href={`/dashboard/courses/${course.slug}`} className="mt-4 block text-xs font-bold text-[#756f7b]">Back to course</Link>
+        </div>
       </main>
     );
   }
@@ -45,7 +68,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const ownerBranding = lesson.source === "owner" ? brandingSummary(course.instructor.name) : null;
   const previousLesson = lessons[lessonIndex - 1];
   const nextLesson = lessons[lessonIndex + 1];
-  const nextAccessible = nextLesson ? canAccessLesson(user.subscription.planId, course, nextLesson) : false;
+  const nextAccessible = nextLesson ? lessonAccess(user, course, nextLesson).allowed : false;
   const nextHref = nextLesson && nextAccessible ? `/learn/${course.id}/${nextLesson.id}` : `/dashboard/courses/${course.slug}`;
   const nextLabel = nextLesson && nextAccessible ? "Next lesson" : nextLesson ? "Back to course" : "Finish course";
 
@@ -64,7 +87,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
         <aside className="dashboard-scroll hidden h-[calc(100vh-66px)] overflow-y-auto border-r border-[#e7e3e9] bg-white lg:sticky lg:top-[66px] lg:block">
           <div className="border-b border-[#ece9ef] p-5"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Course content</p><h2 className="mt-2 text-sm font-extrabold leading-5">{course.shortTitle}</h2><p className="mt-1 text-[10px] text-[#918a97]">{progress.completedLessonIds.length} of {lessons.length} lessons complete</p></div>
           {modules.map((module) => (
-            <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress.completedLessonIds.includes(item.id); const itemAccess = canAccessLesson(user.subscription.planId, course, item); const current = item.id === lesson.id; return itemAccess ? <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 text-[8px] text-[#a19aa7]">{item.duration} min</p></div></Link> : <div key={item.id} className="flex items-center gap-3 border-b border-[#f0edf2] px-5 py-3 text-[#aaa4b0]"><Icon name="lock" size={15} /><p className="text-[10px] font-semibold">{item.title}</p></div>; })}</div>
+            <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress.completedLessonIds.includes(item.id); const itemAccess = lessonAccess(user, course, item).allowed; const current = item.id === lesson.id; return itemAccess ? <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 text-[8px] text-[#a19aa7]">{item.duration} min</p></div></Link> : <div key={item.id} className="flex items-center gap-3 border-b border-[#f0edf2] px-5 py-3 text-[#aaa4b0]"><Icon name="lock" size={15} /><p className="text-[10px] font-semibold">{item.title}</p></div>; })}</div>
           ))}
         </aside>
 
@@ -114,7 +137,11 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
               {previousLesson ? <Link href={`/learn/${course.id}/${previousLesson.id}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864] transition hover:border-violet-300"><Icon name="arrow-left" size={16} /> Previous lesson</Link> : <Link href={`/dashboard/courses/${course.slug}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864]"><Icon name="arrow-left" size={16} /> Course overview</Link>}
               <LessonActions courseId={course.id} lessonId={lesson.id} initiallyComplete={complete} nextHref={nextHref} nextLabel={nextLabel} suspended={user.suspended} />
             </div>
-            {nextLesson && !nextAccessible && <p className="mt-3 text-right text-[10px] font-semibold text-[#8d8694]">The next lesson requires Pro. You&apos;ll return to the course page.</p>}
+            {nextLesson && !nextAccessible && (
+              <p className="mt-3 text-right text-[10px] font-semibold text-[#8d8694]">
+                The next lesson is not open on your account yet — you&apos;ll find it, with its price, on the course page.
+              </p>
+            )}
           </article>
         </main>
       </div>

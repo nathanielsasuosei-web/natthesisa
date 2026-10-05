@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { BillingCycle, PlanId, cycleDays } from "./plans";
+import { PERIOD_DAYS, PassPeriod } from "./plans";
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
 import { hashPassword, verifyPasswordHash } from "./passwords";
 import { ensureSchema, query, queryOne } from "./db";
 import type { UserRow } from "./schema";
+import type { Certificate } from "./certificates";
 
 /**
  * Learner accounts, stored in PostgreSQL.
@@ -30,7 +31,8 @@ export interface ActivityEvent {
   id: string;
   ts: string;
   text: string;
-  type: "learning" | "billing" | "account" | "admin";
+  /** "owner" covers anything the teacher did to an account or to prices. */
+  type: "learning" | "billing" | "account" | "owner";
 }
 
 export interface DayUsage {
@@ -38,13 +40,35 @@ export interface DayUsage {
   count: number;
 }
 
-export interface Subscription {
-  planId: PlanId;
-  cycle: BillingCycle;
-  cancelAtPeriodEnd: boolean;
-  pendingPlanId: PlanId | null;
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
+/**
+ * An access pass: what the student bought, and until when.
+ *
+ * There is one level of access, sold by the day, week or month. When
+ * `expiresAt` passes, learning locks again (see `access.ts`) — the purchases
+ * below survive, so renewing a pass reopens everything already paid for.
+ * Passes do not renew themselves: the platform takes a payment per pass, and
+ * a student buys another one when they want more time.
+ */
+export interface AccessPass {
+  period: PassPeriod;
+  /** What this pass cost when it was bought. */
+  price: number;
+  startedAt: string;
+  expiresAt: string;
+}
+
+/** A course or a single lesson the student has paid for. */
+export interface Purchase {
+  id: string;
+  kind: "course" | "lesson";
+  /** Course id, or lesson id when `kind` is "lesson". */
+  refId: string;
+  /** Set for lessons, so the dashboard can group by course. */
+  courseId: string | null;
+  amount: number;
+  at: string;
+  /** The invoice raised for this purchase, for the billing history. */
+  invoiceNumber: string | null;
 }
 
 export interface LearningUsage {
@@ -87,14 +111,20 @@ export interface User {
   email: string;
   passwordHash: string;
   createdAt: string;
-  role: "member" | "admin";
+  /** Two roles only: a student, or the owner (the teacher). */
+  role: "student" | "owner";
   /** True for the single site owner - the only account that can publish lessons. */
   owner: boolean;
   suspended: boolean;
-  subscription: Subscription;
+  /** The current access pass. An ended one still describes the last purchase. */
+  subscription: AccessPass;
   usage: LearningUsage;
   lifetimeMinutes: number;
   progress: Record<string, CourseProgress>;
+  /** Courses and lessons paid for. Kept when a pass lapses. */
+  purchases: Purchase[];
+  /** Certificates earned by finishing a course, newest last. */
+  certificates: Certificate[];
   invoices: Invoice[];
   activityLog: ActivityEvent[];
   paymentMethod: PaymentMethod;
@@ -129,16 +159,25 @@ export function freshUsage(values: number[] = []): LearningUsage {
   };
 }
 
-export function makeSubscription(planId: PlanId, cycle: BillingCycle): Subscription {
+/** A pass that starts now and runs for `period`. */
+export function makePass(period: PassPeriod, price = 0): AccessPass {
   const now = new Date();
   return {
-    planId,
-    cycle,
-    cancelAtPeriodEnd: false,
-    pendingPlanId: null,
-    currentPeriodStart: now.toISOString(),
-    currentPeriodEnd: addDays(now, cycleDays(cycle)).toISOString(),
+    period,
+    price,
+    startedAt: now.toISOString(),
+    expiresAt: addDays(now, PERIOD_DAYS[period]).toISOString(),
   };
+}
+
+/**
+ * A pass that has already ended — what a new account starts with. Kept as a
+ * real value (rather than null) so every read of `user.subscription` has the
+ * same shape, and `expiresAt` answers "has this student ever had a pass?".
+ */
+export function noPass(): AccessPass {
+  const now = new Date().toISOString();
+  return { period: "monthly", price: 0, startedAt: now, expiresAt: now };
 }
 
 function defaultProfile(overrides: Partial<LearnerProfile> = {}): LearnerProfile {
@@ -185,13 +224,15 @@ function fromRow(row: UserRow): User {
     email: row.email,
     passwordHash: row.password_hash,
     createdAt: iso(row.created_at),
-    role: row.role === "admin" ? "admin" : "member",
+    role: row.owner || row.role === "owner" ? "owner" : "student",
     owner: row.owner,
     suspended: row.suspended,
-    subscription: row.subscription as Subscription,
+    subscription: row.subscription as AccessPass,
     usage: row.usage as LearningUsage,
     lifetimeMinutes: row.lifetime_minutes,
     progress: (row.progress ?? {}) as Record<string, CourseProgress>,
+    purchases: (row.purchases ?? []) as Purchase[],
+    certificates: (row.certificates ?? []) as Certificate[],
     invoices: (row.invoices ?? []) as Invoice[],
     activityLog: (row.activity_log ?? []) as ActivityEvent[],
     paymentMethod: row.payment_method as PaymentMethod,
@@ -200,7 +241,7 @@ function fromRow(row: UserRow): User {
 }
 
 const COLUMNS =
-  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, invoices, activity_log, payment_method, profile, created_at";
+  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, certificates, invoices, activity_log, payment_method, profile, created_at";
 
 function json(value: unknown): string {
   return JSON.stringify(value ?? null);
@@ -250,9 +291,9 @@ export async function saveUser(user: User): Promise<void> {
   await query(
     `insert into users (
        id, email, name, password_hash, role, owner, suspended,
-       subscription, usage, lifetime_minutes, progress, invoices, activity_log,
-       payment_method, profile, created_at, updated_at
-     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, now())
+       subscription, usage, lifetime_minutes, progress, purchases, certificates,
+       invoices, activity_log, payment_method, profile, created_at, updated_at
+     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, now())
      on conflict (id) do update set
        email = excluded.email,
        name = excluded.name,
@@ -264,6 +305,8 @@ export async function saveUser(user: User): Promise<void> {
        usage = excluded.usage,
        lifetime_minutes = excluded.lifetime_minutes,
        progress = excluded.progress,
+       purchases = excluded.purchases,
+       certificates = excluded.certificates,
        invoices = excluded.invoices,
        activity_log = excluded.activity_log,
        payment_method = excluded.payment_method,
@@ -281,6 +324,8 @@ export async function saveUser(user: User): Promise<void> {
       json(user.usage),
       Math.max(0, Math.round(user.lifetimeMinutes)),
       json(user.progress),
+      json(user.purchases),
+      json(user.certificates ?? []),
       json(user.invoices),
       json(user.activityLog),
       json(user.paymentMethod),
@@ -308,7 +353,8 @@ interface CreateUserOptions {
   password: string;
   role?: User["role"];
   owner?: boolean;
-  planId?: PlanId;
+  /** An initial access pass, used for the owner account. */
+  passPeriod?: PassPeriod;
   track?: LearnerProfile["track"];
   weeklyGoal?: number;
 }
@@ -322,13 +368,15 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
     email: options.email.trim().toLowerCase().slice(0, 160),
     passwordHash: hashPassword(options.password),
     createdAt: now,
-    role: options.role ?? "member",
+    role: options.role ?? "student",
     owner: options.owner ?? false,
     suspended: false,
-    subscription: makeSubscription(options.planId ?? "free", "monthly"),
+    subscription: options.passPeriod ? makePass(options.passPeriod) : noPass(),
     usage: freshUsage(),
     lifetimeMinutes: 0,
     progress: {},
+    purchases: [],
+    certificates: [],
     invoices: [],
     activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242", provider: "demo" },
@@ -350,7 +398,7 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
 /** Sign-up used by the public form. */
 export async function createUser(name: string, email: string, password: string): Promise<User> {
   const user = await createAccount({ name, email, password });
-  logActivity(user, "Account created on the Explorer plan", "account");
+  logActivity(user, "Account created — no access pass yet", "account");
   await saveUser(user);
   return user;
 }
@@ -358,7 +406,7 @@ export async function createUser(name: string, email: string, password: string):
 /** First-run creation of the single owner account (see `db.ts`). */
 export async function createOwnerAccount(email: string, password: string, preferredName?: string): Promise<User> {
   // Without OWNER_NAME the display name is guessed from the email handle, which
-  // turns admin@codemasterghana.dev into "Admin" — so the console would greet
+  // turns teacher@codemasterghana.dev into "Teacher" — so the console would greet
   // the owner by a placeholder instead of their name.
   const handle = email.split("@")[0].replace(/[._-]+/g, " ").trim();
   const fallback = handle ? handle.replace(/\b\w/g, (letter) => letter.toUpperCase()).slice(0, 60) : "Site owner";
@@ -367,11 +415,12 @@ export async function createOwnerAccount(email: string, password: string, prefer
     name,
     email,
     password,
-    role: "admin",
+    role: "owner",
     owner: true,
-    planId: "elite",
+    // The owner never buys access to their own teaching.
+    passPeriod: "monthly",
   });
-  logActivity(user, "Owner account created", "admin");
+  logActivity(user, "Owner (teacher) account created", "owner");
   await saveUser(user);
   return user;
 }

@@ -86,7 +86,7 @@ export default function OwnerBrandingCard({ initial }: Props) {
     setMessage(null);
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/admin/branding");
+    xhr.open("POST", "/api/owner/branding");
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) setProgress(Math.max(1, Math.round((event.loaded / event.total) * 100)));
     };

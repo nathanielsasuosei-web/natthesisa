@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { fmtBytes, fmtDate } from "@/lib/format";
+import { fmtBytes, fmtDate, fmtMoney } from "@/lib/format";
 import { isEditableImage, isEditableVideo, type VideoEdits } from "@/lib/media";
 import type { OwnerBrandingView } from "./OwnerBrandingCard";
 import ImageEditor from "./media/ImageEditor";
@@ -36,6 +36,8 @@ export interface OwnerLessonRow {
   moduleTitle: string;
   duration: number;
   preview: boolean;
+  /** What this lesson costs on its own (0 = included with a pass). */
+  price: number;
   createdAt: string;
   createdBy: string;
   files: OwnerLessonFileRow[];
@@ -45,6 +47,8 @@ interface Props {
   courses: OwnerCourseOption[];
   lessons: OwnerLessonRow[];
   branding?: OwnerBrandingView;
+  /** The owner's default lesson price; a new lesson starts from it. */
+  defaultPrice: number;
 }
 
 interface DraftFile {
@@ -75,7 +79,7 @@ const FILE_ICON: Record<string, "video" | "file" | "book" | "courses"> = {
 
 let draftCounter = 0;
 
-export default function OwnerLessonManager({ courses, lessons, branding }: Props) {
+export default function OwnerLessonManager({ courses, lessons, branding, defaultPrice }: Props) {
   const router = useRouter();
   const [courseId, setCourseId] = useState(courses[0]?.id ?? "");
   const [moduleId, setModuleId] = useState(courses[0]?.modules[0]?.id ?? NEW_MODULE);
@@ -89,6 +93,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
   const [objectives, setObjectives] = useState("");
   const [challenge, setChallenge] = useState("");
   const [preview, setPreview] = useState(false);
+  const [price, setPrice] = useState(String(defaultPrice));
   const [files, setFiles] = useState<DraftFile[]>([]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -183,7 +188,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
       if (payload.removePoster) form.set("removePoster", "true");
     }
     try {
-      const response = await fetch(`/api/admin/lesson-files/${editor.lessonId}/${editor.fileId}`, { method: "PATCH", body: form });
+      const response = await fetch(`/api/owner/lesson-files/${editor.lessonId}/${editor.fileId}`, { method: "PATCH", body: form });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setMessage({ error: true, text: data.error ?? "The edit could not be saved." });
@@ -238,6 +243,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
     payload.set("objectives", objectives);
     payload.set("challenge", challenge.trim());
     payload.set("preview", String(preview));
+    payload.set("price", price);
     files.forEach((item, index) => {
       payload.append("files", item.file);
       if (item.edits) {
@@ -253,7 +259,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
     setMessage(null);
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/admin/lessons");
+    xhr.open("POST", "/api/owner/lessons");
     xhr.upload.onprogress = (progressEvent) => {
       if (progressEvent.lengthComputable) {
         setProgress(Math.max(1, Math.round((progressEvent.loaded / progressEvent.total) * 100)));
@@ -290,7 +296,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
     setDeletingId(lesson.id);
     setMessage(null);
     try {
-      const response = await fetch(`/api/admin/lessons/${lesson.id}`, { method: "DELETE" });
+      const response = await fetch(`/api/owner/lessons/${lesson.id}`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setMessage({ error: true, text: data.error ?? "The lesson could not be deleted." });
@@ -459,9 +465,28 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
             )}
           </div>
 
+          <label className="block rounded-xl border border-[#e6e2e9] p-3.5">
+            <span className="block text-[11px] font-bold text-[#332e39]">Price of this lesson</span>
+            <span className="mt-0.5 block text-[10px] leading-4 text-[#918a97]">
+              What a student pays to unlock this lesson on its own. The access pass is required either way; buy the
+              whole course and this is included. Set it to 0 for no extra charge.
+            </span>
+            <span className="mt-2.5 flex items-center gap-2">
+              <span className="text-xs font-black text-[#6d4aff]">GH₵</span>
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                className="w-32 rounded-lg border border-[#ddd9e2] bg-white px-3 py-2 text-xs font-bold"
+              />
+            </span>
+          </label>
+
           <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#e6e2e9] p-3.5">
             <input type="checkbox" checked={preview} onChange={(event) => setPreview(event.target.checked)} className="mt-0.5 size-4 accent-[#6d4aff]" />
-            <span className="text-[11px] leading-5 text-[#5d5763]"><strong className="block text-[#332e39]">Free preview</strong>Anyone signed in can open this lesson, even without Pro access to the course.</span>
+            <span className="text-[11px] leading-5 text-[#5d5763]"><strong className="block text-[#332e39]">Free preview</strong>Anyone signed in can open this lesson with no pass and no payment — the teacher&apos;s invitation to sample the course.</span>
           </label>
 
           {busy && (
@@ -513,6 +538,7 @@ export default function OwnerLessonManager({ courses, lessons, branding }: Props
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
+                    <span className="rounded-full bg-[#f2f0f4] px-2 py-1 text-[8px] font-black uppercase text-[#6d6673]">{fmtMoney(lesson.price)}</span>
                     {lesson.preview && <span className="rounded-full bg-[#f0ecff] px-2 py-1 text-[8px] font-black uppercase text-[#5e3de0]">Preview</span>}
                     <button onClick={() => remove(lesson)} disabled={deletingId === lesson.id} className="grid size-7 place-items-center rounded-lg text-[#aaa4b0] transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40" title="Delete lesson"><Icon name="close" size={13} /></button>
                   </div>

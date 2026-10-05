@@ -58,10 +58,45 @@ export async function ensureReady(): Promise<void> {
   return g.__codaraReady;
 }
 
+/**
+ * Best-effort readiness for public pages.
+ *
+ * Prices, published lessons, branding and the certificate index are read
+ * synchronously from the state cache, which is filled from the database once
+ * per process. An anonymous visitor arriving at a cold instance has no session
+ * for `getCurrentUser()` to trigger that, so a marketing page would quote the
+ * default prices and count the wrong number of lessons.
+ *
+ * Failure is deliberately swallowed here: a database outage must not turn a
+ * public page into a 500 error. The page then renders with the defaults, and
+ * the request is logged.
+ */
+export async function ensureContentReady(): Promise<boolean> {
+  try {
+    await ensureReady();
+    return true;
+  } catch (error) {
+    console.error("[codemasterghana] content state unavailable, rendering defaults", error);
+    return false;
+  }
+}
+
 /** Used by `npm run db:check` to report the connection the app would use. */
-export async function reportDatabase(): Promise<{ driver: string; version: string | null; owner: string | null }> {
+export async function reportDatabase(): Promise<{
+  driver: string;
+  version: string | null;
+  owner: string | null;
+  source: string | null;
+  host: string | null;
+}> {
   await ensureReady();
   const info = await databaseInfo();
   const owner = await ownerAccount();
-  return { driver: info.driver, version: info.version, owner: owner?.email ?? null };
+  return {
+    driver: info.driver,
+    version: info.version,
+    owner: owner?.email ?? null,
+    source: info.source,
+    host: info.host,
+  };
 }

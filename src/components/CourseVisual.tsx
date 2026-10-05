@@ -17,6 +17,11 @@ const ICONS: Record<Course["icon"], IconName> = {
   mobile: "mobile",
   nodes: "cpu",
   server: "server",
+  layers: "layers",
+  terminal: "terminal",
+  cpu: "cpu",
+  briefcase: "briefcase",
+  spark: "spark",
 };
 
 interface Props {

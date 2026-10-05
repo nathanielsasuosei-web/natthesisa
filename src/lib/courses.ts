@@ -1,7 +1,13 @@
-import type { PlanId } from "./plans";
-import { PLAN_TIER } from "./plans";
+import { lesson } from "./lesson-builder";
+import { PROGRAMS, PROGRAM_COURSES } from "./programs";
 
-export type CourseCategory = "Web Development" | "App Development" | "Computer Science" | "Backend";
+export type CourseCategory =
+  | "Computer Science"
+  | "Software Engineering"
+  | "Vibe Coding"
+  | "Web Development"
+  | "App Development"
+  | "Backend";
 export type CourseLevel = "Beginner" | "Intermediate";
 export type CourseTone = "violet" | "orange" | "cyan" | "green" | "pink" | "blue";
 
@@ -62,8 +68,7 @@ export interface Course {
   category: CourseCategory;
   level: CourseLevel;
   tone: CourseTone;
-  icon: "browser" | "braces" | "react" | "mobile" | "nodes" | "server";
-  requiredPlan: PlanId;
+  icon: "browser" | "braces" | "react" | "mobile" | "nodes" | "server" | "layers" | "terminal" | "cpu" | "briefcase" | "spark";
   instructor: { name: string; role: string; initials: string };
   rating: number;
   learners: number;
@@ -72,46 +77,14 @@ export interface Course {
   outcomes: string[];
   tags: string[];
   modules: CourseModule[];
+  /**
+   * Optional hero artwork for the course page. Filled in from the course's
+   * program (`PROGRAMS`), so it is not written twice.
+   */
+  cover?: string;
 }
 
-function lesson(
-  id: string,
-  title: string,
-  duration: number,
-  summary: string,
-  concept: string,
-  code: string | undefined,
-  challenge: string,
-  preview = false
-): Lesson {
-  return {
-    id,
-    title,
-    duration,
-    summary,
-    preview,
-    objectives: [
-      `Explain the purpose of ${title.toLowerCase()}`,
-      "Apply the idea in a small working example",
-      "Recognize the pattern in a real project",
-    ],
-    sections: [
-      {
-        heading: "Start with the idea",
-        body: summary,
-      },
-      {
-        heading: "How it works",
-        body: concept,
-        code,
-        language: code ? "code" : undefined,
-      },
-    ],
-    challenge,
-  };
-}
-
-export const COURSES: Course[] = [
+const CORE_COURSES: Course[] = [
   {
     id: "web-foundations",
     slug: "web-foundations",
@@ -123,7 +96,6 @@ export const COURSES: Course[] = [
     level: "Beginner",
     tone: "violet",
     icon: "browser",
-    requiredPlan: "free",
     instructor: { name: "Maya Owusu", role: "Frontend Engineer", initials: "MO" },
     rating: 4.9,
     learners: 2_840,
@@ -228,7 +200,6 @@ export const COURSES: Course[] = [
     level: "Beginner",
     tone: "orange",
     icon: "nodes",
-    requiredPlan: "free",
     instructor: { name: "Daniel Kumi", role: "Computer Science Educator", initials: "DK" },
     rating: 4.8,
     learners: 1_960,
@@ -324,7 +295,6 @@ export const COURSES: Course[] = [
     level: "Beginner",
     tone: "cyan",
     icon: "braces",
-    requiredPlan: "premium",
     instructor: { name: "Elena Park", role: "Full-stack Developer", initials: "EP" },
     rating: 4.9,
     learners: 3_420,
@@ -429,7 +399,6 @@ export const COURSES: Course[] = [
     level: "Intermediate",
     tone: "blue",
     icon: "react",
-    requiredPlan: "premium",
     instructor: { name: "Noah Mensah", role: "Product Engineer", initials: "NM" },
     rating: 4.8,
     learners: 1_780,
@@ -533,7 +502,6 @@ export const COURSES: Course[] = [
     level: "Intermediate",
     tone: "pink",
     icon: "mobile",
-    requiredPlan: "premium",
     instructor: { name: "Sofia Adeyemi", role: "Mobile Engineer", initials: "SA" },
     rating: 4.9,
     learners: 1_240,
@@ -628,7 +596,6 @@ export const COURSES: Course[] = [
     level: "Intermediate",
     tone: "green",
     icon: "server",
-    requiredPlan: "premium",
     instructor: { name: "Ibrahim Cole", role: "Backend Engineer", initials: "IC" },
     rating: 4.8,
     learners: 1_510,
@@ -705,7 +672,7 @@ export const COURSES: Course[] = [
             35,
             "Prove important behavior automatically and prepare the service for real traffic.",
             "Test outcomes at the public boundary: status, response and database effect. Use environment variables for secrets, health checks for operations and structured logs for investigation.",
-            "test(\"blocks a learner from admin data\", async () => {\n  const response = await requestAs(learner).get(\"/api/admin/users\");\n  expect(response.status).toBe(403);\n});",
+            "test(\"blocks a learner from admin data\", async () => {\n  const response = await requestAs(learner).get(\"/api/owner/users\");\n  expect(response.status).toBe(403);\n});",
             "Write integration tests for successful completion, locked course access and suspended accounts."
           ),
         ],
@@ -714,11 +681,25 @@ export const COURSES: Course[] = [
   },
 ];
 
+/**
+ * The catalog: the six core courses, then the program courses.
+ *
+ * Every course sits under one program (its category), and each program can
+ * have several courses — see `PROGRAMS` in `programs.ts`.
+ */
+export const COURSES: Course[] = [...CORE_COURSES, ...PROGRAM_COURSES].map((course) => {
+  // A course inherits its program's cover unless it brings its own.
+  const program = PROGRAMS.find((item) => item.category === course.category);
+  return program?.cover && !course.cover ? { ...course, cover: program.cover } : course;
+});
+
 export const CATEGORIES: Array<"All" | CourseCategory> = [
   "All",
+  "Computer Science",
+  "Software Engineering",
+  "Vibe Coding",
   "Web Development",
   "App Development",
-  "Computer Science",
   "Backend",
 ];
 
@@ -738,12 +719,14 @@ export function getCourseMinutes(course: Course): number {
   return getCourseLessons(course).reduce((total, item) => total + item.duration, 0);
 }
 
-export function canAccessCourse(planId: PlanId, course: Course): boolean {
-  return PLAN_TIER[planId] >= PLAN_TIER[course.requiredPlan];
-}
-
-export function canAccessLesson(planId: PlanId, course: Course, lesson: Lesson): boolean {
-  return lesson.preview === true || canAccessCourse(planId, course);
+/**
+ * Whether a lesson is a free preview — open to any signed-in student without
+ * a pass or a purchase. The full access rule (pass + purchase) lives in
+ * `access.ts`, which needs the account; this stays a fact about the content,
+ * so client components can render it without the database.
+ */
+export function isPreview(lesson: Lesson): boolean {
+  return lesson.preview === true;
 }
 
 export function coursePercent(course: Course, completedLessonIds: string[] = []): number {

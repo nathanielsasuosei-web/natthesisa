@@ -59,6 +59,13 @@ export interface UploadedLessonRecord {
   sections: LessonSection[];
   challenge: string;
   preview: boolean;
+  /**
+   * What this lesson costs on its own. Set by the owner when the lesson is
+   * published (the access pass is still required to open it). The live price
+   * lives in `plans.ts` so the owner can reprice a lesson after publishing;
+   * this records what it was published at.
+   */
+  price: number;
   files: UploadedFileRecord[];
   createdBy: string;
   createdByEmail: string;
@@ -204,6 +211,8 @@ export interface NewUploadedLessonInput {
   objectives: string[];
   challenge: string;
   preview: boolean;
+  /** Price of this lesson on its own, set before publishing. */
+  price: number;
   files: UploadedFileRecord[];
   createdBy: string;
   createdByEmail: string;
@@ -240,6 +249,7 @@ export async function createUploadedLesson(input: NewUploadedLessonInput): Promi
     sections,
     challenge: input.challenge,
     preview: input.preview,
+    price: Math.max(0, Math.round(input.price ?? 0)),
     files: input.files,
     createdBy: input.createdBy,
     createdByEmail: input.createdByEmail,

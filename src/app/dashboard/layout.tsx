@@ -1,21 +1,23 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
-import { getPlan } from "@/lib/plans";
+import { hasActivePass } from "@/lib/access";
+import { isOwner } from "@/lib/owner";
 import SidebarNav from "@/components/SidebarNav";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const plan = getPlan(user.subscription.planId);
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
   const navProps = {
     userName: user.name,
     userEmail: user.email,
-    planName: plan.name,
+    passActive: hasActivePass(user),
+    passEndsAt: user.subscription.expiresAt,
     weeklyMinutes,
     weeklyGoal: user.profile.weeklyGoal,
-    isAdmin: user.role === "admin",
+    isOwner: isOwner(user),
   };
 
   return (
@@ -31,7 +33,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
           {user.suspended && (
             <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-amber-100 font-black">!</span>
-              <div><p className="font-bold">Your account is paused</p><p className="mt-1 text-xs leading-5 text-amber-800">You can review your dashboard, but lessons, progress updates and subscription changes are disabled. Contact an administrator for help.</p></div>
+              <div><p className="font-bold">Your account is paused</p><p className="mt-1 text-xs leading-5 text-amber-800">You can review your dashboard, but lessons, progress updates and subscription changes are disabled. <Link href="/contact" className="font-bold underline">Contact the teacher</Link> if you think this is a mistake.</p></div>
             </div>
           )}
           {children}

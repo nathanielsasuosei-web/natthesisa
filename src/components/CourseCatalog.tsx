@@ -3,20 +3,21 @@
 import { useMemo, useState } from "react";
 import type { Course, CourseCategory } from "@/lib/courses";
 import { CATEGORIES } from "@/lib/courses";
-import type { PlanId } from "@/lib/plans";
-import { canAccessCourse } from "@/lib/courses";
 import CourseCard from "./CourseCard";
 import Icon from "./Icon";
 
 interface Props {
   courses: Course[];
-  planId: PlanId;
+  /** Course ids the student can open right now (active pass AND bought). */
+  unlocked: Record<string, boolean>;
+  /** What each course costs on its own. */
+  prices: Record<string, number>;
   progress: Record<string, number>;
   lessonCounts?: Record<string, number>;
   lessonMinutes?: Record<string, number>;
 }
 
-export default function CourseCatalog({ courses, planId, progress, lessonCounts, lessonMinutes }: Props) {
+export default function CourseCatalog({ courses, unlocked, prices, progress, lessonCounts, lessonMinutes }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"All" | CourseCategory>("All");
   const [level, setLevel] = useState<"All" | Course["level"]>("All");
@@ -41,7 +42,7 @@ export default function CourseCatalog({ courses, planId, progress, lessonCounts,
 
       {visible.length ? (
         <div className="mt-5 grid gap-x-7 gap-y-9 md:grid-cols-2">
-          {visible.map((course) => <CourseCard key={course.id} course={course} progress={progress[course.id]} locked={!canAccessCourse(planId, course)} lessonCount={lessonCounts?.[course.id]} minutes={lessonMinutes?.[course.id]} />)}
+          {visible.map((course) => <CourseCard key={course.id} course={course} progress={progress[course.id]} locked={!unlocked[course.id]} price={prices[course.id]} lessonCount={lessonCounts?.[course.id]} minutes={lessonMinutes?.[course.id]} />)}
         </div>
       ) : (
         <div className="mt-5 flex flex-col items-center border-y border-dashed border-[#d9d4de] px-6 py-16 text-center"><span className="grid size-12 place-items-center rounded-2xl bg-[#f0edf4] text-[#817a87]"><Icon name="search" size={22} /></span><h3 className="mt-4 text-sm font-extrabold">No courses found</h3><p className="mt-1 text-xs text-[#918a97]">Try another keyword or clear your filters.</p></div>

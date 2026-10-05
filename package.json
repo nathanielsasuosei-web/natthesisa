@@ -13,8 +13,10 @@
     "supabase:check": "tsx scripts/supabase-check.mts"
   },
   "dependencies": {
+    "@types/qrcode": "^1.5.6",
     "next": "16.3.5",
     "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
