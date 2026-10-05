@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageEditor, { PHOTO_PRESETS } from "@/components/media/ImageEditor";
 import VideoEditor from "@/components/media/VideoEditor";
-import { canvasToFile, DEFAULT_VIDEO_EDITS, formatClock, posterFileName, type VideoEdits } from "@/lib/media";
+import { DEFAULT_VIDEO_EDITS, formatClock, posterFileName, type VideoEdits } from "@/lib/media";
 import Icon from "@/components/Icon";
 
 /**
@@ -37,7 +37,9 @@ export default function OwnerMediaStudio() {
 
   // ---- video ---------------------------------------------------------------
   const [videoSource, setVideoSource] = useState<{ url: string; name: string } | null>(null);
+  const [videoEditing, setVideoEditing] = useState(false);
   const [videoResult, setVideoResult] = useState<{ edits: VideoEdits; posterUrl: string | null; posterName: string | null } | null>(null);
+  const previewVideoRef = useRef<HTMLVideoElement | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
 
@@ -70,6 +72,7 @@ export default function OwnerMediaStudio() {
       if (videoSource) URL.revokeObjectURL(videoSource.url);
       setVideoSource({ url, name: file.name });
       setVideoResult(null);
+      setVideoEditing(true);
     }
   }, [imageSource, videoSource]);
 
@@ -83,7 +86,7 @@ export default function OwnerMediaStudio() {
   // ---- export a trimmed video, muted or not, recorded in the browser -------
   const exportVideo = useCallback(async () => {
     if (!videoSource || !videoResult) return;
-    const video = document.querySelector<HTMLVideoElement>("[data-studio-video]");
+    const video = previewVideoRef.current;
     if (!video) return;
 
     const start = videoResult.edits.trimStart ?? 0;
@@ -110,8 +113,13 @@ export default function OwnerMediaStudio() {
 
       const done = new Promise<void>((resolve) => { recorder.onstop = () => resolve(); });
 
+      // The element stays audible while recording: a muted element can silence
+      // the captured track in some browsers, and hearing the clip play is the
+      // feedback that the export is running. A muted *edit* is applied to the
+      // captured track above instead.
+      const wasMuted = video.muted;
+      video.muted = false;
       video.currentTime = start;
-      video.muted = true; // only for monitoring; the stream carries its own audio
       await video.play();
       recorder.start(250);
 
@@ -133,6 +141,7 @@ export default function OwnerMediaStudio() {
 
       recorder.stop();
       await done;
+      video.muted = wasMuted;
       setExportProgress(100);
       const blob = new Blob(chunks, { type: chunks.length ? recorder.mimeType : "video/webm" });
       const url = URL.createObjectURL(blob);
@@ -276,11 +285,16 @@ export default function OwnerMediaStudio() {
             {videoSource && (
               <div className="mt-5 border-t border-[#eeeaf1] pt-5">
                 <h3 className="text-[11px] font-extrabold uppercase tracking-wide text-[#8a8390]">Preview</h3>
-                <video data-studio-video src={videoSource.url} controls playsInline className="mt-2 w-full rounded-xl border border-[#e8e4ec] bg-black" />
+                <video ref={previewVideoRef} src={videoSource.url} controls playsInline className="mt-2 w-full rounded-xl border border-[#e8e4ec] bg-black" />
                 <p className="mt-2 text-[10px] text-[#918a97]">{videoSource.name}</p>
-                {videoSource && !videoResult && (
-                  <p className="mt-3 text-xs leading-5 text-[#918a97]">The trim editor is open over the page — set the start and end, capture a thumbnail, then Apply.</p>
-                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => setVideoEditing(true)} className="rounded-xl border border-[#ddd9e2] px-3.5 py-2.5 text-[11px] font-bold text-[#5e5864] transition hover:bg-[#f7f5f9]">
+                    {videoResult ? "Edit it again" : "Open the trim editor"}
+                  </button>
+                  {!videoEditing && !videoResult && (
+                    <span className="text-[11px] leading-5 text-[#918a97]">Set the start and end, mute it, capture a thumbnail.</span>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -330,21 +344,20 @@ export default function OwnerMediaStudio() {
             )}
           </div>
 
-          {videoSource && !videoResult && (
+          {videoSource && videoEditing && (
             <VideoEditor
               src={videoSource.url}
               name={videoSource.name}
-              initial={DEFAULT_VIDEO_EDITS}
-              onCancel={() => setVideoSource(null)}
+              initial={videoResult?.edits ?? DEFAULT_VIDEO_EDITS}
+              onCancel={() => setVideoEditing(false)}
               onApply={(result) => {
-                const posterUrl = result.posterPreview ?? null;
                 setVideoResult({
                   edits: result.edits,
-                  posterUrl,
+                  posterUrl: result.posterPreview ?? null,
                   posterName: result.posterFile ? posterFileName(videoSource.name) : null,
                 });
-                setVideoSource(null);
-                setMessage({ tone: "ok", text: "Edit applied. Export the clip or download the thumbnail on the right." });
+                setVideoEditing(false);
+                setMessage({ tone: "ok", text: "Edit applied. Export the trimmed clip or download the thumbnail on the right." });
               }}
             />
           )}
@@ -391,6 +404,3 @@ function downloadFile(url: string, name: string) {
   link.download = name;
   link.click();
 }
-
-// `canvasToFile` is re-exported for callers that want the canvas helpers too.
-export { canvasToFile };
