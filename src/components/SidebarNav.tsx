@@ -9,6 +9,7 @@ import Logo from "./Logo";
 const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/dashboard", label: "Overview", icon: "home" },
   { href: "/dashboard/courses", label: "Explore courses", icon: "courses" },
+  { href: "/dashboard/code", label: "Code lab", icon: "terminal" },
   { href: "/dashboard/progress", label: "My progress", icon: "progress" },
   { href: "/dashboard/plans", label: "Access pass", icon: "spark" },
   { href: "/dashboard/billing", label: "Billing", icon: "card" },

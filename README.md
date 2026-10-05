@@ -14,7 +14,11 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Real accounts: scrypt-hashed passwords, signed session cookies, and signup /
   sign-in / sign-out / password-change flows backed by PostgreSQL
 - Searchable/filterable course library
-- Six learning paths across web, mobile, backend and computer science
+- **Thirteen courses across three programs** — Computer Science, Software
+  Engineering and Vibe Coding — plus web, mobile and backend paths
+- **The Code lab** (`/dashboard/code`): an HTML/CSS/JavaScript editor with a
+  file tree, live preview and console, saved per student and downloadable as a
+  single HTML file
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
 - Server-saved lesson completion, course percentages and activity history
@@ -49,6 +53,9 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Every student's pass, purchases, progress and lifetime minutes
 - **Prices** — the five numbers above, editable at any time, with the price of
   each course and each lesson in toggled lists
+- **The Studio** (`/owner/studio`) — picture and video editing with no lesson
+  attached: crop, resize, rotate, flip and colour-adjust a picture, trim and
+  mute a video, capture a thumbnail and export the edited clip
 - Search and account filters
 - Pause/restore student accounts
 - Grant a pass, or grant one course/lesson, without charging (“comp” access)
@@ -224,13 +231,61 @@ This is the “what to paste where” map for continuing the build.
 | 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/owner/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
 | 12. Student UI | `src/app/dashboard/*`, `src/components/PassOptions.tsx`, `src/components/BuyContent.tsx` | Overview, library, progress, access pass, billing, account, and the buy buttons |
+| 12b. Code lab | `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx` | The student editor, preview iframe and console |
+| 12c. Media studio | `src/app/owner/studio/page.tsx`, `src/components/OwnerMediaStudio.tsx` | Standalone picture and video editing for the teacher |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
 | 14. Teacher UI | `src/app/owner/*`, `src/components/OwnerStudentsTable.tsx` | Monitoring dashboard, prices and student controls |
 | 15. Design system | `src/app/globals.css`, `src/components/Icon.tsx` | Colors, motion, shared icon set and global styles |
 
+## Programs and the catalog
+
+The catalog is one list, `COURSES` in `src/lib/courses.ts`, assembled from two
+places:
+
+| Part | Where | What it is |
+| --- | --- | --- |
+| Core courses | `src/lib/courses.ts` | Web foundations, JavaScript, React, React Native, Node.js and Computer Science Essentials |
+| Program courses | `src/lib/programs.ts` | The courses that complete each program, written with the same `lesson()` / `module()` helpers |
+| Program metadata | `PROGRAMS` in `src/lib/programs.ts` | Name, tagline, description, icon and tone for each program |
+
+Each course's `category` is its program: **Computer Science**, **Software
+Engineering**, **Vibe Coding**, plus **Web Development**, **App Development** and
+**Backend** for the core paths. The catalog page, the landing page's program
+cards, the search filters, the owner console's price lists and the lesson
+counters all read from that one array.
+
+## The Code lab
+
+`/dashboard/code` is a small code editor that runs entirely in the browser:
+
+- A file tree with three templates (a starter web page, a JavaScript practice
+  notebook and a mini quiz app), editable HTML, CSS and JavaScript files, and a
+  live preview that re-runs as you type.
+- A **Console** tab: the preview document is given a tiny agent that forwards
+  `console.log`, warnings, errors and unhandled promise rejections to the page.
+- Work is saved to `localStorage` per account and can be downloaded as one
+  self-contained HTML file.
+
+Student code runs inside a sandboxed iframe (`sandbox="allow-scripts
+allow-modals"`, no `allow-same-origin`), so it cannot read the session cookie or
+call the app's APIs. Nothing in the lab is uploaded or executed on the server.
+
+## The Studio (teacher)
+
+`/owner/studio` is the owner-only media tool. It uses the same editors that are
+built into lesson uploads — `ImageEditor` and `VideoEditor` in
+`src/components/media/` — without a lesson attached:
+
+- **Pictures:** crop presets or freeform, pan, zoom, rotate, flip, brightness /
+  contrast / saturation, exported as PNG or JPEG at a chosen long edge.
+- **Videos:** set the trim start and end, mute, capture any frame as a
+  thumbnail, and export the edited clip. The export plays the trimmed section
+  once and records it in the browser (`captureStream` + `MediaRecorder`), so no
+  server, no upload and no re-encode of the original file.
+
 ## Add a new course
 
-Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Courses carry no tier: the teacher's pass opens the platform, and this course's price — the course default, or an override the teacher set in the console — is what a student pays to open its lessons. Mark a lesson `preview: true` (via the last argument of `lesson(...)`) to make it free to any signed-in student.
+Paste a new course object into the `COURSES` array in `src/lib/courses.ts` (core paths) or into `PROGRAM_COURSES` in `src/lib/programs.ts` (a program course). Courses carry no tier: the teacher's pass opens the platform, and this course's price — the course default, or an override the teacher set in the console — is what a student pays to open its lessons. Mark a lesson `preview: true` (via the last argument of `lesson(...)`) to make it free to any signed-in student.
 
 ```ts
 {
@@ -242,7 +297,7 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts`. Cour
   category: "Computer Science",
   level: "Beginner",
   tone: "green",
-  icon: "nodes", // browser | braces | react | mobile | nodes | server
+  icon: "nodes", // browser | braces | react | mobile | nodes | server | cpu | layers | terminal | briefcase | spark
   instructor: { name: "Instructor Name", role: "Python Engineer", initials: "IN" },
   rating: 4.9,
   learners: 0,

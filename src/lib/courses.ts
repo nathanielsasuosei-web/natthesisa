@@ -1,4 +1,13 @@
-export type CourseCategory = "Web Development" | "App Development" | "Computer Science" | "Backend";
+import { lesson } from "./lesson-builder";
+import { PROGRAM_COURSES } from "./programs";
+
+export type CourseCategory =
+  | "Computer Science"
+  | "Software Engineering"
+  | "Vibe Coding"
+  | "Web Development"
+  | "App Development"
+  | "Backend";
 export type CourseLevel = "Beginner" | "Intermediate";
 export type CourseTone = "violet" | "orange" | "cyan" | "green" | "pink" | "blue";
 
@@ -59,7 +68,7 @@ export interface Course {
   category: CourseCategory;
   level: CourseLevel;
   tone: CourseTone;
-  icon: "browser" | "braces" | "react" | "mobile" | "nodes" | "server";
+  icon: "browser" | "braces" | "react" | "mobile" | "nodes" | "server" | "layers" | "terminal" | "cpu" | "briefcase" | "spark";
   instructor: { name: string; role: string; initials: string };
   rating: number;
   learners: number;
@@ -70,44 +79,7 @@ export interface Course {
   modules: CourseModule[];
 }
 
-function lesson(
-  id: string,
-  title: string,
-  duration: number,
-  summary: string,
-  concept: string,
-  code: string | undefined,
-  challenge: string,
-  preview = false
-): Lesson {
-  return {
-    id,
-    title,
-    duration,
-    summary,
-    preview,
-    objectives: [
-      `Explain the purpose of ${title.toLowerCase()}`,
-      "Apply the idea in a small working example",
-      "Recognize the pattern in a real project",
-    ],
-    sections: [
-      {
-        heading: "Start with the idea",
-        body: summary,
-      },
-      {
-        heading: "How it works",
-        body: concept,
-        code,
-        language: code ? "code" : undefined,
-      },
-    ],
-    challenge,
-  };
-}
-
-export const COURSES: Course[] = [
+const CORE_COURSES: Course[] = [
   {
     id: "web-foundations",
     slug: "web-foundations",
@@ -704,11 +676,21 @@ export const COURSES: Course[] = [
   },
 ];
 
+/**
+ * The catalog: the six core courses, then the program courses.
+ *
+ * Every course sits under one program (its category), and each program can
+ * have several courses — see `PROGRAMS` in `programs.ts`.
+ */
+export const COURSES: Course[] = [...CORE_COURSES, ...PROGRAM_COURSES];
+
 export const CATEGORIES: Array<"All" | CourseCategory> = [
   "All",
+  "Computer Science",
+  "Software Engineering",
+  "Vibe Coding",
   "Web Development",
   "App Development",
-  "Computer Science",
   "Backend",
 ];
 
