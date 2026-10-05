@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import AdminLoginForm from "@/components/AdminLoginForm";
 import { ownerAccount } from "@/lib/store";
@@ -9,10 +9,18 @@ import Logo from "@/components/Logo";
 
 export const metadata: Metadata = { title: "Administrator sign in" };
 
+// The page reads the session cookie and asks the database whether an owner
+// exists, so it can never be prerendered. Saying so keeps the build from
+// attempting a static pass (and querying the database) first.
+export const dynamic = "force-dynamic";
+
 async function signedInUser() {
   try {
     return await getCurrentUser();
   } catch (error) {
+    // Next's own control-flow errors (redirects, dynamic usage) are not
+    // failures to recover from: rethrow them so the framework still sees them.
+    unstable_rethrow(error);
     // A signed-in admin visiting during a database outage still gets the
     // sign-in form (which explains the outage) instead of a 500 page.
     console.error("[codemasterghana] admin sign-in page: session unreadable, rendering signed out", error);
@@ -24,6 +32,7 @@ async function ownerExists(): Promise<boolean> {
   try {
     return Boolean(await ownerAccount());
   } catch (error) {
+    unstable_rethrow(error);
     // Hide the setup form when the database is unreachable: creating an
     // owner is impossible anyway, and the sign-in form names the outage.
     console.error("[codemasterghana] admin sign-in page: owner check failed, hiding setup", error);

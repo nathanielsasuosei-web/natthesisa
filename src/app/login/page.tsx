@@ -1,14 +1,21 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import AuthForm from "@/components/AuthForm";
 import Logo from "@/components/Logo";
 import Icon from "@/components/Icon";
 
+// The page reads the session cookie, so it can never be prerendered. Saying so
+// keeps the build from attempting a static pass (and logging a failure) first.
+export const dynamic = "force-dynamic";
+
 async function signedInUser() {
   try {
     return await getCurrentUser();
   } catch (error) {
+    // Next's own control-flow errors (redirects, dynamic usage) are not
+    // failures to recover from: rethrow them so the framework still sees them.
+    unstable_rethrow(error);
     // A signed-in learner visiting during a database outage still gets the
     // sign-in form (which explains the outage) instead of a 500 page.
     console.error("[codemasterghana] login page: session unreadable, rendering signed out", error);
