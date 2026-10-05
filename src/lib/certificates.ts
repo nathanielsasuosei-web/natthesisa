@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import { readState, writeState } from "./app-state";
 import { contentLessons, contentMinutes } from "./course-content";
 import { getCourse } from "./courses";
+import { notifyCertificateIssued } from "./email";
 import { saveUser, type User } from "./store";
 
 /**
@@ -182,6 +183,20 @@ export async function issueCertificate(user: User, courseId: string): Promise<Ce
   await writeState(INDEX_KEY, { ...index(), [code]: record });
   user.certificates = [...(user.certificates ?? []), certificate];
   await saveUser(user);
+
+  // Tell the student their certificate exists. Only first issue reaches this
+  // line — the early return above makes repeat visits email-free.
+  await notifyCertificateIssued({
+    to: user.email,
+    toName: user.name,
+    courseId: course.id,
+    courseTitle: course.title,
+    code,
+    hours: certificate.hours,
+    lessons,
+    verifyUrl: verificationUrl(code),
+  });
+
   return certificate;
 }
 

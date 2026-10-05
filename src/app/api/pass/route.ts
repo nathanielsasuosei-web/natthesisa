@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { PurchaseError, buyPass } from "@/lib/purchases";
 import { saveUser } from "@/lib/store";
+import { hasActivePass } from "@/lib/access";
+import { notifyPassPurchased } from "@/lib/email";
 import { PASS_PERIODS, isPassPeriod, passPrice } from "@/lib/plans";
 
 /**
@@ -27,8 +29,19 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const extending = hasActivePass(user);
     const receipt = await buyPass(user, period);
     await saveUser(user);
+    // Best-effort receipt email — never allowed to break the purchase.
+    await notifyPassPurchased({
+      to: user.email,
+      toName: user.name,
+      period: receipt.period,
+      price: receipt.price,
+      expiresAt: receipt.expiresAt,
+      invoiceNumber: receipt.invoiceNumber,
+      extended: extending,
+    });
     return NextResponse.json({ ok: true, pass: user.subscription, receipt });
   } catch (error) {
     if (error instanceof PurchaseError) {

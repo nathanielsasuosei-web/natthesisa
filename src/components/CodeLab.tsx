@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import { LAB_TEMPLATES, buildPreview, type LabFile, type LabLanguage, type LabTemplate } from "@/lib/lab";
@@ -7,15 +8,26 @@ import { LAB_TEMPLATES, buildPreview, type LabFile, type LabLanguage, type LabTe
 /**
  * The student code lab.
  *
- * A small, honest code editor in the browser: a file tree on the left, tabs
- * and an editor in the middle, and a live preview with a console — plus a
- * plain JavaScript runner for practice snippets.
+ * A real code editor in the browser: a file tree on the left, tabs and the
+ * actual VS Code editor (Monaco) in the middle, and a live preview with a
+ * console — plus a plain JavaScript runner for practice snippets.
  *
  * Everything runs locally: the preview is an iframe built from the files, and
  * JavaScript is executed inside that iframe (never in this page), so student
  * code cannot reach the session or the network. Work is saved to localStorage
  * per account, and can be downloaded as a single HTML file.
  */
+
+// The VS Code editor (Monaco) only runs in the browser, so it is loaded on
+// demand and kept out of the initial page bundle.
+const LabEditor = dynamic(() => import("./LabEditor"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid h-[420px] w-full place-items-center bg-[#1b1822] text-xs font-bold text-[#8f889a] xl:h-[560px]">
+      Opening the VS Code editor…
+    </div>
+  ),
+});
 
 const STORAGE_KEY = "codemasterghana.lab.v1";
 
@@ -158,20 +170,6 @@ export default function CodeLab({ studentId, studentName }: Props) {
     }
   }, [file]);
 
-  // Tab inserts two spaces instead of leaving the editor — the single thing
-  // every code editor must do.
-  const onEditorKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== "Tab" || !file) return;
-    event.preventDefault();
-    const target = event.currentTarget;
-    const { selectionStart, selectionEnd, value } = target;
-    const next = `${value.slice(0, selectionStart)}  ${value.slice(selectionEnd)}`;
-    updateFile(file.name, next);
-    window.requestAnimationFrame(() => {
-      target.selectionStart = target.selectionEnd = selectionStart + 2;
-    });
-  }, [file, updateFile]);
-
   const lines = file ? file.content.split("\n").length : 0;
 
   return (
@@ -234,8 +232,9 @@ export default function CodeLab({ studentId, studentName }: Props) {
 
           <h2 className="mt-5 text-[10px] font-black uppercase tracking-[.14em] text-[#8a8390]">Shortcuts</h2>
           <ul className="mt-2 space-y-1.5 text-[10px] leading-4 text-[#7d7683]">
-            <li><kbd className="rounded border border-[#e2dee6] px-1.5 py-0.5 font-mono text-[9px]">Tab</kbd> indents two spaces</li>
             <li><kbd className="rounded border border-[#e2dee6] px-1.5 py-0.5 font-mono text-[9px]">Ctrl</kbd> + <kbd className="rounded border border-[#e2dee6] px-1.5 py-0.5 font-mono text-[9px]">Enter</kbd> runs the project</li>
+            <li><kbd className="rounded border border-[#e2dee6] px-1.5 py-0.5 font-mono text-[9px]">Tab</kbd> indents the selection</li>
+            <li><kbd className="rounded border border-[#e2dee6] px-1.5 py-0.5 font-mono text-[9px]">F1</kbd> opens the VS Code command palette</li>
             <li>Console output appears in the Console tab</li>
           </ul>
         </aside>
@@ -256,6 +255,12 @@ export default function CodeLab({ studentId, studentName }: Props) {
               ))}
             </div>
             <div className="flex shrink-0 items-center gap-1">
+              <span className="hidden rounded-md bg-white/[.05] px-2 py-1 font-mono text-[10px] text-[#9d96a8] sm:inline">
+                {file ? `${lines} lines · ${file.language.toUpperCase()}` : ""}
+              </span>
+              <span className="hidden items-center gap-1 rounded-md bg-[#6d4aff]/15 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-[#b7a7ff] md:inline-flex">
+                <Icon name="code" size={11} /> VS Code
+              </span>
               <button type="button" onClick={copyCode} className="rounded-lg px-2 py-1.5 text-[10px] font-bold text-[#aaa4b1] transition hover:bg-white/[.06] hover:text-white">
                 {copied ? "Copied" : "Copy"}
               </button>
@@ -266,21 +271,14 @@ export default function CodeLab({ studentId, studentName }: Props) {
           </div>
 
           {file ? (
-            <div className="relative">
-              <textarea
+            <div className="h-[420px] xl:h-[560px]">
+              <LabEditor
+                fileName={file.name}
+                language={file.language}
                 value={file.content}
-                spellCheck={false}
-                onChange={(event) => updateFile(file.name, event.target.value)}
-                onKeyDown={(event) => {
-                  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); run(); return; }
-                  onEditorKeyDown(event);
-                }}
-                aria-label={`${file.name} editor`}
-                className="h-[420px] w-full resize-y bg-[#1b1822] p-4 font-mono text-[12.5px] leading-6 text-[#e9e6f0] outline-none [tab-size:2] xl:h-[560px]"
+                onChange={(content) => updateFile(file.name, content)}
+                onRun={run}
               />
-              <p className="pointer-events-none absolute bottom-2 right-3 rounded-md bg-black/40 px-2 py-1 font-mono text-[10px] text-[#9d96a8]">
-                {lines} lines · {file.language.toUpperCase()}
-              </p>
             </div>
           ) : (
             <p className="p-5 text-xs text-[#aaa4b1]">Choose a file to edit.</p>
