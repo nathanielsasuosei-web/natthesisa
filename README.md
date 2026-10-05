@@ -327,6 +327,29 @@ when deployed. `.env.local` is git-ignored; `.env.example` only has placeholders
 Verify from the terminal with `npm run db:check` — it prints the driver, the
 server version, the owner account and the account counts.
 
+### If sign-in says “check the database connection”
+
+That banner means the app cannot reach `DATABASE_URL` at all — for learners
+and the owner alike, because it is the connection, not the accounts. On
+Vercel the cause is almost always the connection string itself:
+
+1. **Use the pooler URI, never the direct host.** Supabase's direct host
+   (`db.<project-ref>.supabase.co`) is IPv6-only, and Vercel has no IPv6
+   route to it — every sign-in fails. Copy the **Transaction pooler** URI
+   instead (Supabase dashboard → Project settings → Database → Connection
+   pooling, port `6543`, user `postgres.<project-ref>`).
+2. Set it as `DATABASE_URL` in Vercel → Project → Settings → Environment
+   Variables, for **every** environment the deployment uses.
+3. **Redeploy.** Vercel injects environment variables at deploy time, so
+   saving alone changes nothing until the next deployment.
+
+The server log names the fix on every failure: look in Vercel → Logs for the
+`[codemasterghana] database connection failed …` line, which says whether the
+host is the IPv6-only direct one, the password was rejected, or the pooler
+username is missing its `.project-ref` suffix. The sign-in pages and APIs keep
+rendering during the outage (the setup form hides itself, the forms show the
+banner) so a database problem never looks like a broken deployment.
+
 Everything is one `users` table. A learner's whole record (subscription, usage,
 progress, invoices, activity, profile) lives in JSONB columns beside their
 account row, so a page of the dashboard is one row read instead of a join

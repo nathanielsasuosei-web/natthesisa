@@ -40,6 +40,59 @@ function embeddedAllowed(): boolean {
   return process.env.NODE_ENV !== "production" || process.env.ALLOW_EMBEDDED_DB === "1";
 }
 
+/** Splits a connection string into loggable parts. The password is never returned. */
+function describeDatabaseUrl(url: string): { user: string; host: string; port: string; db: string } {
+  try {
+    const parsed = new URL(url);
+    return {
+      user: decodeURIComponent(parsed.username || "(none)"),
+      host: parsed.hostname || "(none)",
+      port: parsed.port || "5432",
+      db: decodeURIComponent(parsed.pathname.replace(/^\//, "") || "(none)"),
+    };
+  } catch {
+    return { user: "(unparseable DATABASE_URL)", host: "", port: "", db: "" };
+  }
+}
+
+/**
+ * Logs a connection failure with the fix, not just the driver error.
+ *
+ * Sign-in shows a deliberately generic banner, so this log line — visible in
+ * `vercel logs` / the host's log viewer — is what turns "check the database
+ * connection" into a concrete next step. Never logs the password.
+ */
+function logConnectionFailure(url: string, error: unknown): void {
+  const { user, host, port, db } = describeDatabaseUrl(url);
+  const detail = error instanceof Error ? error.message : String(error);
+  console.error(`[codemasterghana] database connection failed (${user}@${host}:${port}/${db}): ${detail}`);
+  if (/^db\.[a-z0-9]+\.supabase\.co$/i.test(host)) {
+    const ref = host.split(".")[1];
+    console.error(
+      `[codemasterghana] '${host}' is Supabase's DIRECT host, which is IPv6-only: hosts without an IPv6 route ` +
+        `(including Vercel) can never reach it, and every sign-in fails. Switch DATABASE_URL to the Transaction ` +
+        `pooler URI (Supabase dashboard → Project settings → Database → Connection pooling): ` +
+        `postgresql://postgres.${ref}:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres. ` +
+        `Set it on every environment, redeploy, and sign-in recovers with no code change.`
+    );
+  } else if (/password authentication failed/i.test(detail)) {
+    console.error(
+      "[codemasterghana] the database rejected the password. Reset it (Supabase dashboard → Project settings → " +
+        "Database → Reset database password), update the deployment's environment variables, and redeploy."
+    );
+  } else if (/role "[^"]*" does not exist/i.test(detail)) {
+    console.error(
+      "[codemasterghana] the database has no such role. Against the Supabase pooler the user must be " +
+        "'postgres.<project-ref>', not plain 'postgres' — fix the username in DATABASE_URL and redeploy."
+    );
+  } else if (/ENOTFOUND|EAI_AGAIN|ENETUNREACH|EHOSTUNREACH|ETIMEDOUT|timeout|expired/i.test(detail)) {
+    console.error(
+      "[codemasterghana] the host is unreachable from here. Check the hostname and the project's region, " +
+        "and Supabase → Project settings → Network restrictions for IP allowlists blocking this host."
+    );
+  }
+}
+
 async function createDriver(): Promise<Driver> {
   const url = process.env.DATABASE_URL?.trim();
 
@@ -57,8 +110,20 @@ async function createDriver(): Promise<Driver> {
       // prepared statements, so queries here are always unnamed/simple.
       statement_timeout: 15_000,
     });
+    pool.on("error", (error) => {
+      // An idle client dropped by the server (a pooler recycling connections,
+      // a deploy restarting Postgres). The pool replaces the client on its
+      // own; without this listener the error is thrown into the void.
+      console.error("[codemasterghana] database pool dropped an idle client", error);
+    });
     // Fail fast with a useful message rather than hanging on first request.
-    await pool.query("select 1");
+    try {
+      await pool.query("select 1");
+    } catch (error) {
+      await pool.end().catch(() => {});
+      logConnectionFailure(url, error);
+      throw error;
+    }
     return {
       kind: "postgres",
       query: async <T>(sql: string, params?: unknown[]) => (await pool.query(sql, params)).rows as T[],

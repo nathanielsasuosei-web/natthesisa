@@ -9,14 +9,36 @@ import Logo from "@/components/Logo";
 
 export const metadata: Metadata = { title: "Administrator sign in" };
 
+async function signedInUser() {
+  try {
+    return await getCurrentUser();
+  } catch (error) {
+    // A signed-in admin visiting during a database outage still gets the
+    // sign-in form (which explains the outage) instead of a 500 page.
+    console.error("[codemasterghana] admin sign-in page: session unreadable, rendering signed out", error);
+    return null;
+  }
+}
+
+async function ownerExists(): Promise<boolean> {
+  try {
+    return Boolean(await ownerAccount());
+  } catch (error) {
+    // Hide the setup form when the database is unreachable: creating an
+    // owner is impossible anyway, and the sign-in form names the outage.
+    console.error("[codemasterghana] admin sign-in page: owner check failed, hiding setup", error);
+    return true;
+  }
+}
+
 export default async function AdminSignInPage() {
-  const user = await getCurrentUser();
+  const user = await signedInUser();
   if (user?.role === "admin") redirect("/admin");
 
   // Offer first-run setup only when nobody owns the platform yet and the
   // environment has not configured the owner account.
   const configured = Boolean(process.env.OWNER_EMAIL?.trim() && process.env.OWNER_PASSWORD);
-  const setupAvailable = !configured && !(await ownerAccount());
+  const setupAvailable = !configured && !(await ownerExists());
 
   return (
     <main className="grid min-h-screen bg-[#f8f8f5] lg:grid-cols-[.9fr_1.1fr]">
