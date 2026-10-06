@@ -66,12 +66,6 @@ create table if not exists payments (
      updated_at        timestamptz not null default now()
    );
 
-create index if not exists payments_user_idx on payments (user_id, created_at desc);
-
-create index if not exists payments_status_idx on payments (status, created_at desc);
-
-create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null;
-
 -- ---------------------------------------------------------------------------
 -- Migrations: reshape a database made by an older build (additive only).
 -- The app runs these itself on first request; they are printed here so a
@@ -166,4 +160,50 @@ update app_state set value = '{}'::jsonb where value is null;
 alter table app_state alter column value set not null;
 
 alter table app_state add column if not exists updated_at timestamptz not null default now();
+
+alter table payments add column if not exists reference text;
+
+alter table payments add column if not exists user_id text;
+
+alter table payments add column if not exists kind text;
+
+alter table payments add column if not exists period text;
+
+alter table payments add column if not exists course_id text;
+
+alter table payments add column if not exists lesson_id text;
+
+alter table payments add column if not exists amount integer;
+
+alter table payments add column if not exists currency text;
+
+alter table payments add column if not exists description text;
+
+alter table payments add column if not exists status text;
+
+alter table payments add column if not exists provider text;
+
+alter table payments add column if not exists phone text;
+
+alter table payments add column if not exists network text;
+
+alter table payments add column if not exists authorization_url text;
+
+alter table payments add column if not exists channel text;
+
+alter table payments add column if not exists invoice_number text;
+
+alter table payments add column if not exists provider_event_id text;
+
+alter table payments add column if not exists paid_at timestamptz;
+
+alter table payments add column if not exists created_at timestamptz;
+
+alter table payments add column if not exists updated_at timestamptz;
+
+create index if not exists payments_user_idx on payments (user_id, created_at desc);
+
+create index if not exists payments_status_idx on payments (status, created_at desc);
+
+create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null;
 
