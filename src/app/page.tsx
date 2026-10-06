@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
@@ -31,7 +32,8 @@ export default async function LandingPage() {
     <div className="relative min-h-screen overflow-hidden">
       <AnimatedBackground />
 
-      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name} />
+      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name}
+        userAvatar={user ? avatarHref(user) : null} />
 
       <main>
         <section className="relative mx-auto grid max-w-[1180px] items-center gap-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[220px_1fr] lg:gap-14 lg:pb-24 lg:pt-20">

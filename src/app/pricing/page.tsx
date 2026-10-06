@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
@@ -53,6 +54,7 @@ export default async function PricingPage() {
       appHref={appHref}
       signedIn={Boolean(user)}
       userName={user?.name}
+      userAvatar={user ? avatarHref(user) : null}
     >
       {/* ---- the programs --------------------------------------------------- */}
       <section>

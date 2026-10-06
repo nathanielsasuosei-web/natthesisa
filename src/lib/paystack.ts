@@ -94,8 +94,13 @@ async function api<T>(path: string, init: { method?: string; body?: unknown } = 
   if (!response.ok || !envelope?.status) {
     const message = envelope?.message || `Paystack responded with HTTP ${response.status}.`;
     console.error(`[codemasterghana] paystack ${path} failed: ${message}`);
+    // The provider's own words are carried through: "Invalid key" and
+    // "Currency not supported by merchant" are the two failures a teacher can
+    // actually fix, and they are invisible behind a generic "try again in a
+    // moment" — which invites the student to retry forever. Paystack never
+    // echoes credentials in `message`, only what it refused.
     throw new PaystackError(
-      "The payment could not be started. Try again in a moment.",
+      `The payment could not be started — Paystack replied “${message}”.`,
       "PROVIDER_ERROR",
       response.status >= 500 ? 502 : 400
     );

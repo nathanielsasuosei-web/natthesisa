@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { findCertificate } from "@/lib/certificates";
 import { ensureReady } from "@/lib/bootstrap";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { isOwner } from "@/lib/owner";
 import Icon from "@/components/Icon";
 import PublicHeader from "@/components/PublicHeader";
@@ -38,7 +39,8 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="min-h-screen bg-[#f7f7f4]">
-      <PublicHeader appHref={appHref} signedIn={Boolean(user)} userName={user?.name} />
+      <PublicHeader appHref={appHref} signedIn={Boolean(user)} userName={user?.name}
+        userAvatar={user ? avatarHref(user) : null} />
       <main className="px-5 py-10 sm:py-14">
         <div className="mx-auto max-w-xl">
           <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Certificate verification</p>

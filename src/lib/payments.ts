@@ -107,7 +107,12 @@ function fromRow(row: PaymentRow): Payment {
     courseId: row.course_id,
     lessonId: row.lesson_id,
     programId: row.program_id,
-    amount: row.amount,
+    // `Number(...)`: a `payments` table whose `amount` column is `numeric`
+    // (rather than this app's `integer`) hands the value back as a string —
+    // `"300.00"` — and a string amount leaks into invoices, receipts and the
+    // owner's revenue figures. Normalizing here makes the row the same shape
+    // whichever table it came from.
+    amount: Number(row.amount),
     currency: row.currency,
     description: row.description,
     status: row.status as PaymentStatus,
@@ -135,6 +140,39 @@ export class CheckoutError extends Error {
   }
 }
 
+/**
+ * The plain sentence a checkout failure deserves when it was not one of ours.
+ *
+ * The generic banner ("The checkout could not be started.") is a dead end for
+ * everyone: it says nothing a student can act on and hides a fixable database
+ * problem from the teacher. A legacy `payments` table produced exactly that
+ * banner for days — `22P02 invalid input syntax for type uuid`, from a
+ * `user_id` column that could not hold this app's account ids — while the
+ * reason lived only in the host's logs. Naming the layer costs nothing and
+ * turns the next report into a diagnosis. The Postgres code itself is only
+ * logged, never shown: it is not the student's problem to read.
+ */
+export function describeCheckoutFailure(error: unknown): string {
+  const code = (error as { code?: string } | null)?.code;
+  switch (code) {
+    case "22P02":
+    case "42804":
+      return "the payments table stores account ids in a format this app cannot use";
+    case "23514":
+      return "the payments table still has an old rule that rejects this purchase";
+    case "23502":
+      return "the payments table demands a column this app no longer fills";
+    case "42703":
+      return "the payments table is missing a column this app needs";
+    case "23503":
+      return "the payments table points at an account that does not exist";
+    case "42P01":
+      return "the payments table is missing";
+    default:
+      return "the database refused the payment row";
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /* Reads                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -155,8 +193,14 @@ export async function getPaymentByEventId(providerEventId: string): Promise<Paym
 
 export async function listPaymentsForUser(userId: string, limit = 20): Promise<Payment[]> {
   await ensureSchema();
+  // `user_id::text` (on the column, not the parameter) is what makes this work
+  // on both shapes of the table: a `user_id uuid` left by another project
+  // otherwise fails the whole query with `42883 operator does not exist:
+  // text = uuid`. `ensureSchema()` now aligns that column to text, and the
+  // cast keeps the read working on a database where it could not (a role
+  // without ALTER rights) — see the heal block in `schema.ts`.
   const rows = await query<PaymentRow>(
-    "select * from payments where user_id = $1 order by created_at desc limit $2",
+    "select * from payments where user_id::text = $1 order by created_at desc limit $2",
     [userId, Math.min(Math.max(limit, 1), 100)]
   );
   return rows.map(fromRow);
@@ -283,8 +327,10 @@ async function findOpenCheckout(
 ): Promise<Payment | null> {
   await ensureSchema();
   const row = await queryOne<PaymentRow>(
+    // `user_id::text`: see `listPaymentsForUser` — a legacy `uuid` column must
+    // not be allowed to take the whole checkout down with a type error.
     `select * from payments
-      where user_id = $1 and kind = $2
+      where user_id::text = $1 and kind = $2
         and coalesce(period, '') = $3
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
@@ -496,8 +542,9 @@ function applyPaidAmount(user: User, invoiceNumber: string | null, paidAmount: n
 async function findPaidTwin(payment: Payment): Promise<Payment | null> {
   await ensureSchema();
   const row = await queryOne<PaymentRow>(
+    // `user_id::text` for the same reason as `findOpenCheckout`.
     `select * from payments
-      where user_id = $1 and kind = $2
+      where user_id::text = $1 and kind = $2
         and coalesce(period, '') = $3
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5

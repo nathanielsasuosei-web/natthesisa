@@ -3,6 +3,7 @@ import Link from "next/link";
 import { findCertificate } from "@/lib/certificates";
 import { ensureReady } from "@/lib/bootstrap";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { isOwner } from "@/lib/owner";
 import { fmtDate } from "@/lib/format";
 import Icon from "@/components/Icon";
@@ -32,7 +33,8 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
 
   return (
     <div className="min-h-screen bg-[#f7f7f4]">
-      <PublicHeader appHref={appHref} signedIn={Boolean(user)} userName={user?.name} />
+      <PublicHeader appHref={appHref} signedIn={Boolean(user)} userName={user?.name}
+        userAvatar={user ? avatarHref(user) : null} />
       <main className="px-5 py-10 sm:py-14">
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center justify-between gap-3">

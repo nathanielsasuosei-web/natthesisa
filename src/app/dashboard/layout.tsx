@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { isOwner } from "@/lib/owner";
+import { avatarHref } from "@/lib/avatars";
 import SidebarNav from "@/components/SidebarNav";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
@@ -12,6 +13,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
   const navProps = {
     userName: user.name,
     userEmail: user.email,
+    userAvatar: avatarHref(user),
     programsOwned: user.purchases.filter((item) => item.kind === "program").length,
     weeklyMinutes,
     weeklyGoal: user.profile.weeklyGoal,

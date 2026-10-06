@@ -28,6 +28,7 @@ create table if not exists users (
      activity_log      jsonb not null default '[]'::jsonb,
      payment_method    jsonb not null,
      profile           jsonb not null,
+     avatar            jsonb,
      last_seen_at      timestamptz,
      created_at        timestamptz not null default now(),
      updated_at        timestamptz not null default now()
@@ -98,6 +99,8 @@ alter table users add column if not exists activity_log jsonb not null default '
 alter table users add column if not exists payment_method jsonb;
 
 alter table users add column if not exists profile jsonb;
+
+alter table users add column if not exists avatar jsonb;
 
 alter table users add column if not exists last_seen_at timestamptz;
 
@@ -213,4 +216,121 @@ create index if not exists payments_user_idx on payments (user_id, created_at de
 create index if not exists payments_status_idx on payments (status, created_at desc);
 
 create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null;
+
+do $$
+declare
+  column_to_fix record;
+  attached_key record;
+begin
+  for column_to_fix in
+    select column_name
+      from information_schema.columns
+     where table_schema = current_schema()
+       and table_name = 'payments'
+       and column_name in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
+                           'program_id', 'description', 'status', 'provider', 'currency', 'phone',
+                           'network', 'authorization_url', 'channel', 'invoice_number', 'provider_event_id')
+       -- Anything that is not plain text, including varchar(8) (which would
+       -- silently reject a CMG-… reference) and enum types (which accept only
+       -- the labels they were born with).
+       and data_type <> 'text'
+  loop
+    begin
+      for attached_key in
+        select conname from pg_constraint
+         where conrelid = 'payments'::regclass
+           and contype = 'f'
+           and conkey = array[(select attnum from pg_attribute
+                                where attrelid = 'payments'::regclass
+                                  and attname = column_to_fix.column_name and not attisdropped)]
+      loop
+        execute format('alter table payments drop constraint %I', attached_key.conname);
+        raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
+      end loop;
+      execute format('alter table payments alter column %I type text using %I::text', column_to_fix.column_name, column_to_fix.column_name);
+      raise warning '[codemasterghana] payments.% aligned to text', column_to_fix.column_name;
+    exception when others then
+      raise warning '[codemasterghana] could not align payments.% to text: %', column_to_fix.column_name, sqlerrm;
+    end;
+  end loop;
+end $$;
+
+do $heal$
+declare
+  stale_rule record;
+  wanted_rule record;
+begin
+  -- One guard around the whole pass: if anything here fails (a table whose
+  -- catalogue entry cannot even be read), the app still starts, and the
+  -- warning says which constraint was being handled.
+  begin
+  for stale_rule in
+    select conname
+      from pg_constraint
+     where conrelid = 'payments'::regclass
+       and contype = 'c'
+       and conname <> 'payments_kind_check'
+       and pg_get_constraintdef(oid) ~* '\y(kind|status|provider|period|amount|currency)\y'
+  loop
+    begin
+      execute format('alter table payments drop constraint %I', stale_rule.conname);
+      raise warning '[codemasterghana] dropped stale payments rule %', stale_rule.conname;
+    exception when others then
+      raise warning '[codemasterghana] could not drop payments rule %: %', stale_rule.conname, sqlerrm;
+    end;
+  end loop;
+
+  for wanted_rule in
+    select * from (values
+      ('payments_status_check',   $rule$status is null or status in ('pending', 'paid', 'failed', 'abandoned')$rule$),
+      ('payments_provider_check', $rule$provider is null or provider in ('demo', 'paystack')$rule$),
+      ('payments_period_check',   $rule$period is null or period in ('daily', 'weekly', 'monthly')$rule$),
+      ('payments_amount_check',   $rule$amount is null or amount >= 0$rule$),
+      ('payments_currency_check', $rule$currency is null or currency = 'GHS'$rule$)
+    ) as rules(name, definition)
+  loop
+    begin
+      execute format('alter table payments add constraint %I check (%s) not valid', wanted_rule.name, wanted_rule.definition);
+    exception when others then
+      raise warning '[codemasterghana] could not add payments rule %: %', wanted_rule.name, sqlerrm;
+    end;
+  end loop;
+  exception when others then
+    raise warning '[codemasterghana] payments rule cleanup skipped: %', sqlerrm;
+  end;
+end $heal$;
+
+do $$
+declare
+  legacy_column record;
+begin
+  for legacy_column in
+    select column_name
+      from information_schema.columns
+     where table_schema = current_schema()
+       and table_name = 'payments'
+       and is_nullable = 'NO'
+       and column_default is null
+       and column_name not in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
+                               'program_id', 'amount', 'currency', 'description', 'status', 'provider',
+                               'phone', 'network', 'authorization_url', 'channel', 'invoice_number',
+                               'provider_event_id', 'paid_at', 'created_at', 'updated_at')
+       and column_name not in (
+         select attribute.attname
+           from pg_index index_definition
+           join pg_attribute attribute
+             on attribute.attrelid = index_definition.indrelid
+            and attribute.attnum = any(index_definition.indkey)
+          where index_definition.indrelid = 'payments'::regclass
+            and (index_definition.indisprimary or index_definition.indisunique)
+       )
+  loop
+    begin
+      execute format('alter table payments alter column %I drop not null', legacy_column.column_name);
+      raise warning '[codemasterghana] dropped NOT NULL on legacy payments column % (this app never fills it)', legacy_column.column_name;
+    exception when others then
+      raise warning '[codemasterghana] could not drop NOT NULL on payments.%: %', legacy_column.column_name, sqlerrm;
+    end;
+  end loop;
+end $$;
 

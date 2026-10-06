@@ -3,15 +3,27 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { LearnerProfile } from "@/lib/store";
+import ProfilePhotoCard from "./ProfilePhotoCard";
 import Icon from "./Icon";
 
 interface Props {
   name: string;
   email: string;
   profile: LearnerProfile;
+  /** The account's picture (`/api/account/avatar…`), or null for initials. */
+  avatarSrc?: string | null;
+  avatarSize?: number | null;
+  avatarName?: string | null;
 }
 
-export default function AccountForm({ name: initialName, email, profile: initialProfile }: Props) {
+export default function AccountForm({
+  name: initialName,
+  email,
+  profile: initialProfile,
+  avatarSrc = null,
+  avatarSize = null,
+  avatarName = null,
+}: Props) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [headline, setHeadline] = useState(initialProfile.headline);
@@ -86,6 +98,8 @@ export default function AccountForm({ name: initialName, email, profile: initial
 
   return (
     <div className="space-y-5">
+      <ProfilePhotoCard name={name} initialSrc={avatarSrc} initialSize={avatarSize} initialName={avatarName} />
+
       <form onSubmit={save} className="space-y-5">
       <section className="open-surface">
         <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">Profile details</h2><p className="mt-1 text-[10px] text-[#918a97]">How your name and learning goal appear in codemasterghana.</p></div>

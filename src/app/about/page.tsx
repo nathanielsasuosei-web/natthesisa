@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { PROGRAMS } from "@/lib/programs";
 import { contentTotals } from "@/lib/course-content";
@@ -30,6 +31,7 @@ export default async function AboutPage() {
       appHref={appHref}
       signedIn={Boolean(user)}
       userName={user?.name}
+      userAvatar={user ? avatarHref(user) : null}
     >
       <section className="overflow-hidden rounded-[22px] border border-[#e8e4ec] bg-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}

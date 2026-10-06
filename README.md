@@ -28,7 +28,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   finishing a course, and a notice when a certificate is issued
 - Dashboard with weekly goal, streak, time learned and recommendations
 - Progress analytics, certificates, learning timeline and CSV export
-- Editable learner profile, experience level, track and weekly goal
+- Editable learner profile, experience level, track and weekly goal, and a
+  **profile picture** a student adds from their account page
 
 ### Programs, and buying them
 
@@ -228,6 +229,7 @@ This is the “what to paste where” map for continuing the build.
 | 6. Account API | `src/app/api/auth/*`, `src/app/api/account/route.ts` | Sign up, sign in, sign out, profile and password changes |
 | 6a. Database | `src/lib/db.ts`, `src/lib/schema.ts`, `src/lib/bootstrap.ts`, `scripts/*.mts` | Postgres/PGlite driver, schema, first-run setup and CLI reports |
 | 6b. Passwords | `src/lib/passwords.ts` | scrypt hashing, verification and strength rules |
+| 6c. Profile pictures | `src/lib/avatars.ts`, `src/app/api/account/avatar/route.ts`, `src/components/ProfilePhotoCard.tsx`, `src/components/AvatarImage.tsx` | Student photos: upload, serve, remove, and the initials fallback |
 | 7. Progress API | `src/app/api/progress/route.ts` | Start courses and complete/uncomplete lessons |
 | 8. Buying | `src/lib/purchases.ts` | Buy a program, and the teacher's comp grants (retired pass/course/lesson sellers stay for in-flight fulfilments) |
 | 8a. MoMo numbers | `src/lib/momo.ts` | Ghana phone validation and MTN / Telecel / AT detection (client-safe) |
@@ -760,6 +762,25 @@ who somehow pays twice for the same item is refunded automatically (the
 register shows both paid rows); if the automatic refund ever fails, refund the
 duplicate from the Paystack dashboard — the server log names the reference.
 
+### Reconciling "The checkout could not be started."
+
+The response no longer hides the reason — it names the layer that refused, and
+the server log (`[codemasterghana] checkout failed …`) carries the exact
+Postgres error. Two causes are worth knowing:
+
+- **A `payments` table that came from somewhere else.** A database shared with
+  another project can already have a `payments` table whose `user_id` is
+  `uuid`, whose `status` / `provider` rules were written for a different app,
+  or which demands a column this app never fills. Any of those refuses every
+  checkout while sign-in and the rest of the site look perfectly healthy. The
+  app aligns that table by itself on the first request after deploying — see
+  the heal block at the end of `MIGRATION_STATEMENTS` in
+  `src/lib/schema.ts`. Nothing has to be pasted or renamed, no rows are
+  touched, and a column it cannot convert is logged rather than fatal.
+- **Paystack refusing the charge.** The message then quotes Paystack ("Invalid
+  key", "Currency not supported by merchant", …). Run `npm run payments:check`
+  and make sure Ghana cedis (GHS) are activated on the Paystack account.
+
 ## Data and access behavior
 
 - Accounts live in PostgreSQL. Every signup, profile edit, password change,
@@ -802,6 +823,14 @@ duplicate from the Paystack dashboard — the server log names the reference.
   (`/api/branding/photo`, `/api/branding/logo`): signed-in learners can load
   them, anonymous visitors get `401`, and only the owner can replace or remove
   them. Photos and logos must be image files (PNG, JPG, WEBP, GIF or AVIF).
+- A student's profile picture is handled the same way, through
+  `/api/account/avatar`: an anonymous visitor gets `401`, another student asking
+  for somebody else's picture gets `403` (the teacher, who sees the student list,
+  may load any), and the bytes are either streamed from disk or redirected to
+  Storage, so no bucket URL reaches the page. Only the image bytes are stored —
+  the account row keeps the small record (stored name, mime, size, upload time),
+  and the upload time is in the URL so a replaced picture is never served from a
+  stale cache. Removing a picture deletes the file and puts the initials back.
 
 ## Deployment
 

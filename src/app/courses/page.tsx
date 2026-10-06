@@ -5,6 +5,7 @@ import { PROGRAMS } from "@/lib/programs";
 import { contentTotals, lessonCountsByCourse, lessonMinutesByCourse } from "@/lib/course-content";
 import { formatMoney, programPrice } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { isOwner } from "@/lib/owner";
 import InfoPage, { InfoContactStrip, InfoFaq, InfoList, InfoSection } from "@/components/InfoPage";
@@ -48,6 +49,7 @@ export default async function CoursesPage() {
       appHref={appHref}
       signedIn={Boolean(user)}
       userName={user?.name}
+      userAvatar={user ? avatarHref(user) : null}
     >
       <InfoSection title="How the catalogue is organised">
         <p>

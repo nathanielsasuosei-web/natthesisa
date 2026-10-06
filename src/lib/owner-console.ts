@@ -51,6 +51,10 @@ export interface StudentRow {
   lifetimeMinutes: number;
   invoices: number;
   revenue: number;
+  /** True when the student has added a profile picture. */
+  hasAvatar: boolean;
+  /** Upload time of the picture, used to version the URL; null when there is none. */
+  avatarVersion: string | null;
 }
 
 export function toStudentRow(user: User): StudentRow {
@@ -76,6 +80,8 @@ export function toStudentRow(user: User): StudentRow {
     lifetimeMinutes: user.lifetimeMinutes,
     invoices: user.invoices.length,
     revenue: user.invoices.reduce((sum, invoice) => sum + invoice.amount, 0),
+    hasAvatar: Boolean(user.avatar),
+    avatarVersion: user.avatar?.updatedAt ?? null,
   };
 }
 

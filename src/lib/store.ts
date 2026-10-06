@@ -5,6 +5,8 @@ import { findContentLesson } from "./course-content";
 import { hashPassword, verifyPasswordHash } from "./passwords";
 import { ensureSchema, query, queryOne } from "./db";
 import type { UserRow } from "./schema";
+import { isAvatarRecord } from "./avatars";
+import type { AvatarRecord } from "./avatars";
 import type { Certificate } from "./certificates";
 
 /**
@@ -143,6 +145,12 @@ export interface User {
   activityLog: ActivityEvent[];
   paymentMethod: PaymentMethod;
   profile: LearnerProfile;
+  /**
+   * The student's profile picture, or null when they have not set one (the UI
+   * then shows their initials). The image bytes live in object storage or on
+   * disk; only this small record is kept on the account row.
+   */
+  avatar: AvatarRecord | null;
 }
 
 export function uid(): string {
@@ -251,11 +259,12 @@ function fromRow(row: UserRow): User {
     activityLog: (row.activity_log ?? []) as ActivityEvent[],
     paymentMethod: row.payment_method as PaymentMethod,
     profile: { ...defaultProfile(), ...((row.profile ?? {}) as Partial<LearnerProfile>) },
+    avatar: isAvatarRecord(row.avatar) ? (row.avatar as AvatarRecord) : null,
   };
 }
 
 const COLUMNS =
-  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, certificates, invoices, activity_log, payment_method, profile, created_at";
+  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, certificates, invoices, activity_log, payment_method, profile, avatar, created_at";
 
 function json(value: unknown): string {
   return JSON.stringify(value ?? null);
@@ -306,8 +315,8 @@ export async function saveUser(user: User): Promise<void> {
     `insert into users (
        id, email, name, password_hash, role, owner, suspended,
        subscription, usage, lifetime_minutes, progress, purchases, certificates,
-       invoices, activity_log, payment_method, profile, created_at, updated_at
-     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, now())
+       invoices, activity_log, payment_method, profile, avatar, created_at, updated_at
+     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, now())
      on conflict (id) do update set
        email = excluded.email,
        name = excluded.name,
@@ -325,6 +334,7 @@ export async function saveUser(user: User): Promise<void> {
        activity_log = excluded.activity_log,
        payment_method = excluded.payment_method,
        profile = excluded.profile,
+       avatar = excluded.avatar,
        updated_at = now()`,
     [
       user.id,
@@ -344,6 +354,7 @@ export async function saveUser(user: User): Promise<void> {
       json(user.activityLog),
       json(user.paymentMethod),
       json(user.profile),
+      json(user.avatar ?? null),
       user.createdAt,
     ]
   );
@@ -395,6 +406,7 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
     activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242", provider: "demo" },
     profile: defaultProfile({ track: options.track, weeklyGoal: options.weeklyGoal }),
+    avatar: null,
   };
 
   try {
