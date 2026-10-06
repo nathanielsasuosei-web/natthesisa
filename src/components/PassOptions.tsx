@@ -43,7 +43,8 @@ export default function PassOptions({ prices, active, expiresAt, cardLabel }: Pr
     try {
       const response = await fetch("/api/pass", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ period: checkout }),
       });
       const data = await response.json().catch(() => ({}));
