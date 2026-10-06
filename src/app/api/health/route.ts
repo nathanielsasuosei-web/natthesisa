@@ -111,8 +111,13 @@ export async function GET() {
         target.driver === "embedded"
           ? "No PostgreSQL connection string is configured, so the app fell back to its embedded database. " +
             "Set one of the variables in `checked` in the host's environment variables and redeploy."
-          : "The database could not be reached and the error did not match a known cause. Read the " +
-            "`[codemasterghana] database connection failed …` line in the host's logs.";
+          : report.database.connected
+            ? "Connected to the database, but its tables could not be created or upgraded. The role may lack " +
+              "permission to change tables, or a table made by hand (or by another project) may exist under the " +
+              "same name with different columns. Read the `[codemasterghana] schema statement failed …` line in " +
+              "the host's logs — it names the exact statement."
+            : "The database could not be reached and the error did not match a known cause. Read the " +
+              "`[codemasterghana] database connection failed …` line in the host's logs.";
     }
     console.error("[codemasterghana] health check failed", error);
   }

@@ -57,11 +57,11 @@ export interface AccessPass {
   expiresAt: string;
 }
 
-/** A course or a single lesson the student has paid for. */
+/** A program the student has paid for (older rows may be a course or lesson). */
 export interface Purchase {
   id: string;
-  kind: "course" | "lesson";
-  /** Course id, or lesson id when `kind` is "lesson". */
+  kind: "course" | "lesson" | "program";
+  /** Program, course or lesson id, matching `kind`. */
   refId: string;
   /** Set for lessons, so the dashboard can group by course. */
   courseId: string | null;
@@ -88,7 +88,16 @@ export interface LearningUsage {
 export interface PaymentMethod {
   brand: string;
   last4: string;
-  provider: "demo";
+  provider: "demo" | "paystack";
+  /**
+   * Mobile Money details for the last successful payment, when the student
+   * paid with MoMo. The phone is stored so the billing page and receipts can
+   * show where the money came from — the MoMo PIN itself never touches us
+   * (approval happens on the student's own phone / the provider's page).
+   */
+  phone?: string;
+  network?: string;
+  channel?: "mobile_money" | "card" | "bank_transfer" | "ussd" | "qr" | "bank";
 }
 
 export interface CourseProgress {
@@ -448,8 +457,21 @@ export function logActivity(
   if (user.activityLog.length > 250) user.activityLog.pop();
 }
 
-/** Invoice numbers come from a database sequence, so they stay unique. */
-export async function addInvoice(user: User, amount: number, description: string): Promise<Invoice | null> {
+/**
+ * Invoice numbers come from a database sequence, so they stay unique.
+ *
+ * `reference` is the payment reference that settled this invoice — the
+ * provider's transaction reference for real Mobile Money / card payments, or a
+ * `demo_…` marker for simulated checkouts. It is what ties an invoice back to
+ * its row in `payments` when a student (or the teacher) asks "where did this
+ * money go?".
+ */
+export async function addInvoice(
+  user: User,
+  amount: number,
+  description: string,
+  reference?: string
+): Promise<Invoice | null> {
   if (amount <= 0) return null;
   await ensureSchema();
   const row = await queryOne<{ number: string }>("select nextval('invoice_number_seq')::text as number");
@@ -460,7 +482,7 @@ export async function addInvoice(user: User, amount: number, description: string
     amount,
     description,
     status: "paid",
-    reference: `demo_${uid().slice(0, 8)}`,
+    reference: reference ?? `demo_${uid().slice(0, 8)}`,
   };
   user.invoices.unshift(invoice);
   return invoice;

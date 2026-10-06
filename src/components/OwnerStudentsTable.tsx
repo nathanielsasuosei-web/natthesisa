@@ -3,35 +3,33 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StudentRow } from "@/lib/owner-console";
-import { PASS_PERIODS, PERIOD_LABEL, type PassPeriod } from "@/lib/pass-periods";
 import { fmtDate, fmtMinutes, fmtMoney, initials } from "@/lib/format";
 import Icon from "./Icon";
 
 interface Props {
   initialUsers: StudentRow[];
   ownerId: string;
-  /** Courses the owner can open for a student, from the catalog. */
-  courses?: Array<{ id: string; title: string }>;
+  /** Programs the owner can open for a student, from the catalog. */
+  programs?: Array<{ id: string; title: string }>;
 }
 
-type Filter = "all" | "active" | "paused" | "no-pass";
+type Filter = "all" | "active" | "paused" | "no-program";
 
 /**
  * The teacher's student list.
  *
  * Every student is on the same footing — there are no administrators to
- * promote. The owner can pause an account, reset progress, delete it, give
- * time on a pass, or open a course, all of which are re-checked on the server.
+ * promote. The owner can pause an account, reset progress, delete it, or open
+ * a program for free, all of which are re-checked on the server.
  */
-export default function OwnerStudentsTable({ initialUsers, ownerId, courses = [] }: Props) {
+export default function OwnerStudentsTable({ initialUsers, ownerId, programs = [] }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ error?: boolean; text: string } | null>(null);
   const [deleteUser, setDeleteUser] = useState<StudentRow | null>(null);
-  const [passChoice, setPassChoice] = useState<Record<string, PassPeriod>>({});
-  const [courseChoice, setCourseChoice] = useState<Record<string, string>>({});
+  const [programChoice, setProgramChoice] = useState<Record<string, string>>({});
 
   const users = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -41,7 +39,7 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
         filter === "all" ||
         (filter === "active" && !user.suspended) ||
         (filter === "paused" && user.suspended) ||
-        (filter === "no-pass" && !user.passActive);
+        (filter === "no-program" && user.programsOwned.length === 0);
       return queryMatch && filterMatch;
     });
   }, [initialUsers, query, filter]);
@@ -76,7 +74,7 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
       <div className="flex flex-col gap-4 border-b border-[#ebe8ed] py-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-sm font-extrabold">Students</h2>
-          <p className="mt-1 text-[10px] text-[#918a97]">Access passes, progress and account controls.</p>
+          <p className="mt-1 text-[10px] text-[#918a97]">Programs owned, progress and account controls.</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative">
@@ -96,7 +94,7 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
             <option value="all">All students</option>
             <option value="active">Not paused</option>
             <option value="paused">Paused</option>
-            <option value="no-pass">No active pass</option>
+            <option value="no-program">No program yet</option>
           </select>
         </div>
       </div>
@@ -112,8 +110,8 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
           <thead>
             <tr className="border-b border-[#ebe8ed] bg-[#faf9fb] text-[8px] font-black uppercase tracking-[.11em] text-[#918a97]">
               <th className="px-5 py-3">Student</th>
-              <th className="px-4 py-3">Access pass</th>
-              <th className="px-4 py-3">Content owned</th>
+              <th className="px-4 py-3">Programs</th>
+              <th className="px-4 py-3">Purchases</th>
               <th className="px-4 py-3">Learning</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3 text-right">Paid</th>
@@ -131,7 +129,6 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
             {users.map((user) => {
               const isSelf = user.id === ownerId;
               const busy = busyId === user.id;
-              const period = passChoice[user.id] ?? "monthly";
               return (
                 <tr key={user.id} className={`border-b border-[#f0edf2] last:border-0 ${user.suspended ? "bg-amber-50/45" : ""}`}>
                   <td className="px-5 py-4">
@@ -152,31 +149,37 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex flex-col items-start gap-1.5">
-                      <span className={`rounded-full px-2 py-1 text-[8px] font-black uppercase ${user.passActive ? "bg-emerald-50 text-emerald-700" : "bg-[#f2f0f4] text-[#8a8390]"}`}>
-                        {user.passActive ? `${PERIOD_LABEL[user.passPeriod ?? "monthly"]} active` : "No pass"}
-                      </span>
-                      <p className="text-[8px] text-[#9a939f]">
-                        {user.passActive ? `Until ${fmtDate(user.passExpiresAt)}` : "Learning is locked"}
-                      </p>
-                      {!user.owner && (
+                      {user.programsOwned.length > 0 ? (
+                        user.programsOwned.map((name) => (
+                          <span key={name} className="rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">
+                            {name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="rounded-full bg-[#f2f0f4] px-2 py-1 text-[8px] font-black uppercase text-[#8a8390]">
+                          No program
+                        </span>
+                      )}
+                      {!user.owner && programs.length > 0 && (
                         <div className="flex items-center gap-1">
                           <select
-                            value={period}
-                            onChange={(event) => setPassChoice((current) => ({ ...current, [user.id]: event.target.value as PassPeriod }))}
+                            value={programChoice[user.id] ?? ""}
+                            onChange={(event) => setProgramChoice((current) => ({ ...current, [user.id]: event.target.value }))}
                             disabled={busy}
-                            className="rounded-lg border border-[#ddd9e2] bg-white px-2 py-1.5 text-[9px] font-bold disabled:opacity-50"
-                            aria-label={`Pass length to give ${user.name}`}
+                            className="max-w-36 rounded-lg border border-[#ddd9e2] bg-white px-2 py-1.5 text-[9px] font-bold disabled:opacity-50"
+                            aria-label={`Program to open for ${user.name}`}
                           >
-                            {PASS_PERIODS.map((item) => (
-                              <option key={item} value={item}>{PERIOD_LABEL[item]}</option>
+                            <option value="">Open a program…</option>
+                            {programs.map((program) => (
+                              <option key={program.id} value={program.id}>{program.title}</option>
                             ))}
                           </select>
                           <button
-                            disabled={busy}
-                            onClick={() => act(user.id, { method: "PATCH", body: JSON.stringify({ action: "grantPass", period }) }, `${user.name} was given a ${PERIOD_LABEL[period].toLowerCase()}.`)}
+                            disabled={busy || !programChoice[user.id]}
+                            onClick={() => act(user.id, { method: "PATCH", body: JSON.stringify({ action: "grantProgram", programId: programChoice[user.id] }) }, `${user.name} can now open that program.`)}
                             className="rounded-lg bg-[#1b1822] px-2 py-1.5 text-[9px] font-extrabold text-white disabled:opacity-40"
                           >
-                            Give
+                            Open
                           </button>
                         </div>
                       )}
@@ -184,29 +187,7 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, courses = []
                   </td>
                   <td className="px-4 py-4">
                     <p className="text-[10px] font-extrabold text-[#4a4450]">{user.purchases} item{user.purchases === 1 ? "" : "s"}</p>
-                    {!user.owner && courses.length > 0 && (
-                      <div className="mt-1.5 flex items-center gap-1">
-                        <select
-                          value={courseChoice[user.id] ?? ""}
-                          onChange={(event) => setCourseChoice((current) => ({ ...current, [user.id]: event.target.value }))}
-                          disabled={busy}
-                          className="max-w-36 rounded-lg border border-[#ddd9e2] bg-white px-2 py-1.5 text-[9px] font-bold disabled:opacity-50"
-                          aria-label={`Course to open for ${user.name}`}
-                        >
-                          <option value="">Open a course…</option>
-                          {courses.map((course) => (
-                            <option key={course.id} value={course.id}>{course.title}</option>
-                          ))}
-                        </select>
-                        <button
-                          disabled={busy || !courseChoice[user.id]}
-                          onClick={() => act(user.id, { method: "PATCH", body: JSON.stringify({ action: "grantAccess", courseId: courseChoice[user.id] }) }, `${user.name} can now open that course.`)}
-                          className="rounded-lg border border-[#d9d0fb] bg-[#f4f1ff] px-2 py-1.5 text-[9px] font-bold text-[#5e3de0] disabled:opacity-40"
-                        >
-                          Open
-                        </button>
-                      </div>
-                    )}
+                    <p className="mt-1 text-[8px] text-[#918a97]">on record</p>
                   </td>
                   <td className="px-4 py-4">
                     <p className="text-[10px] font-extrabold text-[#4a4450]">{user.lessonsCompleted} lessons</p>

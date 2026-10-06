@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
 import { requireCurrentUser } from "@/lib/require-user";
-import { hasActivePass } from "@/lib/access";
+import { courseAccess } from "@/lib/access";
 import {
   hasFinishedCourse,
   issueCertificate,
@@ -26,22 +26,22 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
   if (!course) notFound();
 
   const finished = hasFinishedCourse(user, course.id);
-  // A certificate celebrates finished work, and only an active pass opens the
-  // course in the first place — so both are checked.
-  const entitled = hasActivePass(user);
+  // A certificate celebrates finished work inside a program the student owns —
+  // finishing implies owning, but the gate is checked anyway.
+  const entitled = courseAccess(user, course).allowed;
 
   if (!finished || !entitled) {
     return (
       <div className="mx-auto max-w-md border-y border-[#ded9e3] py-8 text-center">
         <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#f0ecff] text-[#6d4aff]"><Icon name={finished ? "lock" : "certificate"} size={25} /></span>
-        <h1 className="mt-4 text-xl font-black">{finished ? "Your pass has ended" : "Complete the course first"}</h1>
+        <h1 className="mt-4 text-xl font-black">{finished ? "Program needed" : "Complete the course first"}</h1>
         <p className="mt-2 text-sm leading-6 text-[#756f7b]">
           {finished
-            ? "Buy more time on an access pass and your certificate is ready to create and share."
+            ? "Buy the program this course belongs to and your certificate is ready to create and share."
             : `Finish every lesson in ${course.title} to earn this certificate.`}
         </p>
         <Link href={finished ? "/dashboard/plans" : `/dashboard/courses/${course.slug}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white">
-          {finished ? "Buy an access pass" : "Continue course"} <Icon name="arrow-right" size={14} />
+          {finished ? "See programs" : "Continue course"} <Icon name="arrow-right" size={14} />
         </Link>
       </div>
     );

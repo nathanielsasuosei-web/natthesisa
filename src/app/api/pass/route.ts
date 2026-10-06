@@ -1,61 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
-import { PurchaseError, buyPass } from "@/lib/purchases";
-import { saveUser } from "@/lib/store";
-import { hasActivePass } from "@/lib/access";
-import { notifyPassPurchased } from "@/lib/email";
-import { PASS_PERIODS, isPassPeriod, passPrice } from "@/lib/plans";
+import { NextResponse } from "next/server";
 
 /**
- * Buys an access pass — a day, a week or a month.
- *
- * This is the door to the platform: without an active pass a student can read
- * the catalog and watch free previews, but no lesson of their own opens. There
- * is no renewal to manage; a pass simply ends, and buying another one extends
- * whatever time is left.
+ * Retired with the access pass: time is no longer sold, and passes open
+ * nothing. The route stays so old clients get an explanation instead of a
+ * 404 — students buy the program they want to study.
  */
-export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in to buy an access pass." }, { status: 401 });
-  if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
-
-  const body = await req.json().catch(() => ({}));
-  const period = body.period;
-  if (!isPassPeriod(period)) {
-    return NextResponse.json(
-      { error: `Choose a pass: ${PASS_PERIODS.join(", ")}.` },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const extending = hasActivePass(user);
-    const receipt = await buyPass(user, period);
-    await saveUser(user);
-    // Best-effort receipt email — never allowed to break the purchase.
-    await notifyPassPurchased({
-      to: user.email,
-      toName: user.name,
-      period: receipt.period,
-      price: receipt.price,
-      expiresAt: receipt.expiresAt,
-      invoiceNumber: receipt.invoiceNumber,
-      extended: extending,
-    });
-    return NextResponse.json({ ok: true, pass: user.subscription, receipt });
-  } catch (error) {
-    if (error instanceof PurchaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
-    }
-    console.error("[codemasterghana] buying a pass failed", error);
-    return NextResponse.json({ error: "The payment could not be completed." }, { status: 500 });
-  }
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: "Access passes are no longer sold — buy the program you want to study instead.",
+      code: "RETIRED_ITEM",
+    },
+    { status: 410 }
+  );
 }
 
-/** What each pass costs right now, for the checkout UI. */
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    periods: PASS_PERIODS.map((period) => ({ period, price: passPrice(period) })),
+    retired: true,
+    periods: [],
   });
 }

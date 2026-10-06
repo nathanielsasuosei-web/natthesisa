@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireCurrentUser } from "@/lib/require-user";
 import { getCourse } from "@/lib/courses";
-import { hasActivePass } from "@/lib/access";
 import { hasFinishedCourse, studentCertificates, verificationUrl } from "@/lib/certificates";
 import { contentTotals } from "@/lib/course-content";
 import { COURSES } from "@/lib/courses";
@@ -14,18 +13,16 @@ export const metadata: Metadata = { title: "My certificates" };
 /**
  * The learner's certificates in one place.
  *
- * A certificate is issued when a course is finished, but only while the pass
- * is active — so this page also lists finished courses that are waiting for
- * time on a pass, rather than silently hiding them.
+ * A certificate is issued when a course is finished. This page also lists
+ * finished courses whose certificate was never opened, so nothing earned is
+ * ever silently hidden.
  */
 export default async function CertificatesPage() {
   const user = await requireCurrentUser();
   const certificates = studentCertificates(user);
   const earned = new Set(certificates.map((item) => item.courseId));
-  const passActive = hasActivePass(user);
 
-  // Finished, but no certificate yet — either the pass has lapsed or the
-  // student never opened the certificate page.
+  // Finished, but the certificate page was never opened.
   const pending = COURSES.filter((course) => !earned.has(course.id) && hasFinishedCourse(user, course.id));
 
   return (
@@ -49,8 +46,7 @@ export default async function CertificatesPage() {
           <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#f0ecff] text-[#6d4aff]"><Icon name="certificate" size={25} /></span>
           <h2 className="mt-4 text-lg font-black">Your first certificate is waiting</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#756f7b]">
-            Complete every lesson in any of the {contentTotals().courses} courses — and keep an active pass while you
-            do it — and the certificate is created here automatically.
+            Complete every lesson in any course you own and the certificate is created here automatically.
           </p>
           <Link href="/dashboard/courses" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#5e3de0]">
             Browse the courses <Icon name="arrow-right" size={14} />
@@ -94,11 +90,9 @@ export default async function CertificatesPage() {
 
       {pending.length > 0 && (
         <section className="rounded-[22px] border border-amber-200 bg-amber-50 p-5 sm:p-6">
-          <h2 className="text-sm font-extrabold text-amber-950">Finished, waiting for an active pass</h2>
+          <h2 className="text-sm font-extrabold text-amber-950">Finished — create your certificate</h2>
           <p className="mt-1.5 text-[11px] leading-5 text-amber-900/80">
-            {passActive
-              ? "A pass is active — open the course to create the certificate."
-              : "A certificate can only be created while your pass is active. Buy more time and these become available again."}
+            Every lesson is complete. Open the course to create the certificate.
           </p>
           <ul className="mt-4 divide-y divide-amber-200/70">
             {pending.map((course) => (
@@ -107,8 +101,8 @@ export default async function CertificatesPage() {
                   <p className="text-xs font-extrabold text-amber-950">{course.title}</p>
                   <p className="mt-0.5 text-[10px] text-amber-900/70">Every lesson complete</p>
                 </div>
-                <Link href={passActive ? `/dashboard/certificates/${course.id}` : "/dashboard/plans"} className="rounded-xl bg-amber-900 px-3.5 py-2 text-[11px] font-extrabold text-white transition hover:bg-amber-950">
-                  {passActive ? "Create certificate" : "Buy a pass"}
+                <Link href={`/dashboard/certificates/${course.id}`} className="rounded-xl bg-amber-900 px-3.5 py-2 text-[11px] font-extrabold text-white transition hover:bg-amber-950">
+                  Create certificate
                 </Link>
               </li>
             ))}

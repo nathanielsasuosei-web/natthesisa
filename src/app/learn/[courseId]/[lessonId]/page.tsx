@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCourse } from "@/lib/courses";
 import { accessMessage, lessonAccess } from "@/lib/access";
-import { coursePrice } from "@/lib/plans";
 import { contentLessons, contentModules, contentPercent, findContentLesson } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
 import { getCurrentUser } from "@/lib/session";
@@ -12,7 +11,7 @@ import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 import LessonActions from "@/components/LessonActions";
 import LessonMaterials from "@/components/LessonMaterials";
-import BuyContent from "@/components/BuyContent";
+import BuyProgram from "@/components/BuyProgram";
 
 export async function generateMetadata({ params }: { params: Promise<{ courseId: string; lessonId: string }> }): Promise<Metadata> {
   const { courseId, lessonId } = await params;
@@ -41,18 +40,9 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
           <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="lock" size={25} /></span>
           <h1 className="mt-5 text-xl font-black tracking-[-.035em]">{lesson.title}</h1>
           <p className="mt-2 text-sm leading-6 text-[#756f7b]">{accessMessage(access, course.shortTitle)}</p>
-          {access.needsPass && (
-            <Link href="/dashboard/plans" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-sm font-extrabold text-white">
-              Buy an access pass <Icon name="arrow-right" size={16} />
-            </Link>
-          )}
-          {access.needsPurchase && (
-            <div className="mt-6 space-y-3 text-left">
-              <p className="text-center text-[11px] font-bold text-[#6d6673]">
-                Buy just this lesson, or the whole of {course.shortTitle} to open every lesson in it.
-              </p>
-              <BuyContent kind="lesson" courseId={course.id} lessonId={lesson.id} price={access.price} className="block [&>button]:w-full [&>button]:justify-center" />
-              <BuyContent kind="course" courseId={course.id} price={coursePrice(course.id)} className="block [&>button]:w-full [&>button]:justify-center [&>button]:bg-white [&>button]:text-[#655f6b] [&>button]:ring-1 [&>button]:ring-[#ded9e3]" />
+          {access.needsPurchase && access.programId && (
+            <div className="mt-6">
+              <BuyProgram programId={access.programId} programName={access.programName ?? course.category} price={access.price} className="block [&>button]:w-full [&>button]:justify-center" />
             </div>
           )}
           <Link href={`/dashboard/courses/${course.slug}`} className="mt-4 block text-xs font-bold text-[#756f7b]">Back to course</Link>
@@ -93,7 +83,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
 
         <main className="min-w-0">
           <article className="mx-auto max-w-[790px] px-5 py-10 sm:px-8 sm:py-14">
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[#6d4aff]"><span>Lesson {lessonIndex + 1} of {lessons.length}</span>{lesson.preview && <><span>·</span><span>Free preview</span></>}</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[#6d4aff]"><span>Lesson {lessonIndex + 1} of {lessons.length}</span></div>
             <h1 className="mt-3 text-balance text-3xl font-black leading-tight tracking-[-.045em] text-[#1d1922] sm:text-[44px]">{lesson.title}</h1>
             <p className="mt-4 text-base leading-7 text-[#6f6975]">{lesson.summary}</p>
             <div className="mt-6 flex flex-wrap gap-4 border-y border-[#e6e2e9] py-3 text-[10px] font-semibold text-[#817a87]"><span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {lesson.duration} minutes</span><span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> Reading + practice</span>{complete && <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700"><Icon name="check" size={14} /> Completed</span>}</div>

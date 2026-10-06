@@ -1,8 +1,8 @@
 # codemasterghana — learning platform
 
-A polished full-stack learning-platform MVP for web development, app development and computer science. It includes learner accounts, structured courses and lessons, saved progress, an **access pass** sold by the day, week or month, per-course and per-lesson purchases, invoices and a **teacher console**.
+A polished full-stack learning-platform MVP for web development, app development and computer science. It includes learner accounts, structured courses and lessons, saved progress, **programs** a student buys once and keeps forever, invoices and a **teacher console**.
 
-There are two roles and only two: **students** and the **owner** — the teacher. A student can learn only while they hold an active pass *and* have bought the course or lesson they are opening; the teacher can mark individual lessons as free previews. The teacher sets every price from the console, including the price attached to a lesson at the moment it is published.
+There are two roles and only two: **students** and the **owner** — the teacher. Every course and every lesson sits under a program, and a student opens them by paying for that program — there are no free previews and nothing else to buy. The teacher sets every program price from the console.
 
 Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
@@ -14,11 +14,13 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Real accounts: scrypt-hashed passwords, signed session cookies, and signup /
   sign-in / sign-out / password-change flows backed by PostgreSQL
 - Searchable/filterable course library
-- **Thirteen courses across three programs** — Computer Science, Software
-  Engineering and Vibe Coding — plus web, mobile and backend paths
-- **The Code lab** (`/dashboard/code`): the real VS Code editor (Monaco) with a
-  file tree, live preview and console, saved per student and downloadable as a
-  single HTML file
+- **Thirteen courses across six programs** — Computer Science, Software
+  Engineering, Vibe Coding, Web Development, App Development and Backend
+- **CodeMaster Studio** (`/studio`, free for everyone) and **the Code lab**
+  (`/dashboard/code`, per student): the real VS Code editor (Monaco) with an
+  explorer, search, live preview, console, terminal, problems list and status
+  bar — HTML, CSS, JavaScript and Python that actually run, saved to the
+  browser and downloadable
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
 - Server-saved lesson completion, course percentages and activity history
@@ -28,29 +30,26 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Progress analytics, certificates, learning timeline and CSV export
 - Editable learner profile, experience level, track and weekly goal
 
-### The access pass, and buying content
+### Programs, and buying them
 
-- **One pass, three lengths** — day, week or month. Every pass unlocks the same
-  thing: the whole platform, every course and every lesson.
-- **The teacher sets the prices** from the console — the pass prices, the
-  default course price and the default lesson price, and then the price of any
-  individual course or lesson. They are stored in the database, not in code.
-- **Buying content is separate.** A pass opens the door; the course or lesson
-  must still be bought before its lessons open. What a student buys stays on
-  their account, so a lapsed pass does not lose it.
-- **Free previews** are per lesson, off by default, and set by the teacher —
-  the only way a lesson opens without a pass.
-- Buying more time while a pass is active **extends** it from its current end
-  date rather than resetting it.
+- **One payment per program, kept forever.** Buying a program opens every
+  course and every lesson under it, permanently — no subscriptions, no time
+  limits, nothing else to buy.
+- **The teacher sets the prices** from the console — the price of each
+  program. They are stored in the database, not in code, and a program priced
+  at GH₵0 is free to join with no checkout.
+- **No free previews.** Every lesson opens only to students who own its
+  program (or the teacher). Older course/lesson purchases stay on accounts as
+  history but open nothing.
 - Invoice history per account, and a clearly labelled **demo payment method**
-- Passes, purchases, invoices and usage stored per account in the database, so
-  a learner's access and billing history survive a restart
+- Programs, purchases, invoices and usage stored per account in the database,
+  so a learner's access and billing history survive a restart
 
-> No real money moves in this repository. The pass and purchase UX are functional, but payment success is simulated. Connect a verified provider such as Paystack, Flutterwave or Stripe and process purchases from a verified webhook before production.
+> Students pay with Mobile Money (MTN MoMo, Telecel Cash, AT Money), cards or bank transfer through Paystack. Until the teacher adds a Paystack secret key, checkout runs in demo mode: the MoMo approval is simulated and no real money moves.
 
 ### Certificates, company pages and the public catalogue
 
-- Completing a course while your pass is active issues a certificate with a
+- Completing a course issues a certificate with a
   stable code and a QR code, printable as A4 landscape.
 - `/verify` (and `/verify/<code>`, what the QR opens) lets anyone — an employer
   with no account — check a certificate. Withdrawn certificates say so.
@@ -63,17 +62,16 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
 ### Teacher console
 
-- Site-wide student, engagement, course and revenue metrics, plus the pass
-  distribution across day/week/month
-- Every student's pass, purchases, progress and lifetime minutes
-- **Prices** — the five numbers above, editable at any time, with the price of
-  each course and each lesson in toggled lists
+- Site-wide student, engagement, course and revenue metrics, plus how many
+  students own each program
+- Every student's programs, purchases, progress and lifetime minutes
+- **Prices** — the price of each program, editable at any time
 - **The Studio** (`/owner/studio`) — picture and video editing with no lesson
   attached: crop, resize, rotate, flip and colour-adjust a picture, trim and
   mute a video, capture a thumbnail and export the edited clip
 - Search and account filters
 - Pause/restore student accounts
-- Grant a pass, or grant one course/lesson, without charging (“comp” access)
+- Grant a program without charging (“comp” access)
 - Reset student progress
 - Delete student accounts
 - Every action is written to the database and protected on the server; there is
@@ -108,14 +106,12 @@ pricing are owner-only and enforced on the server:
     deletes the file it replaced.
 - Video (mp4/webm/mov), PDF, slide decks, images and zip files can be attached
   in the same step. Up to 5 files, 200 MB each, with a live upload progress bar.
-- The publish form carries the lesson's **price** (pre-filled with the lesson
-  default the teacher set) and the **free preview** toggle. A preview lesson
-  opens for any signed-in student with no pass and no payment; every other
-  lesson needs an active pass and a purchase.
+- A published lesson opens to every student who owns the program its course
+  belongs to — there is no per-lesson price and no preview. It simply joins
+  the program its course sits under.
 - Uploaded lessons appear immediately in the course curriculum, the lesson
-  reader, dashboard progress, certificates, analytics, the CSV export, the
-  teacher console's engagement charts and the price list — so their price can be
-  changed later.
+  reader, dashboard progress, certificates, analytics, the CSV export and the
+  teacher console's engagement charts.
 - The owner can delete a published lesson, which also removes its files.
 - Students get `403 OWNER_ONLY` from every upload or pricing endpoint
   (`GET`/`POST /api/owner/lessons`, `PATCH /api/owner/pricing`,
@@ -140,7 +136,7 @@ it, uploads fail with a message telling you so, and `npm run storage:check`
 tells you the same thing without uploading anything.
 
 Then decide how the browser gets each file. Either way the app is the gate:
-`/api/lesson-files/...` checks the viewer's account, pass and purchase, and lesson access and
+`/api/lesson-files/...` checks the viewer's program ownership, and lesson access
 marks the lesson as started **before** it hands out a URL, so a locked lesson's
 video or PDF cannot be opened by copying the URL.
 
@@ -211,9 +207,9 @@ is written to PostgreSQL before the request answers.
   soon as an owner exists, and refuses entirely when `OWNER_EMAIL` /
   `OWNER_PASSWORD` are set). Sign in at `/owner-sign-in`, then change the
   password from `/dashboard/account`.
-- **Students** are everyone else. A student buys an access pass and the courses
-  or lessons they want; if a student is suspended they cannot sign in, and a
-  suspended account sees a paused notice instead of any lesson.
+- **Students** are everyone else. A student buys the programs they want to
+  study; if a student is suspended they cannot sign in, and a suspended
+  account sees a paused notice instead of any lesson.
 
 There are no demo accounts and nothing is seeded: an empty database stays empty
 until the owner signs in and someone signs up.
@@ -225,7 +221,7 @@ This is the “what to paste where” map for continuing the build.
 | Step | File or folder | Purpose |
 | --- | --- | --- |
 | 1. Brand | `src/config/site.ts` | Name, tagline, support email and currency |
-| 2. Passes and prices | `src/lib/pass-periods.ts` (periods, labels, defaults) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Day/week/month pass, price list, expected price of a course or lesson |
+| 2. Programs and prices | `src/lib/programs.ts` (the six programs) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Program catalog, default and per-program prices (`pass-periods.ts` keeps the retired pass shapes for stored data) |
 | 3. Course content | `src/lib/courses.ts` | Courses, modules, lessons, examples and challenges |
 | 4. User data | `src/lib/store.ts` | Accounts, progress, usage and invoices, read and written through Postgres |
 | 5. Sessions | `src/lib/session.ts` | Signed session cookies and role checks |
@@ -233,13 +229,17 @@ This is the “what to paste where” map for continuing the build.
 | 6a. Database | `src/lib/db.ts`, `src/lib/schema.ts`, `src/lib/bootstrap.ts`, `scripts/*.mts` | Postgres/PGlite driver, schema, first-run setup and CLI reports |
 | 6b. Passwords | `src/lib/passwords.ts` | scrypt hashing, verification and strength rules |
 | 7. Progress API | `src/app/api/progress/route.ts` | Start courses and complete/uncomplete lessons |
-| 8. Buying | `src/lib/purchases.ts` | Buy or extend a pass (extending from the current end date), buy a course or a lesson, and the teacher's comp grants |
-| 9. Buying API | `src/app/api/pass/route.ts`, `src/app/api/purchase/route.ts` | Authenticated purchase actions |
-| 10. Access rule | `src/lib/access.ts` | The one place the gate is decided: owner → free preview → active pass **and** purchase |
+| 8. Buying | `src/lib/purchases.ts` | Buy a program, and the teacher's comp grants (retired pass/course/lesson sellers stay for in-flight fulfilments) |
+| 8a. MoMo numbers | `src/lib/momo.ts` | Ghana phone validation and MTN / Telecel / AT detection (client-safe) |
+| 8b. Paystack | `src/lib/paystack.ts` | Transaction initialize + verify, webhook signature check (server-only) |
+| 8c. Checkouts | `src/lib/payments.ts`, `payments` table | Pending → paid fulfilment, idempotent webhook + return-URL handling |
+| 9. Buying API | `src/app/api/purchase/route.ts` (`/api/pass` is retired) | Join a GH₵0 program directly; priced programs go through checkout |
+| 9a. Checkout API | `src/app/api/checkout/*`, `src/app/api/webhooks/paystack/route.ts`, `src/app/checkout/verify/page.tsx` | Start a MoMo checkout, poll it, confirm demo payments, verify the provider's return, receive the webhook |
+| 10. Access rule | `src/lib/access.ts` | The one place the gate is decided: owner → owns the program (no previews, no passes) |
 | 10b. Teacher rules | `src/lib/owner-console.ts`, `src/app/api/owner/*` | Metrics, prices and protected student-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
 | 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/blob-store.ts`, `src/lib/app-state.ts`, `src/lib/course-content.ts` | Storage/disk blobs for owner lessons, their metadata in `app_state`, and the merge with the catalog |
-| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing (price included) and access-checked file streaming |
+| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
 | 10d. Owner console | `src/app/owner/page.tsx`, `src/app/owner/lessons/page.tsx`, `src/components/OwnerPricingCard.tsx`, `src/components/OwnerLessonManager.tsx` | Metrics, the price editor, the upload form and the published-lesson list |
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/owner/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
@@ -250,8 +250,8 @@ This is the “what to paste where” map for continuing the build.
 | 11c. Public shell | `src/components/PublicHeader.tsx`, `src/components/PublicFooter.tsx` | One navigation for every public page, including the mobile menu |
 | 11d. Contact inbox | `src/lib/messages.ts`, `src/lib/message-topics.ts`, `src/app/api/contact/route.ts`, `src/components/ContactForm.tsx`, `src/app/owner/messages/page.tsx`, `src/components/OwnerMessages.tsx` | The contact form, where messages are stored, and the teacher's inbox |
 | 11e. Certificates | `src/lib/certificates.ts`, `src/app/dashboard/certificates/*`, `src/app/verify/*`, `src/app/api/owner/certificates/route.ts`, `src/components/CertificateActions.tsx`, `src/components/OwnerCertificates.tsx` | Issuing, printing, the public verification page, and the teacher's register with withdrawal |
-| 12. Student UI | `src/app/dashboard/*`, `src/components/PassOptions.tsx`, `src/components/BuyContent.tsx` | Overview, library, progress, access pass, billing, account, and the buy buttons |
-| 12b. Code lab | `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx` | The student editor, preview iframe and console |
+| 12. Student UI | `src/app/dashboard/*`, `src/components/ProgramOptions.tsx`, `src/components/BuyProgram.tsx`, `src/components/CheckoutModal.tsx`, `src/components/VerifyPayment.tsx` | Overview, library, progress, programs, billing, account, the MoMo checkout and the payment verification page |
+| 12b. Code studio | `src/app/studio/page.tsx`, `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx`, `src/lib/lab.ts`, `src/lib/python.ts` | The in-browser VS Code: editor, preview, console, terminal, problems, Python runner |
 | 12c. Media studio | `src/app/owner/studio/page.tsx`, `src/components/OwnerMediaStudio.tsx` | Standalone picture and video editing for the teacher |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
 | 14. Teacher UI | `src/app/owner/*`, `src/components/OwnerStudentsTable.tsx` | Monitoring dashboard, prices and student controls |
@@ -310,7 +310,7 @@ only useful if a stranger can check it — so the important half is public.
 
 - **Issuing.** `/dashboard/certificates/<courseId>` calls `issueCertificate()`,
   which first checks that every lesson is complete (`hasFinishedCourse`) and
-  that the pass is still active. It is **idempotent**: the code is generated
+  that the student owns the program. It is **idempotent**: the code is generated
   once and returned on every later visit, because an employer who checked last
   week must find the same record today.
 - **The code.** `CMG-<course initials>-<year>-<6 chars>`, drawn from an alphabet
@@ -343,9 +343,9 @@ only useful if a stranger can check it — so the important half is public.
 
 `src/lib/email.ts` writes to a student at the three moments that matter:
 
-- **Purchases** — buying an access pass (`/api/pass`) or a course/lesson
-  (`/api/purchase`) sends a branded receipt with the amount, the invoice number
-  and (for passes) the date the pass runs out.
+- **Purchases** — buying a program (checkout, fulfilled through
+  `/api/purchase` for free programs) sends a branded receipt with the amount
+  and the invoice number.
 - **Course completion** — the moment the last lesson of a course is marked
   complete (`/api/progress`), the student gets a congratulations email linking
   to their certificate. A `completionEmailedAt` stamp on the progress record
@@ -379,11 +379,11 @@ links cannot drift apart:
 | Page | What it answers |
 | --- | --- |
 | `/courses` and `/courses/<slug>` | The whole catalog grouped by program, and one page per course with the long description, audience, prerequisites, tools, build list and where it leads (`src/lib/course-info.ts`) |
-| `/pricing` | Pass and course prices, what a pass does and does not include, and how payment will work (Mobile Money, card, bank transfer) |
+| `/pricing` | Program prices, what a program includes, and how payment will work (Mobile Money, card, bank transfer) |
 | `/about` | Who teaches, how the platform works, why certificates are verifiable |
 | `/contact` | The form, the teacher's direct email, and answers to the questions that come up most |
 | `/privacy` | What is collected, where it lives, what the teacher can see, and how to have data corrected or deleted |
-| `/terms` | Accounts, passes and purchases, refunds, certificates, acceptable use, liability, Ghanaian law |
+| `/terms` | Accounts, programs and purchases, refunds, certificates, acceptable use, liability, Ghanaian law |
 | `/verify` | The certificate check, open to anyone |
 
 Public pages that read owner-set data (prices, published lessons, the
@@ -392,34 +392,54 @@ before rendering. Without it, an anonymous visitor on a cold instance would be
 shown default prices and the wrong lesson counts, because the state cache is
 only hydrated by a signed-in request.
 
-## Mobile navigation
+## Public header
 
-`PublicHeader` carries the menu for every public page. Below 768px the links
-collapse into a button (`aria-expanded`, `aria-controls="public-menu"`) that
-opens a panel containing the navigation, the verification link and the account
-actions; the panel is a real disclosure rather than a hidden div, so it works
-with a keyboard and a screen reader, and it closes when a link is chosen. The
-dashboard has its own compact horizontal nav (`SidebarNav` with `compact`).
+`PublicHeader` carries the navigation for every public page: a dismissible
+announcement bar (remembered per browser, and it scrolls away), then the sticky
+bar itself — the logo with its tagline, a **Courses** mega-panel (programs,
+popular courses and the pricing card), Pricing, About, Contact, a Verify
+link, and Sign in / Start learning (or the signed-in avatar with the dashboard
+/ teacher-console link). The bar gains a shadow once the page scrolls, the
+current section gets an underline, and the panel closes on Escape, on
+navigation, or a beat after the pointer leaves.
 
-## The Code lab
+Below 1024px the links collapse into a button
+(`aria-expanded`, `aria-controls="public-menu"`) that opens a panel with an
+expandable Courses section, the navigation, the verification link, the support
+email and the account actions; the panel is a real disclosure rather than a
+hidden div, so it works with a keyboard and a screen reader, and it closes when
+a link is chosen. The dashboard has its own compact horizontal nav (`SidebarNav`
+with `compact`).
 
-`/dashboard/code` is the real VS Code editor (Monaco) running entirely in the
-browser:
+## CodeMaster Studio and the Code lab
 
-- A file tree with three templates (a starter web page, a JavaScript practice
-  notebook and a mini quiz app), editable HTML, CSS and JavaScript files, and a
-  live preview that re-runs as you type.
+`/studio` (public, free for everyone) and `/dashboard/code` (signed in, saved
+per student) are the same component — `src/components/CodeLab.tsx` — the real
+VS Code editor (Monaco) running entirely in the browser:
+
+- An activity bar and sidebar: an **Explorer** with real file management
+  (create, rename and delete files; slashes in a name make folders), **Search**
+  across every file, four **Templates** (a starter web page, a JavaScript
+  practice notebook, a Python practice notebook and a mini quiz app) and
+  **Help**.
 - Monaco (the engine inside VS Code) provides syntax highlighting,
   IntelliSense, error squiggles, the minimap and the command palette. The editor
   and its language workers are bundled locally, so no CDN is needed.
-- A **Console** tab: the preview document is given a tiny agent that forwards
-  `console.log`, warnings, errors and unhandled promise rejections to the page.
-- Work is saved to `localStorage` per account and can be downloaded as one
-  self-contained HTML file.
+- A bottom panel with **Preview**, **Console**, **Terminal** (`help`, `ls`,
+  `open`, `run`, `python`, `echo`, `whoami`, `date`, `clear`) and **Problems**
+  tabs, plus a status bar with cursor position, language and save state.
+- Python really runs: `src/lib/python.ts` executes code with Pyodide inside a
+  web worker (`src/lib/python.worker.ts`), with a 20-second cap so an infinite
+  loop ends the run instead of the tab. The first run downloads the runtime
+  (about 10 MB) from a CDN.
+- Work is saved to `localStorage` (per account in the lab, under `guest` in
+  the public studio) and can be downloaded as one self-contained HTML file or
+  as individual files.
 
-Student code runs inside a sandboxed iframe (`sandbox="allow-scripts
-allow-modals"`, no `allow-same-origin`), so it cannot read the session cookie or
-call the app's APIs. Nothing in the lab is uploaded or executed on the server.
+Student web code runs inside a sandboxed iframe (`sandbox="allow-scripts
+allow-modals"`, no `allow-same-origin`), and Python runs in a worker with no
+page access — student code cannot read the session cookie or call the app's
+APIs. Nothing is uploaded or executed on the server.
 
 ## The Studio (teacher)
 
@@ -669,25 +689,76 @@ Swapping in Auth.js, Clerk or Supabase Auth later is still localized: keep
 `getCurrentUser()` / `getCurrentOwner()` in `src/lib/session.ts` as the boundary,
 because the rest of the app only calls those helpers.
 
-## Connect real payments safely
+## Mobile Money payments
 
-Use this order of operations:
+Students pay in Ghana cedis through **Paystack Standard Checkout**: MTN MoMo,
+Telecel Cash and AT Money (approved with the MoMo PIN on the student's own
+phone), plus cards and bank transfers on the same secure page. The MoMo PIN and
+card numbers never touch this app — Paystack collects them.
 
-1. Create matching product/price records in the payment provider — one per pass
-   period, and whatever you need for course and lesson purchases.
-2. Keep the console as the source of the amounts, and map each to the provider's
-   price ID.
-3. Create a server checkout endpoint under `src/app/api/checkout/route.ts`.
-4. Redirect the student to the provider-hosted checkout.
-5. Add a webhook route under `src/app/api/webhooks/<provider>/route.ts`.
-6. Verify the webhook signature with the provider secret.
-7. Only after verification, call `buyPass()` / `buyCourse()` / `buyLesson()` in
-   `src/lib/purchases.ts` and create the invoice in the database.
-8. Make webhook handling idempotent using the provider event/reference ID.
-9. Never accept card numbers in your own forms unless your compliance scope explicitly allows it.
+### Going live (test key first, live key on launch day)
 
-Do **not** mark a purchase paid from an unverified "payment successful" browser
-redirect in production. The webhook must be the source of truth.
+1. Create a free account at [paystack.com](https://paystack.com) and activate
+   Ghana cedis (GHS) on it.
+2. Copy the **secret key** from Paystack → Settings → API keys. Start with the
+   test key (`sk_test_…`). Copy the **publishable key** (`pk_test_…`) too —
+   it is safe to expose and is used for checkout display and key-pair checks.
+3. Set `PAYSTACK_SECRET_KEY` and `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` in the
+   environment (`.env.local` locally, the host's environment variables when
+   deployed) and redeploy — `NEXT_PUBLIC_` values are inlined at build time.
+4. In Paystack → Settings → Webhooks, add
+   `https://your-domain.com/api/webhooks/paystack`, so approvals confirm even
+   if the student closes their browser mid-payment.
+5. Run `npm run payments:check` — it proves the key works and prints the
+   webhook URL to register.
+6. Pay yourself GH₵1 end to end: buy the cheapest thing with a test MoMo
+   number, approve it, and check the pass opens, the invoice appears and the
+   receipt email arrives. Then swap in the live key (`sk_live_…`).
+
+Without `PAYSTACK_SECRET_KEY` the checkout runs in **demo mode**: the MoMo
+approval prompt is simulated and no real money moves, but passes, purchases,
+invoices and emails all behave exactly as they do live. The teacher console
+always shows which mode is on (demo / test / live), and the pricing page tells
+students honestly whether MoMo is live yet.
+
+### How the money flows
+
+1. The student picks their network and enters the MoMo number at checkout
+   (`src/components/CheckoutModal.tsx`).
+2. `POST /api/checkout` prices the item from the teacher's console prices and
+   writes a `pending` row to the `payments` table, keyed by a `CMG-…`
+   reference — *before* any provider is called.
+3. Live: Paystack returns an `authorization_url` and the browser goes there to
+   pay. Demo: the UI simulates the approval prompt instead.
+4. Paystack returns the browser to `/api/checkout/callback`, which verifies
+   the transaction against Paystack's API (a redirect URL proves nothing on
+   its own) and redirects to `/checkout/verify`, where the page polls
+   `/api/checkout/status` until the payment is final.
+5. Independently, Paystack posts `charge.success` to `/api/webhooks/paystack`,
+   whose HMAC-SHA512 signature is verified before anything is read from it.
+6. Both paths call `fulfillPayment()` in `src/lib/payments.ts`, which grants
+   the pass / course / lesson, raises the invoice (carrying the `CMG-…`
+   reference) and emails the receipt.
+
+Fulfilment is **idempotent**: the `payments` row flips `pending` → `paid`
+once, and every later report of the same reference (or the same provider
+event id) is a no-op — one payment can never grant twice, invoice twice or
+email twice. While live payments are on, the old direct endpoints
+(`POST /api/pass`, `POST /api/purchase`) refuse priced items with
+`402 CHECKOUT_REQUIRED`, and the demo confirm endpoint refuses everything, so
+there is no way to mint an entitlement without verified money.
+
+### Reconciling a "I paid but it is locked" message
+
+Open the teacher console's payment register (or `GET /api/owner/payments`):
+find the student's `CMG-…` reference and its status. `paid` means the
+entitlement is on the account (check the pass is active too — content needs
+both). `pending` means the student never completed the approval: ask them to
+open the payment link again from their billing page. `failed` means Paystack
+declined it (expired approval, insufficient funds) — no money moved. A student
+who somehow pays twice for the same item is refunded automatically (the
+register shows both paid rows); if the automatic refund ever fails, refund the
+duplicate from the Paystack dashboard — the server log names the reference.
 
 ## Data and access behavior
 
@@ -762,5 +833,7 @@ Production checklist:
    Accounts, progress, invoices and the uploaded-lesson records are already in
    Postgres and need no extra work.
 
-Payments are the one part still simulated: plans activate without charging a
-card, as described in [Connect real payments safely](#connect-real-payments-safely).
+6. Set `PAYSTACK_SECRET_KEY` (test key first, live key on launch day),
+   register `https://your-domain.com/api/webhooks/paystack` in the Paystack
+   dashboard, and run `npm run payments:check`. Without the key the checkout
+   runs in demo mode — see [Mobile Money payments](#mobile-money-payments).

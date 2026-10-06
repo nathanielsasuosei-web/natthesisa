@@ -11,7 +11,7 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/dashboard/courses", label: "Explore courses", icon: "courses" },
   { href: "/dashboard/code", label: "Code lab", icon: "terminal" },
   { href: "/dashboard/progress", label: "My progress", icon: "progress" },
-  { href: "/dashboard/plans", label: "Access pass", icon: "spark" },
+  { href: "/dashboard/plans", label: "Programs", icon: "spark" },
   { href: "/dashboard/billing", label: "Billing", icon: "card" },
   { href: "/dashboard/certificates", label: "Certificates", icon: "certificate" },
   { href: "/dashboard/account", label: "My account", icon: "user" },
@@ -20,9 +20,8 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
 interface Props {
   userName: string;
   userEmail: string;
-  /** True while the student has time left on an access pass. */
-  passActive: boolean;
-  passEndsAt: string;
+  /** How many programs the student owns. */
+  programsOwned: number;
   weeklyMinutes: number;
   weeklyGoal: number;
   /** The teacher's own account gets a link to the console. */
@@ -30,7 +29,7 @@ interface Props {
   compact?: boolean;
 }
 
-export default function SidebarNav({ userName, userEmail, passActive, passEndsAt, weeklyMinutes, weeklyGoal, isOwner, compact = false }: Props) {
+export default function SidebarNav({ userName, userEmail, programsOwned, weeklyMinutes, weeklyGoal, isOwner, compact = false }: Props) {
   const pathname = usePathname();
 
   const active = (href: string) => href === "/dashboard" ? pathname === href : pathname.startsWith(href);
@@ -68,7 +67,7 @@ export default function SidebarNav({ userName, userEmail, passActive, passEndsAt
         {NAV.slice(3).map((item) => (
           <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${active(item.href) ? "bg-[#6d4aff] text-white shadow-[0_8px_20px_rgba(109,74,255,.22)]" : "text-[#9e98a6] hover:bg-white/[.05] hover:text-white"}`}>
             <Icon name={item.icon} size={18} /> {item.label}
-            {item.href.endsWith("plans") && !passActive && <span className="ml-auto rounded-full bg-[#ffcf59] px-1.5 py-0.5 text-[8px] font-black uppercase text-[#4b3800]">Buy pass</span>}
+            {item.href.endsWith("plans") && programsOwned === 0 && <span className="ml-auto rounded-full bg-[#ffcf59] px-1.5 py-0.5 text-[8px] font-black uppercase text-[#4b3800]">Buy</span>}
           </Link>
         ))}
         {isOwner && (
@@ -94,7 +93,7 @@ export default function SidebarNav({ userName, userEmail, passActive, passEndsAt
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/[.09] bg-white/[.04] px-3 py-2 text-[11px] font-bold text-[#c3bccc] transition hover:border-[#ff8f9b]/40 hover:bg-[#ff8f9b]/10 hover:text-[#ffb3bc]"
           />
           <div className="mt-2.5 inline-flex rounded-full bg-[#27232f] px-2.5 py-1 text-[9px] font-bold text-[#a9a2b0]">
-            {passActive ? `Pass active · ends ${new Date(passEndsAt).toLocaleDateString()}` : "No active pass"}
+            {programsOwned > 0 ? `${programsOwned} program${programsOwned === 1 ? "" : "s"} owned` : "No programs yet"}
           </div>
         </div>
       </div>

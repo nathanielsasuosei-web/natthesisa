@@ -69,11 +69,16 @@ const PRICES_KEY = "content-prices";
 export interface ContentPrices {
   courses: Record<string, number>;
   lessons: Record<string, number>;
+  programs: Record<string, number>;
 }
 
 function storedPrices(): ContentPrices {
   const stored = readState<Partial<ContentPrices>>(PRICES_KEY, {});
-  return { courses: stored.courses ?? {}, lessons: stored.lessons ?? {} };
+  return {
+    courses: stored.courses ?? {},
+    lessons: stored.lessons ?? {},
+    programs: stored.programs ?? {},
+  };
 }
 
 /** What one course costs. Falls back to the owner's default course price. */
@@ -88,13 +93,18 @@ export function lessonPrice(lessonId: string): number {
   return typeof override === "number" ? override : pricing().lesson;
 }
 
+/** What one program costs. Falls back to the owner's default program price. */
+export function programPrice(programId: string): number {
+  const override = storedPrices().programs[programId];
+  return typeof override === "number" ? override : pricing().program;
+}
+
 /**
- * Sets the price of a single course or lesson. `0` is allowed and means
- * "no extra charge" — the access pass is still required, because the pass is
- * what unlocks learning.
+ * Sets the price of a single program, course or lesson. `0` is allowed: a
+ * GH₵0 program is free to join, with no checkout.
  */
 export async function saveContentPrice(
-  kind: "course" | "lesson",
+  kind: "course" | "lesson" | "program",
   refId: string,
   price: number
 ): Promise<number> {
@@ -105,7 +115,8 @@ export async function saveContentPrice(
   const current = storedPrices();
   const rounded = Math.round(value);
   if (kind === "course") current.courses[refId] = rounded;
-  else current.lessons[refId] = rounded;
+  else if (kind === "lesson") current.lessons[refId] = rounded;
+  else current.programs[refId] = rounded;
   await writeState(PRICES_KEY, current);
   return rounded;
 }

@@ -1,6 +1,7 @@
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
-import { PassPeriod, coursePrice, lessonPrice, passPrice, pricing } from "./plans";
+import { getProgram, PROGRAMS } from "./programs";
+import { PassPeriod, coursePrice, lessonPrice, passPrice, pricing, programPrice } from "./plans";
 import {
   User,
   addInvoice,
@@ -10,23 +11,22 @@ import {
   type Purchase,
 } from "./store";
 import { ensureSchema } from "./db";
-import { hasActivePass, ownsCourse, ownsLesson } from "./access";
+import { hasActivePass, ownsCourse, ownsLesson, ownsProgram } from "./access";
 
 /**
  * Payments.
  *
- * Everything here simulates a successful payment, exactly as the platform did
- * before: an invoice is raised, the entitlement is written to the account, and
- * the student is let in. Swapping in a real provider (Paystack, Flutterwave or
- * Stripe) means moving the entitlement write into a verified webhook handler —
- * the shapes below are what the database should be given either way.
+ * An invoice is raised, the entitlement is written to the account, and the
+ * student is let in. These functions grant — they do not verify money: live
+ * checkouts reach them only through `fulfillPayment()` in `payments.ts`,
+ * after Paystack has confirmed the Mobile Money / card payment via the
+ * verified webhook or the return-URL verification.
  *
- * Two things are sold:
- *   • an access pass — a day, a week or a month of access, and
- *   • a course or a single lesson — the entitlement to study that content.
- *
- * Access needs both (see `access.ts`): the pass is what opens the platform,
- * the purchase is what opens the content.
+ * One thing is sold: a program. Buying it opens every course and every lesson
+ * under it, permanently — that purchase is the whole access rule (see
+ * `access.ts`). The pass / course / lesson sellers below are retired: they
+ * stay so fulfilments already in flight can finish, but nothing new is sold
+ * through them.
  */
 
 export class PurchaseError extends Error {
@@ -48,11 +48,39 @@ export interface PassReceipt {
 }
 
 /**
+ * Where the money for a purchase came from. Passed through when a verified
+ * payment (Mobile Money, card, bank transfer) is fulfilled, so the invoice
+ * carries the provider's reference and the account remembers the method.
+ */
+export interface PaymentAttribution {
+  /** The provider's transaction reference (e.g. our `CMG-…` checkout reference). */
+  reference?: string;
+  provider?: "demo" | "paystack";
+  phone?: string;
+  network?: string;
+  channel?: "mobile_money" | "card" | "bank_transfer" | "ussd" | "qr" | "bank";
+  brand?: string;
+  last4?: string;
+}
+
+function rememberPaymentMethod(user: User, attribution?: PaymentAttribution): void {
+  if (!attribution || (!attribution.provider && !attribution.phone && !attribution.brand)) return;
+  const next = { ...user.paymentMethod };
+  if (attribution.provider) next.provider = attribution.provider;
+  if (attribution.brand) next.brand = attribution.brand;
+  if (attribution.last4) next.last4 = attribution.last4;
+  if (attribution.phone) next.phone = attribution.phone;
+  if (attribution.network) next.network = attribution.network;
+  if (attribution.channel) next.channel = attribution.channel;
+  user.paymentMethod = next;
+}
+
+/**
  * Sells a pass. A student with time left on a pass is not sold a second one
  * accidentally — the remaining days are added to the new pass, so renewing
  * early never wastes what was paid for.
  */
-export async function buyPass(user: User, period: PassPeriod): Promise<PassReceipt> {
+export async function buyPass(user: User, period: PassPeriod, attribution?: PaymentAttribution): Promise<PassReceipt> {
   if (user.suspended) {
     throw new PurchaseError("Your account is paused. Please contact your teacher for help.", "SUSPENDED", 403);
   }
@@ -72,10 +100,12 @@ export async function buyPass(user: User, period: PassPeriod): Promise<PassRecei
   }
 
   user.subscription = pass;
+  rememberPaymentMethod(user, attribution);
   const invoice = await addInvoice(
     user,
     price,
-    `${period[0].toUpperCase()}${period.slice(1)} access pass`
+    `${period[0].toUpperCase()}${period.slice(1)} access pass`,
+    attribution?.reference
   );
   logActivity(
     user,
@@ -100,14 +130,15 @@ function record(user: User, purchase: Omit<Purchase, "id" | "at">): Purchase {
 }
 
 /** Sells a whole course, including every lesson inside it. */
-export async function buyCourse(user: User, courseId: string): Promise<Purchase> {
+export async function buyCourse(user: User, courseId: string, attribution?: PaymentAttribution): Promise<Purchase> {
   const course = getCourse(courseId);
   if (!course) throw new PurchaseError("That course does not exist.", "NOT_FOUND", 404);
   if (ownsCourse(user, courseId)) {
     throw new PurchaseError("You already own this course.", "ALREADY_OWNED", 409);
   }
   const price = coursePrice(courseId);
-  const invoice = await addInvoice(user, price, `${course.title} — course purchase`);
+  rememberPaymentMethod(user, attribution);
+  const invoice = await addInvoice(user, price, `${course.title} — course purchase`, attribution?.reference);
   const purchase = record(user, {
     kind: "course",
     refId: courseId,
@@ -120,7 +151,7 @@ export async function buyCourse(user: User, courseId: string): Promise<Purchase>
 }
 
 /** Sells one lesson on its own. */
-export async function buyLesson(user: User, courseId: string, lessonId: string): Promise<Purchase> {
+export async function buyLesson(user: User, courseId: string, lessonId: string, attribution?: PaymentAttribution): Promise<Purchase> {
   const course = getCourse(courseId);
   if (!course) throw new PurchaseError("That course does not exist.", "NOT_FOUND", 404);
   const lesson = findContentLesson(course, lessonId);
@@ -134,7 +165,8 @@ export async function buyLesson(user: User, courseId: string, lessonId: string):
     throw new PurchaseError("This lesson is already included in your course purchase.", "ALREADY_OWNED", 409);
   }
   const price = lessonPrice(lessonId);
-  const invoice = await addInvoice(user, price, `${course.shortTitle} — “${lesson.title}”`);
+  rememberPaymentMethod(user, attribution);
+  const invoice = await addInvoice(user, price, `${course.shortTitle} — “${lesson.title}”`, attribution?.reference);
   const purchase = record(user, {
     kind: "lesson",
     refId: lessonId,
@@ -146,9 +178,50 @@ export async function buyLesson(user: User, courseId: string, lessonId: string):
   return purchase;
 }
 
+/**
+ * Sells a whole program: every course and every lesson under it, permanently.
+ * This is the only thing students buy. A student who already owns the program
+ * is never charged twice — the checkout refuses before any money moves.
+ */
+export async function buyProgram(
+  user: User,
+  programId: string,
+  attribution?: PaymentAttribution
+): Promise<Purchase> {
+  const program = getProgram(programId);
+  if (!program) throw new PurchaseError("That program does not exist.", "NOT_FOUND", 404);
+  if (ownsProgram(user, programId)) {
+    throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
+  }
+  const price = programPrice(programId);
+  rememberPaymentMethod(user, attribution);
+  const invoice = await addInvoice(user, price, `${program.name} — program purchase`, attribution?.reference);
+  const purchase = record(user, {
+    kind: "program",
+    refId: programId,
+    courseId: null,
+    amount: price,
+    invoiceNumber: invoice?.number ?? null,
+  });
+  logActivity(user, `Bought the program “${program.name}”`, "billing");
+  return purchase;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Owner-granted access (comped from the console)                             */
 /* -------------------------------------------------------------------------- */
+
+/** The owner opens a whole program for a student, without a payment. */
+export async function grantProgram(owner: User, student: User, programId: string): Promise<User> {
+  const program = getProgram(programId);
+  if (!program) throw new PurchaseError("That program does not exist.", "NOT_FOUND", 404);
+  if (!ownsProgram(student, programId)) {
+    record(student, { kind: "program", refId: programId, courseId: null, amount: 0, invoiceNumber: null });
+  }
+  logActivity(student, `Your teacher opened the program “${program.name}”`, "billing");
+  logActivity(owner, `Opened “${program.name}” for ${student.name}`, "owner");
+  return student;
+}
 
 /** The owner gives a student time, without a payment. */
 export async function grantPass(owner: User, student: User, period: PassPeriod): Promise<User> {
@@ -190,11 +263,23 @@ export async function grantAccess(
 }
 
 /** What a student would pay to open everything, for the console. */
-export function pricingSummary(): { periods: Record<PassPeriod, number>; course: number; lesson: number } {
+export function pricingSummary(): {
+  periods: Record<PassPeriod, number>;
+  course: number;
+  lesson: number;
+  program: number;
+  programs: Array<{ id: string; name: string; price: number }>;
+} {
   const prices = pricing();
   return {
     periods: { daily: prices.daily, weekly: prices.weekly, monthly: prices.monthly },
     course: prices.course,
     lesson: prices.lesson,
+    program: prices.program,
+    programs: PROGRAMS.map((program) => ({
+      id: program.id,
+      name: program.name,
+      price: programPrice(program.id),
+    })),
   };
 }

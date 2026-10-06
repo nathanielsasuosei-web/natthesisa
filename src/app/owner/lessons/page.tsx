@@ -6,7 +6,7 @@ import { ownerLessonCount, ownerLessonSummaries } from "@/lib/course-content";
 import { getCurrentOwner } from "@/lib/session";
 import { OWNER_ONLY_ERROR, isOwner } from "@/lib/owner";
 import { MAX_FILES_PER_LESSON } from "@/lib/lesson-uploads";
-import { lessonPrice, pricing } from "@/lib/plans";
+import { lessonPrice } from "@/lib/plans";
 import { getBranding } from "@/lib/branding";
 import Icon from "@/components/Icon";
 import OwnerLessonManager, { type OwnerCourseOption, type OwnerLessonRow } from "@/components/OwnerLessonManager";
@@ -95,7 +95,7 @@ export default async function OwnerLessonsPage() {
 
       <OwnerBrandingCard initial={brandingView} />
 
-      <OwnerLessonManager courses={courses} lessons={lessons} branding={brandingView} defaultPrice={pricing().lesson} />
+      <OwnerLessonManager courses={courses} lessons={lessons} branding={brandingView} />
 
       <div className="open-callout flex gap-3">
         <Icon name="shield" size={18} className="mt-0.5 shrink-0 text-[#3f67c8]" />

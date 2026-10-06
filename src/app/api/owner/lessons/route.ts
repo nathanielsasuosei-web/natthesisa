@@ -13,7 +13,7 @@ import {
   type UploadedFileRecord,
 } from "@/lib/lesson-uploads";
 import { ownerLessonSummaries } from "@/lib/course-content";
-import { lessonPrice, pricing, saveContentPrice } from "@/lib/plans";
+import { lessonPrice } from "@/lib/plans";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,15 +78,11 @@ export async function POST(req: NextRequest) {
   const challenge = text(form.get("challenge")).slice(0, 600);
   const code = text(form.get("code")).slice(0, 4000);
   const language = text(form.get("language")).slice(0, 30);
-  const preview = text(form.get("preview")) === "true";
-  // The owner prices the lesson before publishing it. An empty field falls
-  // back to the owner's default lesson price, so a lesson can never be
-  // published without a price.
-  const priceRaw = text(form.get("price"));
-  const price = priceRaw === "" ? pricing().lesson : Number(priceRaw);
-  if (!Number.isFinite(price) || price < 0 || price > 1_000_000) {
-    return NextResponse.json({ error: "Enter the lesson price as a number (0 or more)." }, { status: 400 });
-  }
+  // Lessons are not priced or previewed on their own: the lesson sits under a
+  // course, the course sits under a program, and the program price is what
+  // opens it. Old `preview` / `price` form fields are ignored.
+  const preview = false;
+  const price = 0;
   const durationRaw = Number.parseInt(text(form.get("duration")), 10);
   const duration = Number.isFinite(durationRaw) ? Math.min(Math.max(durationRaw, 1), 600) : 20;
 
@@ -178,9 +174,6 @@ export async function POST(req: NextRequest) {
       createdBy: owner.name,
       createdByEmail: owner.email,
     });
-    // The price the owner set at publish time becomes the live price, so it can
-    // still be changed later from the pricing console.
-    await saveContentPrice("lesson", record.id, price);
     return NextResponse.json({ ok: true, lesson: uploadedLessonToLesson(record), record });
   } catch (error) {
     console.error("lesson could not be stored", error);

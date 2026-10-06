@@ -1,8 +1,9 @@
 import { COURSES, getCourse, getCourseLessons } from "./courses";
 import { contentPercent, ownerLessonSummaries } from "./course-content";
-import { PASS_PERIODS, PassPeriod, PERIOD_DAYS, coursePrice, lessonPrice, passPrice } from "./plans";
+import { coursePrice, lessonPrice, programPrice, type PassPeriod } from "./plans";
+import { PROGRAMS, programForCategory } from "./programs";
 import { hasActivePass } from "./access";
-import { grantAccess, grantPass } from "./purchases";
+import { grantAccess, grantPass, grantProgram } from "./purchases";
 import {
   User,
   completedLessonCount,
@@ -40,11 +41,9 @@ export interface StudentRow {
   owner: boolean;
   suspended: boolean;
   createdAt: string;
-  /** The pass they hold (or last held). */
-  passPeriod: PassPeriod | null;
-  passActive: boolean;
-  passExpiresAt: string;
-  /** Courses and lessons bought, and what they have paid in total. */
+  /** Programs owned — the only access that matters. */
+  programsOwned: string[];
+  /** Purchases on record (programs; older course/lesson rows are history). */
   purchases: number;
   coursesStarted: number;
   coursesCompleted: number;
@@ -67,9 +66,9 @@ export function toStudentRow(user: User): StudentRow {
     owner: isOwner(user),
     suspended: user.suspended,
     createdAt: user.createdAt,
-    passPeriod: user.subscription.expiresAt ? user.subscription.period : null,
-    passActive: hasActivePass(user),
-    passExpiresAt: user.subscription.expiresAt,
+    programsOwned: user.purchases
+      .filter((item) => item.kind === "program")
+      .map((item) => PROGRAMS.find((program) => program.id === item.refId)?.name ?? item.refId),
     purchases: user.purchases.length,
     coursesStarted: progress.length,
     coursesCompleted: completedCourses,
@@ -84,14 +83,15 @@ export interface OwnerStats {
   totalUsers: number;
   students: number;
   suspended: number;
-  withActivePass: number;
+  /** Students who own at least one program — the ones who can learn. */
+  withProgram: number;
   lessonsCompleted: number;
   learningMinutes: number;
   certificatesEarned: number;
   totalRevenue: number;
   invoiceCount: number;
-  /** How many students hold each pass length right now. */
-  byPeriod: Array<{ period: PassPeriod; label: string; count: number }>;
+  /** How many students own each program right now. */
+  byProgram: Array<{ programId: string; name: string; price: number; count: number }>;
   coursePerformance: Array<{
     courseId: string;
     title: string;
@@ -105,12 +105,14 @@ export interface OwnerStats {
 export async function computeOwnerStats(): Promise<OwnerStats> {
   const users = await listUsers();
   const students = users.filter((user) => !isOwner(user));
+  const ownsAnyProgram = (user: User): boolean => user.purchases.some((item) => item.kind === "program");
   const coursePerformance = COURSES.map((course) => {
     const records = students.map((user) => user.progress[course.id]).filter((item) => Boolean(item));
+    const program = programForCategory(course.category);
     return {
       courseId: course.id,
       title: course.shortTitle,
-      price: coursePrice(course.id),
+      price: program ? programPrice(program.id) : coursePrice(course.id),
       enrollments: records.length,
       completions: records.filter((item) => contentPercent(course, item.completedLessonIds) === 100).length,
       lessonsCompleted: records.reduce((sum, item) => sum + item.completedLessonIds.length, 0),
@@ -120,7 +122,7 @@ export async function computeOwnerStats(): Promise<OwnerStats> {
     totalUsers: users.length,
     students: students.length,
     suspended: students.filter((user) => user.suspended).length,
-    withActivePass: students.filter((user) => hasActivePass(user)).length,
+    withProgram: students.filter(ownsAnyProgram).length,
     lessonsCompleted: students.reduce((sum, user) => sum + completedLessonCount(user), 0),
     learningMinutes: students.reduce((sum, user) => sum + user.lifetimeMinutes, 0),
     certificatesEarned: coursePerformance.reduce((sum, item) => sum + item.completions, 0),
@@ -129,26 +131,34 @@ export async function computeOwnerStats(): Promise<OwnerStats> {
       0
     ),
     invoiceCount: users.reduce((sum, user) => sum + user.invoices.length, 0),
-    byPeriod: PASS_PERIODS.map((period) => ({
-      period,
-      label: PERIOD_DAYS[period] === 1 ? "Day pass" : PERIOD_DAYS[period] === 7 ? "Week pass" : "Month pass",
-      count: students.filter((user) => hasActivePass(user) && user.subscription.period === period).length,
+    byProgram: PROGRAMS.map((program) => ({
+      programId: program.id,
+      name: program.name,
+      price: programPrice(program.id),
+      count: students.filter((user) =>
+        user.purchases.some((item) => item.kind === "program" && item.refId === program.id)
+      ).length,
     })),
     coursePerformance,
   };
 }
 
 /**
- * What the active passes are worth per month, used on the console's revenue
- * card. Unlike a subscription, a pass does not renew — so this is a snapshot
- * of "if everybody renewed exactly as they are", not a committed figure.
+ * Real money in the last 30 days, from paid invoice dates — used on the
+ * console's revenue card. Programs are one-off purchases, so this is what
+ * actually arrived, not a renewal projection.
  */
 export async function estimateMonthlyRevenue(): Promise<number> {
   const users = await listUsers();
+  const since = Date.now() - 30 * 86_400_000;
   return users.reduce((sum, user) => {
-    if (isOwner(user) || !hasActivePass(user)) return sum;
-    const perDay = user.subscription.price / PERIOD_DAYS[user.subscription.period];
-    return sum + Math.round(perDay * 30);
+    if (isOwner(user)) return sum;
+    return (
+      sum +
+      user.invoices
+        .filter((invoice) => new Date(invoice.date).getTime() >= since)
+        .reduce((invoiceSum, invoice) => invoiceSum + invoice.amount, 0)
+    );
   }, 0);
 }
 
@@ -218,6 +228,15 @@ export async function ownerGrantAccess(
   return student;
 }
 
+/** Opens a whole program for a student, without a payment. */
+export async function ownerGrantProgram(owner: User, userId: string, programId: string): Promise<User> {
+  const student = await targetStudent(userId);
+  await grantProgram(owner, student, programId);
+  await saveUser(student);
+  await saveUser(owner);
+  return student;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Prices                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -258,4 +277,12 @@ export function coursePriceRows(): PriceRow[] {
   }));
 }
 
-export { passPrice };
+/** Every program the owner can price — the one price list that matters. */
+export function programPriceRows(): PriceRow[] {
+  return PROGRAMS.map((program) => ({
+    id: program.id,
+    title: program.name,
+    courseTitle: program.tagline,
+    price: programPrice(program.id),
+  }));
+}

@@ -8,9 +8,9 @@ import Icon from "./Icon";
 
 interface Props {
   courses: Course[];
-  /** Course ids the student can open right now (active pass AND bought). */
+  /** Course ids the student can open right now (program owned). */
   unlocked: Record<string, boolean>;
-  /** What each course costs on its own. */
+  /** The program price that opens each course. */
   prices: Record<string, number>;
   progress: Record<string, number>;
   lessonCounts?: Record<string, number>;

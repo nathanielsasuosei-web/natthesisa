@@ -209,8 +209,8 @@ export function notifyContentPurchased(opts: {
       ["Invoice", invoiceNumber ?? "—"],
       ["Date", new Date().toUTCString().slice(0, 16)],
     ])}</table>` +
-    paragraph(`Remember: you also need an active access pass for lessons to open. If yours has lapsed, renew it from your dashboard.`) +
-    button(siteUrl("/dashboard/courses"), "Start learning")
+    paragraph(`This purchase is kept on your account as history. To open the lessons, buy the program it belongs to from your dashboard.`) +
+    button(siteUrl("/dashboard/plans"), "See programs")
   );
   return safely("purchase receipt", () =>
     sendEmail({
@@ -219,6 +219,38 @@ export function notifyContentPurchased(opts: {
       subject: `Receipt — ${item}`,
       html,
       text: `Hi ${toName}, your purchase of "${item}" (${money}${invoiceNumber ? `, invoice ${invoiceNumber}` : ""}) is confirmed. Start learning: ${siteUrl("/dashboard/courses")}`,
+    })
+  );
+}
+
+/** A program receipt: every course and lesson under it is now open. */
+export function notifyProgramPurchased(opts: {
+  to: string;
+  toName: string;
+  program: string;
+  amount: number;
+  invoiceNumber: string | null;
+}): Promise<EmailResult> {
+  const { to, toName, program, amount, invoiceNumber } = opts;
+  const money = `${site.currency.symbol}${amount.toLocaleString("en-US")}`;
+  const html = shell("Your program is open", "🎓",
+    paragraph(`Hi ${escapeHtml(toName)},`) +
+    paragraph(`Thank you — the <strong>${escapeHtml(program)}</strong> program is yours now. Every course and every lesson under it is open, permanently.`) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 2px">${detailRows([
+      ["Program", program],
+      ["Amount paid", money],
+      ["Invoice", invoiceNumber ?? "—"],
+      ["Date", new Date().toUTCString().slice(0, 16)],
+    ])}</table>` +
+    button(siteUrl("/dashboard/courses"), "Start learning")
+  );
+  return safely("program receipt", () =>
+    sendEmail({
+      to,
+      toName,
+      subject: `Receipt — ${program}`,
+      html,
+      text: `Hi ${toName}, the ${program} program (${money}${invoiceNumber ? `, invoice ${invoiceNumber}` : ""}) is yours now. Start learning: ${siteUrl("/dashboard/courses")}`,
     })
   );
 }

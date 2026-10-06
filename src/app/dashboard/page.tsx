@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { COURSES, getCourse } from "@/lib/courses";
+import { programForCategory } from "@/lib/programs";
 import { contentLessons, contentPercent } from "@/lib/course-content";
 import { courseAccess } from "@/lib/access";
-import { coursePrice } from "@/lib/plans";
+import { programPrice } from "@/lib/plans";
 import { completedLessonCount, learningStreak } from "@/lib/store";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
@@ -67,7 +68,7 @@ export default async function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center px-6 py-12 text-center"><span className="grid size-12 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="book" size={23} /></span><h3 className="mt-3 text-sm font-extrabold">Choose your first course</h3><p className="mt-1 max-w-sm text-xs leading-5 text-[#817a87]">Start with Web Foundations or Computer Science Essentials—both are included free.</p><Link href="/dashboard/courses" className="mt-4 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-xs font-bold text-white">Browse courses</Link></div>
+            <div className="flex flex-col items-center px-6 py-12 text-center"><span className="grid size-12 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="book" size={23} /></span><h3 className="mt-3 text-sm font-extrabold">Choose your first program</h3><p className="mt-1 max-w-sm text-xs leading-5 text-[#817a87]">Buy a program to open every course and lesson inside it — start with Web Development or Computer Science.</p><Link href="/dashboard/plans" className="mt-4 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-xs font-bold text-white">See programs</Link></div>
           )}
         </article>
 
@@ -81,7 +82,7 @@ export default async function DashboardPage() {
       <section className="open-columns grid gap-0 xl:grid-cols-[1.55fr_.85fr]">
         <div className="open-column">
           <div className="mb-4 flex items-end justify-between"><div><h2 className="text-base font-black tracking-[-.025em]">Recommended for you</h2><p className="mt-1 text-xs text-[#89828f]">Based on your {user.profile.track.toLowerCase()} goal</p></div><Link href="/dashboard/courses" className="text-[11px] font-bold text-[#6543e8]">See all courses →</Link></div>
-          <div className="grid gap-4 md:grid-cols-2">{recommendations.map((course) => <CourseCard key={course.id} course={course} locked={!courseAccess(user, course).allowed} price={coursePrice(course.id)} />)}</div>
+          <div className="grid gap-4 md:grid-cols-2">{recommendations.map((course) => { const program = programForCategory(course.category); return <CourseCard key={course.id} course={course} locked={!courseAccess(user, course).allowed} price={program ? programPrice(program.id) : undefined} />; })}</div>
         </div>
         <div className="open-column">
           <div className="mb-4"><h2 className="text-base font-black tracking-[-.025em]">Recent activity</h2><p className="mt-1 text-xs text-[#89828f]">Your latest milestones</p></div>

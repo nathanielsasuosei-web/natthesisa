@@ -73,6 +73,47 @@ export const SCHEMA_STATEMENTS: string[] = [
   // Invoice numbers come from a real sequence, so they stay unique even with
   // concurrent checkouts.
   `create sequence if not exists invoice_number_seq start 1007`,
+
+  // Mobile Money / card payments, tracked from checkout to webhook.
+  //
+  // One row per checkout attempt, keyed by the reference we generate
+  // (`CMG-…`). The row is created *before* the student is sent to the payment
+  // provider, so the webhook and the return-URL verification both have
+  // something idempotent to fulfil against: whichever arrives first marks the
+  // row `paid` and grants the pass / course / lesson, and the other sees the
+  // row is already paid and does nothing. `provider_event_id` carries the
+  // provider's own event id for the same reason. Only `program` rows are
+  // created now; the pass / course / lesson kinds stay valid so payments
+  // already in flight can still fulfil.
+  `create table if not exists payments (
+     reference         text primary key,
+     user_id           text not null references users(id) on delete cascade,
+     kind              text not null check (kind in ('pass', 'course', 'lesson', 'program')),
+     period            text check (period in ('daily', 'weekly', 'monthly')),
+     course_id         text,
+     lesson_id         text,
+     program_id        text,
+     amount            integer not null check (amount >= 0),
+     currency          text not null default 'GHS',
+     description       text not null,
+     status            text not null default 'pending'
+                       check (status in ('pending', 'paid', 'failed', 'abandoned')),
+     provider          text not null default 'demo'
+                       check (provider in ('demo', 'paystack')),
+     phone             text,
+     network           text,
+     authorization_url text,
+     channel           text,
+     invoice_number    text,
+     provider_event_id text,
+     paid_at           timestamptz,
+     created_at        timestamptz not null default now(),
+     updated_at        timestamptz not null default now()
+   )`,
+  // The payments indexes live in MIGRATION_STATEMENTS, not here: a `payments`
+  // table made by hand (or by an older build) may exist without our columns,
+  // and `create table if not exists` skips it silently — so the columns are
+  // healed first and the indexes are built only afterwards.
 ];
 
 /**
@@ -173,6 +214,45 @@ export const MIGRATION_STATEMENTS: string[] = [
   `update app_state set value = '{}'::jsonb where value is null`,
   `alter table app_state alter column value set not null`,
   `alter table app_state add column if not exists updated_at timestamptz not null default now()`,
+
+  // A `payments` table made by hand (or by an older build) may already exist
+  // with fewer columns — `create table if not exists` skips it silently, and
+  // building the indexes below would then fail with `column … does not
+  // exist`. So every column is added here first. All added nullable, so the
+  // healing itself can never fail on rows that are already there; the app
+  // always writes complete rows, and pre-existing foreign rows are simply
+  // never matched by a checkout reference.
+  `alter table payments add column if not exists reference text`,
+  `alter table payments add column if not exists user_id text`,
+  `alter table payments add column if not exists kind text`,
+  `alter table payments add column if not exists period text`,
+  `alter table payments add column if not exists course_id text`,
+  `alter table payments add column if not exists lesson_id text`,
+  `alter table payments add column if not exists program_id text`,
+  // The `kind` check from older builds does not know `program`. Drop-then-add
+  // keeps this idempotent: on every run the old check (if any) goes away and
+  // the current one is enforced. `not valid` skips re-validating whatever a
+  // hand-made table already holds — the check still guards every new row.
+  `alter table payments drop constraint if exists payments_kind_check`,
+  `alter table payments add constraint payments_kind_check check (kind in ('pass', 'course', 'lesson', 'program')) not valid`,
+  `alter table payments add column if not exists amount integer`,
+  `alter table payments add column if not exists currency text`,
+  `alter table payments add column if not exists description text`,
+  `alter table payments add column if not exists status text`,
+  `alter table payments add column if not exists provider text`,
+  `alter table payments add column if not exists phone text`,
+  `alter table payments add column if not exists network text`,
+  `alter table payments add column if not exists authorization_url text`,
+  `alter table payments add column if not exists channel text`,
+  `alter table payments add column if not exists invoice_number text`,
+  `alter table payments add column if not exists provider_event_id text`,
+  `alter table payments add column if not exists paid_at timestamptz`,
+  `alter table payments add column if not exists created_at timestamptz`,
+  `alter table payments add column if not exists updated_at timestamptz`,
+  // Indexes last, once every column they reference is guaranteed to exist.
+  `create index if not exists payments_user_idx on payments (user_id, created_at desc)`,
+  `create index if not exists payments_status_idx on payments (status, created_at desc)`,
+  `create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null`,
 ];
 
 /** Rows in `users` as the database sees them. */
