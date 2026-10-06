@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { site } from "@/config/site";
+import { site, siteUrl } from "@/config/site";
 import { brandAssets } from "@/config/branding";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://codemasterghana.com"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: `${site.name} — ${site.tagline}`,
     template: `%s · ${site.name}`,

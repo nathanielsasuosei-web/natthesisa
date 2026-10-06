@@ -169,9 +169,17 @@ export interface RecentPayment extends Payment {
 
 export async function listRecentPayments(limit = 50): Promise<RecentPayment[]> {
   await ensureSchema();
+  // `p.user_id::text` is deliberate, not decoration. `users.id` is `text`, but a
+  // `payments` table made by an older build or by a database integration may hold
+  // `user_id` as `uuid` — and a database reshaped that way has no foreign key
+  // between the two, because PostgreSQL cannot create one across mismatched types.
+  // Comparing `text = uuid` directly then fails the whole query with
+  // `42883 operator does not exist: text = uuid`, which took the entire teacher
+  // console down with an opaque 500. The cast makes the join correct on both
+  // shapes, and is a no-op once the column is `text`.
   const rows = await query<PaymentRow & { user_name: string; user_email: string }>(
     `select p.*, u.name as user_name, u.email as user_email
-       from payments p join users u on u.id = p.user_id
+       from payments p join users u on u.id = p.user_id::text
       order by p.created_at desc limit $1`,
     [Math.min(Math.max(limit, 1), 200)]
   );
