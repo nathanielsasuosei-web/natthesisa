@@ -421,6 +421,172 @@ begin
 end $$`,
 ];
 
+/**
+ * One query that answers: “does this database already have everything
+ * `SCHEMA_STATEMENTS` and `MIGRATION_STATEMENTS` would give it?”
+ *
+ * Why it exists: the two lists above are ~80 statements, and every one of them
+ * is a round trip. Running them on every cold start of a hosted deployment
+ * (each serverless instance, each restart) costs seconds — on a pooled
+ * connection to a hosted database it was measured in the tens of seconds,
+ * which is long enough for `/api/health`'s 12-second probe to report a
+ * database failure that is not there, and long enough for the first visitor to
+ * a cold instance to wait for it.
+ *
+ * So `ensureSchema()` asks this first, and only runs the statements when the
+ * answer is `false`. That keeps the self-healing promise — the check looks at
+ * the same things the statements guarantee, so a database left by another
+ * project, or one altered after the fact, still fails it and is reshaped — and
+ * makes the normal case one query.
+ *
+ * It is deliberately conservative: it covers the columns *and their types*
+ * (a `uuid` id or a `varchar(8)` reference is what broke checkout), the rules
+ * that decide which values the app may write, the indexes that enforce unique
+ * emails, the sequence invoice numbers come from, and NOT NULL columns this
+ * app never fills (a foreign NOT NULL column rejects every insert). Any
+ * surprise — a missing table, a different shape, a role that cannot read the
+ * catalogue — returns `false`, and the statements run and explain themselves.
+ *
+ * When a statement is added above, add what it guarantees here too; if you
+ * forget, nothing breaks (the statement simply runs every time).
+ */
+export const SCHEMA_CURRENT_QUERY = `
+with required(table_name, column_name, data_types) as (
+  values
+    ('app_state', 'key', array['text']),
+    ('app_state', 'value', array['jsonb']),
+    ('app_state', 'updated_at', array['timestamp with time zone']),
+
+    ('users', 'id', array['text']),
+    ('users', 'email', array['text']),
+    ('users', 'name', array['text']),
+    ('users', 'password_hash', array['text']),
+    ('users', 'role', array['text']),
+    ('users', 'owner', array['boolean']),
+    ('users', 'suspended', array['boolean']),
+    ('users', 'subscription', array['jsonb']),
+    ('users', 'usage', array['jsonb']),
+    ('users', 'lifetime_minutes', array['integer']),
+    ('users', 'progress', array['jsonb']),
+    ('users', 'purchases', array['jsonb']),
+    ('users', 'certificates', array['jsonb']),
+    ('users', 'invoices', array['jsonb']),
+    ('users', 'activity_log', array['jsonb']),
+    ('users', 'payment_method', array['jsonb']),
+    ('users', 'profile', array['jsonb']),
+    ('users', 'avatar', array['jsonb']),
+    ('users', 'last_seen_at', array['timestamp with time zone']),
+    ('users', 'created_at', array['timestamp with time zone']),
+    ('users', 'updated_at', array['timestamp with time zone']),
+
+    ('payments', 'reference', array['text']),
+    ('payments', 'user_id', array['text']),
+    ('payments', 'kind', array['text']),
+    ('payments', 'period', array['text']),
+    ('payments', 'course_id', array['text']),
+    ('payments', 'lesson_id', array['text']),
+    ('payments', 'program_id', array['text']),
+    -- Money: the app writes whole cedis and reads the value through Number(),
+    -- so any numeric type a foreign table already uses is workable as-is.
+    ('payments', 'amount', array['integer', 'smallint', 'bigint', 'numeric', 'decimal', 'real', 'double precision']),
+    ('payments', 'currency', array['text']),
+    ('payments', 'description', array['text']),
+    ('payments', 'status', array['text']),
+    ('payments', 'provider', array['text']),
+    ('payments', 'phone', array['text']),
+    ('payments', 'network', array['text']),
+    ('payments', 'authorization_url', array['text']),
+    ('payments', 'channel', array['text']),
+    ('payments', 'invoice_number', array['text']),
+    ('payments', 'provider_event_id', array['text']),
+    ('payments', 'paid_at', array['timestamp with time zone']),
+    ('payments', 'created_at', array['timestamp with time zone']),
+    ('payments', 'updated_at', array['timestamp with time zone'])
+),
+present as (
+  select table_name, column_name, data_type
+    from information_schema.columns
+   where table_schema = current_schema()
+),
+columns_ok as (
+  select not exists (
+    select 1 from required r
+     where not exists (
+       select 1 from present p
+        where p.table_name = r.table_name
+          and p.column_name = r.column_name
+          -- Plain text with no length limit: a varchar(8) reference would
+          -- silently truncate a CMG-… reference, and a char(3) currency pads
+          -- every row it holds.
+          and p.data_type = any (r.data_types)
+     )
+  ) as ok
+),
+rules_ok as (
+  select
+    -- A role the code cannot understand (an old 'admin') and a 'kind' that
+    -- does not know 'program' are the two rules the app depends on.
+    exists (
+      select 1 from pg_constraint c
+       where c.conrelid = to_regclass('users') and c.contype = 'c' and c.conname = 'users_role_check'
+         and pg_get_constraintdef(c.oid) like '%student%' and pg_get_constraintdef(c.oid) like '%owner%'
+    )
+    and exists (
+      select 1 from pg_constraint c
+       where c.conrelid = to_regclass('payments') and c.contype = 'c' and c.conname = 'payments_kind_check'
+         and pg_get_constraintdef(c.oid) like '%program%'
+    )
+    and exists (
+      select 1 from pg_constraint c
+       where c.conrelid = to_regclass('payments') and c.contype = 'c' and c.conname = 'payments_status_check'
+         and pg_get_constraintdef(c.oid) like '%abandoned%'
+    )
+    and exists (
+      select 1 from pg_constraint c
+       where c.conrelid = to_regclass('payments') and c.contype = 'c' and c.conname = 'payments_provider_check'
+         and pg_get_constraintdef(c.oid) like '%paystack%'
+    ) as ok
+),
+not_null_ok as (
+  -- A column from the table's previous life, NOT NULL and with no default, is
+  -- one this app never fills: every checkout would fail with 23502.
+  select not exists (
+    select 1
+      from pg_attribute a
+      join pg_class t on t.oid = a.attrelid
+      join pg_namespace n on n.oid = t.relnamespace
+     where n.nspname = current_schema()
+       and t.relname = 'payments'
+       and a.attnum > 0
+       and not a.attisdropped
+       and a.attnotnull
+       and not a.atthasdef
+       and a.attname not in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
+                             'program_id', 'amount', 'currency', 'description', 'status', 'provider',
+                             'phone', 'network', 'authorization_url', 'channel', 'invoice_number',
+                             'provider_event_id', 'paid_at', 'created_at', 'updated_at')
+  ) as ok
+),
+indexes_ok as (
+  select
+    (select count(*) from pg_indexes
+      where schemaname = current_schema()
+        and indexname in ('users_email_key', 'users_single_owner', 'users_created_at_idx',
+                          'payments_user_idx', 'payments_status_idx', 'payments_event_key')) = 6
+    -- Unique emails, one owner, and one fulfilment per provider event are
+    -- enforced by the database, not by the code.
+    and (select count(*)
+           from pg_index i
+           join pg_class c on c.oid = i.indexrelid
+           join pg_namespace n on n.oid = c.relnamespace
+          where n.nspname = current_schema()
+            and c.relname in ('users_email_key', 'users_single_owner', 'payments_event_key')
+            and i.indisunique) = 3
+    and to_regclass('invoice_number_seq') is not null as ok
+)
+select (columns_ok.ok and rules_ok.ok and not_null_ok.ok and indexes_ok.ok) as current
+  from columns_ok, rules_ok, not_null_ok, indexes_ok`;
+
 /** Rows in `users` as the database sees them. */
 export interface UserRow {
   id: string;
