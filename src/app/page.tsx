@@ -8,7 +8,7 @@ import { lessonCountsByCourse } from "@/lib/course-content";
 import { contentTotals } from "@/lib/course-content";
 import { formatMoney, programPrice } from "@/lib/plans";
 import { isPaystackConfigured } from "@/lib/paystack";
-import { site } from "@/config/site";
+import { site, siteUrl } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import CourseCard from "@/components/CourseCard";
 import Icon from "@/components/Icon";
@@ -54,7 +54,7 @@ export default async function LandingPage() {
               <div className="overflow-hidden rounded-[18px] bg-[#fdfdfb]">
                 <div className="flex h-11 items-center border-b border-black/[.06] bg-white px-4">
                   <div className="code-dots" />
-                  <span className="mx-auto -translate-x-4 rounded-md bg-[#f4f2f7] px-16 py-1 text-[9px] font-medium text-[#918a99]">app.codemasterghana.com/learn</span>
+                  <span className="mx-auto -translate-x-4 rounded-md bg-[#f4f2f7] px-16 py-1 text-[9px] font-medium text-[#918a99]">{siteUrl}/learn</span>
                 </div>
                 <div className="grid min-h-[390px] grid-cols-[112px_1fr] sm:grid-cols-[145px_1fr]">
                   <aside className="bg-[#1c1923] px-3 py-5 text-white">

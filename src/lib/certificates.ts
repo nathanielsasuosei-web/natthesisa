@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import QRCode from "qrcode";
+import { siteUrl } from "@/config/site";
 import { readState, writeState } from "./app-state";
 import { contentLessons, contentMinutes } from "./course-content";
 import { getCourse } from "./courses";
@@ -219,8 +220,7 @@ export async function setCertificateRevoked(code: string, revoked: boolean, reas
  * deployment; the fallback matches the site metadata.
  */
 export function verificationUrl(code: string): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://codemasterghana.com").replace(/\/+$/, "");
-  return `${base}/verify/${code}`;
+  return `${siteUrl}/verify/${code}`;
 }
 
 /** The QR code on the printed certificate, as inline SVG (no external service). */

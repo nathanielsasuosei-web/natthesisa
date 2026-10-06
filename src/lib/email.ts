@@ -1,4 +1,4 @@
-import { site } from "@/config/site";
+import { site, siteUrl as siteOrigin } from "@/config/site";
 
 /**
  * Student email.
@@ -44,7 +44,7 @@ const BRAND_PURPLE = "#6d4aff";
 const BRAND_INK = "#1b1822";
 
 export function siteUrl(path = ""): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://codemasterghana.com").replace(/\/+$/, "");
+  const base = siteOrigin;
   return path ? `${base}${path.startsWith("/") ? path : `/${path}`}` : base;
 }
 
