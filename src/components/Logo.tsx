@@ -21,8 +21,8 @@ interface Props {
 export default function Logo({ href = "/", inverse = false, compact = false, showTagline = false, className = "" }: Props) {
   const { first, second } = brandWordmark.split;
   return (
-    <Link href={href} className={`inline-flex items-center gap-2.5 ${className}`} aria-label={`${site.name} home`}>
-      <span className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-[11px] bg-[#6d4aff] text-white shadow-[0_6px_18px_rgba(109,74,255,.28)]">
+    <Link href={href} className={`group inline-flex items-center gap-2.5 ${className}`} aria-label={`${site.name} home`}>
+      <span className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-[11px] bg-[#6d4aff] text-white shadow-[0_6px_18px_rgba(109,74,255,.28)] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105">
         <span className="font-mono text-[14px] font-black tracking-[-.18em] -translate-x-[1px]">{brandWordmark.glyph}</span>
         <span className="absolute right-1 top-1 size-1.5 rounded-full bg-[#ffcf59]" />
       </span>

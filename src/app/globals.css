@@ -80,6 +80,79 @@ a {
 .animate-float { animation: nt-float 7s ease-in-out infinite; }
 .animate-pulse-ring { animation: nt-pulse-ring 2s infinite; }
 
+/* ------------------------------------------------------------------ */
+/* Navigation motion                                                   */
+/* ------------------------------------------------------------------ */
+
+@keyframes nt-nav-drop {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes nt-menu-in {
+  from { opacity: 0; transform: translateY(-10px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes nt-menu-item {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes nt-ticker-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes nt-icon-pop {
+  0% { opacity: 0; transform: scale(.5) rotate(-30deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/** The bar drops in once per page load. */
+.animate-nav-drop { animation: nt-nav-drop .6s cubic-bezier(.22,1,.36,1) both; }
+/** Dropdown / mobile panels unfold from the bar. */
+.animate-menu-in { transform-origin: top center; animation: nt-menu-in .28s cubic-bezier(.22,1,.36,1) both; }
+/** Staggered rows inside an open panel — pair with an inline animation-delay. */
+.animate-menu-item { opacity: 0; animation: nt-menu-item .45s cubic-bezier(.22,1,.36,1) forwards; }
+/** The announcement message slides up as it rotates. */
+.animate-ticker-up { animation: nt-ticker-up .5s cubic-bezier(.22,1,.36,1) both; }
+/** The hamburger / close icon pops as it swaps. */
+.animate-icon-pop { animation: nt-icon-pop .3s cubic-bezier(.22,1,.36,1) both; }
+
+/** Sliding gradient underline for nav links; active links keep it drawn. */
+.nav-underline { position: relative; }
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 5px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6d4aff, #9c83ff);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .32s cubic-bezier(.22,1,.36,1);
+}
+.nav-underline:hover::after,
+.nav-underline-active::after { transform: scaleX(1); }
+
+/** A light sweep across primary CTAs on hover. */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  left: -60%;
+  background: linear-gradient(105deg, transparent, rgb(255 255 255 / .35), transparent);
+  transform: skewX(-20deg);
+  transition: left .6s ease;
+}
+.btn-shine:hover::after { left: 130%; }
+
 .bg-grid {
   background-image:
     linear-gradient(to right, rgb(23 21 31 / .055) 1px, transparent 1px),
@@ -315,6 +388,9 @@ a {
   html { scroll-behavior: auto; }
   .animate-blob, .animate-grid-pan, .animate-float, .animate-pulse-ring { animation: none; }
   .animate-fade-up { animation: none; opacity: 1; }
+  .animate-nav-drop, .animate-menu-in, .animate-ticker-up, .animate-icon-pop { animation: none; }
+  .animate-menu-item { animation: none; opacity: 1; }
+  .btn-shine::after { display: none; }
 }
 
 /* ------------------------------------------------------------------ */

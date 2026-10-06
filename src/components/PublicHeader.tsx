@@ -90,10 +90,14 @@ function AnnouncementBar() {
   return (
     <div className="bg-[#17151f] text-white print:hidden">
       <div className="mx-auto flex h-9 max-w-[1180px] items-center justify-center gap-3 px-5 text-[11px] sm:px-8">
+        <span className="relative hidden size-1.5 shrink-0 sm:flex" aria-hidden="true">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+        </span>
         <Link
           key={index}
           href={item.href}
-          className="animate-fade-up flex min-w-0 items-center gap-2.5 font-semibold text-white/90 transition hover:text-white"
+          className="animate-ticker-up flex min-w-0 items-center gap-2.5 font-semibold text-white/90 transition hover:text-white"
         >
           <span className="shrink-0 rounded-full bg-[#ffcf59] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#493600]">
             {item.badge}
@@ -105,7 +109,7 @@ function AnnouncementBar() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss announcement"
-          className="ml-1 grid size-6 shrink-0 place-items-center rounded-md text-white/50 transition hover:bg-white/10 hover:text-white"
+          className="ml-1 grid size-6 shrink-0 place-items-center rounded-md text-white/50 transition hover:rotate-90 hover:bg-white/10 hover:text-white"
         >
           <Icon name="close" size={13} />
         </button>
@@ -120,9 +124,12 @@ function AnnouncementBar() {
  * One component for every page outside the app, so the announcement bar, the
  * menu, the Courses mega-panel, the mobile panel and the account buttons
  * cannot drift apart between pages. The announcement scrolls away; the bar
- * itself sticks, gains a shadow once the page moves, and highlights the
- * current section. Both dropdowns are real disclosures (button + expanded
- * state), not hidden divs, so they work with a keyboard and a screen reader.
+ * itself sticks, condenses and gains a shadow once the page moves, and
+ * highlights the current section. Both dropdowns are real disclosures (button
+ * + expanded state), not hidden divs, so they work with a keyboard and a
+ * screen reader. All motion respects `prefers-reduced-motion` (see
+ * `globals.css`) and the staggered entrances re-run every time a panel opens,
+ * because the panel remounts.
  */
 export default function PublicHeader({ appHref = null, signedIn = false, userName = null }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -179,11 +186,15 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
       <AnnouncementBar />
 
       <header
-        className={`sticky top-0 z-40 border-b bg-[#f8f8f5]/90 backdrop-blur-xl transition-shadow print:hidden ${
+        className={`animate-nav-drop sticky top-0 z-40 border-b bg-[#f8f8f5]/90 backdrop-blur-xl transition-shadow print:hidden ${
           scrolled ? "border-black/[.08] shadow-[0_10px_30px_rgba(31,24,45,.10)]" : "border-black/[.06]"
         }`}
       >
-        <div className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between gap-4 px-5 sm:px-8">
+        <div
+          className={`mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 transition-[height] duration-300 sm:px-8 ${
+            scrolled ? "h-[60px]" : "h-[72px]"
+          }`}
+        >
           <Logo showTagline />
 
           <nav aria-label="Primary" className="hidden items-center gap-1 text-[13px] font-semibold text-[#615b69] lg:flex">
@@ -197,32 +208,29 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
                   cancelClose();
                   setCoursesOpen(true);
                 }}
-                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] ${
-                  coursesOpen || coursesActive ? "bg-white text-[#5c3be4]" : ""
+                className={`nav-underline flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] ${
+                  coursesOpen || coursesActive ? "nav-underline-active bg-white text-[#5c3be4]" : ""
                 }`}
               >
                 Courses
-                <Icon name="chevron-down" size={14} className={`transition ${coursesOpen ? "rotate-180" : ""}`} />
+                <Icon name="chevron-down" size={14} className={`transition-transform duration-300 ${coursesOpen ? "rotate-180" : ""}`} />
               </button>
             </div>
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] ${
-                  isActive(link.href) ? "text-[#5c3be4]" : ""
+                className={`nav-underline rounded-xl px-3.5 py-2.5 transition hover:-translate-y-px hover:bg-white hover:text-[#5c3be4] ${
+                  isActive(link.href) ? "nav-underline-active text-[#5c3be4]" : ""
                 }`}
               >
                 {link.label}
-                {isActive(link.href) && (
-                  <span className="absolute inset-x-3.5 -bottom-[13px] h-[3px] rounded-full bg-[#6d4aff]" aria-hidden="true" />
-                )}
               </Link>
             ))}
             <Link
               href="/verify"
-              className={`hidden items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] xl:inline-flex ${
-                isActive("/verify") ? "text-[#5c3be4]" : ""
+              className={`nav-underline hidden items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition hover:-translate-y-px hover:bg-white hover:text-[#5c3be4] xl:inline-flex ${
+                isActive("/verify") ? "nav-underline-active text-[#5c3be4]" : ""
               }`}
             >
               <Icon name="shield" size={14} className="text-[#6d4aff]" />
@@ -235,9 +243,9 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
               <Link
                 href={appHref}
                 title={userName ? `Signed in as ${userName}` : "Open your dashboard"}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#17151f] py-1.5 pl-1.5 pr-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2a2632]"
+                className="group inline-flex items-center gap-2 rounded-xl bg-[#17151f] py-1.5 pl-1.5 pr-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2a2632] hover:shadow-[0_10px_24px_rgba(23,21,31,.25)]"
               >
-                <span className="grid size-8 place-items-center rounded-lg bg-[#6d4aff] text-[13px] font-black text-white" aria-hidden="true">
+                <span className="grid size-8 place-items-center rounded-lg bg-[#6d4aff] text-[13px] font-black text-white transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
                   {initial || <Icon name="user" size={15} />}
                 </span>
                 <span className="hidden sm:inline">{isOwner ? "Teacher console" : "Dashboard"}</span>
@@ -245,10 +253,10 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
               </Link>
             ) : (
               <>
-                <Link href="/login" className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:bg-white sm:block">
+                <Link href="/login" className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:-translate-y-px hover:bg-white sm:block">
                   Sign in
                 </Link>
-                <Link href="/login?mode=signup" className="rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">
+                <Link href="/login?mode=signup" className="btn-shine rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] hover:shadow-[0_12px_30px_rgba(109,74,255,.35)]">
                   Start learning
                 </Link>
               </>
@@ -260,9 +268,11 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
               aria-expanded={mobileOpen}
               aria-controls="public-menu"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              className="grid size-10 place-items-center rounded-xl border border-[#ddd9e2] bg-white text-[#4a4450] transition hover:bg-[#f7f5f9] lg:hidden"
+              className="grid size-10 place-items-center rounded-xl border border-[#ddd9e2] bg-white text-[#4a4450] transition hover:bg-[#f7f5f9] active:scale-95 lg:hidden"
             >
-              <Icon name={mobileOpen ? "close" : "menu"} size={18} />
+              <span key={String(mobileOpen)} className="animate-icon-pop grid place-items-center">
+                <Icon name={mobileOpen ? "close" : "menu"} size={18} />
+              </span>
             </button>
           </div>
         </div>
@@ -273,19 +283,19 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
             id="courses-panel"
             onMouseEnter={cancelClose}
             onMouseLeave={scheduleClose}
-            className="absolute inset-x-0 top-full hidden border-b border-black/[.06] bg-white/95 shadow-[0_30px_60px_rgba(31,24,45,.12)] backdrop-blur-xl lg:block"
+            className="animate-menu-in absolute inset-x-0 top-full hidden border-b border-black/[.06] bg-white/95 shadow-[0_30px_60px_rgba(31,24,45,.12)] backdrop-blur-xl lg:block"
           >
             <div className="mx-auto grid max-w-[1180px] grid-cols-[1.2fr_1fr_.9fr] gap-8 px-8 py-8">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8a8390]">Browse by program</p>
                 <ul className="mt-4 space-y-1">
-                  {PROGRAM_LINKS.map((program) => (
-                    <li key={program.id}>
+                  {PROGRAM_LINKS.map((program, index) => (
+                    <li key={program.id} className="animate-menu-item" style={{ animationDelay: `${index * 60}ms` }}>
                       <Link
                         href={`/courses#program-${program.id}`}
-                        className="group flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-[#f7f5fa]"
+                        className="group flex items-center gap-3 rounded-2xl p-2.5 transition hover:translate-x-1 hover:bg-[#f7f5fa]"
                       >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff] transition group-hover:bg-[#6d4aff] group-hover:text-white">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff] transition group-hover:scale-110 group-hover:bg-[#6d4aff] group-hover:text-white">
                           <Icon name={program.icon} size={18} />
                         </span>
                         <span className="min-w-0">
@@ -303,41 +313,41 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8a8390]">Popular right now</p>
                 <ul className="mt-4 space-y-1">
-                  {POPULAR_COURSES.map((course) => (
-                    <li key={course.slug}>
+                  {POPULAR_COURSES.map((course, index) => (
+                    <li key={course.slug} className="animate-menu-item" style={{ animationDelay: `${180 + index * 60}ms` }}>
                       <Link
                         href={`/courses/${course.slug}`}
-                        className="group flex items-center justify-between gap-3 rounded-2xl p-2.5 transition hover:bg-[#f7f5fa]"
+                        className="group flex items-center justify-between gap-3 rounded-2xl p-2.5 transition hover:translate-x-1 hover:bg-[#f7f5fa]"
                       >
                         <span className="text-[13px] font-bold text-[#4a4450] group-hover:text-[#5c3be4]">
                           {course.title}
                         </span>
-                        <span className="shrink-0 rounded-full bg-[#f0edf3] px-2 py-1 text-[9px] font-black uppercase tracking-wider text-[#817a87]">
+                        <span className="shrink-0 rounded-full bg-[#f0edf3] px-2 py-1 text-[9px] font-black uppercase tracking-wider text-[#817a87] transition group-hover:bg-[#6d4aff] group-hover:text-white">
                           {course.level}
                         </span>
                       </Link>
                     </li>
                   ))}
                 </ul>
-                <Link href="/courses" className="mt-3 inline-flex items-center gap-1.5 px-2.5 text-[12px] font-extrabold text-[#5c3be4] transition hover:gap-2.5">
+                <Link href="/courses" className="animate-menu-item mt-3 inline-flex items-center gap-1.5 px-2.5 text-[12px] font-extrabold text-[#5c3be4] transition hover:gap-2.5" style={{ animationDelay: "420ms" }}>
                   View all courses <Icon name="arrow-right" size={14} />
                 </Link>
               </div>
 
-              <div className="overflow-hidden rounded-[20px] bg-[#17151f] p-5 text-white">
-                <span className="grid size-9 place-items-center rounded-xl bg-[#6d4aff]">
+              <div className="animate-menu-item overflow-hidden rounded-[20px] bg-[#17151f] p-5 text-white" style={{ animationDelay: "240ms" }}>
+                <span className="grid size-9 place-items-center rounded-xl bg-[#6d4aff] transition-transform duration-300 hover:scale-110 hover:rotate-6">
                   <Icon name="play" size={14} />
                 </span>
                 <p className="mt-4 text-sm font-black leading-6">Try before you pay a cedi</p>
                 <p className="mt-1.5 text-[11px] leading-5 text-white/60">
                   The first lesson of every course is a free preview — no pass, no purchase, no account.
                 </p>
-                <Link href="/courses" className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-extrabold text-[#17151f] transition hover:bg-[#ffcf59]">
+                <Link href="/courses" className="btn-shine mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-extrabold text-[#17151f] transition hover:-translate-y-0.5 hover:bg-[#ffcf59]">
                   Explore the catalogue <Icon name="arrow-right" size={14} />
                 </Link>
               </div>
             </div>
-            <div className="border-t border-black/[.05] bg-[#faf9fb]">
+            <div className="animate-menu-item border-t border-black/[.05] bg-[#faf9fb]" style={{ animationDelay: "480ms" }}>
               <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-2 px-8 py-3 text-[11px] text-[#817a87]">
                 <p>
                   One pass opens the platform · Courses you buy stay yours ·{" "}
@@ -354,27 +364,28 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
 
         {/* ---- mobile panel --------------------------------------------------- */}
         {mobileOpen && (
-          <div id="public-menu" className="border-t border-black/[.06] bg-white px-5 pb-6 pt-3 lg:hidden">
+          <div id="public-menu" className="animate-menu-in border-t border-black/[.06] bg-white px-5 pb-6 pt-3 lg:hidden">
             <nav className="grid gap-1" aria-label="Mobile">
               <button
                 type="button"
                 onClick={() => setMobileCoursesOpen((value) => !value)}
                 aria-expanded={mobileCoursesOpen}
-                className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition ${
+                className={`animate-menu-item flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition active:scale-[.99] ${
                   coursesActive ? "bg-[#f3efff] text-[#5c3be4]" : "text-[#4a4450] hover:bg-[#f7f5f9]"
                 }`}
               >
                 Courses
-                <Icon name="chevron-down" size={15} className={`text-[#bbb5c0] transition ${mobileCoursesOpen ? "rotate-180" : ""}`} />
+                <Icon name="chevron-down" size={15} className={`text-[#bbb5c0] transition-transform duration-300 ${mobileCoursesOpen ? "rotate-180" : ""}`} />
               </button>
               {mobileCoursesOpen && (
                 <div className="grid gap-1 pb-2 pl-3">
-                  {PROGRAM_LINKS.map((program) => (
+                  {PROGRAM_LINKS.map((program, index) => (
                     <Link
                       key={program.id}
                       href={`/courses#program-${program.id}`}
                       onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-bold text-[#4a4450] transition hover:bg-[#f7f5f9]"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                      className="animate-menu-item flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-bold text-[#4a4450] transition hover:bg-[#f7f5f9]"
                     >
                       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#f0ecff] text-[#6d4aff]">
                         <Icon name={program.icon} size={15} />
@@ -385,28 +396,30 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
                   <Link
                     href="/courses"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-extrabold text-[#5c3be4]"
+                    style={{ animationDelay: "150ms" }}
+                    className="animate-menu-item flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-extrabold text-[#5c3be4]"
                   >
                     View all courses <Icon name="arrow-right" size={13} />
                   </Link>
                 </div>
               )}
-              {NAV_LINKS.map((link) => (
+              {NAV_LINKS.map((link, index) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition ${isActive(link.href) ? "bg-[#f3efff] text-[#5c3be4]" : "text-[#4a4450] hover:bg-[#f7f5f9]"}`}
+                  style={{ animationDelay: `${60 + index * 50}ms` }}
+                  className={`animate-menu-item flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition active:scale-[.99] ${isActive(link.href) ? "bg-[#f3efff] text-[#5c3be4]" : "text-[#4a4450] hover:bg-[#f7f5f9]"}`}
                 >
                   {link.label}
                   <Icon name="chevron-right" size={15} className="text-[#bbb5c0]" />
                 </Link>
               ))}
-              <Link href="/verify" onClick={() => setMobileOpen(false)} className="flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold text-[#4a4450] transition hover:bg-[#f7f5f9]">
+              <Link href="/verify" onClick={() => setMobileOpen(false)} style={{ animationDelay: "260ms" }} className="animate-menu-item flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold text-[#4a4450] transition hover:bg-[#f7f5f9] active:scale-[.99]">
                 Verify a certificate <Icon name="shield" size={15} className="text-[#6d4aff]" />
               </Link>
             </nav>
-            <div className="mt-3 grid gap-2 border-t border-[#eeeaf1] pt-4">
+            <div className="animate-menu-item mt-3 grid gap-2 border-t border-[#eeeaf1] pt-4" style={{ animationDelay: "320ms" }}>
               {signedIn && appHref ? (
                 <>
                   {userName && (
@@ -414,16 +427,16 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
                       Signed in as <strong className="text-[#4a4450]">{userName}</strong>
                     </p>
                   )}
-                  <Link href={appHref} onClick={() => setMobileOpen(false)} className="rounded-xl bg-[#17151f] px-4 py-3 text-center text-sm font-bold text-white">
+                  <Link href={appHref} onClick={() => setMobileOpen(false)} className="rounded-xl bg-[#17151f] px-4 py-3 text-center text-sm font-bold text-white transition active:scale-[.99]">
                     {isOwner ? "Open teacher console" : "Open dashboard"}
                   </Link>
                 </>
               ) : (
                 <>
-                  <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-[#ddd9e2] px-4 py-3 text-center text-sm font-bold text-[#4a4450]">
+                  <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-[#ddd9e2] px-4 py-3 text-center text-sm font-bold text-[#4a4450] transition active:scale-[.99]">
                     Sign in
                   </Link>
-                  <Link href="/login?mode=signup" onClick={() => setMobileOpen(false)} className="rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-sm font-bold text-white">
+                  <Link href="/login?mode=signup" onClick={() => setMobileOpen(false)} className="btn-shine rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-sm font-bold text-white transition active:scale-[.99]">
                     Start learning
                   </Link>
                 </>
