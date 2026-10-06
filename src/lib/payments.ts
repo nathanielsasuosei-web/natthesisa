@@ -4,12 +4,13 @@ import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
 import { coursePrice, isPassPeriod, lessonPrice, passPrice, type PassPeriod } from "./plans";
 import { PurchaseError, buyCourse, buyLesson, buyPass, type PaymentAttribution } from "./purchases";
-import { getUserById, saveUser, type User } from "./store";
+import { getUserById, logActivity, saveUser, type User } from "./store";
 import { notifyContentPurchased, notifyPassPurchased } from "./email";
 import {
   PaystackError,
   initializeTransaction,
   isPaystackConfigured,
+  refundTransaction,
   verifyTransaction,
 } from "./paystack";
 import { hasActivePass, ownsCourse, ownsLesson } from "./access";
@@ -28,6 +29,10 @@ import { hasActivePass, ownsCourse, ownsLesson } from "./access";
  * purchase, one invoice and one receipt email. The `payments` row is the lock:
  * the first fulfilment flips `pending` → `paid` and does the work; every later
  * attempt sees `paid` and returns without touching the account.
+ *
+ * Double charges are prevented at the source (an open checkout for the same
+ * item is reused, never duplicated) and cured when prevention fails (a proven
+ * second payment for the same item is refunded automatically).
  */
 
 export type PaymentKind = "pass" | "course" | "lesson";
@@ -270,6 +275,31 @@ export interface CreatedCheckout {
   authorizationUrl: string | null;
   /** True when no provider is configured and the MoMo prompt is simulated. */
   demo: boolean;
+  /** True when an already-open checkout was reused instead of creating one. */
+  reused: boolean;
+}
+
+/**
+ * An open (`pending`) checkout by this student for this exact item, if one
+ * exists. Reused by `createCheckout` so two rows for one item — the shape a
+ * double charge takes — are never created on purpose.
+ */
+async function findOpenCheckout(
+  userId: string,
+  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId">
+): Promise<Payment | null> {
+  await ensureSchema();
+  const row = await queryOne<PaymentRow>(
+    `select * from payments
+      where user_id = $1 and kind = $2
+        and coalesce(period, '') = $3
+        and coalesce(course_id, '') = $4
+        and coalesce(lesson_id, '') = $5
+        and status = 'pending'
+      order by created_at desc limit 1`,
+    [userId, quote.kind, quote.period ?? "", quote.courseId ?? "", quote.lessonId ?? ""]
+  );
+  return row ? fromRow(row) : null;
 }
 
 export async function createCheckout(
@@ -285,33 +315,69 @@ export async function createCheckout(
 
   const live = isPaystackConfigured();
   const provider: PaymentProvider = live ? "paystack" : "demo";
-  const reference = newReference();
+
+  // A checkout already open for the same item is reused, not duplicated.
+  // The one exception is a provider switch mid-checkout — a demo row from
+  // before the keys were added, or a live row from before they were removed —
+  // which is closed so the new checkout matches the world as it is now. (A
+  // stale-provider row would otherwise strand the student: a demo row can no
+  // longer confirm once live, and a live row can no longer verify once demo.)
+  const open = await findOpenCheckout(user.id, quote);
+  if (open && open.provider === provider) {
+    const phone = input.phone?.trim() || null;
+    const network = input.network?.trim() || null;
+    if (phone || network) {
+      await query(
+        "update payments set phone = coalesce($2, phone), network = coalesce($3, network), updated_at = now() where reference = $1",
+        [open.reference, phone, network]
+      );
+    }
+    const payment = (await getPayment(open.reference))!;
+    console.info(`[codemasterghana] checkout reused ${payment.reference} (${quote.kind}, GH₵${quote.amount})`);
+    return { payment, authorizationUrl: payment.authorizationUrl, demo: provider === "demo", reused: true };
+  }
+  if (open) {
+    await markPaymentAbandoned(open.reference);
+  }
+
   const phone = input.phone?.trim() || null;
   const network = input.network?.trim() || null;
 
-  await query(
-    `insert into payments
-       (reference, user_id, kind, period, course_id, lesson_id, amount, currency,
-        description, status, provider, phone, network)
-     values ($1,$2,$3,$4,$5,$6,$7,'GHS',$8,'pending',$9,$10,$11)`,
-    [
-      reference,
-      user.id,
-      quote.kind,
-      quote.period,
-      quote.courseId,
-      quote.lessonId,
-      quote.amount,
-      quote.description,
-      provider,
-      phone,
-      network,
-    ]
-  );
+  // References are random; on the near-impossible collision the insert is
+  // retried with a fresh one instead of failing the checkout.
+  let reference = newReference();
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await query(
+        `insert into payments
+           (reference, user_id, kind, period, course_id, lesson_id, amount, currency,
+            description, status, provider, phone, network)
+         values ($1,$2,$3,$4,$5,$6,$7,'GHS',$8,'pending',$9,$10,$11)`,
+        [
+          reference,
+          user.id,
+          quote.kind,
+          quote.period,
+          quote.courseId,
+          quote.lessonId,
+          quote.amount,
+          quote.description,
+          provider,
+          phone,
+          network,
+        ]
+      );
+      break;
+    } catch (error) {
+      if ((error as { code?: string }).code !== "23505" || attempt >= 2) throw error;
+      reference = newReference();
+    }
+  }
+  console.info(`[codemasterghana] checkout created ${reference} (${quote.kind}, GH₵${quote.amount}, ${provider})`);
 
   if (!live) {
     const payment = (await getPayment(reference))!;
-    return { payment, authorizationUrl: null, demo: true };
+    return { payment, authorizationUrl: null, demo: true, reused: false };
   }
 
   // Live: ask Paystack for a checkout page, then send the student there.
@@ -349,7 +415,7 @@ export async function createCheckout(
     [reference, authorizationUrl]
   );
   const payment = (await getPayment(reference))!;
-  return { payment, authorizationUrl, demo: false };
+  return { payment, authorizationUrl, demo: false, reused: false };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -386,6 +452,7 @@ async function markPaymentPaid(
   );
   const payment = await getPayment(reference);
   if (!payment) throw new CheckoutError("That payment does not exist.", "NOT_FOUND", 404);
+  console.info(`[codemasterghana] payment ${reference} marked paid`);
   return payment;
 }
 
@@ -403,6 +470,71 @@ export async function markPaymentAbandoned(reference: string): Promise<void> {
     "update payments set status = 'abandoned', updated_at = now() where reference = $1 and status = 'pending'",
     [reference]
   );
+}
+
+/**
+ * Rewrites an invoice to the money actually paid. `buyPass` / `buyCourse` /
+ * `buyLesson` invoice at the price on the day of fulfilment, but the teacher
+ * may have repriced between checkout and payment — the student paid what
+ * checkout asked, and the books must say so.
+ */
+function applyPaidAmount(user: User, invoiceNumber: string | null, paidAmount: number): void {
+  if (!invoiceNumber) return;
+  const invoice = user.invoices.find((item) => item.number === invoiceNumber);
+  if (invoice) invoice.amount = paidAmount;
+}
+
+/**
+ * Another PAID checkout by the same student for the same item, if one exists.
+ * Proof of a genuine double charge — see the `ALREADY_OWNED` branch of
+ * `fulfillPayment`. Without this proof the safe direction is to honour the
+ * payment, never to refund it.
+ */
+async function findPaidTwin(payment: Payment): Promise<Payment | null> {
+  await ensureSchema();
+  const row = await queryOne<PaymentRow>(
+    `select * from payments
+      where user_id = $1 and kind = $2
+        and coalesce(period, '') = $3
+        and coalesce(course_id, '') = $4
+        and coalesce(lesson_id, '') = $5
+        and status = 'paid' and reference <> $6
+      order by paid_at desc nulls last limit 1`,
+    [
+      payment.userId,
+      payment.kind,
+      payment.period ?? "",
+      payment.courseId ?? "",
+      payment.lessonId ?? "",
+      payment.reference,
+    ]
+  );
+  return row ? fromRow(row) : null;
+}
+
+/**
+ * Returns a proven double charge. Best-effort by design: demo money was never
+ * real, and a failed Paystack refund is logged loudly for the teacher, who
+ * refunds from the Paystack dashboard instead — the register shows both paid
+ * rows, so nothing is hidden either way.
+ */
+async function refundDoubleCharge(payment: Payment, user: User): Promise<void> {
+  if (payment.provider !== "paystack") return;
+  try {
+    await refundTransaction(payment.reference);
+    logActivity(user, `Duplicate payment ${payment.reference} refunded automatically`, "billing");
+    await saveUser(user);
+    console.info(`[codemasterghana] refunded double charge ${payment.reference} (GH₵${payment.amount})`);
+  } catch (error) {
+    console.error(
+      `[codemasterghana] automatic refund FAILED for ${payment.reference} — refund it from the Paystack dashboard`,
+      error
+    );
+    // Durable, not just a log line: the register shows this row as paid, so
+    // the owed refund must be visible wherever the teacher looks next.
+    logActivity(user, `AUTOMATIC REFUND FAILED for ${payment.reference} — refund it from Paystack`, "billing");
+    await saveUser(user);
+  }
 }
 
 /**
@@ -447,10 +579,14 @@ export async function fulfillPayment(
     };
   }
   if (payment.status !== "pending") {
-    throw new CheckoutError(
-      `That payment is ${payment.status} and can no longer be completed. Start a new checkout.`,
-      "PAYMENT_CLOSED",
-      409
+    // `failed` and `abandoned` are local guesses about an unfinished checkout,
+    // and guesses can be wrong — the provider's reports can arrive out of
+    // order. Every caller of this function has already confirmed the money
+    // (signed webhook + amount check, or a live API verification), so a
+    // confirmed payment is honoured rather than lost. Loudly logged, because
+    // it should be rare.
+    console.warn(
+      `[codemasterghana] fulfilling ${reference} from status '${payment.status}' — money was confirmed anyway`
     );
   }
 
@@ -496,12 +632,14 @@ export async function fulfillPayment(
     if (payment.kind === "pass" && payment.period) {
       const extending = hasActivePass(user);
       const receipt = await buyPass(user, payment.period, credit);
+      applyPaidAmount(user, receipt.invoiceNumber, payment.amount);
+      user.subscription.price = payment.amount;
       await saveUser(user);
       await notifyPassPurchased({
         to: user.email,
         toName: user.name,
         period: receipt.period,
-        price: receipt.price,
+        price: payment.amount,
         expiresAt: receipt.expiresAt,
         invoiceNumber: receipt.invoiceNumber,
         extended: extending,
@@ -517,13 +655,15 @@ export async function fulfillPayment(
 
     if (payment.kind === "course" && payment.courseId) {
       const purchase = await buyCourse(user, payment.courseId, credit);
+      purchase.amount = payment.amount;
+      applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
       await saveUser(user);
       const course = getCourse(payment.courseId);
       await notifyContentPurchased({
         to: user.email,
         toName: user.name,
         item: course?.title ?? "Course",
-        amount: purchase.amount,
+        amount: payment.amount,
         invoiceNumber: purchase.invoiceNumber,
       });
       const paid = await markPaymentPaid(reference, {
@@ -542,6 +682,8 @@ export async function fulfillPayment(
 
     if (payment.kind === "lesson" && payment.courseId && payment.lessonId) {
       const purchase = await buyLesson(user, payment.courseId, payment.lessonId, credit);
+      purchase.amount = payment.amount;
+      applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
       await saveUser(user);
       const course = getCourse(payment.courseId);
       const lessonTitle = course ? findContentLesson(course, payment.lessonId)?.title ?? "lesson" : "lesson";
@@ -549,7 +691,7 @@ export async function fulfillPayment(
         to: user.email,
         toName: user.name,
         item: `${course?.shortTitle ?? "Course"} — ${lessonTitle}`,
-        amount: purchase.amount,
+        amount: payment.amount,
         invoiceNumber: purchase.invoiceNumber,
       });
       const paid = await markPaymentPaid(reference, {
@@ -568,15 +710,30 @@ export async function fulfillPayment(
 
     throw new CheckoutError("That payment is missing what it was buying.", "BAD_PAYMENT", 500);
   } catch (error) {
-    // A race already granted this (two fulfilments interleaved): the account
-    // owns it, so the payment is honoured rather than failed.
     if (error instanceof PurchaseError && error.code === "ALREADY_OWNED") {
-      console.info(`[codemasterghana] payment ${reference} already owned at fulfilment — marking paid`);
+      // The account already owns this item. Two very different cases:
+      //  1. THIS reference was fulfilled concurrently (webhook + return URL
+      //     racing each other). The single payment is legitimate — honour it.
+      //  2. A DIFFERENT paid reference granted it. The student paid twice,
+      //     and this payment's money goes back.
+      // Only case 2 refunds, and only with proof. Without proof the safe
+      // direction is to honour the payment and let the teacher reconcile
+      // from the register — a wrong refund hands the item out for free.
+      const current = await getPayment(reference);
+      const twin = current?.status === "paid" ? null : await findPaidTwin(payment);
       const paid = await markPaymentPaid(reference, {
         channel: attribution.channel ?? null,
         providerEventId: attribution.providerEventId ?? null,
         paidAt: attribution.paidAt ?? null,
       });
+      if (twin) {
+        console.warn(
+          `[codemasterghana] payment ${reference} is a double charge (twin ${twin.reference}) — refunding`
+        );
+        await refundDoubleCharge(payment, user);
+      } else {
+        console.info(`[codemasterghana] payment ${reference} already owned at fulfilment — marking paid`);
+      }
       return { payment: paid, alreadyPaid: true, invoiceNumber: paid.invoiceNumber, passActive: hasActivePass(user) };
     }
     throw error;
@@ -618,6 +775,10 @@ export async function verifyAndFulfill(reference: string): Promise<VerificationO
     throw new CheckoutError("That payment is not a live payment.", "NOT_LIVE", 400);
   }
 
+  // The status page polls this on an interval; stamping the row lets it skip
+  // re-asking the provider when another poll just did.
+  await query("update payments set updated_at = now() where reference = $1", [reference]);
+
   const verified = await verifyTransaction(reference);
   const paidPesewas = Math.round(verified.amountGhs * 100);
   const expectedPesewas = Math.round(payment.amount * 100);
@@ -629,6 +790,7 @@ export async function verifyAndFulfill(reference: string): Promise<VerificationO
     // the checkout URL; anything explicitly failed is closed.
     if (verified.status === "failed") await markPaymentFailed(reference);
     const current = (await getPayment(reference))!;
+    console.info(`[codemasterghana] payment ${reference} verified: ${verified.status} (not fulfilled)`);
     return { payment: current, fulfilment: null };
   }
 

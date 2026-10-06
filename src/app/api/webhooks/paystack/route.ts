@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
       phone: auth?.mobile_money_number ?? payment.phone ?? undefined,
       paidAt: data.paid_at ?? undefined,
     });
+    console.info(`[codemasterghana] webhook fulfilled ${data.reference}`);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(`[codemasterghana] paystack webhook fulfilment failed for ${data.reference}`, error);

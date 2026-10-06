@@ -190,6 +190,14 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
 }
 
 /**
+ * Returns a payment to the customer. Best-effort: callers log failures loudly
+ * for the teacher, who refunds from the Paystack dashboard instead.
+ */
+export async function refundTransaction(reference: string): Promise<void> {
+  await api<unknown>("/refund", { method: "POST", body: { transaction: reference } });
+}
+
+/**
  * Verifies a webhook genuinely came from Paystack: the `x-paystack-signature`
  * header must be the HMAC-SHA512 of the raw request body under the secret key.
  * The comparison is constant-time; a missing or wrong signature is a forgery.

@@ -749,7 +749,10 @@ find the student's `CMG-…` reference and its status. `paid` means the
 entitlement is on the account (check the pass is active too — content needs
 both). `pending` means the student never completed the approval: ask them to
 open the payment link again from their billing page. `failed` means Paystack
-declined it (expired approval, insufficient funds) — no money moved.
+declined it (expired approval, insufficient funds) — no money moved. A student
+who somehow pays twice for the same item is refunded automatically (the
+register shows both paid rows); if the automatic refund ever fails, refund the
+duplicate from the Paystack dashboard — the server log names the reference.
 
 ## Data and access behavior
 

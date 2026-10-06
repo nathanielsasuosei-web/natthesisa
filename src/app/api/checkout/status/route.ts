@@ -28,26 +28,31 @@ export async function GET(req: NextRequest) {
     if (!mine && !owner) return NextResponse.json({ error: "That payment is not yours." }, { status: 403 });
 
     // Live + still pending: ask the provider — the money may have landed
-    // since the row was last checked.
+    // since the row was last checked. The verify page polls every few
+    // seconds, so a check less than 10s old is answered from the stored row
+    // instead of hammering the provider's API (verifyAndFulfill stamps
+    // updated_at on every attempt).
     if (payment.provider === "paystack" && payment.status === "pending") {
-      try {
-        const outcome = await verifyAndFulfill(reference);
-        const holder = await getUserById(outcome.payment.userId);
-        return NextResponse.json({
-          ok: true,
-          status: outcome.payment.status,
-          reference: outcome.payment.reference,
-          kind: outcome.payment.kind,
-          amount: outcome.payment.amount,
-          description: outcome.payment.description,
-          invoiceNumber: outcome.payment.invoiceNumber,
-          passActive: holder ? hasActivePass(holder) : false,
-          courseId: outcome.payment.courseId,
-        });
-      } catch (error) {
-        // Verification failing must not fail the poll: the webhook may still
-        // confirm the payment. Report the stored state instead.
-        console.error("[codemasterghana] payment verification failed", error);
+      if (Date.now() - new Date(payment.updatedAt).getTime() >= 10_000) {
+        try {
+          const outcome = await verifyAndFulfill(reference);
+          const holder = await getUserById(outcome.payment.userId);
+          return NextResponse.json({
+            ok: true,
+            status: outcome.payment.status,
+            reference: outcome.payment.reference,
+            kind: outcome.payment.kind,
+            amount: outcome.payment.amount,
+            description: outcome.payment.description,
+            invoiceNumber: outcome.payment.invoiceNumber,
+            passActive: holder ? hasActivePass(holder) : false,
+            courseId: outcome.payment.courseId,
+          });
+        } catch (error) {
+          // Verification failing must not fail the poll: the webhook may still
+          // confirm the payment. Report the stored state instead.
+          console.error("[codemasterghana] payment verification failed", error);
+        }
       }
     }
 
