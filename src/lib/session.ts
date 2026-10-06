@@ -119,6 +119,13 @@ async function cookieContext(): Promise<{ secure: boolean; reason: string }> {
     }
     if (!local && dest === "iframe") return { secure: true, reason: "sec-fetch-dest=iframe" };
     if (!local && proxied) return { secure: true, reason: "behind a proxy on a non-local host" };
+    // Some preview proxies do not forward the scheme or Fetch metadata. An
+    // external host is still HTTPS in the browser, and it may be embedded in
+    // an Arena/Vercel frame. Falling back to Lax here makes the sign-in cookie
+    // disappear from the cross-site POST that starts a checkout: the dashboard
+    // can render after the top-level redirect, but `/api/pass` sees no user.
+    // Localhost remains the only plain-HTTP exception for development.
+    if (!local) return { secure: true, reason: "non-local host without scheme metadata" };
     if (production) return { secure: true, reason: "production build" };
     return { secure: false, reason: `plain http on ${hostname || "an unknown host"}` };
   } catch {

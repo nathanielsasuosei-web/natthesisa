@@ -33,7 +33,8 @@ export default function BuyContent({ kind, courseId, lessonId, price, compact, c
     try {
       const response = await fetch("/api/purchase", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ kind, courseId, lessonId }),
       });
       const data = await response.json().catch(() => ({}));
