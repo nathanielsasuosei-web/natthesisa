@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
+import { publicKeyMode } from "@/lib/paystack";
 import type { RecentPayment } from "@/lib/payments";
 import Icon from "./Icon";
 
@@ -29,6 +30,8 @@ const STATUS_STYLE: Record<string, string> = {
 export default function OwnerPaymentsCard({ payments, pending, provider, keyMode }: Props) {
   const live = provider === "paystack";
   const siteBase = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") || "https://your-domain.com";
+  const pubMode = publicKeyMode();
+  const mismatched = live && pubMode !== "missing" && pubMode !== keyMode;
 
   return (
     <section className="open-column rounded-[22px] border border-[#e2dee7] bg-white p-5 sm:p-6">
@@ -63,12 +66,18 @@ export default function OwnerPaymentsCard({ payments, pending, provider, keyMode
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>
               Create a free account at <strong>paystack.com</strong>, activate Ghana cedis (GHS) and copy your{" "}
-              <strong>secret key</strong> from Settings → API keys.
+              <strong>secret</strong> and <strong>publishable</strong> keys from Settings → API keys.
             </li>
             <li>
-              Set <code className="rounded bg-[#eeeaf1] px-1 font-mono text-[10px]">PAYSTACK_SECRET_KEY</code> in
-              the environment (test key first: <code className="rounded bg-[#eeeaf1] px-1 font-mono text-[10px]">sk_test_…</code>),
-              then redeploy.
+              Set <code className="rounded bg-[#eeeaf1] px-1 font-mono text-[10px]">PAYSTACK_SECRET_KEY</code> and{" "}
+              <code className="rounded bg-[#eeeaf1] px-1 font-mono text-[10px]">NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY</code>{" "}
+              in the environment (test keys first: <code className="rounded bg-[#eeeaf1] px-1 font-mono text-[10px]">sk_test_…</code> +{" "}
+              <code className="rounded bg-[#eeeaf1] px-1 font-mono text-[10px]">pk_test_…</code>), then redeploy.
+              {pubMode !== "missing" && (
+                <span className="mt-1 block text-emerald-700">
+                  Publishable key already set ({pubMode}). Only the secret key is missing.
+                </span>
+              )}
             </li>
             <li>
               In Paystack → Settings → Webhooks, add{" "}
@@ -90,9 +99,22 @@ export default function OwnerPaymentsCard({ payments, pending, provider, keyMode
             <code className="rounded bg-[#eeeaf1] px-1 font-mono break-all">{siteBase}/api/webhooks/paystack</code>
           </span>
           <span>
+            Publishable key:{" "}
+            <strong className={pubMode === "missing" ? "text-amber-700" : ""}>
+              {pubMode === "missing" ? "not set" : `${pubMode} · set`}
+            </strong>
+          </span>
+          <span>
             Waiting approval: <strong>{pending}</strong>
           </span>
         </div>
+      )}
+
+      {mismatched && (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[10px] font-semibold leading-5 text-amber-800">
+          The secret key is {keyMode} but the publishable key is {pubMode} — use the test pair together or the
+          live pair together, then redeploy.
+        </p>
       )}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[#ece9ef]">

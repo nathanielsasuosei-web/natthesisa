@@ -31,6 +31,7 @@ export default async function AboutPage() {
       intro="codemasterghana is a learning platform built in Accra. Short lessons, practice after each idea, a real project at the end of every course — and a certificate an employer can check for themselves."
       appHref={appHref}
       signedIn={Boolean(user)}
+      userName={user?.name}
     >
       <section className="overflow-hidden rounded-[22px] border border-[#e8e4ec] bg-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}

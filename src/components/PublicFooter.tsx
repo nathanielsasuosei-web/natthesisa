@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { site } from "@/config/site";
 import { COURSES } from "@/lib/courses";
+import { isPaystackConfigured } from "@/lib/paystack";
 import Logo from "./Logo";
 import Icon from "./Icon";
 
@@ -78,7 +79,7 @@ export default function PublicFooter() {
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>Prices in {site.currency.label} ({site.currency.symbol})</span>
             <span className="hidden sm:inline">·</span>
-            <span>Payments are a demo in this build</span>
+            <span>{isPaystackConfigured() ? "Mobile Money, cards & bank transfer via Paystack" : "Payments are a demo in this build"}</span>
           </p>
         </div>
       </div>

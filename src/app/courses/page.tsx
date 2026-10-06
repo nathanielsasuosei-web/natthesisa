@@ -49,6 +49,7 @@ export default async function CoursesPage() {
       intro={`${totals.courses} courses and ${totals.lessons} lessons, grouped into ${PROGRAMS.length} programs. Each course page states what you will build, who it suits and what it costs — before you create an account.`}
       appHref={appHref}
       signedIn={Boolean(user)}
+      userName={user?.name}
     >
       <InfoSection title="How the catalogue is organised">
         <p>
@@ -68,7 +69,7 @@ export default async function CoursesPage() {
       </InfoSection>
 
       {groups.map(({ program, courses }) => (
-        <section key={program.id}>
+        <section key={program.id} id={`program-${program.id}`} className="scroll-mt-28">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <div className="flex items-center gap-2.5">
@@ -100,7 +101,7 @@ export default async function CoursesPage() {
       ))}
 
       {otherCourses.length > 0 && (
-        <section>
+        <section id="program-more" className="scroll-mt-28">
           <h2 className="text-lg font-black tracking-[-.03em]">Web, app and backend courses</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6e6875]">
             Practical courses that sit beside the programs: each one ends with a project worth showing someone.

@@ -32,7 +32,7 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
 
   return (
     <div className="min-h-screen bg-[#f7f7f4]">
-      <PublicHeader appHref={appHref} signedIn={Boolean(user)} />
+      <PublicHeader appHref={appHref} signedIn={Boolean(user)} userName={user?.name} />
       <main className="px-5 py-10 sm:py-14">
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center justify-between gap-3">

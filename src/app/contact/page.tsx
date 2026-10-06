@@ -26,6 +26,7 @@ export default async function ContactPage() {
       intro="Questions about a course, a certificate an employer is checking, a group price for your school, or something that is not working — send a message and it comes straight to the teacher's inbox."
       appHref={appHref}
       signedIn={Boolean(user)}
+      userName={user?.name}
     >
       <div className="grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
         <ContactForm signedIn={Boolean(user)} defaultName={user?.name ?? ""} defaultEmail={user?.email ?? ""} />

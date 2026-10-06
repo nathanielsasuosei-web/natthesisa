@@ -52,6 +52,7 @@ export default async function PricingPage() {
       intro={`Prices are set by your teacher, in ${site.currency.label}, and every purchase is recorded on your account with an invoice. This is the page to read before you pay for anything.`}
       appHref={appHref}
       signedIn={Boolean(user)}
+      userName={user?.name}
     >
       {/* ---- the pass ------------------------------------------------------- */}
       <section>

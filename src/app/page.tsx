@@ -7,6 +7,7 @@ import { PROGRAMS } from "@/lib/programs";
 import { lessonCountsByCourse } from "@/lib/course-content";
 import { contentTotals } from "@/lib/course-content";
 import { PASS_PERIODS, PERIOD_DAYS, PERIOD_LABEL, formatMoney, pricing } from "@/lib/plans";
+import { isPaystackConfigured } from "@/lib/paystack";
 import { site } from "@/config/site";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import CourseCard from "@/components/CourseCard";
@@ -31,7 +32,7 @@ export default async function LandingPage() {
     <div className="relative min-h-screen overflow-hidden">
       <AnimatedBackground />
 
-      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} />
+      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name} />
 
       <main>
         <section className="relative mx-auto grid max-w-[1180px] items-center gap-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[220px_1fr] lg:gap-14 lg:pb-24 lg:pt-20">
@@ -41,7 +42,7 @@ export default async function LandingPage() {
               Explore courses
             </a>
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-[#77717f] lg:flex-col">
-              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Gateway demo — nothing is charged</span>
+              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>{isPaystackConfigured() ? "Pay with MTN MoMo, Telecel & AT" : "Gateway demo — nothing is charged"}</span>
               <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Every lesson from one pass</span>
               <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Learn at your pace</span>
             </div>

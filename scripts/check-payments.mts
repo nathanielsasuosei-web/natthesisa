@@ -3,33 +3,52 @@
  *
  *   npm run payments:check
  *
- * Reports whether live payments are on (a Paystack secret key is set), which
- * mode the key is in (test vs live), and — when a key is present — calls
- * Paystack once to prove the key is valid. Without a key it says so plainly:
- * the checkout runs in demo mode and no real money can move.
+ * Reports the Paystack key pair (publishable + secret), which mode each key
+ * is in (test vs live), warns when the pair is mismatched, and — when a
+ * secret key is present — calls Paystack once to prove it is valid. Without a
+ * secret key it says so plainly: the checkout runs in demo mode and no real
+ * money can move.
  */
 import { loadEnv, mask } from "./load-env.mts";
 
 loadEnv();
 
-const key = process.env.PAYSTACK_SECRET_KEY?.trim() ?? "";
+const secret = process.env.PAYSTACK_SECRET_KEY?.trim() ?? "";
+const publik = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY?.trim() ?? "";
 
-if (!key) {
+function modeOf(key: string, livePrefix: string): "LIVE" | "TEST" | "missing" {
+  if (!key) return "missing";
+  return key.startsWith(livePrefix) ? "LIVE" : "TEST";
+}
+
+const publicMode = modeOf(publik, "pk_live_");
+console.log(`payments: publishable key — ${mask(publik, 12)} [${publicMode}]`);
+if (!publik) {
+  console.log("  Set NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY (pk_test_… / pk_live_…) from Paystack → Settings → API keys.");
+}
+
+if (!secret) {
   console.log("payments: DEMO mode — PAYSTACK_SECRET_KEY is unset.");
   console.log("  The checkout simulates the MoMo approval and no real money moves.");
   console.log("  Set PAYSTACK_SECRET_KEY (sk_test_… first) to take real payments.");
   process.exit(0);
 }
 
-const mode = key.startsWith("sk_live_") ? "LIVE" : key.startsWith("sk_test_") ? "TEST" : "UNKNOWN PREFIX";
-console.log(`payments: Paystack key present — ${mask(key)} [${mode}]`);
-if (mode === "LIVE") {
+const secretMode = modeOf(secret, "sk_live_");
+console.log(`payments: secret key — ${mask(secret)} [${secretMode}]`);
+if (secretMode === "LIVE") {
   console.log("  ⚠ LIVE key: real money moves. Use sk_test_… until launch day.");
+}
+if (publik && secretMode !== publicMode) {
+  console.log(
+    `  ⚠ MISMATCH: the secret key is ${secretMode} but the publishable key is ${publicMode}. ` +
+      "Use the test pair together or the live pair together."
+  );
 }
 
 try {
   const response = await fetch("https://api.paystack.co/bank?currency=GHS&pay_with_bank_transfer=true", {
-    headers: { Authorization: `Bearer ${key}` },
+    headers: { Authorization: `Bearer ${secret}` },
   });
   const body = (await response.json().catch(() => null)) as { status?: boolean; message?: string } | null;
   if (!response.ok || !body?.status) {

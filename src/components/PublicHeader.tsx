@@ -1,118 +1,440 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { site } from "@/config/site";
 import Logo from "./Logo";
-import Icon from "./Icon";
+import Icon, { type IconName } from "./Icon";
 
 interface Props {
-  /** Where "Open dashboard" points, when someone is signed in. */
+  /** Where the dashboard button points, when someone is signed in. */
   appHref?: string | null;
   signedIn?: boolean;
+  /** Display name, for the signed-in avatar. */
+  userName?: string | null;
 }
 
-const LINKS = [
-  { href: "/courses", label: "Courses", match: "/courses" },
-  { href: "/#programs", label: "Programs", match: "/" },
-  { href: "/pricing", label: "Pricing", match: "/pricing" },
-  { href: "/about", label: "About", match: "/about" },
-  { href: "/contact", label: "Contact", match: "/contact" },
+/**
+ * The programs, for the Courses menu. Hardcoded on purpose: the header is a
+ * client component on every public page, and importing the whole catalog here
+ * would ship every lesson to the browser. The source of truth stays
+ * `PROGRAMS` in `src/lib/programs.ts` — mirror it if a program is renamed.
+ */
+const PROGRAM_LINKS: Array<{ id: string; name: string; tagline: string; icon: IconName }> = [
+  { id: "computer-science", name: "Computer Science", tagline: "Understand the machine, not just the syntax", icon: "cpu" },
+  { id: "software-engineering", name: "Software Engineering", tagline: "Build with other people, ship without fear", icon: "briefcase" },
+  { id: "vibe-coding", name: "Vibe Coding", tagline: "Describe it, build it, understand it", icon: "spark" },
 ];
+
+/** Popular courses, for the Courses menu. Slugs must match the public `/courses/<slug>` pages. */
+const POPULAR_COURSES: Array<{ slug: string; title: string; level: string }> = [
+  { slug: "web-foundations", title: "Web Foundations", level: "Beginner" },
+  { slug: "javascript-zero-to-builder", title: "JavaScript", level: "Beginner" },
+  { slug: "vibe-coding-ship-with-ai", title: "Vibe Coding", level: "Beginner" },
+  { slug: "data-structures-algorithms", title: "DSA", level: "Intermediate" },
+];
+
+const NAV_LINKS = [
+  { href: "/#programs", label: "Programs" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+
+const ANNOUNCEMENTS = [
+  {
+    badge: "New",
+    text: "Vibe Coding is live — build real apps with AI from your first hour",
+    href: "/courses#program-vibe-coding",
+  },
+  {
+    badge: "Free",
+    text: "Every course opens with a free preview lesson — no account needed",
+    href: "/courses",
+  },
+];
+
+const ANNOUNCE_KEY = "cmg-announce-dismissed";
+
+/** The slim bar above the nav: one rotating message, dismissible, remembered. */
+function AnnouncementBar() {
+  const [mounted, setMounted] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+    try {
+      if (window.localStorage.getItem(ANNOUNCE_KEY) === "1") setDismissed(true);
+    } catch {
+      // Private browsing: the bar simply shows every visit.
+    }
+    const timer = window.setInterval(() => setIndex((value) => (value + 1) % ANNOUNCEMENTS.length), 6000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // Gated on mount so the server render and the first client render agree.
+  if (!mounted || dismissed) return null;
+  const item = ANNOUNCEMENTS[index];
+
+  function dismiss() {
+    setDismissed(true);
+    try {
+      window.localStorage.setItem(ANNOUNCE_KEY, "1");
+    } catch {
+      // Ignore — the bar reappears next visit.
+    }
+  }
+
+  return (
+    <div className="bg-[#17151f] text-white print:hidden">
+      <div className="mx-auto flex h-9 max-w-[1180px] items-center justify-center gap-3 px-5 text-[11px] sm:px-8">
+        <Link
+          key={index}
+          href={item.href}
+          className="animate-fade-up flex min-w-0 items-center gap-2.5 font-semibold text-white/90 transition hover:text-white"
+        >
+          <span className="shrink-0 rounded-full bg-[#ffcf59] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#493600]">
+            {item.badge}
+          </span>
+          <span className="truncate">{item.text}</span>
+          <Icon name="arrow-right" size={13} className="shrink-0 text-[#b9a9ff]" />
+        </Link>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Dismiss announcement"
+          className="ml-1 grid size-6 shrink-0 place-items-center rounded-md text-white/50 transition hover:bg-white/10 hover:text-white"
+        >
+          <Icon name="close" size={13} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The public navigation.
  *
- * One component for every page outside the dashboard, so the menu, the mobile
- * panel and the account buttons cannot drift apart between pages. The mobile
- * panel is a real disclosure (button + expanded state), not a hidden div, so it
- * works with a keyboard and a screen reader.
+ * One component for every page outside the app, so the announcement bar, the
+ * menu, the Courses mega-panel, the mobile panel and the account buttons
+ * cannot drift apart between pages. The announcement scrolls away; the bar
+ * itself sticks, gains a shadow once the page moves, and highlights the
+ * current section. Both dropdowns are real disclosures (button + expanded
+ * state), not hidden divs, so they work with a keyboard and a screen reader.
  */
-export default function PublicHeader({ appHref = null, signedIn = false }: Props) {
-  const [open, setOpen] = useState(false);
+export default function PublicHeader({ appHref = null, signedIn = false, userName = null }: Props) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileCoursesOpen, setMobileCoursesOpen] = useState(false);
+  const [coursesOpen, setCoursesOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const closeTimer = useRef<number | null>(null);
   const pathname = usePathname();
+  const isOwner = appHref === "/owner";
+  const initial = (userName?.trim()?.[0] ?? (signedIn ? "•" : "")).toUpperCase();
 
   const isActive = (href: string) =>
     href.startsWith("/#") ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  const coursesActive = pathname === "/courses" || pathname.startsWith("/courses/");
+
+  // A new page means a closed menu — every time, on desktop and mobile.
+  useEffect(() => {
+    setCoursesOpen(false);
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setCoursesOpen(false);
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function scheduleClose() {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setCoursesOpen(false), 140);
+  }
+
+  function cancelClose() {
+    if (closeTimer.current) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-black/[.06] bg-[#f8f8f5]/90 backdrop-blur-xl print:hidden">
-      <div className="mx-auto flex h-[68px] max-w-[1180px] items-center justify-between px-5 sm:px-8">
-        <Logo />
+    <>
+      <AnnouncementBar />
 
-        <nav className="hidden items-center gap-7 text-[13px] font-semibold text-[#615b69] md:flex">
-          {LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={`transition hover:text-[#5c3be4] ${isActive(link.href) ? "text-[#5c3be4]" : ""}`}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+      <header
+        className={`sticky top-0 z-40 border-b bg-[#f8f8f5]/90 backdrop-blur-xl transition-shadow print:hidden ${
+          scrolled ? "border-black/[.08] shadow-[0_10px_30px_rgba(31,24,45,.10)]" : "border-black/[.06]"
+        }`}
+      >
+        <div className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between gap-4 px-5 sm:px-8">
+          <Logo showTagline />
 
-        <div className="flex items-center gap-2.5">
-          {signedIn && appHref ? (
-            <Link href={appHref} className="inline-flex items-center gap-2 rounded-xl bg-[#17151f] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2a2632]">
-              Open dashboard <Icon name="arrow-right" size={15} />
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:bg-white sm:block">
-                Sign in
-              </Link>
-              <Link href="/login?mode=signup" className="rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">
-                Start learning
-              </Link>
-            </>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            aria-expanded={open}
-            aria-controls="public-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
-            className="grid size-10 place-items-center rounded-xl border border-[#ddd9e2] bg-white text-[#4a4450] transition hover:bg-[#f7f5f9] md:hidden"
-          >
-            <Icon name={open ? "close" : "menu"} size={18} />
-          </button>
-        </div>
-      </div>
-
-      {open && (
-        <div id="public-menu" className="border-t border-black/[.06] bg-white px-5 pb-5 pt-3 md:hidden">
-          <nav className="grid gap-1">
-            {LINKS.map((link) => (
+          <nav aria-label="Primary" className="hidden items-center gap-1 text-[13px] font-semibold text-[#615b69] lg:flex">
+            <div onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
+              <button
+                type="button"
+                aria-expanded={coursesOpen}
+                aria-controls="courses-panel"
+                onClick={() => setCoursesOpen((value) => !value)}
+                onMouseEnter={() => {
+                  cancelClose();
+                  setCoursesOpen(true);
+                }}
+                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] ${
+                  coursesOpen || coursesActive ? "bg-white text-[#5c3be4]" : ""
+                }`}
+              >
+                Courses
+                <Icon name="chevron-down" size={14} className={`transition ${coursesOpen ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+            {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setOpen(false)}
-                className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition ${isActive(link.href) ? "bg-[#f3efff] text-[#5c3be4]" : "text-[#4a4450] hover:bg-[#f7f5f9]"}`}
+                className={`relative rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] ${
+                  isActive(link.href) ? "text-[#5c3be4]" : ""
+                }`}
               >
                 {link.label}
-                <Icon name="chevron-right" size={15} className="text-[#bbb5c0]" />
+                {isActive(link.href) && (
+                  <span className="absolute inset-x-3.5 -bottom-[13px] h-[3px] rounded-full bg-[#6d4aff]" aria-hidden="true" />
+                )}
               </Link>
             ))}
-          </nav>
-          <div className="mt-3 grid gap-2 border-t border-[#eeeaf1] pt-3">
-            <Link href="/verify" onClick={() => setOpen(false)} className="flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold text-[#4a4450] transition hover:bg-[#f7f5f9]">
-              Verify a certificate <Icon name="shield" size={15} className="text-[#6d4aff]" />
+            <Link
+              href="/verify"
+              className={`hidden items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition hover:bg-white hover:text-[#5c3be4] xl:inline-flex ${
+                isActive("/verify") ? "text-[#5c3be4]" : ""
+              }`}
+            >
+              <Icon name="shield" size={14} className="text-[#6d4aff]" />
+              Verify
             </Link>
+          </nav>
+
+          <div className="flex items-center gap-2.5">
             {signedIn && appHref ? (
-              <Link href={appHref} onClick={() => setOpen(false)} className="rounded-xl bg-[#17151f] px-4 py-3 text-center text-sm font-bold text-white">
-                Open dashboard
+              <Link
+                href={appHref}
+                title={userName ? `Signed in as ${userName}` : "Open your dashboard"}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#17151f] py-1.5 pl-1.5 pr-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2a2632]"
+              >
+                <span className="grid size-8 place-items-center rounded-lg bg-[#6d4aff] text-[13px] font-black text-white" aria-hidden="true">
+                  {initial || <Icon name="user" size={15} />}
+                </span>
+                <span className="hidden sm:inline">{isOwner ? "Teacher console" : "Dashboard"}</span>
+                <span className="sm:hidden">{isOwner ? "Console" : "App"}</span>
               </Link>
             ) : (
               <>
-                <Link href="/login" onClick={() => setOpen(false)} className="rounded-xl border border-[#ddd9e2] px-4 py-3 text-center text-sm font-bold text-[#4a4450]">
+                <Link href="/login" className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:bg-white sm:block">
                   Sign in
                 </Link>
-                <Link href="/login?mode=signup" onClick={() => setOpen(false)} className="rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-sm font-bold text-white">
+                <Link href="/login?mode=signup" className="rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">
                   Start learning
                 </Link>
               </>
             )}
+
+            <button
+              type="button"
+              onClick={() => setMobileOpen((value) => !value)}
+              aria-expanded={mobileOpen}
+              aria-controls="public-menu"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              className="grid size-10 place-items-center rounded-xl border border-[#ddd9e2] bg-white text-[#4a4450] transition hover:bg-[#f7f5f9] lg:hidden"
+            >
+              <Icon name={mobileOpen ? "close" : "menu"} size={18} />
+            </button>
           </div>
         </div>
-      )}
-    </header>
+
+        {/* ---- courses mega-panel (desktop) ---------------------------------- */}
+        {coursesOpen && (
+          <div
+            id="courses-panel"
+            onMouseEnter={cancelClose}
+            onMouseLeave={scheduleClose}
+            className="absolute inset-x-0 top-full hidden border-b border-black/[.06] bg-white/95 shadow-[0_30px_60px_rgba(31,24,45,.12)] backdrop-blur-xl lg:block"
+          >
+            <div className="mx-auto grid max-w-[1180px] grid-cols-[1.2fr_1fr_.9fr] gap-8 px-8 py-8">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8a8390]">Browse by program</p>
+                <ul className="mt-4 space-y-1">
+                  {PROGRAM_LINKS.map((program) => (
+                    <li key={program.id}>
+                      <Link
+                        href={`/courses#program-${program.id}`}
+                        className="group flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-[#f7f5fa]"
+                      >
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff] transition group-hover:bg-[#6d4aff] group-hover:text-white">
+                          <Icon name={program.icon} size={18} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[13px] font-extrabold text-[#302b37] group-hover:text-[#5c3be4]">
+                            {program.name}
+                          </span>
+                          <span className="block truncate text-[11px] text-[#918a97]">{program.tagline}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8a8390]">Popular right now</p>
+                <ul className="mt-4 space-y-1">
+                  {POPULAR_COURSES.map((course) => (
+                    <li key={course.slug}>
+                      <Link
+                        href={`/courses/${course.slug}`}
+                        className="group flex items-center justify-between gap-3 rounded-2xl p-2.5 transition hover:bg-[#f7f5fa]"
+                      >
+                        <span className="text-[13px] font-bold text-[#4a4450] group-hover:text-[#5c3be4]">
+                          {course.title}
+                        </span>
+                        <span className="shrink-0 rounded-full bg-[#f0edf3] px-2 py-1 text-[9px] font-black uppercase tracking-wider text-[#817a87]">
+                          {course.level}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/courses" className="mt-3 inline-flex items-center gap-1.5 px-2.5 text-[12px] font-extrabold text-[#5c3be4] transition hover:gap-2.5">
+                  View all courses <Icon name="arrow-right" size={14} />
+                </Link>
+              </div>
+
+              <div className="overflow-hidden rounded-[20px] bg-[#17151f] p-5 text-white">
+                <span className="grid size-9 place-items-center rounded-xl bg-[#6d4aff]">
+                  <Icon name="play" size={14} />
+                </span>
+                <p className="mt-4 text-sm font-black leading-6">Try before you pay a cedi</p>
+                <p className="mt-1.5 text-[11px] leading-5 text-white/60">
+                  The first lesson of every course is a free preview — no pass, no purchase, no account.
+                </p>
+                <Link href="/courses" className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-extrabold text-[#17151f] transition hover:bg-[#ffcf59]">
+                  Explore the catalogue <Icon name="arrow-right" size={14} />
+                </Link>
+              </div>
+            </div>
+            <div className="border-t border-black/[.05] bg-[#faf9fb]">
+              <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-2 px-8 py-3 text-[11px] text-[#817a87]">
+                <p>
+                  One pass opens the platform · Courses you buy stay yours ·{" "}
+                  <Link href="/pricing" className="font-bold text-[#5c3be4] underline">See pricing</Link>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <Icon name="shield" size={13} className="text-emerald-600" />
+                  Certificates employers can <Link href="/verify" className="font-bold text-[#5c3be4] underline">verify online</Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ---- mobile panel --------------------------------------------------- */}
+        {mobileOpen && (
+          <div id="public-menu" className="border-t border-black/[.06] bg-white px-5 pb-6 pt-3 lg:hidden">
+            <nav className="grid gap-1" aria-label="Mobile">
+              <button
+                type="button"
+                onClick={() => setMobileCoursesOpen((value) => !value)}
+                aria-expanded={mobileCoursesOpen}
+                className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition ${
+                  coursesActive ? "bg-[#f3efff] text-[#5c3be4]" : "text-[#4a4450] hover:bg-[#f7f5f9]"
+                }`}
+              >
+                Courses
+                <Icon name="chevron-down" size={15} className={`text-[#bbb5c0] transition ${mobileCoursesOpen ? "rotate-180" : ""}`} />
+              </button>
+              {mobileCoursesOpen && (
+                <div className="grid gap-1 pb-2 pl-3">
+                  {PROGRAM_LINKS.map((program) => (
+                    <Link
+                      key={program.id}
+                      href={`/courses#program-${program.id}`}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-bold text-[#4a4450] transition hover:bg-[#f7f5f9]"
+                    >
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#f0ecff] text-[#6d4aff]">
+                        <Icon name={program.icon} size={15} />
+                      </span>
+                      {program.name}
+                    </Link>
+                  ))}
+                  <Link
+                    href="/courses"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-extrabold text-[#5c3be4]"
+                  >
+                    View all courses <Icon name="arrow-right" size={13} />
+                  </Link>
+                </div>
+              )}
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold transition ${isActive(link.href) ? "bg-[#f3efff] text-[#5c3be4]" : "text-[#4a4450] hover:bg-[#f7f5f9]"}`}
+                >
+                  {link.label}
+                  <Icon name="chevron-right" size={15} className="text-[#bbb5c0]" />
+                </Link>
+              ))}
+              <Link href="/verify" onClick={() => setMobileOpen(false)} className="flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-bold text-[#4a4450] transition hover:bg-[#f7f5f9]">
+                Verify a certificate <Icon name="shield" size={15} className="text-[#6d4aff]" />
+              </Link>
+            </nav>
+            <div className="mt-3 grid gap-2 border-t border-[#eeeaf1] pt-4">
+              {signedIn && appHref ? (
+                <>
+                  {userName && (
+                    <p className="px-1 pb-1 text-[11px] text-[#918a97]">
+                      Signed in as <strong className="text-[#4a4450]">{userName}</strong>
+                    </p>
+                  )}
+                  <Link href={appHref} onClick={() => setMobileOpen(false)} className="rounded-xl bg-[#17151f] px-4 py-3 text-center text-sm font-bold text-white">
+                    {isOwner ? "Open teacher console" : "Open dashboard"}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-[#ddd9e2] px-4 py-3 text-center text-sm font-bold text-[#4a4450]">
+                    Sign in
+                  </Link>
+                  <Link href="/login?mode=signup" onClick={() => setMobileOpen(false)} className="rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-sm font-bold text-white">
+                    Start learning
+                  </Link>
+                </>
+              )}
+              <a href={`mailto:${site.supportEmail}`} className="flex items-center justify-center gap-1.5 pt-1 text-[11px] font-bold text-[#5e3de0]">
+                <Icon name="mail" size={13} /> {site.supportEmail}
+              </a>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
   );
 }

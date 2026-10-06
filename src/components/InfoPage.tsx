@@ -13,6 +13,8 @@ interface Props {
   updated?: string;
   appHref?: string | null;
   signedIn?: boolean;
+  /** Display name, for the header's signed-in avatar. */
+  userName?: string | null;
   children: ReactNode;
 }
 
@@ -21,10 +23,10 @@ interface Props {
  * pages. Same header, footer and type scale everywhere, so a visitor never
  * hits a page that looks like a different website.
  */
-export default function InfoPage({ eyebrow, title, intro, updated, appHref = null, signedIn = false, children }: Props) {
+export default function InfoPage({ eyebrow, title, intro, updated, appHref = null, signedIn = false, userName = null, children }: Props) {
   return (
     <div className="min-h-screen bg-[#f8f8f5]">
-      <PublicHeader appHref={appHref} signedIn={signedIn} />
+      <PublicHeader appHref={appHref} signedIn={signedIn} userName={userName} />
       <main className="mx-auto max-w-[900px] px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
         <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">{eyebrow}</p>
         <h1 className="mt-3 text-balance text-3xl font-black tracking-[-.05em] sm:text-5xl">{title}</h1>

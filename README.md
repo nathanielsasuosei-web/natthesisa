@@ -396,14 +396,24 @@ before rendering. Without it, an anonymous visitor on a cold instance would be
 shown default prices and the wrong lesson counts, because the state cache is
 only hydrated by a signed-in request.
 
-## Mobile navigation
+## Public header
 
-`PublicHeader` carries the menu for every public page. Below 768px the links
-collapse into a button (`aria-expanded`, `aria-controls="public-menu"`) that
-opens a panel containing the navigation, the verification link and the account
-actions; the panel is a real disclosure rather than a hidden div, so it works
-with a keyboard and a screen reader, and it closes when a link is chosen. The
-dashboard has its own compact horizontal nav (`SidebarNav` with `compact`).
+`PublicHeader` carries the navigation for every public page: a dismissible
+announcement bar (remembered per browser, and it scrolls away), then the sticky
+bar itself — the logo with its tagline, a **Courses** mega-panel (programs,
+popular courses and the free-preview card), Pricing, About, Contact, a Verify
+link, and Sign in / Start learning (or the signed-in avatar with the dashboard
+/ teacher-console link). The bar gains a shadow once the page scrolls, the
+current section gets an underline, and the panel closes on Escape, on
+navigation, or a beat after the pointer leaves.
+
+Below 1024px the links collapse into a button
+(`aria-expanded`, `aria-controls="public-menu"`) that opens a panel with an
+expandable Courses section, the navigation, the verification link, the support
+email and the account actions; the panel is a real disclosure rather than a
+hidden div, so it works with a keyboard and a screen reader, and it closes when
+a link is chosen. The dashboard has its own compact horizontal nav (`SidebarNav`
+with `compact`).
 
 ## The Code lab
 
@@ -685,9 +695,11 @@ card numbers never touch this app — Paystack collects them.
 1. Create a free account at [paystack.com](https://paystack.com) and activate
    Ghana cedis (GHS) on it.
 2. Copy the **secret key** from Paystack → Settings → API keys. Start with the
-   test key (`sk_test_…`).
-3. Set `PAYSTACK_SECRET_KEY` in the environment (`.env.local` locally, the
-   host's environment variables when deployed) and redeploy.
+   test key (`sk_test_…`). Copy the **publishable key** (`pk_test_…`) too —
+   it is safe to expose and is used for checkout display and key-pair checks.
+3. Set `PAYSTACK_SECRET_KEY` and `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` in the
+   environment (`.env.local` locally, the host's environment variables when
+   deployed) and redeploy — `NEXT_PUBLIC_` values are inlined at build time.
 4. In Paystack → Settings → Webhooks, add
    `https://your-domain.com/api/webhooks/paystack`, so approvals confirm even
    if the student closes their browser mid-payment.

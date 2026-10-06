@@ -45,6 +45,17 @@ export function paystackKeyMode(): "test" | "live" | "missing" {
   return key.startsWith("sk_live_") ? "live" : "test";
 }
 
+/**
+ * `pk_test_…` vs `pk_live_…` — the publishable key, which is safe to expose.
+ * Reported next to the secret key's mode so a test/live mismatch between the
+ * pair is visible immediately (in `npm run payments:check` and the console).
+ */
+export function publicKeyMode(): "test" | "live" | "missing" {
+  const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY?.trim();
+  if (!key) return "missing";
+  return key.startsWith("pk_live_") ? "live" : "test";
+}
+
 export class PaystackError extends Error {
   code: string;
   status: number;
