@@ -2,19 +2,23 @@ import type { Course, CourseTone } from "./courses";
 import { lesson, module } from "./lesson-builder";
 
 /**
- * The three programs, and the courses under them.
+ * The six programs, and the courses under them.
  *
- * Every course in the catalog belongs to one program (its `category`). The
- * core catalog in `courses.ts` already covers the fundamentals; this file adds
- * the courses that make Computer Science, Software Engineering and Vibe Coding
- * complete paths rather than single courses:
+ * Every course in the catalog belongs to exactly one program (its `category`).
+ * The core catalog in `courses.ts` already covers the fundamentals; this file
+ * adds the courses that make Computer Science, Software Engineering and Vibe
+ * Coding complete paths rather than single courses:
  *
  *   Computer Science     → essentials (core) + data structures + databases
  *   Software Engineering → practices + system design + devops
  *   Vibe Coding          → ship with AI + AI apps, agents & APIs
+ *   Web Development      → foundations + JavaScript + React (core)
+ *   App Development      → mobile apps with React Native (core)
+ *   Backend              → backend development with Node.js (core)
  *
- * The first lesson of each course is a free preview, so a student can taste a
- * program before buying anything — the same convention the core courses use.
+ * A program is what a student pays for: buying it opens every course and
+ * every lesson under it, permanently. Nothing is free to sample — the course
+ * pages describe what is inside, and the program price is the whole price.
  */
 
 export interface ProgramInfo {
@@ -24,7 +28,7 @@ export interface ProgramInfo {
   name: string;
   tagline: string;
   description: string;
-  icon: Course["icon"];
+  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server";
   tone: CourseTone;
   /**
    * Optional cover artwork, copied from `brandAssets` by hand so this module
@@ -65,6 +69,36 @@ export const PROGRAMS: ProgramInfo[] = [
     icon: "spark",
     tone: "pink",
     cover: "/branding/vibe-coding.jpg",
+  },
+  {
+    id: "web-development",
+    category: "Web Development",
+    name: "Web Development",
+    tagline: "From a first page to a production app",
+    description:
+      "How the web works, JavaScript from zero, and React apps built the way teams build them. The complete path from opening a file to shipping a site.",
+    icon: "browser",
+    tone: "violet",
+  },
+  {
+    id: "app-development",
+    category: "App Development",
+    name: "App Development",
+    tagline: "One codebase, every phone",
+    description:
+      "Build a real cross-platform mobile app with React Native: native layouts, navigation, device storage and the mobile UX details users feel.",
+    icon: "mobile",
+    tone: "cyan",
+  },
+  {
+    id: "backend",
+    category: "Backend",
+    name: "Backend",
+    tagline: "The half of the app nobody sees",
+    description:
+      "Design secure APIs with Node.js, model application data, add authentication, and test and deploy a service the front end can trust.",
+    icon: "server",
+    tone: "green",
   },
 ];
 
@@ -649,7 +683,7 @@ export const PROGRAM_COURSES: Course[] = [
           24,
           "You cannot improve what you do not measure. A small set of real questions, scored automatically, is worth more than any demo.",
           "Keep a test set of questions with expected answers or rubrics, run it on every prompt change, and record tokens, latency and failures. Cap the spend per user and per day.",
-          "const suite = [\n  { q: \"How do I renew my pass?\", must: [\"Access pass\", \"Billing\"] },\n  { q: \"Who is the president of Ghana?\", mustRefuse: true },\n];\n\nfor (const test of suite) {\n  const { answer, tokens, ms } = await run(test.q);\n  report({ ...test, answer, tokens, ms, pass: check(test, answer) });\n}",
+          "const suite = [\n  { q: \"How do I buy a program?\", must: [\"Programs\", \"Billing\"] },\n  { q: \"Who is the president of Ghana?\", mustRefuse: true },\n];\n\nfor (const test of suite) {\n  const { answer, tokens, ms } = await run(test.q);\n  report({ ...test, answer, tokens, ms, pass: check(test, answer) });\n}",
           "Build a five-question suite for your assistant and record the pass rate, average latency and tokens per answer."
         ),
         lesson(
@@ -665,3 +699,21 @@ export const PROGRAM_COURSES: Course[] = [
     ],
   },
 ];
+
+/* -------------------------------------------------------------------------- */
+/* Lookups                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/** Every program by its id (`computer-science`, `web-development`, …). */
+export function getProgram(programId: string): ProgramInfo | undefined {
+  return PROGRAMS.find((program) => program.id === programId);
+}
+
+/**
+ * The program a course belongs to, via its category. Every category in the
+ * catalog has a program — a course without one is a content bug, and the
+ * access gate treats it as locked rather than open.
+ */
+export function programForCategory(category: Course["category"]): ProgramInfo | undefined {
+  return PROGRAMS.find((program) => program.category === category);
+}

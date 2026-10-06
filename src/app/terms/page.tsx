@@ -8,7 +8,7 @@ import InfoPage, { InfoContactStrip, InfoFaq, InfoList, InfoSection } from "@/co
 export const metadata: Metadata = {
   title: "Terms & conditions",
   description:
-    "The rules for using codemasterghana: your account, passes and purchases, certificates, acceptable use and liability.",
+    "The rules for using codemasterghana: your account, programs and purchases, certificates, acceptable use and liability.",
 };
 
 const UPDATED = "Last updated 5 October 2026";
@@ -47,20 +47,17 @@ export default async function TermsPage() {
         />
       </InfoSection>
 
-      <InfoSection title="Passes, courses and what they cost">
+      <InfoSection title="Programs and what they cost">
         <p>
-          The teacher sets the prices. In this build they are: a <strong>day pass {formatMoney(prices.daily)}</strong>,
-          a <strong>week pass {formatMoney(prices.weekly)}</strong>, a <strong>month pass {formatMoney(prices.monthly)}</strong>,
-          a single <strong>lesson from {formatMoney(prices.lesson)}</strong> and a <strong>course from {formatMoney(prices.course)}</strong>,
-          in Ghana cedis. The prices that apply to you are the ones shown on the{" "}
+          The teacher sets the prices. In this build the default program price is{" "}
+          <strong>{formatMoney(prices.program)}</strong>, in Ghana cedis, and any single program may be priced
+          differently. The prices that apply to you are the ones shown on the{" "}
           <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing page</Link> and at checkout when you buy.
         </p>
         <InfoList
           items={[
-            <><strong>A pass buys time, not content.</strong> It opens the platform for the period you chose. To open a course or a lesson you must also have bought that course or lesson.</>,
-            <><strong>Buying more time while a pass is active extends it</strong> from the day it would have ended, rather than restarting it.</>,
-            <><strong>What you buy stays yours.</strong> A purchase of a course or a lesson is recorded on your account permanently. If your pass lapses you cannot open it until you buy more time, but nothing you paid for is lost.</>,
-            <><strong>Free preview lessons</strong> are marked by the teacher and can be watched without a pass or a purchase.</>,
+            <><strong>A program opens everything under it.</strong> One payment opens every course and every lesson in that program, permanently. There is nothing else to buy for that program.</>,
+            <><strong>What you buy stays yours.</strong> A program purchase is recorded on your account permanently and never expires.</>,
             <><strong>No real payment is taken in this build.</strong> The checkout works and your access is recorded exactly as it will be, but no card, Mobile Money or bank details are collected and no money changes hands.</>,
           ]}
         />
@@ -69,8 +66,8 @@ export default async function TermsPage() {
       <InfoSection title="Refunds">
         <p>
           Because no real money is collected today, there is nothing to refund. When live payments are switched on, the
-          policy will be: a pass that has not been used can be refunded within 7 days of purchase; a course or lesson that
-          you have opened is not refundable, because the content has been delivered. Faults are different — if something
+          policy will be: a program you have not opened can be refunded within 7 days of purchase; a program you have
+          already studied is not refundable, because the content has been delivered. Faults are different — if something
           you paid for does not work and we cannot fix it, you get your money back.
         </p>
       </InfoSection>
@@ -145,8 +142,8 @@ export default async function TermsPage() {
             a: "Yes. The projects you build are yours. The course material is licensed to you for learning, not for redistribution, so put your own work in your portfolio rather than our lessons.",
           },
           {
-            q: "Does a pass include the courses?",
-            a: "No — a pass buys time on the platform, and courses and lessons are bought separately. Both are needed to open a paid lesson, which is why the cheapest way to start is the free preview lessons.",
+            q: "What does the program price include?",
+            a: "Everything under that program: every course, every lesson, the code lab and the lesson materials — permanently. There is nothing else to buy for that program.",
           },
           {
             q: "What happens if I share my account?",

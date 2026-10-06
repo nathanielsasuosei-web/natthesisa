@@ -82,14 +82,17 @@ export const SCHEMA_STATEMENTS: string[] = [
   // something idempotent to fulfil against: whichever arrives first marks the
   // row `paid` and grants the pass / course / lesson, and the other sees the
   // row is already paid and does nothing. `provider_event_id` carries the
-  // provider's own event id for the same reason.
+  // provider's own event id for the same reason. Only `program` rows are
+  // created now; the pass / course / lesson kinds stay valid so payments
+  // already in flight can still fulfil.
   `create table if not exists payments (
      reference         text primary key,
      user_id           text not null references users(id) on delete cascade,
-     kind              text not null check (kind in ('pass', 'course', 'lesson')),
+     kind              text not null check (kind in ('pass', 'course', 'lesson', 'program')),
      period            text check (period in ('daily', 'weekly', 'monthly')),
      course_id         text,
      lesson_id         text,
+     program_id        text,
      amount            integer not null check (amount >= 0),
      currency          text not null default 'GHS',
      description       text not null,
@@ -225,6 +228,13 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table payments add column if not exists period text`,
   `alter table payments add column if not exists course_id text`,
   `alter table payments add column if not exists lesson_id text`,
+  `alter table payments add column if not exists program_id text`,
+  // The `kind` check from older builds does not know `program`. Drop-then-add
+  // keeps this idempotent: on every run the old check (if any) goes away and
+  // the current one is enforced. `not valid` skips re-validating whatever a
+  // hand-made table already holds — the check still guards every new row.
+  `alter table payments drop constraint if exists payments_kind_check`,
+  `alter table payments add constraint payments_kind_check check (kind in ('pass', 'course', 'lesson', 'program')) not valid`,
   `alter table payments add column if not exists amount integer`,
   `alter table payments add column if not exists currency text`,
   `alter table payments add column if not exists description text`,

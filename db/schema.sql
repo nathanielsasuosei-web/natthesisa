@@ -44,10 +44,11 @@ create sequence if not exists invoice_number_seq start 1007;
 create table if not exists payments (
      reference         text primary key,
      user_id           text not null references users(id) on delete cascade,
-     kind              text not null check (kind in ('pass', 'course', 'lesson')),
+     kind              text not null check (kind in ('pass', 'course', 'lesson', 'program')),
      period            text check (period in ('daily', 'weekly', 'monthly')),
      course_id         text,
      lesson_id         text,
+     program_id        text,
      amount            integer not null check (amount >= 0),
      currency          text not null default 'GHS',
      description       text not null,
@@ -172,6 +173,12 @@ alter table payments add column if not exists period text;
 alter table payments add column if not exists course_id text;
 
 alter table payments add column if not exists lesson_id text;
+
+alter table payments add column if not exists program_id text;
+
+alter table payments drop constraint if exists payments_kind_check;
+
+alter table payments add constraint payments_kind_check check (kind in ('pass', 'course', 'lesson', 'program')) not valid;
 
 alter table payments add column if not exists amount integer;
 

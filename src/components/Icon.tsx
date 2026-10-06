@@ -7,7 +7,7 @@ export type IconName =
   | "flame" | "target" | "trophy" | "download" | "calendar" | "chevron-right"
   | "chevron-down" | "spark" | "shield" | "globe" | "terminal" | "close" | "menu"
   | "settings" | "bell" | "mail" | "layers" | "certificate" | "briefcase" | "pause"
-  | "upload" | "file" | "video" | "plus" | "crown";
+  | "upload" | "file" | "video" | "plus" | "crown" | "pencil";
 
 const PATHS: Record<IconName, string> = {
   "arrow-right": "M5 12h14M13 6l6 6-6 6",
@@ -58,6 +58,7 @@ const PATHS: Record<IconName, string> = {
   video: "M3 6h12v12H3V6Zm12 4 6-3v10l-6-3v-4Z",
   plus: "M12 5v14M5 12h14",
   crown: "m3 8 4 9h10l4-9-5.5 4L12 5 8.5 12 3 8Zm4 12h10",
+  pencil: "m14 6 4 4L8 20l-5 1 1-5L14 6Z",
 };
 
 interface Props extends SVGProps<SVGSVGElement> {

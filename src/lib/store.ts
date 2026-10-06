@@ -57,11 +57,11 @@ export interface AccessPass {
   expiresAt: string;
 }
 
-/** A course or a single lesson the student has paid for. */
+/** A program the student has paid for (older rows may be a course or lesson). */
 export interface Purchase {
   id: string;
-  kind: "course" | "lesson";
-  /** Course id, or lesson id when `kind` is "lesson". */
+  kind: "course" | "lesson" | "program";
+  /** Program, course or lesson id, matching `kind`. */
   refId: string;
   /** Set for lessons, so the dashboard can group by course. */
   courseId: string | null;

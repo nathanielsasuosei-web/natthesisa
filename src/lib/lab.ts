@@ -6,7 +6,7 @@
  * live preview and the "download project" button.
  */
 
-export type LabLanguage = "html" | "css" | "js";
+export type LabLanguage = "html" | "css" | "js" | "python" | "json" | "markdown" | "text";
 
 export interface LabFile {
   name: string;
@@ -19,6 +19,18 @@ export interface LabTemplate {
   name: string;
   description: string;
   files: LabFile[];
+}
+
+/** Picks the editor language from a file name, so student-created files highlight correctly. */
+export function languageForFileName(name: string): LabLanguage {
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".html") || lower.endsWith(".htm")) return "html";
+  if (lower.endsWith(".css")) return "css";
+  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs")) return "js";
+  if (lower.endsWith(".py")) return "python";
+  if (lower.endsWith(".json")) return "json";
+  if (lower.endsWith(".md") || lower.endsWith(".markdown")) return "markdown";
+  return "text";
 }
 
 export const LAB_TEMPLATES: LabTemplate[] = [
@@ -158,6 +170,45 @@ console.log("reversed:", reverse("codemaster"));
 const learner = { name: "You", lessons: 3, minutes: 95 };
 console.log(Object.entries(learner));
 `,
+      },
+    ],
+  },
+  {
+    id: "python-practice",
+    name: "Python practice",
+    description: "Python that really runs — powered by Pyodide, right in your browser.",
+    files: [
+      {
+        name: "main.py",
+        language: "python",
+        content: `# Everything you print() appears in the Console tab.
+print("Hello from Python!")
+
+# FizzBuzz, the classic warm-up
+for i in range(1, 21):
+    if i % 15 == 0:
+        print("FizzBuzz")
+    elif i % 3 == 0:
+        print("Fizz")
+    elif i % 5 == 0:
+        print("Buzz")
+    else:
+        print(i)
+
+# Try it yourself: lists, dicts and functions
+fruits = ["mango", "pineapple", "orange"]
+for fruit in fruits:
+    print(fruit.upper(), "has", len(fruit), "letters")
+
+learner = {"name": "You", "lessons": 3, "minutes": 95}
+print(learner)
+
+
+def cheer(name):
+    return f"Keep going, {name}!"
+
+
+print(cheer("coder"))`,
       },
     ],
   },

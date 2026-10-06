@@ -3,7 +3,7 @@ import Link from "next/link";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
 import { contentTotals, lessonCountsByCourse, lessonMinutesByCourse } from "@/lib/course-content";
-import { coursePrice, formatMoney, pricing } from "@/lib/plans";
+import { formatMoney, programPrice } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/session";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { isOwner } from "@/lib/owner";
@@ -23,13 +23,13 @@ export const dynamic = "force-dynamic";
  * The public catalogue.
  *
  * The landing page shows a selection; this page shows everything, grouped by
- * program, with the real description and price of each course — so the answer
- * to "what would I actually learn?" does not require an account.
+ * program, with the real description of each course — so the answer to "what
+ * would I actually learn?" does not require an account. Buying happens per
+ * program: one payment opens every course and lesson under it.
  */
 export default async function CoursesPage() {
   await ensureContentReady();
   const user = await getCurrentUser().catch(() => null);
-  const prices = pricing();
   const totals = contentTotals();
   const counts = lessonCountsByCourse();
   const minutes = lessonMinutesByCourse();
@@ -40,13 +40,11 @@ export default async function CoursesPage() {
     courses: COURSES.filter((course) => course.category === program.category),
   })).filter((group) => group.courses.length > 0);
 
-  const otherCourses = COURSES.filter((course) => !PROGRAMS.some((program) => program.category === course.category));
-
   return (
     <InfoPage
       eyebrow="Course catalogue"
       title="Every course, and what it actually teaches"
-      intro={`${totals.courses} courses and ${totals.lessons} lessons, grouped into ${PROGRAMS.length} programs. Each course page states what you will build, who it suits and what it costs — before you create an account.`}
+      intro={`${totals.courses} courses and ${totals.lessons} lessons, grouped into ${PROGRAMS.length} programs. Each course page states what you will build and who it suits — before you create an account.`}
       appHref={appHref}
       signedIn={Boolean(user)}
       userName={user?.name}
@@ -54,18 +52,21 @@ export default async function CoursesPage() {
       <InfoSection title="How the catalogue is organised">
         <p>
           A <strong>program</strong> is a path: a group of courses that belong together and get harder as you go. You
-          do not have to follow a program in order, and you can buy a single lesson if that is all you need. Every
-          course opens with a <strong>free preview lesson</strong> so you can judge the teaching before paying.
+          buy the program once, and every course and lesson under it opens permanently. There is nothing else to
+          pay — no subscriptions, no time limits, no per-lesson fees.
         </p>
         <InfoList
-          items={[
-            <>The <strong>Computer Science</strong> program covers how computers, data and algorithms work.</>,
-            <>The <strong>Software Engineering</strong> program covers building software other people will maintain.</>,
-            <>The <strong>Vibe Coding</strong> program covers building products with AI, and building AI into products.</>,
-            <>Web, App and Backend Development are the practical build-a-thing courses, and they sit beside the programs rather than under one.</>,
-            <>A pass buys <strong>time</strong> (from {formatMoney(prices.daily)} a day) and a course is bought <strong>separately</strong> (from {formatMoney(prices.course)}). See <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing</Link> for the whole picture.</>,
-          ]}
+          items={groups.map(({ program, courses }) => (
+            <>
+              The <strong>{program.name}</strong> program ({courses.length} course{courses.length === 1 ? "" : "s"},{" "}
+              {formatMoney(programPrice(program.id))}): {program.tagline.toLowerCase()}.
+            </>
+          ))}
         />
+        <p>
+          See <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing</Link> for the whole
+          picture, including how payment works.
+        </p>
       </InfoSection>
 
       {groups.map(({ program, courses }) => (
@@ -74,9 +75,12 @@ export default async function CoursesPage() {
             <div>
               <div className="flex items-center gap-2.5">
                 <span className="grid size-8 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff]">
-                  <Icon name={program.icon === "cpu" ? "cpu" : program.icon === "briefcase" ? "briefcase" : "spark"} size={16} />
+                  <Icon name={program.icon} size={16} />
                 </span>
                 <h2 className="text-lg font-black tracking-[-.03em]">{program.name}</h2>
+                <span className="rounded-full bg-[#6d4aff] px-2.5 py-1 text-[10px] font-black text-white">
+                  {formatMoney(programPrice(program.id))}
+                </span>
               </div>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6e6875]">{program.description}</p>
             </div>
@@ -93,33 +97,12 @@ export default async function CoursesPage() {
                 hrefBase="public"
                 lessonCount={counts[course.id] ?? 0}
                 minutes={minutes[course.id] ?? 0}
-                price={coursePrice(course.id)}
+                price={programPrice(program.id)}
               />
             ))}
           </div>
         </section>
       ))}
-
-      {otherCourses.length > 0 && (
-        <section id="program-more" className="scroll-mt-28">
-          <h2 className="text-lg font-black tracking-[-.03em]">Web, app and backend courses</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6e6875]">
-            Practical courses that sit beside the programs: each one ends with a project worth showing someone.
-          </p>
-          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {otherCourses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                hrefBase="public"
-                lessonCount={counts[course.id] ?? 0}
-                minutes={minutes[course.id] ?? 0}
-                price={coursePrice(course.id)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
 
       <InfoFaq
         items={[
@@ -133,7 +116,7 @@ export default async function CoursesPage() {
           },
           {
             q: "Can I see a lesson before paying?",
-            a: "Yes — the first lesson of every course is a free preview, and it needs no pass and no purchase. Open any course page and start there.",
+            a: "Every course page shows the full curriculum — every lesson title and summary — so you know exactly what you are buying. The lessons themselves open once you own the program.",
           },
           {
             q: "What do I get at the end?",

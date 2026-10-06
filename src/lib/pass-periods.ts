@@ -30,9 +30,11 @@ export function isPassPeriod(value: unknown): value is PassPeriod {
 /**
  * What the owner charges.
  *
- * `daily` / `weekly` / `monthly` are the pass prices. `course` and `lesson`
- * are the default prices a new piece of content is published with — the owner
- * can still price any single course or lesson differently.
+ * `program` is the default price of a program — the one thing students pay
+ * for. The owner can still price any single program differently, and any
+ * program priced at GH₵0 is free to join. The pass / course / lesson fields
+ * are retired: they stay in the shape so old stored pricing still reads, but
+ * nothing is sold through them any more.
  */
 export interface Pricing {
   daily: number;
@@ -40,6 +42,7 @@ export interface Pricing {
   monthly: number;
   course: number;
   lesson: number;
+  program: number;
 }
 
 export const DEFAULT_PRICING: Pricing = {
@@ -48,6 +51,7 @@ export const DEFAULT_PRICING: Pricing = {
   monthly: 250,
   course: 150,
   lesson: 30,
+  program: 300,
 };
 
 export class PricingError extends Error {

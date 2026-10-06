@@ -1,6 +1,7 @@
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
-import { PassPeriod, coursePrice, lessonPrice, passPrice, pricing } from "./plans";
+import { getProgram, PROGRAMS } from "./programs";
+import { PassPeriod, coursePrice, lessonPrice, passPrice, pricing, programPrice } from "./plans";
 import {
   User,
   addInvoice,
@@ -10,7 +11,7 @@ import {
   type Purchase,
 } from "./store";
 import { ensureSchema } from "./db";
-import { hasActivePass, ownsCourse, ownsLesson } from "./access";
+import { hasActivePass, ownsCourse, ownsLesson, ownsProgram } from "./access";
 
 /**
  * Payments.
@@ -21,12 +22,11 @@ import { hasActivePass, ownsCourse, ownsLesson } from "./access";
  * after Paystack has confirmed the Mobile Money / card payment via the
  * verified webhook or the return-URL verification.
  *
- * Two things are sold:
- *   • an access pass — a day, a week or a month of access, and
- *   • a course or a single lesson — the entitlement to study that content.
- *
- * Access needs both (see `access.ts`): the pass is what opens the platform,
- * the purchase is what opens the content.
+ * One thing is sold: a program. Buying it opens every course and every lesson
+ * under it, permanently — that purchase is the whole access rule (see
+ * `access.ts`). The pass / course / lesson sellers below are retired: they
+ * stay so fulfilments already in flight can finish, but nothing new is sold
+ * through them.
  */
 
 export class PurchaseError extends Error {
@@ -178,9 +178,50 @@ export async function buyLesson(user: User, courseId: string, lessonId: string, 
   return purchase;
 }
 
+/**
+ * Sells a whole program: every course and every lesson under it, permanently.
+ * This is the only thing students buy. A student who already owns the program
+ * is never charged twice — the checkout refuses before any money moves.
+ */
+export async function buyProgram(
+  user: User,
+  programId: string,
+  attribution?: PaymentAttribution
+): Promise<Purchase> {
+  const program = getProgram(programId);
+  if (!program) throw new PurchaseError("That program does not exist.", "NOT_FOUND", 404);
+  if (ownsProgram(user, programId)) {
+    throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
+  }
+  const price = programPrice(programId);
+  rememberPaymentMethod(user, attribution);
+  const invoice = await addInvoice(user, price, `${program.name} — program purchase`, attribution?.reference);
+  const purchase = record(user, {
+    kind: "program",
+    refId: programId,
+    courseId: null,
+    amount: price,
+    invoiceNumber: invoice?.number ?? null,
+  });
+  logActivity(user, `Bought the program “${program.name}”`, "billing");
+  return purchase;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Owner-granted access (comped from the console)                             */
 /* -------------------------------------------------------------------------- */
+
+/** The owner opens a whole program for a student, without a payment. */
+export async function grantProgram(owner: User, student: User, programId: string): Promise<User> {
+  const program = getProgram(programId);
+  if (!program) throw new PurchaseError("That program does not exist.", "NOT_FOUND", 404);
+  if (!ownsProgram(student, programId)) {
+    record(student, { kind: "program", refId: programId, courseId: null, amount: 0, invoiceNumber: null });
+  }
+  logActivity(student, `Your teacher opened the program “${program.name}”`, "billing");
+  logActivity(owner, `Opened “${program.name}” for ${student.name}`, "owner");
+  return student;
+}
 
 /** The owner gives a student time, without a payment. */
 export async function grantPass(owner: User, student: User, period: PassPeriod): Promise<User> {
@@ -222,11 +263,23 @@ export async function grantAccess(
 }
 
 /** What a student would pay to open everything, for the console. */
-export function pricingSummary(): { periods: Record<PassPeriod, number>; course: number; lesson: number } {
+export function pricingSummary(): {
+  periods: Record<PassPeriod, number>;
+  course: number;
+  lesson: number;
+  program: number;
+  programs: Array<{ id: string; name: string; price: number }>;
+} {
   const prices = pricing();
   return {
     periods: { daily: prices.daily, weekly: prices.weekly, monthly: prices.monthly },
     course: prices.course,
     lesson: prices.lesson,
+    program: prices.program,
+    programs: PROGRAMS.map((program) => ({
+      id: program.id,
+      name: program.name,
+      price: programPrice(program.id),
+    })),
   };
 }

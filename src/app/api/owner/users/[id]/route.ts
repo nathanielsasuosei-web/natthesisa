@@ -6,6 +6,7 @@ import {
   ownerDeleteStudent,
   ownerGrantAccess,
   ownerGrantPass,
+  ownerGrantProgram,
   ownerResetProgress,
   ownerSuspendStudent,
   toStudentRow,
@@ -37,6 +38,12 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
       return NextResponse.json({
         ok: true,
         user: toStudentRow(await ownerGrantAccess(owner, id, body.courseId, lessonId)),
+      });
+    }
+    if (body.action === "grantProgram" && typeof body.programId === "string") {
+      return NextResponse.json({
+        ok: true,
+        user: toStudentRow(await ownerGrantProgram(owner, id, body.programId)),
       });
     }
     if (body.action === "resetProgress") {

@@ -4,7 +4,6 @@ import { getCurrentUser } from "@/lib/session";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { PROGRAMS } from "@/lib/programs";
 import { contentTotals } from "@/lib/course-content";
-import { pricing } from "@/lib/plans";
 import { brandAssets } from "@/config/branding";
 import InfoPage, { InfoFaq, InfoList, InfoSection } from "@/components/InfoPage";
 import Icon from "@/components/Icon";
@@ -21,7 +20,6 @@ export default async function AboutPage() {
   await ensureContentReady();
   const user = await getCurrentUser();
   const totals = contentTotals();
-  const prices = pricing();
   const appHref = user ? (user.role === "owner" ? "/owner" : "/dashboard") : null;
 
   return (
@@ -60,7 +58,7 @@ export default async function AboutPage() {
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {PROGRAMS.map((program) => (
             <div key={program.id} className="rounded-2xl border border-[#e8e4ec] bg-white p-5">
-              <span className="grid size-9 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff]"><Icon name={program.icon === "cpu" ? "cpu" : program.icon === "briefcase" ? "briefcase" : "spark"} size={17} /></span>
+              <span className="grid size-9 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff]"><Icon name={program.icon} size={17} /></span>
               <p className="mt-3 text-sm font-extrabold text-[#332e39]">{program.name}</p>
               <p className="mt-1.5 text-[11px] leading-5 text-[#7d7683]">{program.tagline}</p>
             </div>
@@ -71,9 +69,8 @@ export default async function AboutPage() {
       <InfoSection title="How learning here works">
         <InfoList
           items={[
-            <>A <strong>day, week or month pass</strong> opens the whole platform — every course and every lesson. Prices are set by your teacher and shown on the <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing page</Link>.</>,
-            <><strong>Courses and single lessons are bought separately</strong> (from GH₵ {prices.lesson} a lesson, GH₵ {prices.course} a course). What you buy stays on your account: if your pass lapses, the door stays shut until you buy more time, but nothing you paid for is lost.</>,
-            <><strong>Free preview lessons</strong> are marked by the teacher. Nothing else opens without a pass and a purchase — that is what keeps the platform funded and the lessons coming.</>,
+            <>A <strong>program</strong> is the one thing you pay for — one payment opens every course and every lesson under it, permanently. Prices are set by your teacher and shown on the <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing page</Link>.</>,
+            <>Nothing else opens without the program — that is what keeps the platform funded and the lessons coming. There are no free previews and nothing to renew: what you buy stays open forever.</>,
             <>Every course is <strong>practical</strong>: a reading, a worked example, then a challenge to try. Your progress is saved as you go.</>,
             <><strong>A certificate at the end</strong>, with an ID and a QR code that opens a public verification page — useful when you are applying for a job or a contract.</>,
             <>A <strong>code lab</strong> in the dashboard: write HTML, CSS and JavaScript in the browser with a live preview, and download what you make.</>,
@@ -108,7 +105,7 @@ export default async function AboutPage() {
         <InfoList
           items={[
             "More Ghanaian project work: a bus-fare tracker, a market-price board, a school report tool.",
-            "Mobile Money payments through a verified gateway, so a pass can be bought in seconds from any network.",
+            "Mobile Money payments through a verified gateway, so a program can be bought in seconds from any network.",
             "School and study-group plans, with a class code and a teacher view of everyone's progress.",
             "Twi and Ewe subtitles on the lesson videos.",
           ]}
@@ -123,13 +120,13 @@ export default async function AboutPage() {
           },
           {
             q: "Do I need my own computer?",
-            a: "A phone works for reading lessons and previews, and the code lab runs in the browser. For the project work in the web, mobile and backend courses a laptop makes life much easier — a shared one is fine.",
+            a: "A phone works for reading lessons, and the code lab runs in the browser. For the project work in the web, mobile and backend courses a laptop makes life much easier — a shared one is fine.",
           },
           {
             q: "Is any of this a real payment right now?",
             a: (
               <>
-                No. The checkout, passes, purchases and invoices are fully built and recorded in the database, but no
+                No. The checkout, program purchases and invoices are fully built and recorded in the database, but no
                 money moves and no card or Mobile Money number is ever asked for. See the{" "}
                 <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing page</Link> for what that means.
               </>

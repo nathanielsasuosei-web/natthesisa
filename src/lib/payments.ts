@@ -2,10 +2,17 @@ import { randomBytes } from "node:crypto";
 import { ensureSchema, query, queryOne } from "./db";
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
-import { coursePrice, isPassPeriod, lessonPrice, passPrice, type PassPeriod } from "./plans";
-import { PurchaseError, buyCourse, buyLesson, buyPass, type PaymentAttribution } from "./purchases";
+import { coursePrice, isPassPeriod, lessonPrice, passPrice, programPrice, type PassPeriod } from "./plans";
+import {
+  PurchaseError,
+  buyCourse,
+  buyLesson,
+  buyPass,
+  buyProgram,
+  type PaymentAttribution,
+} from "./purchases";
 import { getUserById, logActivity, saveUser, type User } from "./store";
-import { notifyContentPurchased, notifyPassPurchased } from "./email";
+import { notifyContentPurchased, notifyPassPurchased, notifyProgramPurchased } from "./email";
 import {
   PaystackError,
   initializeTransaction,
@@ -13,7 +20,8 @@ import {
   refundTransaction,
   verifyTransaction,
 } from "./paystack";
-import { hasActivePass, ownsCourse, ownsLesson } from "./access";
+import { getProgram } from "./programs";
+import { hasActivePass, ownsCourse, ownsLesson, ownsProgram } from "./access";
 
 /**
  * Checkouts and payment fulfilment.
@@ -35,7 +43,7 @@ import { hasActivePass, ownsCourse, ownsLesson } from "./access";
  * second payment for the same item is refunded automatically).
  */
 
-export type PaymentKind = "pass" | "course" | "lesson";
+export type PaymentKind = "pass" | "course" | "lesson" | "program";
 export type PaymentStatus = "pending" | "paid" | "failed" | "abandoned";
 export type PaymentProvider = "demo" | "paystack";
 
@@ -46,6 +54,7 @@ export interface Payment {
   period: PassPeriod | null;
   courseId: string | null;
   lessonId: string | null;
+  programId: string | null;
   amount: number;
   currency: string;
   description: string;
@@ -69,6 +78,7 @@ interface PaymentRow {
   period: string | null;
   course_id: string | null;
   lesson_id: string | null;
+  program_id: string | null;
   amount: number;
   currency: string;
   description: string;
@@ -96,6 +106,7 @@ function fromRow(row: PaymentRow): Payment {
     period: row.period as PassPeriod | null,
     courseId: row.course_id,
     lessonId: row.lesson_id,
+    programId: row.program_id,
     amount: row.amount,
     currency: row.currency,
     description: row.description,
@@ -184,6 +195,7 @@ export interface CheckoutInput {
   period?: string;
   courseId?: string;
   lessonId?: string;
+  programId?: string;
   phone?: string;
   network?: string;
 }
@@ -193,6 +205,7 @@ export interface CheckoutQuote {
   period: PassPeriod | null;
   courseId: string | null;
   lessonId: string | null;
+  programId: string | null;
   amount: number;
   description: string;
 }
@@ -204,62 +217,34 @@ export interface CheckoutQuote {
  */
 export function quoteCheckout(user: User, input: CheckoutInput): CheckoutQuote {
   const kind = input.kind;
-  if (kind === "pass") {
-    if (!isPassPeriod(input.period)) {
-      throw new CheckoutError("Choose a pass: daily, weekly or monthly.", "BAD_PERIOD");
-    }
-    const amount = passPrice(input.period);
-    const label = input.period[0].toUpperCase() + input.period.slice(1);
-    return {
-      kind,
-      period: input.period,
-      courseId: null,
-      lessonId: null,
-      amount,
-      description: `${label} access pass`,
-    };
-  }
-  if (kind === "course") {
-    const courseId = input.courseId?.trim() ?? "";
-    const course = courseId ? getCourse(courseId) : null;
-    if (!course) throw new CheckoutError("That course does not exist.", "NOT_FOUND", 404);
-    if (ownsCourse(user, courseId)) {
-      throw new PurchaseError("You already own this course.", "ALREADY_OWNED", 409);
+  if (kind === "program") {
+    const programId = input.programId?.trim() ?? "";
+    const program = programId ? getProgram(programId) : null;
+    if (!program) throw new CheckoutError("That program does not exist.", "NOT_FOUND", 404);
+    if (ownsProgram(user, programId)) {
+      throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
     }
     return {
       kind,
       period: null,
-      courseId,
+      courseId: null,
       lessonId: null,
-      amount: coursePrice(courseId),
-      description: `${course.title} — course purchase`,
+      programId,
+      amount: programPrice(programId),
+      description: `${program.name} — program purchase`,
     };
   }
-  const courseId = input.courseId?.trim() ?? "";
-  const lessonId = input.lessonId?.trim() ?? "";
-  const course = courseId ? getCourse(courseId) : null;
-  if (!course) throw new CheckoutError("That course does not exist.", "NOT_FOUND", 404);
-  if (!lessonId) throw new CheckoutError("A lesson purchase needs a lesson.", "BAD_REQUEST");
-  const lesson = findContentLesson(course, lessonId);
-  if (!lesson) throw new CheckoutError("That lesson does not exist.", "NOT_FOUND", 404);
-  if (ownsLesson(user, lessonId)) {
-    throw new PurchaseError("You already own this lesson.", "ALREADY_OWNED", 409);
-  }
-  if (ownsCourse(user, courseId)) {
-    throw new PurchaseError(
-      "This lesson is already included in your course purchase.",
-      "ALREADY_OWNED",
-      409
+  // Passes, courses and lessons are retired as things to buy: the program is
+  // the only checkout. Payments already in flight still fulfil through
+  // `fulfillPayment`, which never calls this function.
+  if (kind === "pass" || kind === "course" || kind === "lesson") {
+    throw new CheckoutError(
+      "That is no longer sold on its own — buy the program it belongs to instead.",
+      "RETIRED_ITEM",
+      410
     );
   }
-  return {
-    kind,
-    period: null,
-    courseId,
-    lessonId,
-    amount: lessonPrice(lessonId),
-    description: `${course.shortTitle} — “${lesson.title}”`,
-  };
+  throw new CheckoutError("Say what you are buying.", "BAD_REQUEST");
 }
 
 /** `CMG-…`: unique per checkout, URL-safe, and recognizable on a MoMo statement. */
@@ -286,7 +271,7 @@ export interface CreatedCheckout {
  */
 async function findOpenCheckout(
   userId: string,
-  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId">
+  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId" | "programId">
 ): Promise<Payment | null> {
   await ensureSchema();
   const row = await queryOne<PaymentRow>(
@@ -295,9 +280,17 @@ async function findOpenCheckout(
         and coalesce(period, '') = $3
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
+        and coalesce(program_id, '') = $6
         and status = 'pending'
       order by created_at desc limit 1`,
-    [userId, quote.kind, quote.period ?? "", quote.courseId ?? "", quote.lessonId ?? ""]
+    [
+      userId,
+      quote.kind,
+      quote.period ?? "",
+      quote.courseId ?? "",
+      quote.lessonId ?? "",
+      quote.programId ?? "",
+    ]
   );
   return row ? fromRow(row) : null;
 }
@@ -350,9 +343,9 @@ export async function createCheckout(
     try {
       await query(
         `insert into payments
-           (reference, user_id, kind, period, course_id, lesson_id, amount, currency,
+           (reference, user_id, kind, period, course_id, lesson_id, program_id, amount, currency,
             description, status, provider, phone, network)
-         values ($1,$2,$3,$4,$5,$6,$7,'GHS',$8,'pending',$9,$10,$11)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'GHS',$9,'pending',$10,$11,$12)`,
         [
           reference,
           user.id,
@@ -360,6 +353,7 @@ export async function createCheckout(
           quote.period,
           quote.courseId,
           quote.lessonId,
+          quote.programId,
           quote.amount,
           quote.description,
           provider,
@@ -397,6 +391,7 @@ export async function createCheckout(
         period: quote.period ?? "",
         courseId: quote.courseId ?? "",
         lessonId: quote.lessonId ?? "",
+        programId: quote.programId ?? "",
         phone: phone ?? "",
         network: network ?? "",
       },
@@ -498,7 +493,8 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
         and coalesce(period, '') = $3
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
-        and status = 'paid' and reference <> $6
+        and coalesce(program_id, '') = $6
+        and status = 'paid' and reference <> $7
       order by paid_at desc nulls last limit 1`,
     [
       payment.userId,
@@ -506,6 +502,7 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
       payment.period ?? "",
       payment.courseId ?? "",
       payment.lessonId ?? "",
+      payment.programId ?? "",
       payment.reference,
     ]
   );
@@ -601,13 +598,15 @@ export async function fulfillPayment(
   if (payment.provider === "paystack") {
     try {
       const current =
-        payment.kind === "pass" && payment.period
-          ? passPrice(payment.period)
-          : payment.kind === "course" && payment.courseId
-            ? coursePrice(payment.courseId)
-            : payment.kind === "lesson" && payment.lessonId
-              ? lessonPrice(payment.lessonId)
-              : payment.amount;
+        payment.kind === "program" && payment.programId
+          ? programPrice(payment.programId)
+          : payment.kind === "pass" && payment.period
+            ? passPrice(payment.period)
+            : payment.kind === "course" && payment.courseId
+              ? coursePrice(payment.courseId)
+              : payment.kind === "lesson" && payment.lessonId
+                ? lessonPrice(payment.lessonId)
+                : payment.amount;
       if (current !== payment.amount) {
         console.info(
           `[codemasterghana] payment ${reference} fulfilled at GH₵${payment.amount} (current price GH₵${current})`
@@ -629,6 +628,33 @@ export async function fulfillPayment(
   };
 
   try {
+    if (payment.kind === "program" && payment.programId) {
+      const purchase = await buyProgram(user, payment.programId, credit);
+      purchase.amount = payment.amount;
+      applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
+      await saveUser(user);
+      const program = getProgram(payment.programId);
+      await notifyProgramPurchased({
+        to: user.email,
+        toName: user.name,
+        program: program?.name ?? "Program",
+        amount: payment.amount,
+        invoiceNumber: purchase.invoiceNumber,
+      });
+      const paid = await markPaymentPaid(reference, {
+        channel: attribution.channel ?? null,
+        invoiceNumber: purchase.invoiceNumber,
+        providerEventId: attribution.providerEventId ?? null,
+        paidAt: attribution.paidAt ?? null,
+      });
+      return {
+        payment: paid,
+        alreadyPaid: false,
+        invoiceNumber: purchase.invoiceNumber,
+        passActive: hasActivePass(user),
+      };
+    }
+
     if (payment.kind === "pass" && payment.period) {
       const extending = hasActivePass(user);
       const receipt = await buyPass(user, payment.period, credit);

@@ -73,14 +73,9 @@ export default function VerifyPayment() {
     }
   }, [state, checks]);
 
-  // Where "continue" goes: a course purchase opens the course, anything else
-  // opens the dashboard (a pass) or the billing history (a failure to retry).
-  const continueHref =
-    state?.status === "paid"
-      ? state.kind === "course" && state.courseId
-        ? `/dashboard/courses/${state.courseId}`
-        : "/dashboard"
-      : "/dashboard/billing";
+  // Where "continue" goes: a paid program opens the course library, anything
+  // else the billing history (a failure to retry).
+  const continueHref = state?.status === "paid" ? "/dashboard/courses" : "/dashboard/billing";
 
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-md place-items-center p-6">
@@ -125,16 +120,11 @@ export default function VerifyPayment() {
               ) : null}
               . A receipt is on its way to your email.
             </p>
-            {!state.passActive && state.kind !== "pass" && (
-              <p className="mx-auto mt-3 max-w-xs rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[10px] leading-5 text-amber-800">
-                Your content is bought and waiting — but your pass is not active, so buy some time to open it.
-              </p>
-            )}
             <Link
               href={continueHref}
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white"
             >
-              {state.kind === "course" ? "Open my course" : "Go to my dashboard"}
+              Open my courses
               <Icon name="arrow-right" size={14} />
             </Link>
             <p className="mt-3 font-mono text-[10px] text-[#918a97]">Ref {state.reference}</p>

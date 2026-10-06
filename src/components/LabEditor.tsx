@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Editor, { loader, type OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import type { LabLanguage } from "@/lib/lab";
@@ -54,7 +54,20 @@ const MONACO_LANGUAGE: Record<LabLanguage, string> = {
   html: "html",
   css: "css",
   js: "javascript",
+  python: "python",
+  json: "json",
+  markdown: "markdown",
+  text: "plaintext",
 };
+
+/** One squiggle from the editor, surfaced in the Problems panel. */
+export interface LabProblem {
+  file: string;
+  line: number;
+  column: number;
+  severity: "error" | "warning" | "info";
+  message: string;
+}
 
 interface Props {
   /** Used as the model path, so every file keeps its own undo history. */
@@ -64,14 +77,52 @@ interface Props {
   onChange: (value: string) => void;
   /** Fired on Ctrl/Cmd+Enter, mirroring the lab's Run button. */
   onRun: () => void;
+  /** The editor instance, for revealing lines and tracking the cursor. */
+  onEditorMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
+  /** Every marker across every open model, whenever they change. */
+  onProblems?: (problems: LabProblem[]) => void;
 }
 
-export default function LabEditor({ fileName, language, value, onChange, onRun }: Props) {
+export default function LabEditor({ fileName, language, value, onChange, onRun, onEditorMount, onProblems }: Props) {
   const runRef = useRef(onRun);
   runRef.current = onRun;
+  const mountRef = useRef(onEditorMount);
+  mountRef.current = onEditorMount;
+  const problemsRef = useRef(onProblems);
+  problemsRef.current = onProblems;
+  const markersListener = useRef<monaco.IDisposable | null>(null);
+
+  useEffect(() => () => {
+    markersListener.current?.dispose();
+    markersListener.current = null;
+  }, []);
 
   const handleMount: OnMount = (editor, monacoInstance) => {
     editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.Enter, () => runRef.current());
+    // Work saves itself — swallow Ctrl/Cmd+S so the browser's save dialog never appears.
+    editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyS, () => {});
+    const report = () => {
+      const sink = problemsRef.current;
+      if (!sink) return;
+      sink(
+        monacoInstance.editor.getModelMarkers({}).map((marker) => ({
+          file: marker.resource.path.replace(/^\//, ""),
+          line: marker.startLineNumber,
+          column: marker.startColumn,
+          severity:
+            marker.severity === monacoInstance.MarkerSeverity.Error
+              ? "error"
+              : marker.severity === monacoInstance.MarkerSeverity.Warning
+                ? "warning"
+                : "info",
+          message: marker.message,
+        })),
+      );
+    };
+    markersListener.current?.dispose();
+    markersListener.current = monacoInstance.editor.onDidChangeMarkers(report);
+    report();
+    mountRef.current?.(editor);
     editor.focus();
   };
 

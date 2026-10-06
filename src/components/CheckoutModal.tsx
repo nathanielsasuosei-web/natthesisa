@@ -14,10 +14,11 @@ import {
 import Icon from "./Icon";
 
 export interface CheckoutPayload {
-  kind: "pass" | "course" | "lesson";
+  kind: "pass" | "course" | "lesson" | "program";
   period?: string;
   courseId?: string;
   lessonId?: string;
+  programId?: string;
 }
 
 interface Props {

@@ -9,9 +9,10 @@ import { isPaystackConfigured } from "@/lib/paystack";
  * Starts a checkout — the one door money enters through.
  *
  *   POST /api/checkout
- *   { kind: "pass", period: "weekly", phone, network }
- *   { kind: "course", courseId, phone, network }
- *   { kind: "lesson", courseId, lessonId, phone, network }
+ *   { kind: "program", programId, phone, network }
+ *
+ * Programs are the only checkout: passes, courses and lessons are retired
+ * and the quote refuses them, while payments already in flight still fulfil.
  *
  * With Paystack configured the response carries an `authorizationUrl`: the
  * student's browser goes there, pays with Mobile Money / card / bank transfer
@@ -25,7 +26,10 @@ export async function POST(req: NextRequest) {
   if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
-  const kind = body.kind === "pass" || body.kind === "course" || body.kind === "lesson" ? body.kind : null;
+  const kind =
+    body.kind === "pass" || body.kind === "course" || body.kind === "lesson" || body.kind === "program"
+      ? body.kind
+      : null;
   if (!kind) {
     return NextResponse.json({ error: "Say what you are buying." }, { status: 400 });
   }
@@ -33,6 +37,7 @@ export async function POST(req: NextRequest) {
   const period = typeof body.period === "string" ? body.period : undefined;
   const courseId = typeof body.courseId === "string" ? body.courseId : undefined;
   const lessonId = typeof body.lessonId === "string" ? body.lessonId : undefined;
+  const programId = typeof body.programId === "string" ? body.programId : undefined;
 
   // The MoMo number is how we address the approval prompt (and the receipt).
   // It is validated here and stored on the payment row either way.
@@ -48,12 +53,12 @@ export async function POST(req: NextRequest) {
 
   try {
     // Quote first so "already owned" answers before any row is written.
-    quoteCheckout(user, { kind, period, courseId, lessonId });
+    quoteCheckout(user, { kind, period, courseId, lessonId, programId });
     const base =
       process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") || req.nextUrl.origin;
     const checkout = await createCheckout(
       user,
-      { kind, period, courseId, lessonId, phone: phoneCheck?.phone ?? undefined, network },
+      { kind, period, courseId, lessonId, programId, phone: phoneCheck?.phone ?? undefined, network },
       { callbackBaseUrl: base }
     );
     return NextResponse.json({

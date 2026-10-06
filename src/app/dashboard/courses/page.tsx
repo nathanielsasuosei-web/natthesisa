@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { COURSES } from "@/lib/courses";
+import { programForCategory } from "@/lib/programs";
 import { contentPercent, lessonCountsByCourse, lessonMinutesByCourse } from "@/lib/course-content";
 import { requireCurrentUser } from "@/lib/require-user";
 import { courseAccess } from "@/lib/access";
-import { coursePrice } from "@/lib/plans";
+import { programPrice } from "@/lib/plans";
 import CourseCatalog from "@/components/CourseCatalog";
 
 export const metadata: Metadata = { title: "Courses" };
@@ -16,10 +17,16 @@ export default async function CoursesPage() {
       return [item.courseId, course ? contentPercent(course, item.completedLessonIds) : 0];
     })
   );
-  // The catalog marks a card locked unless a pass is active AND the course has
-  // been bought. Previews inside a locked course are still watchable.
+  // A card is unlocked when the student owns the program the course belongs
+  // to. A locked card shows that program's price — the one payment that opens
+  // it — and every lesson inside stays locked until then.
   const unlocked = Object.fromEntries(COURSES.map((course) => [course.id, courseAccess(user, course).allowed]));
-  const prices = Object.fromEntries(COURSES.map((course) => [course.id, coursePrice(course.id)]));
+  const prices = Object.fromEntries(
+    COURSES.map((course) => {
+      const program = programForCategory(course.category);
+      return [course.id, program ? programPrice(program.id) : 0];
+    })
+  );
   return (
     <div>
       <header className="mb-7 flex flex-wrap items-end justify-between gap-4">

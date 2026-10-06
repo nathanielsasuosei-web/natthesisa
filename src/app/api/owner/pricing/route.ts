@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentOwner } from "@/lib/session";
 import { OWNER_ONLY_ERROR } from "@/lib/owner";
 import { PricingError, pricing, saveContentPrice, savePricing } from "@/lib/plans";
-import { coursePriceRows, lessonPriceRows } from "@/lib/owner-console";
+import { coursePriceRows, lessonPriceRows, programPriceRows } from "@/lib/owner-console";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +10,8 @@ export const dynamic = "force-dynamic";
  * The owner sets the prices.
  *
  * Two kinds of change arrive here:
- *   • the three pass prices (and the default course/lesson price a new upload
- *     starts from), and
- *   • the price of one named course or lesson.
+ *   • the default program price a new program starts from, and
+ *   • the price of one named program.
  *
  * Nothing in the app hardcodes a price, so a change here is live on the next
  * page render.
@@ -25,6 +24,7 @@ export async function GET() {
     pricing: pricing(),
     courses: coursePriceRows(),
     lessons: lessonPriceRows(),
+    programs: programPriceRows(),
   });
 }
 
@@ -35,18 +35,18 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
 
   try {
-    // A single course or lesson price.
+    // The price of one named program (course/lesson rows are retired history).
     if (body.scope === "content") {
-      const kind = body.kind === "course" || body.kind === "lesson" ? body.kind : null;
+      const kind = body.kind === "program" ? body.kind : null;
       const refId = typeof body.refId === "string" ? body.refId : "";
       if (!kind || !refId) {
-        return NextResponse.json({ error: "Name the course or lesson to reprice." }, { status: 400 });
+        return NextResponse.json({ error: "Name the program to reprice." }, { status: 400 });
       }
       const price = await saveContentPrice(kind, refId, body.price);
       return NextResponse.json({ ok: true, kind, refId, price });
     }
 
-    // The pass prices / defaults.
+    // The default program price (pass/course/lesson fields are retired).
     const next = await savePricing(body.pricing ?? body);
     return NextResponse.json({ ok: true, pricing: next });
   } catch (error) {

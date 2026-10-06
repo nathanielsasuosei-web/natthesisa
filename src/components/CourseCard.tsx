@@ -15,7 +15,7 @@ interface Props {
   lessonCount?: number;
   /** Total minutes including lessons published by the owner. */
   minutes?: number;
-  /** What the course costs on its own, when the viewer may still buy it. */
+  /** The program price that opens this course, shown while it is locked. */
   price?: number;
 }
 

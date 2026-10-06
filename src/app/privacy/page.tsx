@@ -38,7 +38,7 @@ export default function PrivacyPage() {
           per day, your weekly goal and profile details you choose to add (a headline, a track, an experience level).
         </p>
         <p>
-          <strong>When you buy a pass or a course:</strong> which pass or course, the amount, the date and an invoice
+          <strong>When you buy a program:</strong> which program, the amount, the date and an invoice
           number. <strong>No card number, Mobile Money number or bank detail is ever collected</strong> in this build — see
           the note on payments below.
         </p>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
 
       <InfoSection title="Payments, honestly">
         <p>
-          No real money moves through this application today. The pass and course checkout is a working demonstration:
+          No real money moves through this application today. The program checkout is a working demonstration:
           it records the order, the invoice and your access in the database, exactly as the live version will, but it
           never asks for — and never stores — card or Mobile Money details.
         </p>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
         <InfoList
           items={[
             "You can see your own account, progress, purchases, invoices and certificates.",
-            "The teacher account can see student names, email addresses, pass status, purchases, progress and certificates, because that is what running a school requires: granting access, helping with a problem and issuing certificates.",
+            "The teacher account can see student names, email addresses, programs owned, purchases, progress and certificates, because that is what running a school requires: granting access, helping with a problem and issuing certificates.",
             "Nobody else can see your account. Another student cannot see your progress.",
             "We do not share your data with advertisers or data brokers, and we do not sell it. We would only disclose it if a lawful order in Ghana required us to, and we would tell you unless we were legally barred from doing so.",
           ]}
