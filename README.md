@@ -760,6 +760,25 @@ who somehow pays twice for the same item is refunded automatically (the
 register shows both paid rows); if the automatic refund ever fails, refund the
 duplicate from the Paystack dashboard — the server log names the reference.
 
+### Reconciling "The checkout could not be started."
+
+The response no longer hides the reason — it names the layer that refused, and
+the server log (`[codemasterghana] checkout failed …`) carries the exact
+Postgres error. Two causes are worth knowing:
+
+- **A `payments` table that came from somewhere else.** A database shared with
+  another project can already have a `payments` table whose `user_id` is
+  `uuid`, whose `status` / `provider` rules were written for a different app,
+  or which demands a column this app never fills. Any of those refuses every
+  checkout while sign-in and the rest of the site look perfectly healthy. The
+  app aligns that table by itself on the first request after deploying — see
+  the heal block at the end of `MIGRATION_STATEMENTS` in
+  `src/lib/schema.ts`. Nothing has to be pasted or renamed, no rows are
+  touched, and a column it cannot convert is logged rather than fatal.
+- **Paystack refusing the charge.** The message then quotes Paystack ("Invalid
+  key", "Currency not supported by merchant", …). Run `npm run payments:check`
+  and make sure Ghana cedis (GHS) are activated on the Paystack account.
+
 ## Data and access behavior
 
 - Accounts live in PostgreSQL. Every signup, profile edit, password change,

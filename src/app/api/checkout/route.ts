@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
-import { CheckoutError, createCheckout, quoteCheckout } from "@/lib/payments";
+import {
+  CheckoutError,
+  createCheckout,
+  describeCheckoutFailure,
+  quoteCheckout,
+} from "@/lib/payments";
 import { PurchaseError } from "@/lib/purchases";
 import { checkMomoPhone, isMomoNetwork } from "@/lib/momo";
 import { isPaystackConfigured } from "@/lib/paystack";
@@ -20,7 +25,34 @@ import { isPaystackConfigured } from "@/lib/paystack";
  * provider the response is `{ demo: true }` and the UI simulates the MoMo
  * approval prompt instead (see `/api/checkout/confirm`).
  */
+
+// A checkout may never be answered from a cache: the `live` flag decides
+// whether the modal sends the student to Paystack or offers the demo prompt.
+export const dynamic = "force-dynamic";
+
+const NO_STORE = { "Cache-Control": "no-store" } as const;
+
 export async function POST(req: NextRequest) {
+  try {
+    return await startCheckout(req);
+  } catch (error) {
+    if (error instanceof PurchaseError || error instanceof CheckoutError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+    }
+    // Anything reaching here is a bug or a database the app has not met
+    // before. It must still be JSON — a Next.js HTML error page is what made
+    // this endpoint report "The checkout could not be started." with no way to
+    // find out why — and it must say which layer refused, not just that
+    // something did.
+    console.error("[codemasterghana] checkout failed", error);
+    return NextResponse.json(
+      { error: `The checkout could not be started — ${describeCheckoutFailure(error)}.`, code: "CHECKOUT_FAILED" },
+      { status: 500, headers: NO_STORE }
+    );
+  }
+}
+
+async function startCheckout(req: NextRequest): Promise<NextResponse> {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in to pay for this." }, { status: 401 });
   if (isSuspended(user)) return NextResponse.json(SUSPENDED_ERROR, { status: 403 });
@@ -51,17 +83,17 @@ export async function POST(req: NextRequest) {
       ? body.network
       : (phoneCheck?.network ?? undefined);
 
-  try {
-    // Quote first so "already owned" answers before any row is written.
-    quoteCheckout(user, { kind, period, courseId, lessonId, programId });
-    const base =
-      process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") || req.nextUrl.origin;
-    const checkout = await createCheckout(
-      user,
-      { kind, period, courseId, lessonId, programId, phone: phoneCheck?.phone ?? undefined, network },
-      { callbackBaseUrl: base }
-    );
-    return NextResponse.json({
+  // Quote first so "already owned" answers before any row is written.
+  quoteCheckout(user, { kind, period, courseId, lessonId, programId });
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") || req.nextUrl.origin;
+  const checkout = await createCheckout(
+    user,
+    { kind, period, courseId, lessonId, programId, phone: phoneCheck?.phone ?? undefined, network },
+    { callbackBaseUrl: base }
+  );
+  return NextResponse.json(
+    {
       ok: true,
       demo: checkout.demo,
       reference: checkout.payment.reference,
@@ -69,17 +101,12 @@ export async function POST(req: NextRequest) {
       currency: checkout.payment.currency,
       description: checkout.payment.description,
       authorizationUrl: checkout.authorizationUrl,
-    });
-  } catch (error) {
-    if (error instanceof PurchaseError || error instanceof CheckoutError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
-    }
-    console.error("[codemasterghana] checkout failed", error);
-    return NextResponse.json({ error: "The checkout could not be started." }, { status: 500 });
-  }
+    },
+    { headers: NO_STORE }
+  );
 }
 
 /** Whether live payments are on, so the checkout UI can say so honestly. */
 export async function GET() {
-  return NextResponse.json({ ok: true, live: isPaystackConfigured() });
+  return NextResponse.json({ ok: true, live: isPaystackConfigured() }, { headers: NO_STORE });
 }
