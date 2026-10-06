@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
 import CodeLab from "@/components/CodeLab";
@@ -20,7 +21,8 @@ export default async function StudioPage() {
 
   return (
     <div className="min-h-screen bg-[#faf9fc]">
-      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name} />
+      <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name}
+        userAvatar={user ? avatarHref(user) : null} />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-28 sm:px-6 sm:pt-32">
         <CodeLab

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
+import AvatarImage from "./AvatarImage";
 import Logo from "./Logo";
 import Icon, { type IconName } from "./Icon";
 
@@ -13,6 +14,8 @@ interface Props {
   signedIn?: boolean;
   /** Display name, for the signed-in avatar. */
   userName?: string | null;
+  /** The account's picture, or null/omitted for the initial letter. */
+  userAvatar?: string | null;
 }
 
 /**
@@ -132,7 +135,7 @@ function AnnouncementBar() {
  * `globals.css`) and the staggered entrances re-run every time a panel opens,
  * because the panel remounts.
  */
-export default function PublicHeader({ appHref = null, signedIn = false, userName = null }: Props) {
+export default function PublicHeader({ appHref = null, signedIn = false, userName = null, userAvatar = null }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCoursesOpen, setMobileCoursesOpen] = useState(false);
   const [coursesOpen, setCoursesOpen] = useState(false);
@@ -246,8 +249,11 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
                 title={userName ? `Signed in as ${userName}` : "Open your dashboard"}
                 className="group inline-flex items-center gap-2 rounded-xl bg-[#17151f] py-1.5 pl-1.5 pr-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2a2632] hover:shadow-[0_10px_24px_rgba(23,21,31,.25)]"
               >
-                <span className="grid size-8 place-items-center rounded-lg bg-[#6d4aff] text-[13px] font-black text-white transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
-                  {initial || <Icon name="user" size={15} />}
+                <span
+                  className="grid size-8 place-items-center overflow-hidden rounded-lg bg-[#6d4aff] text-[13px] font-black text-white transition-transform duration-300 group-hover:scale-110"
+                  aria-hidden="true"
+                >
+                  {userAvatar ? <AvatarImage name={userName ?? "Your account"} src={userAvatar} /> : initial || <Icon name="user" size={15} />}
                 </span>
                 <span className="hidden sm:inline">{isOwner ? "Teacher console" : "Dashboard"}</span>
                 <span className="sm:hidden">{isOwner ? "Console" : "App"}</span>
@@ -424,7 +430,10 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
               {signedIn && appHref ? (
                 <>
                   {userName && (
-                    <p className="px-1 pb-1 text-[11px] text-[#918a97]">
+                    <p className="flex items-center gap-2.5 px-1 pb-1 text-[11px] text-[#918a97]">
+                      <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full bg-[#1b1822] text-[10px] font-black text-[#c3b6ff]">
+                        <AvatarImage name={userName} src={userAvatar} />
+                      </span>
                       Signed in as <strong className="text-[#4a4450]">{userName}</strong>
                     </p>
                   )}

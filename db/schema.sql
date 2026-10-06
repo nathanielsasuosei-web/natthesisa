@@ -28,6 +28,7 @@ create table if not exists users (
      activity_log      jsonb not null default '[]'::jsonb,
      payment_method    jsonb not null,
      profile           jsonb not null,
+     avatar            jsonb,
      last_seen_at      timestamptz,
      created_at        timestamptz not null default now(),
      updated_at        timestamptz not null default now()
@@ -98,6 +99,8 @@ alter table users add column if not exists activity_log jsonb not null default '
 alter table users add column if not exists payment_method jsonb;
 
 alter table users add column if not exists profile jsonb;
+
+alter table users add column if not exists avatar jsonb;
 
 alter table users add column if not exists last_seen_at timestamptz;
 

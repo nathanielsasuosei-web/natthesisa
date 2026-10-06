@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/session";
+import { avatarHref } from "@/lib/avatars";
 import { site } from "@/config/site";
 import { ownerDisplayName } from "@/lib/owner";
 import InfoPage, { InfoFaq, InfoSection } from "@/components/InfoPage";
@@ -27,6 +28,7 @@ export default async function ContactPage() {
       appHref={appHref}
       signedIn={Boolean(user)}
       userName={user?.name}
+      userAvatar={user ? avatarHref(user) : null}
     >
       <div className="grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
         <ContactForm signedIn={Boolean(user)} defaultName={user?.name ?? ""} defaultEmail={user?.email ?? ""} />

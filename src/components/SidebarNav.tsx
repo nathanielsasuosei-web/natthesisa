@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon, { type IconName } from "./Icon";
+import AvatarImage from "./AvatarImage";
 import Logo from "./Logo";
 import SignOutButton from "./SignOutButton";
 
@@ -20,6 +21,8 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
 interface Props {
   userName: string;
   userEmail: string;
+  /** The account's picture, or null/omitted for initials. */
+  userAvatar?: string | null;
   /** How many programs the student owns. */
   programsOwned: number;
   weeklyMinutes: number;
@@ -29,7 +32,16 @@ interface Props {
   compact?: boolean;
 }
 
-export default function SidebarNav({ userName, userEmail, programsOwned, weeklyMinutes, weeklyGoal, isOwner, compact = false }: Props) {
+export default function SidebarNav({
+  userName,
+  userEmail,
+  userAvatar = null,
+  programsOwned,
+  weeklyMinutes,
+  weeklyGoal,
+  isOwner,
+  compact = false,
+}: Props) {
   const pathname = usePathname();
 
   const active = (href: string) => href === "/dashboard" ? pathname === href : pathname.startsWith(href);
@@ -46,7 +58,9 @@ export default function SidebarNav({ userName, userEmail, programsOwned, weeklyM
           ))}
           {isOwner && <Link href="/owner" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold text-[#d3c8ff]"><Icon name="crown" size={14} /> Teacher console</Link>}
         </nav>
-        <Link href="/dashboard/account" aria-label="Open account" className="grid size-8 shrink-0 place-items-center rounded-full bg-[#6d4aff] text-[10px] font-black text-white">{userName.slice(0, 1).toUpperCase()}</Link>
+        <Link href="/dashboard/account" aria-label="Open account" title={userName} className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-[#6d4aff] text-[10px] font-black text-white">
+          <AvatarImage name={userName} src={userAvatar} />
+        </Link>
         <SignOutButton iconOnly iconSize={15} className="grid size-8 shrink-0 place-items-center rounded-lg text-[#aaa4b2] transition hover:bg-white/[.08] hover:text-white" />
       </div>
     );
@@ -85,7 +99,9 @@ export default function SidebarNav({ userName, userEmail, programsOwned, weeklyM
         </div>
         <div className="border-t border-white/[.07] pt-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#332b4c] text-xs font-black text-[#c7baff]">{userName.slice(0, 1).toUpperCase()}</span>
+            <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#332b4c] text-xs font-black text-[#c7baff]">
+              <AvatarImage name={userName} src={userAvatar} />
+            </span>
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-white">{userName}</p><p className="truncate text-[9px] text-[#716b79]">{userEmail}</p></div>
           </div>
           <SignOutButton

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StudentRow } from "@/lib/owner-console";
 import { fmtDate, fmtMinutes, fmtMoney, initials } from "@/lib/format";
+import AvatarImage from "./AvatarImage";
 import Icon from "./Icon";
 
 interface Props {
@@ -133,8 +134,15 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, programs = [
                 <tr key={user.id} className={`border-b border-[#f0edf2] last:border-0 ${user.suspended ? "bg-amber-50/45" : ""}`}>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <span className={`grid size-9 shrink-0 place-items-center rounded-xl text-[10px] font-black ${user.owner ? "bg-[#1b1822] text-[#c4b7ff]" : "bg-[#f0ecff] text-[#5e3de0]"}`}>
-                        {initials(user.name)}
+                      <span className={`grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl text-[10px] font-black ${user.owner ? "bg-[#1b1822] text-[#c4b7ff]" : "bg-[#f0ecff] text-[#5e3de0]"}`}>
+                        {user.hasAvatar ? (
+                          <AvatarImage
+                            name={user.name}
+                            src={`/api/account/avatar?u=${encodeURIComponent(user.id)}&v=${encodeURIComponent(user.avatarVersion ?? "")}`}
+                          />
+                        ) : (
+                          initials(user.name)
+                        )}
                       </span>
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 text-[10px] font-extrabold text-[#403a46]">

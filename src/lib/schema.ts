@@ -56,6 +56,7 @@ export const SCHEMA_STATEMENTS: string[] = [
      activity_log      jsonb not null default '[]'::jsonb,
      payment_method    jsonb not null,
      profile           jsonb not null,
+     avatar            jsonb,
      last_seen_at      timestamptz,
      created_at        timestamptz not null default now(),
      updated_at        timestamptz not null default now()
@@ -156,6 +157,11 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table users add column if not exists activity_log jsonb not null default '[]'::jsonb`,
   `alter table users add column if not exists payment_method jsonb`,
   `alter table users add column if not exists profile jsonb`,
+  // The student's own profile picture: the small record (stored name, mime,
+  // size, upload time) of an image kept in object storage or on disk — never
+  // the bytes themselves. Nullable, because most accounts will not set one and
+  // the UI falls back to the student's initials.
+  `alter table users add column if not exists avatar jsonb`,
   `alter table users add column if not exists last_seen_at timestamptz`,
   `alter table users add column if not exists created_at timestamptz not null default now()`,
   `alter table users add column if not exists updated_at timestamptz not null default now()`,
@@ -434,6 +440,7 @@ export interface UserRow {
   activity_log: unknown;
   payment_method: unknown;
   profile: unknown;
+  avatar: unknown;
   created_at: Date | string;
   updated_at: Date | string;
 }
