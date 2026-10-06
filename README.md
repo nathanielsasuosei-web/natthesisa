@@ -524,7 +524,22 @@ npm run db:schema > db/schema.sql   # already committed
 A database made by an older build heals itself on the next request: after the
 creates, the app runs additive migrations (`ADD COLUMN IF NOT EXISTS`,
 backfills, role normalization) that reshape a stale `users` table into the
-current one. The migration only adds — it never drops, renames or retypes, so
+current one. Before any of that runs, one query asks whether the database is
+*already* the shape those statements describe (`SCHEMA_CURRENT_QUERY` in
+`src/lib/schema.ts`); if it is, the statements are skipped. That matters on a
+hosted deployment, where a serverless instance runs the whole list on its first
+request — 80 statements over a pooled connection took longer than the health
+probe's 12-second limit, so the deployment reported a database problem it did
+not have, and the first visitor to a cold instance waited for it. Nothing is
+lost by skipping: the check looks at the same things the statements guarantee —
+column names *and types*, the rules that decide which values may be written,
+unique emails, the invoice-number sequence, and NOT NULL columns this app never
+fills — and any difference falls back to the full list. `npm run schema:check`
+proves both halves on a throwaway database: it starts empty, applies the
+statements, then puts the table into every hostile shape that has broken this
+app before (`uuid` account ids, a `varchar(8)` reference, rules that reject
+`program`, a stray NOT NULL column) and checks that each one is noticed and
+repaired. The migration only adds — it never drops, renames or retypes, so
 existing rows survive it — and the two roles are normalized: the row flagged
 `owner` becomes `owner`, and every other account (including one that held the
 old `admin` role) becomes `student`, keeping its progress, purchases and

@@ -1,6 +1,6 @@
 import { mkdirSync, renameSync } from "node:fs";
 import path from "node:path";
-import { MIGRATION_STATEMENTS, SCHEMA_STATEMENTS } from "./schema";
+import { MIGRATION_STATEMENTS, SCHEMA_CURRENT_QUERY, SCHEMA_STATEMENTS } from "./schema";
 
 /**
  * Database connection.
@@ -365,11 +365,23 @@ export async function queryOne<T = Record<string, unknown>>(sql: string, params?
 
 /**
  * Creates the tables on first use, then heals databases made by older builds.
- * Safe to call on every request.
+ * Safe to call on every request, and cached per process.
+ *
+ * The statements are only run when the database does not already match them
+ * (`SCHEMA_CURRENT_QUERY`, one query). That matters on a hosted deployment:
+ * every cold serverless instance used to replay all ~80 statements over a
+ * pooled connection before it could answer anything — long enough that the
+ * health probe timed out and the first visitor waited seconds. A database that
+ * is already correct now costs one query; one that is not (a fresh database, a
+ * table left by another project, something changed by hand) takes the full
+ * path, so the self-healing behaviour is unchanged.
  */
 export async function ensureSchema(): Promise<void> {
   if (!g.__codaraSchema) {
     g.__codaraSchema = (async () => {
+      if (await schemaIsCurrent()) return;
+
+      console.info("[codemasterghana] shaping the database: creating or upgrading the tables this app needs");
       for (const statement of SCHEMA_STATEMENTS) {
         await runSchemaStatement(statement);
       }
@@ -379,12 +391,34 @@ export async function ensureSchema(): Promise<void> {
       for (const statement of MIGRATION_STATEMENTS) {
         await runSchemaStatement(statement);
       }
+      // Say so when the statements ran but the shape still disagrees — the
+      // warnings above name the statement, and this is what a report sees.
+      if (!(await schemaIsCurrent())) {
+        console.warn(
+          "[codemasterghana] the database still does not match the expected shape after the statements ran — see the warnings above"
+        );
+      }
     })().catch((error) => {
       g.__codaraSchema = undefined;
       throw error;
     });
   }
   return g.__codaraSchema;
+}
+
+/**
+ * True when the database already has everything the statements would give it.
+ * A check that cannot run (no connection, an unusual role) counts as `false`,
+ * which runs the statements and lets them report the problem in full.
+ */
+async function schemaIsCurrent(): Promise<boolean> {
+  try {
+    const row = await queryOne<{ current: boolean }>(SCHEMA_CURRENT_QUERY);
+    return row?.current === true;
+  } catch (error) {
+    console.warn("[codemasterghana] could not check the database shape, applying every statement instead", error);
+    return false;
+  }
 }
 
 /**
