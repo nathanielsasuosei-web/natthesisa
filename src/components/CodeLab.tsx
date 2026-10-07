@@ -14,6 +14,8 @@ import {
 } from "@/lib/lab";
 import type { LabProblem } from "./LabEditor";
 import { runPython, type PythonStatus } from "@/lib/python";
+import { createProjectArchive } from "@/lib/project-archive";
+import { NATTHESISA_PROJECT_TRANSFER_KEY, type NatthesisaProject } from "@/lib/natthesisa-project";
 
 /**
  * CodeMaster Studio — the website's own VS Code.
@@ -46,6 +48,7 @@ const FILE_ICONS: Record<LabLanguage, IconName> = {
   html: "browser",
   css: "layers",
   js: "code",
+  typescript: "code",
   python: "terminal",
   json: "file",
   markdown: "book",
@@ -56,6 +59,7 @@ const LANG_LABEL: Record<LabLanguage, string> = {
   html: "HTML",
   css: "CSS",
   js: "JavaScript",
+  typescript: "TypeScript",
   python: "Python",
   json: "JSON",
   markdown: "Markdown",
@@ -103,6 +107,8 @@ function starterFor(language: LabLanguage): string {
       return `/* Styles for your page */\n`;
     case "js":
       return `// Runs in the preview — console.log() shows in the Console tab.\nconsole.log("Hello!");\n`;
+    case "typescript":
+      return `// TypeScript source file. Download the project to run it with your toolchain.\nconst message: string = "Hello, TypeScript!";\nconsole.log(message);\n`;
     case "python":
       return `# Press Run — print() shows in the Console tab.\nprint("Hello from Python!")\n`;
     case "json":
@@ -199,33 +205,63 @@ export default function CodeLab({
   const consoleScrollRef = useRef<HTMLDivElement | null>(null);
   const hydrated = useRef(false);
 
-  // ---- restore the student's last session ----------------------------------
+  // ---- restore saved work, then optionally take a one-time Natthesisa handoff -
   useEffect(() => {
+    let savedFiles: LabFile[] = [];
     try {
       const raw = window.localStorage.getItem(storageKey);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { templateId?: unknown; files?: unknown; activeFile?: unknown };
-      const known = LAB_TEMPLATES.find((template) => template.id === parsed.templateId);
-      const rawFiles = Array.isArray(parsed.files) ? parsed.files : [];
-      // The extension is authoritative: the language is always recomputed, so
-      // work saved by older versions (HTML/CSS/JS only) still loads cleanly.
-      const clean: LabFile[] = [];
-      for (const item of rawFiles.slice(0, 50)) {
-        if (typeof item !== "object" || item === null) continue;
-        const { name, content } = item as { name?: unknown; content?: unknown };
-        if (typeof name !== "string" || !name.trim() || typeof content !== "string") continue;
-        if (clean.some((entry) => entry.name === name.trim())) continue;
-        clean.push({ name: name.trim(), content: content.slice(0, 200_000), language: languageForFileName(name) });
-      }
-      if (clean.length > 0) {
-        setFiles(clean);
-        setTemplateId(known?.id ?? LAB_TEMPLATES[0].id);
-        setActiveFile(
-          clean.some((entry) => entry.name === parsed.activeFile) ? (parsed.activeFile as string) : clean[0].name,
-        );
+      if (raw) {
+        const parsed = JSON.parse(raw) as { templateId?: unknown; files?: unknown; activeFile?: unknown };
+        const known = LAB_TEMPLATES.find((template) => template.id === parsed.templateId);
+        const rawFiles = Array.isArray(parsed.files) ? parsed.files : [];
+        // The extension is authoritative, so older browser saves still load.
+        for (const item of rawFiles.slice(0, 50)) {
+          if (typeof item !== "object" || item === null) continue;
+          const { name, content } = item as { name?: unknown; content?: unknown };
+          if (typeof name !== "string" || !name.trim() || typeof content !== "string") continue;
+          if (savedFiles.some((entry) => entry.name === name.trim())) continue;
+          savedFiles.push({ name: name.trim(), content: content.slice(0, 200_000), language: languageForFileName(name) });
+        }
+        if (savedFiles.length > 0) {
+          setFiles(savedFiles);
+          setTemplateId(known?.id ?? LAB_TEMPLATES[0].id);
+          setActiveFile(
+            savedFiles.some((entry) => entry.name === parsed.activeFile) ? (parsed.activeFile as string) : savedFiles[0].name,
+          );
+        }
       }
     } catch {
-      // A corrupt entry should never stop the studio from opening.
+      // A corrupt saved entry should never stop the studio from opening.
+    }
+
+    try {
+      const staged = window.sessionStorage.getItem(NATTHESISA_PROJECT_TRANSFER_KEY);
+      if (staged) {
+        window.sessionStorage.removeItem(NATTHESISA_PROJECT_TRANSFER_KEY);
+        const project = JSON.parse(staged) as Partial<NatthesisaProject>;
+        if (Array.isArray(project.files) && project.files.length > 0 && project.files.length <= 12) {
+          const imported: LabFile[] = [];
+          for (const item of project.files) {
+            if (!item || typeof item.name !== "string" || typeof item.content !== "string") continue;
+            const name = item.name.trim().replace(/\\/g, "/");
+            if (
+              !name || name.length > 120 || name.startsWith("/") ||
+              name.split("/").some((part) => !part || part === "." || part === "..") ||
+              imported.some((entry) => entry.name === name) || item.content.length > 24_000
+            ) continue;
+            imported.push({ name, content: item.content, language: languageForFileName(name) });
+          }
+          if (imported.length > 0 && (savedFiles.length === 0 || window.confirm("Open the Natthesisa project in Code Lab? This will replace the files currently saved for this account."))) {
+            setFiles(imported);
+            setTemplateId(`natthesisa-${project.target ?? "code"}`);
+            setActiveFile(imported[0].name);
+            setConsoleLines([]);
+            setProblems([]);
+          }
+        }
+      }
+    } catch {
+      // Ignore unavailable session storage or a malformed project handoff.
     } finally {
       hydrated.current = true;
     }
@@ -533,12 +569,11 @@ export default function CodeLab({
 
   // ---- downloads -----------------------------------------------------------
   const downloadProject = useCallback(() => {
-    const html = buildPreview(files);
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
+    const archive = createProjectArchive(files);
+    const url = URL.createObjectURL(archive);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "codemasterghana-project.html";
+    link.download = "codemasterghana-project.zip";
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }, [files]);

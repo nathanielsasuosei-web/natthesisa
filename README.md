@@ -36,6 +36,24 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Editable learner profile, experience level, track and weekly goal, and a
   **profile picture** a student adds from their account page
 
+### Natthesisa AI study assistant
+
+- The floating assistant is mounted site-wide; every lesson also includes
+  contextual **Explain**, **Hint** and **Quiz** actions. On a lesson page,
+  Natthesisa receives the course and lesson context, and the server only adds
+  lesson notes after checking the student's access.
+- Students can ask for explanations, quizzes, code reviews and debugging help,
+  or switch to **Build → Website / Mobile app / Code** in the chat.
+- Website projects are multi-file HTML/CSS/JavaScript and open in the sandboxed
+  Code Lab preview. Mobile projects are Expo / React Native starter projects;
+  Code Lab edits and exports them, while Expo Go previews them on a phone.
+  Generated projects can be downloaded as a ZIP.
+- The built-in study brain and starter scaffolds work without an AI key. Set
+  `NATTHESISA_API_KEY`, `NATTHESISA_API_URL` and `NATTHESISA_MODEL` in the
+  server environment to enable custom model-generated answers and projects.
+  Configure these on the server only; do not expose the key to the browser.
+  See `.env.example`.
+
 ### Programs, and buying them
 
 - **One payment per program, kept forever.** Buying a program opens every
@@ -516,8 +534,9 @@ VS Code editor (Monaco) running entirely in the browser:
   loop ends the run instead of the tab. The first run downloads the runtime
   (about 10 MB) from a CDN.
 - Work is saved to `localStorage` (per account in the lab, under `guest` in
-  the public studio) and can be downloaded as one self-contained HTML file or
-  as individual files.
+  the public studio) and can be downloaded as a project ZIP or as individual
+  files. Natthesisa-generated website and Expo/React Native projects transfer
+  straight into the editor.
 
 Student web code runs inside a sandboxed iframe (`sandbox="allow-scripts
 allow-modals"`, no `allow-same-origin`), and Python runs in a worker with no

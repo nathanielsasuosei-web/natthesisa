@@ -12,6 +12,7 @@ import Logo from "@/components/Logo";
 import LessonActions from "@/components/LessonActions";
 import LessonMaterials from "@/components/LessonMaterials";
 import LessonVideoGuide from "@/components/LessonVideoGuide";
+import LessonNatthesisa from "@/components/LessonNatthesisa";
 import { lessonVideo } from "@/lib/lesson-videos";
 import BuyProgram from "@/components/BuyProgram";
 
@@ -65,7 +66,14 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const nextLabel = nextLesson && nextAccessible ? "Next lesson" : nextLesson ? "Back to course" : "Finish course";
 
   return (
-    <div className="min-h-screen bg-[#f7f7f4]">
+    <div
+      className="min-h-screen bg-[#f7f7f4]"
+      data-natthesisa-context="lesson"
+      data-course-id={course.id}
+      data-course-title={course.title}
+      data-lesson-id={lesson.id}
+      data-lesson-title={lesson.title}
+    >
       <header className="sticky top-0 z-40 border-b border-[#e6e2e9] bg-white/90 backdrop-blur-xl">
         <div className="flex h-[66px] items-center px-4 sm:px-6">
           <Logo compact />
@@ -89,6 +97,8 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
             <h1 className="mt-3 text-balance text-3xl font-black leading-tight tracking-[-.045em] text-[#1d1922] sm:text-[44px]">{lesson.title}</h1>
             <p className="mt-4 text-base leading-7 text-[#6f6975]">{lesson.summary}</p>
             <div className="mt-6 flex flex-wrap gap-4 border-y border-[#e6e2e9] py-3 text-[10px] font-semibold text-[#817a87]"><span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {lesson.duration} minutes</span><span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> Reading + practice</span>{complete && <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700"><Icon name="check" size={14} /> Completed</span>}</div>
+
+            <LessonNatthesisa lessonTitle={lesson.title} />
 
             <section className="open-section mt-9 pb-1"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#6d4aff]">Learning objectives</p><ul className="mt-4 grid gap-3 sm:grid-cols-2">{lesson.objectives.map((objective) => <li key={objective} className="flex items-start gap-2.5 text-xs font-semibold leading-5 text-[#5d5763]"><span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[#eee9ff] text-[#6543e8]"><Icon name="check" size={10} /></span>{objective}</li>)}</ul></section>
 

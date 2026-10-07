@@ -22,6 +22,11 @@ export interface ChatContext {
   courseTitle?: string;
   lessonId?: string;
   lessonTitle?: string;
+  /** Verified lesson notes are added server-side after access has been checked. */
+  lessonSummary?: string;
+  lessonObjectives?: string[];
+  lessonContent?: string;
+  lessonChallenge?: string;
   userName?: string;
   url?: string;
 }
@@ -537,6 +542,8 @@ export const GREETING_SUGGESTIONS = [
   "Show me the courses",
   "Quiz me",
   "Explain JavaScript",
+  "Build a website",
+  "Build a mobile app",
 ];
 
 export function greeting(context?: ChatContext): AgentReply {
@@ -547,7 +554,7 @@ export function greeting(context?: ChatContext): AgentReply {
       ? ` I see you're exploring **${context.courseTitle}** — great choice.`
       : "";
   return {
-    reply: `Hi ${name}! I'm **Natthesisa** — your study companion here on codemasterghana. 👋\n\nI can **explain concepts**, **recommend your path**, **quiz you**, **help debug code**, and answer questions about courses, payments and certificates.${studying}\n\nWhat are we learning today?`,
+    reply: `Hi ${name}! I'm **Natthesisa** — your AI study companion here on codemasterghana. 👋\n\nI can **explain lessons**, **quiz you**, **debug and generate code**, and help you **build a website or a React Native mobile app**. I can also guide your course path and answer platform questions.${studying}\n\nWhat are we learning or building today?`,
     suggestions: GREETING_SUGGESTIONS,
     links: [
       { label: "Browse courses", href: "/courses" },
@@ -582,7 +589,7 @@ export function answer(
   if (has(text, "who are you", "your name", "what are you", "about yourself", "natthesisa")) {
     if (has(text, "who are you", "your name", "what are you", "about yourself") || text === "natthesisa") {
       return {
-        reply: "I'm **Natthesisa** — codemasterghana's AI study companion. Think of me as the senior student who never sleeps: I explain concepts in plain language, quiz you until ideas stick, help debug your code, and guide you to the right course.\n\nI was named for this platform's mission: *learn, build, become.* What shall we tackle?",
+        reply: "I'm **Natthesisa** — codemasterghana's AI study companion. Think of me as the senior student who never sleeps: I explain lessons, quiz you, debug and generate code, and help you build websites or React Native mobile app starters. I can also guide you to the right course.\n\nI was named for this platform's mission: *learn, build, become.* What shall we tackle?",
         suggestions: GREETING_SUGGESTIONS,
         links: [],
       };
@@ -636,6 +643,17 @@ export function answer(
     return platform;
   }
 
+  // 6a. Direct new-project requests should point to the project builder, not only a course recommendation.
+  const asksToBuild = /\b(build|create|make|generate|write)\b/.test(text);
+  const projectKind = /\b(website|web site|web app|mobile app|application|app)\b/.test(text) || has(text, "code", "function", "snippet");
+  if (asksToBuild && projectKind) {
+    return {
+      reply: "Absolutely. Choose **Build → Website, Mobile app, or Code** above this chat, then describe the goal, audience, key features, and style. Websites open in Code Lab; mobile apps are Expo / React Native projects you can try with Expo Go. Review and test generated code before shipping.",
+      suggestions: ["Build a website", "Build a mobile app", "Generate code"],
+      links: [{ label: "Open Code Lab", href: "/dashboard/code" }],
+    };
+  }
+
   // 7. Coaching / debugging (before concepts, so "stuck on flexbox" still coaches)
   if (hasAll(text, "explain") && findConcept(text)) {
     // fall through to concepts
@@ -678,11 +696,28 @@ export function answer(
     };
   }
 
-  // 10. Current-lesson nudge
-  if (context?.lessonTitle && has(text, "this", "lesson", "it", "explain", "summar", "recap")) {
+  // 10. Use verified lesson material before falling back to a generic nudge.
+  if (context?.lessonTitle && context.lessonSummary && /\b(summarize|summary|recap|what am i learning|what is this lesson about|key idea)\b/.test(text)) {
+    const objectives = context.lessonObjectives?.length
+      ? `\n\n**By the end, you should be able to:**\n${context.lessonObjectives.map((objective) => `- ${objective}`).join("\n")}`
+      : "";
     return {
-      reply: `You're on **${context.lessonTitle}**${context.courseTitle ? ` (*${context.courseTitle}*)` : ""}.\n\nTell me which part trips you up — for example:\n\n- *\"Explain the key idea in simple terms\"*\n- *\"Give me an example\"*\n- *\"Quiz me on this lesson\"*\n- Or **paste the lesson challenge** and we'll solve it together\n\nThe more specific you are, the better I can help. What part should we unpack?`,
-      suggestions: ["Explain the key idea", "Give me an example", "Quiz me"],
+      reply: `**${context.lessonTitle}**${context.courseTitle ? ` · ${context.courseTitle}` : ""}\n\n${context.lessonSummary}${objectives}\n\nWant an example, a hint for the challenge, or a quick quiz?`,
+      suggestions: ["Give me an example", "Give me a hint for the challenge", "Quiz me"],
+      links: [{ label: "Back to lesson", href: context.url || "/dashboard" }],
+    };
+  }
+  if (context?.lessonTitle && context.lessonChallenge && has(text, "hint", "challenge", "practice task", "help with the task", "stuck on this")) {
+    return {
+      reply: `The challenge for **${context.lessonTitle}** is:\n\n> ${context.lessonChallenge}\n\n**First hint:** identify the input, the result you want, and the smallest step that connects them. Try that step first, then tell me what you see — I can guide you without taking the learning away.`,
+      suggestions: ["Explain the key idea", "Show a small example", "Quiz me"],
+      links: [{ label: "Back to lesson", href: context.url || "/dashboard" }],
+    };
+  }
+  if (context?.lessonTitle && has(text, "this lesson", "the lesson", "this", "lesson", "explain", "summar", "recap")) {
+    return {
+      reply: `You're on **${context.lessonTitle}**${context.courseTitle ? ` (*${context.courseTitle}*)` : ""}.${context.lessonSummary ? `\n\n${context.lessonSummary}` : ""}\n\nTell me which part trips you up — I can explain the key idea, give an example, or help you work through the challenge step by step.`,
+      suggestions: ["Explain the key idea", "Give me an example", "Quiz me on this lesson"],
       links: [{ label: "Back to lesson", href: context.url || "/dashboard" }],
     };
   }
