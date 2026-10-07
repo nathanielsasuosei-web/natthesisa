@@ -27,8 +27,6 @@ export default async function OwnerConsolePage() {
   const monthlyValue = await estimateMonthlyRevenue();
   const users = (await listUsers()).map(toStudentRow);
   const maxEnrollment = Math.max(...stats.coursePerformance.map((item) => item.enrollments), 1);
-  // Video coverage: which courses have a welcome video, and which lessons are
-  // still waiting for a walkthrough (the videos are generated — see the README).
   const coursesWithVideo = COURSES.filter((course) => courseVideo(course.slug)).map((course) => course.slug);
   const coursesWithGaps = COURSES.map((course) => {
     const lessons = course.modules.flatMap((module) => module.lessons);
@@ -38,7 +36,6 @@ export default async function OwnerConsolePage() {
       missing: lessons.filter((lesson) => !lessonVideo(lesson.id)).length,
     };
   }).filter((item) => item.missing > 0);
-
   const cards = [
     { label: "Students", value: stats.students.toLocaleString(), note: `${stats.withProgram} own a program`, icon: "users", style: "bg-violet-100 text-violet-700" },
     { label: "Lessons completed", value: stats.lessonsCompleted.toLocaleString(), note: `${stats.certificatesEarned} courses completed`, icon: "check", style: "bg-cyan-100 text-cyan-700" },

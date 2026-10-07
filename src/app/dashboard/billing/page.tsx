@@ -115,11 +115,11 @@ export default async function BillingPage({
                 <p className="mt-2 text-xs text-[#77717e]">
                   {ownedPrograms.length > 0
                     ? ownedPrograms.map((purchase) => getProgram(purchase.refId)?.name ?? purchase.refId).join(" · ")
-                    : "Buy a program to open every course and lesson inside it."}
+                    : "Every course and lesson is already open. Nothing here needs a purchase."}
                 </p>
               </div>
-              <Link href="/dashboard/plans" className="inline-flex items-center gap-1.5 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-[10px] font-extrabold text-white">
-                {ownedPrograms.length > 0 ? "Buy another program" : "Buy a program"} <Icon name="arrow-right" size={13} />
+              <Link href="/dashboard/courses" className="inline-flex items-center gap-1.5 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-[10px] font-extrabold text-white">
+                Browse courses <Icon name="arrow-right" size={13} />
               </Link>
             </div>
             <div className="mt-7 grid gap-4 border-y border-[#efecf1] py-5 sm:grid-cols-3">
@@ -137,8 +137,7 @@ export default async function BillingPage({
               </div>
             </div>
             <p className="mt-5 text-[10px] leading-5 text-[#817a87]">
-              A program is a one-off purchase, not a subscription: nothing renews by itself and there is nothing
-              to cancel. What you buy stays open forever.
+              Lessons stay open without a subscription. Older invoices, if you have any, are listed below as history.
             </p>
           </div>
           <div className="border-t border-[#ece9ef] p-5 lg:border-l lg:border-t-0 lg:pl-7">
@@ -222,7 +221,7 @@ export default async function BillingPage({
                     </p>
                     <p className="mt-0.5 text-[9px] text-[#918a97]">
                       {fmtDate(purchase.at)}
-                      {purchase.kind !== "program" ? " · kept as history — buy the program to open it" : ""}
+                      {purchase.kind !== "program" ? " · kept as history — lessons are already open" : ""}
                     </p>
                   </div>
                   <p className="shrink-0 text-[11px] font-extrabold">{purchase.amount > 0 ? fmtMoney(purchase.amount) : "Granted"}</p>
@@ -282,7 +281,7 @@ export default async function BillingPage({
               <Icon name="card" size={20} />
             </span>
             <p className="mt-3 text-xs font-extrabold">No invoices yet</p>
-            <p className="mt-1 text-[10px] text-[#918a97]">Program payments appear here.</p>
+            <p className="mt-1 text-[10px] text-[#918a97]">Nothing to pay. Lessons are free, so this list stays empty unless an older invoice exists.</p>
           </div>
         )}
       </section>
@@ -291,12 +290,10 @@ export default async function BillingPage({
         <Icon name="shield" size={18} className="mt-0.5 shrink-0 text-[#3f67c8]" />
         <div>
           <p className="text-xs font-extrabold text-[#294b9b]">
-            {method.provider === "paystack" ? "Secure Mobile Money payments" : "Demonstration payment system"}
+            Studying does not require a payment
           </p>
           <p className="mt-1 text-[10px] leading-5 text-[#5971a7]">
-            {method.provider === "paystack"
-              ? "Payments are processed by Paystack in Ghana cedis. Every payment creates an invoice above, and a receipt is emailed to you."
-              : "Program prices, invoices and access control are functional and stored in the database. Payments are simulated until the teacher connects live Mobile Money."}
+            Lessons, files and narration are open without checkout. This page only keeps older invoices, if you have any.
           </p>
         </div>
       </div>

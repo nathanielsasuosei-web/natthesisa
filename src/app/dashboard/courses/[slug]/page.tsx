@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
-import { courseAccess, lessonAccess, ownsProgram } from "@/lib/access";
-import { formatMoney } from "@/lib/plans";
+import { courseAccess } from "@/lib/access";
 import { contentLessons, contentMinutes, contentModules, contentPercent, ownerLessonsForCourse } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
 import { requireCurrentUser } from "@/lib/require-user";
@@ -11,7 +10,6 @@ import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "@/components/CourseVisual";
 import Icon from "@/components/Icon";
 import ProgressRing from "@/components/ProgressRing";
-import BuyProgram from "@/components/BuyProgram";
 import CourseBrief from "@/components/CourseBrief";
 import CourseVideoWelcome from "@/components/CourseVideoWelcome";
 import { lessonVideo } from "@/lib/lesson-videos";
@@ -34,16 +32,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const modules = contentModules(course);
   const access = courseAccess(user, course);
   const hasAccess = access.allowed;
-  const price = access.price;
-  const programId = access.programId;
-  const programName = access.programName ?? course.category;
-  const owned = programId ? ownsProgram(user, programId) : false;
   const ownerBranding = ownerLessonsForCourse(course.id).length ? brandingSummary(course.instructor.name) : null;
-  // The next lesson the student can actually open. A locked course offers
-  // none — every lesson opens together once the program is paid for.
-  const nextLesson =
-    lessons.find((lesson) => !completed.includes(lesson.id) && lessonAccess(user, course, lesson).allowed) ??
-    lessons.find((lesson) => lessonAccess(user, course, lesson).allowed);
+  // Lessons are public to read. This is the next unread one, paid or not.
+  const nextLesson = lessons.find((lesson) => !completed.includes(lesson.id)) ?? lessons[0];
 
   return (
     <div className="space-y-6">
@@ -56,20 +47,17 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <div className="relative">
               <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#6d4aff] px-3 py-1 text-[9px] font-black uppercase tracking-[.14em]">{course.category}</span><span className="rounded-full border border-white/10 bg-white/[.06] px-3 py-1 text-[9px] font-bold text-[#b7b0be]">{course.level}</span>{!hasAccess && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#ffcf59] px-3 py-1 text-[9px] font-black text-[#4a3600]">
-                    <Icon name="lock" size={10} /> {formatMoney(price)} · {programName} program
+                    <Icon name="lock" size={10} /> Account paused
                   </span>
                 )}</div>
               <h1 className="mt-5 max-w-2xl text-balance text-3xl font-black leading-tight tracking-[-.045em] sm:text-[42px]">{course.title}</h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#b4aebc]">{course.description}</p>
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-[#aaa4b1]"><span className="inline-flex items-center gap-1.5 text-[#ffca57]"><Icon name="star" size={13} /> {course.rating}</span><span className="inline-flex items-center gap-1.5"><Icon name="users" size={14} /> {course.learners.toLocaleString()} learners</span><span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> {lessons.length} lessons</span><span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {fmtMinutes(contentMinutes(course))}</span></div>
               <div className="mt-7 flex flex-wrap gap-3">
-                {nextLesson && <Link href={`/learn/${course.id}/${nextLesson.id}`} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#7959f1]"><Icon name="play" size={13} />{progress ? "Continue course" : "Start course"}</Link>}
-                {!hasAccess && programId && (
-                  <BuyProgram programId={programId} programName={programName} price={price} className="inline-flex" />
-                )}
-                {!hasAccess && !programId && (
+                {nextLesson && hasAccess && <Link href={`/learn/${course.id}/${nextLesson.id}`} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#7959f1]"><Icon name="play" size={13} />{progress ? "Continue course" : "Start course"}</Link>}
+                {!hasAccess && (
                   <span className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[.07] px-5 py-3 text-xs font-bold text-white">
-                    Not on sale yet — ask your teacher
+                    This account is paused. Contact your teacher.
                   </span>
                 )}
               </div>
@@ -110,14 +98,20 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                   <div>
                     {module.lessons.map((lesson, lessonIndex) => {
                       const isDone = completed.includes(lesson.id);
-                      const accessible = lessonAccess(user, course, lesson).allowed;
-                      const content = <><span className={`grid size-8 shrink-0 place-items-center rounded-xl ${isDone ? "bg-emerald-100 text-emerald-700" : accessible ? "bg-[#f0ecff] text-[#6543e8]" : "bg-[#f1eff3] text-[#aaa4b0]"}`}>{isDone ? <Icon name="check" size={15} /> : accessible ? <Icon name="play" size={11} /> : <Icon name="lock" size={14} />}</span><div className="min-w-0 flex-1"><p className={`truncate text-xs font-bold ${accessible ? "text-[#4a4450]" : "text-[#98919e]"}`}>{lessonIndex + 1}. {lesson.title}</p><div className="mt-1 flex flex-wrap gap-2 text-[9px] text-[#a19aa7]"><span>{lesson.duration} min</span>{!accessible && <span className="font-bold text-[#8a6d1f]">{programName} program</span>}{lesson.source === "owner" && <span className="rounded-full bg-[#f0ecff] px-1.5 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]">New lesson</span>}{lessonVideo(lesson.id) && <span className="inline-flex items-center gap-1 rounded-full bg-[#eee9ff] px-1.5 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]"><Icon name="video" size={9} /> video</span>}{lesson.files?.length ? <span className="font-semibold text-[#7d7683]">{lesson.files.length} file{lesson.files.length === 1 ? "" : "s"}</span> : null}</div></div>{accessible && <Icon name="chevron-right" size={14} className="text-[#bbb5c0]" />}</>;
-                      return accessible ? (
-                        <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 transition first:border-0 hover:bg-[#fbfaff] sm:px-6">{content}</Link>
-                      ) : (
-                        <div key={lesson.id} className="flex flex-wrap items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 first:border-0 sm:px-6">
-                          {content}
-                        </div>
+                      return (
+                        <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 transition first:border-0 hover:bg-[#fbfaff] sm:px-6">
+                          <span className={`grid size-8 shrink-0 place-items-center rounded-xl ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-[#f0ecff] text-[#6543e8]"}`}>{isDone ? <Icon name="check" size={15} /> : <Icon name="play" size={11} />}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-bold text-[#4a4450]">{lessonIndex + 1}. {lesson.title}</p>
+                            <div className="mt-1 flex flex-wrap gap-2 text-[9px] text-[#a19aa7]">
+                              <span>{lesson.duration} min</span>
+                              {lesson.source === "owner" && <span className="rounded-full bg-[#f0ecff] px-1.5 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]">New lesson</span>}
+                              {lessonVideo(lesson.id) && <span className="inline-flex items-center gap-1 rounded-full bg-[#eee9ff] px-1.5 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]"><Icon name="video" size={9} /> video</span>}
+                              {lesson.files?.length ? <span className="font-semibold text-[#7d7683]">{lesson.files.length} file{lesson.files.length === 1 ? "" : "s"}</span> : null}
+                            </div>
+                          </div>
+                          <Icon name="chevron-right" size={14} className="text-[#bbb5c0]" />
+                        </Link>
                       );
                     })}
                   </div>
@@ -144,17 +138,10 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           {!hasAccess && (
             <section className="rounded-[22px] bg-[#6d4aff] p-5 text-white">
               <Icon name="spark" size={22} />
-              <h2 className="mt-3 text-sm font-extrabold">How access works</h2>
+              <h2 className="mt-3 text-sm font-extrabold">Account paused</h2>
               <p className="mt-1.5 text-[10px] leading-5 text-violet-100">
-                {owned
-                  ? `You own the ${programName} program already — sign out and back in if this course still shows locked.`
-                  : `Buy the ${programName} program once and this course — with every lesson in it — opens permanently, along with everything else in the program.`}
+                The lessons are public, but a paused account cannot save progress. Contact your teacher to continue.
               </p>
-              {!owned && programId && (
-                <Link href="/dashboard/plans" className="mt-4 block rounded-xl bg-white px-3 py-2.5 text-center text-[10px] font-black text-[#5c3be1]">
-                  Buy the {programName} program · {formatMoney(price)}
-                </Link>
-              )}
             </section>
           )}
         </aside>

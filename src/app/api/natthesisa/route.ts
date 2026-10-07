@@ -4,8 +4,6 @@ import { answer, greeting, type AgentReply, type ChatContext, type ChatMessage, 
 import { getCurrentUser } from "@/lib/session";
 import { getCourse } from "@/lib/courses";
 import { findContentLesson } from "@/lib/course-content";
-import { lessonAccess } from "@/lib/access";
-import type { User } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -99,18 +97,18 @@ function cleanQuiz(value: unknown): QuizState | null {
   return { id: source.id.slice(0, 40), answer: source.answer.slice(0, 4) };
 }
 
-/** Lesson text is loaded from the catalog only after the viewer's access check. */
-function verifiedContext(context: ChatContext, user: User | null): ChatContext {
+/** Lesson text is loaded from the public catalog only after validating its course and lesson IDs. */
+function verifiedContext(context: ChatContext): ChatContext {
   const safe: ChatContext = { url: context.url };
   const course = context.courseId ? getCourse(context.courseId) : undefined;
   if (!course) return safe;
 
   safe.courseId = course.id;
   safe.courseTitle = course.title;
-  if (!context.lessonId || !user) return safe;
+  if (!context.lessonId) return safe;
 
   const lesson = findContentLesson(course, context.lessonId);
-  if (!lesson || !lessonAccess(user, course, lesson).allowed) return safe;
+  if (!lesson) return safe;
   safe.lessonId = lesson.id;
   safe.lessonTitle = lesson.title;
   safe.lessonSummary = lesson.summary.slice(0, 1200);
@@ -135,9 +133,9 @@ Programs & courses:
 - Software Engineering: Practices (Git/testing), System Design, DevOps & Delivery
 - Vibe Coding: Ship with AI (beginner), AI Apps Agents & APIs
 - App Development: Mobile Apps with React Native. Backend: Node.js APIs.
-One payment per program opens every course and lesson inside it permanently. Pay with MTN MoMo, Telecel, AT or card. Certificates carry QR verification at /verify. Dashboard at /dashboard, courses at /courses, pricing at /pricing, sign-in at /login.
+Published catalog lessons are public to read and listen to. A free account saves progress and earns certificates; certificates carry QR verification at /verify. Find courses at /courses, program details at /pricing, and sign in at /login.
 
-You are a patient tutor first: explain ideas clearly, ask students to think, and give a hint before a full solution when it helps learning. When the student asks for code, provide complete, readable examples with markdown fences and a short explanation; you can generate code, websites, and React Native mobile-app starters. Do not claim an app has been published or built into an installable binary. Never include real credentials or encourage putting secrets in browser/mobile code. Never invent course names, prices, or platform features. If verified lesson notes are supplied below, use them as the source of truth for that lesson and do not reveal lesson material unless the viewer is authorized. Keep answers concise unless explaining code.`;
+You are a patient tutor first: explain ideas clearly, ask students to think, and give a hint before a full solution when it helps learning. When the student asks for code, provide complete, readable examples with markdown fences and a short explanation; you can generate code, websites, and React Native mobile-app starters. Do not claim an app has been published or built into an installable binary. Never include real credentials or encourage putting secrets in browser/mobile code. Never invent course names, prices, or platform features. If catalog-verified lesson notes are supplied below, use them as the source of truth for that lesson; do not invent lesson details that are not in the notes. Keep answers concise unless explaining code.`;
 
 async function cloudReply(messages: ChatMessage[], context: ChatContext): Promise<string | null> {
   const apiKey = process.env.NATTHESISA_API_KEY?.trim();
@@ -246,7 +244,7 @@ async function handle(req: NextRequest) {
   const user = await getCurrentUser().catch(() => null);
   const userName = user?.name?.trim() || undefined;
   const fullContext: ChatContext = {
-    ...verifiedContext(context, user),
+    ...verifiedContext(context),
     ...(userName ? { userName } : {}),
   };
 

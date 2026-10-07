@@ -5,7 +5,7 @@ import { getCourse } from "@/lib/courses";
 import { programForCategory } from "@/lib/programs";
 import { courseBrief } from "@/lib/course-info";
 import { contentLessons, contentMinutes, contentModules } from "@/lib/course-content";
-import { formatMoney, programPrice } from "@/lib/plans";
+
 import { getCurrentUser } from "@/lib/session";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { isOwner } from "@/lib/owner";
@@ -49,8 +49,9 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
   const modules = contentModules(course);
   const minutes = contentMinutes(course);
   const program = programForCategory(course.category);
-  const price = program ? programPrice(program.id) : 0;
   const startHref = user ? `/dashboard/courses/${course.slug}` : "/login?mode=signup";
+  const firstLesson = lessons[0];
+  const readHref = firstLesson ? `/learn/${course.id}/${firstLesson.id}` : startHref;
 
   return (
     <InfoPage
@@ -91,16 +92,16 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
         <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-[#9a939f]">
-              {program ? `Buy the ${program.name} program` : "Buy this course"}
+              Free to read and listen
             </p>
-            <p className="mt-1 text-2xl font-black tracking-[-.04em] text-[#1b1822]">{formatMoney(price)}</p>
+            <p className="mt-1 text-2xl font-black tracking-[-.04em] text-[#1b1822]">{lessons.length} lessons</p>
             <p className="mt-1 text-[11px] text-[#8a8390]">
-              Once, and it stays on your account — every course and lesson in the program.
+              Every lesson, file and narration is free. An account is optional, and only remembers your progress.
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            <Link href={startHref} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-[0_10px_26px_rgba(109,74,255,.22)] transition hover:-translate-y-0.5 hover:bg-[#5e3de0]">
-              <Icon name="play" size={13} /> {user ? "Open this course" : "Create an account"}
+            <Link href={readHref} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-[0_10px_26px_rgba(109,74,255,.22)] transition hover:-translate-y-0.5 hover:bg-[#5e3de0]">
+              <Icon name="play" size={13} /> Start reading
             </Link>
             <Link href="/pricing" className="inline-flex items-center gap-2 rounded-xl border border-[#dad5df] bg-white px-5 py-3 text-xs font-extrabold text-[#4a4450] transition hover:bg-[#f6f4f8]">
               All programs <Icon name="arrow-right" size={13} />
@@ -108,8 +109,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
           </div>
         </div>
         <p className="border-t border-[#f0edf3] bg-[#fbfafc] px-5 py-3 text-[11px] leading-5 text-[#7d7683] sm:px-6">
-          Buying the {program?.name ?? course.category} program opens this course and every other course and lesson
-          under it, permanently. There is nothing else to pay.
+          Every lesson, file and narration is free. No account and no payment is required to study.
         </p>
       </section>
 
@@ -122,7 +122,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
             <p className="mt-1 text-[10px] text-[#918a97]">{modules.length} modules · {lessons.length} lessons · {fmtMinutes(minutes)}</p>
           </div>
           <p className="text-[10px] font-bold text-[#7d7683]">
-            Included in the {program?.name ?? "program"} program
+            Open — no sign-in required
           </p>
         </div>
         {modules.map((module) => (
@@ -132,21 +132,21 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
               <p className="mt-1 text-[10px] text-[#918a97]">{module.description}</p>
             </div>
             {module.lessons.map((lesson, index) => (
-              <div key={lesson.id} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 first:border-0 sm:px-6">
-                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#f1eff3] text-[#aaa4b0]">
-                  <Icon name="lock" size={14} />
+              <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 transition first:border-0 hover:bg-[#fbfaff] sm:px-6">
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#f0ecff] text-[#6543e8]">
+                  <Icon name="play" size={12} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-bold text-[#4a4450]">{index + 1}. {lesson.title}</p>
                   <p className="mt-0.5 line-clamp-1 text-[10px] text-[#918a97]">{lesson.summary}</p>
                 </div>
                 <span className="shrink-0 text-[9px] font-semibold text-[#a19aa7]">{lesson.duration} min</span>
-              </div>
+              </Link>
             ))}
           </div>
         ))}
         <p className="border-t border-[#f0edf3] bg-[#fbfafc] px-5 py-3.5 text-[11px] leading-5 text-[#7d7683] sm:px-6">
-          The full curriculum is included in the program price: {lessons.length} lessons and the {course.project.toLowerCase()} project.
+          {lessons.length} lessons, free to read and listen to, including the {course.project.toLowerCase()} project.
           {" "}<Link href={startHref} className="font-bold text-[#5e3de0] underline">Create an account</Link> to track progress and earn the certificate.
         </p>
       </section>

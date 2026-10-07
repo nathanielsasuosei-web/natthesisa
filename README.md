@@ -1,8 +1,8 @@
 # codemasterghana — learning platform
 
-A polished full-stack learning-platform MVP for web development, app development and computer science. It includes learner accounts, structured courses and lessons, saved progress, **programs** a student buys once and keeps forever, invoices and a **teacher console**.
+A polished full-stack learning platform for web development, app development and computer science. It includes a public catalogue of free courses and lessons, optional learner accounts for saved progress and certificates, and an **owner/teacher console**. Existing purchase and invoice history remains with learner accounts.
 
-There are two roles and only two: **students** and the **owner** — the teacher. Every course and every lesson sits under a program, and a student opens them by paying for that program — there are no free previews and nothing else to buy. The teacher sets every program price from the console.
+There are two roles and only two: **students** and the **owner** — the teacher. Every published course, lesson, narration and teaching file is free to read, watch or download without signing in or paying. A free account saves progress and earns certificates; the teacher manages the catalogue and student records.
 
 Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
@@ -23,11 +23,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   browser and downloadable
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
-- **A narrated 2½-minute video on every catalog lesson.** Each lesson opens
-  with a walkthrough — title card, the core idea, the worked example, the
-  practice task and a pointer to the next lesson. The player has chapter buttons,
-  so a student can jump straight to the part they need. Course welcome videos
-  are supported separately by the same generation pipeline.
+- **A narrated walkthrough video on every catalog lesson that has one**, plus the Natthesisa study assistant (`/natthesisa`). Both are public, like the lessons.
 - Server-saved lesson completion, course percentages and activity history
 - **Student email** — receipts for every purchase, a congratulations message on
   finishing a course, and a notice when a certificate is issued
@@ -40,8 +36,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
 - The floating assistant is mounted site-wide; every lesson also includes
   contextual **Explain**, **Hint** and **Quiz** actions. On a lesson page,
-  Natthesisa receives the course and lesson context, and the server only adds
-  lesson notes after checking the student's access.
+  Natthesisa receives the course and lesson context. The server validates those
+  IDs against the public course catalogue before adding lesson notes.
 - Students can ask for explanations, quizzes, code reviews and debugging help,
   or switch to **Build → Website / Mobile app / Code** in the chat.
 - Website projects are multi-file HTML/CSS/JavaScript and open in the sandboxed
@@ -54,22 +50,15 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   Configure these on the server only; do not expose the key to the browser.
   See `.env.example`.
 
-### Programs, and buying them
+### Free public catalogue and accounts
 
-- **One payment per program, kept forever.** Buying a program opens every
-  course and every lesson under it, permanently — no subscriptions, no time
-  limits, nothing else to buy.
-- **The teacher sets the prices** from the console — the price of each
-  program. They are stored in the database, not in code, and a program priced
-  at GH₵0 is free to join with no checkout.
-- **No free previews.** Every lesson opens only to students who own its
-  program (or the teacher). Older course/lesson purchases stay on accounts as
-  history but open nothing.
-- Invoice history per account, and a clearly labelled **demo payment method**
-- Programs, purchases, invoices and usage stored per account in the database,
-  so a learner's access and billing history survive a restart
-
-> Students pay with Mobile Money (MTN MoMo, Telecel Cash, AT Money), cards or bank transfer through Paystack. Until the teacher adds a Paystack secret key, checkout runs in demo mode: the MoMo approval is simulated and no real money moves.
+- Every published course and lesson is open to everyone, including lesson
+  videos, narrations and teaching files. No account or payment is required to
+  study.
+- A free student account saves lesson progress, learning activity and earned
+  certificates. Signing in does not unlock content that is not already public.
+- Existing program purchases and invoices remain in account history; they do
+  not open or close lessons. The pricing page explains the current free access.
 
 ### Certificates, company pages and the public catalogue
 
@@ -159,22 +148,22 @@ Create the bucket once (Storage → New bucket) before the first upload; without
 it, uploads fail with a message telling you so, and `npm run storage:check`
 tells you the same thing without uploading anything.
 
-Then decide how the browser gets each file. Either way the app is the gate:
-`/api/lesson-files/...` checks the viewer's program ownership, and lesson access
-marks the lesson as started **before** it hands out a URL, so a locked lesson's
-video or PDF cannot be opened by copying the URL.
+Published lesson materials are public, just like the lesson text. The
+`/api/lesson-files/...` route validates that the published lesson and file exist,
+then streams the file or redirects to its Storage URL. A private bucket returns
+a time-limited signed URL; it does not make a published lesson private.
 
 | Bucket | `SUPABASE_BUCKET_PUBLIC` | What the browser receives |
 | --- | --- | --- |
 | Private | unset | A one-hour signed URL, created per view. Expires, so a copied link stops working. |
 | Public (Storage → bucket → Make public) | `1` | The bucket's permanent `/object/public/...` URL, cached by Supabase's CDN. |
 
-Public is what you want when a video is watched more than once: the CDN answers
-the second viewer instead of the origin, and no request is spent minting a URL.
-The trade-off is real — a public URL does not expire, so it keeps working for
-anyone it is forwarded to. Signed URLs are the safer default for paid material;
-`npm run storage:check` reports which mode you are in and refuses to pass if
-`SUPABASE_BUCKET_PUBLIC` is set but the bucket is still private.
+A public bucket lets the CDN serve repeat views without minting a URL. Its
+URLs do not expire and can be forwarded, which is consistent with the public
+lesson catalogue. A private bucket creates a signed Storage URL per request,
+but published lessons remain accessible through the public lesson route.
+`npm run storage:check` reports which mode you are in and verifies that a
+bucket configured as public really is public.
 
 Set `SUPABASE_BUCKET_PUBLIC=1` only *after* clicking Make public in the
 dashboard, or run `npm run storage:check` and let it tell you.
@@ -191,78 +180,19 @@ to move ownership to a different account.
 
 ## Lesson and course videos
 
-Every lesson in the catalog has a narrated walkthrough targeted at two and a
-half minutes (within the requested two-to-three-minute range). Course welcome
-videos use the same generation pipeline when their narration is available.
-The lesson videos are **generated from the course content itself**: a script per
-lesson supplies the narration, and the pictures — title card, the core idea,
-the worked example, the practice task, and a pointer to the next lesson — are
-built from the lesson's own text, code and duration, styled with the site's own
-colours and the course's tone.
+Every catalog lesson can have a narrated walkthrough. The videos are generated from the course content: a script supplies the narration, and the pictures are built from the lesson's own text. Course welcome videos use the same pipeline.
 
-No hand animation or manual editing is needed: add a course, add its scripts,
-synthesize the narration and run the builder. The generated video files go into
-the configured media storage; the scripts and manifest stay versioned.
+The finished files live in the same storage as the owner's uploads. `src/content/lesson-videos.ts` records what was built. The manifest is committed; the generated audio, videos and posters are not.
 
-### How one video is made
-
-| Step | What happens |
-| --- | --- |
-| 1. Narration | Four paragraphs per lesson (title, idea, example, challenge) are written in `content/lesson-videos/<course>.json` and synthesized into `.data/lesson-videos/audio/<lessonId>.mp3` by `npm run videos:synthesize` using the local eSpeak-NG English voice (`en-gb`) — no API key or external TTS service |
-| 2. Timing | The pauses in the recording mark where one slide ends and the next begins: `scripts/lesson-videos/lib/timeline.ts` finds them, matches each one to the sentence it follows, and falls back to a proportional split when a pause is too weak to trust |
-| 3. Reading pauses | The worked example and challenge get reading pauses, and the remaining pause time is spread across all four paragraph boundaries until the finished lesson is 150 seconds (2½ minutes), giving students time to read each slide |
-| 4. Slides | `lib/design.ts` lays each slide out with real text measurements (ffmpeg draws a line once and the ink is measured), and `lib/code.ts` colours the worked example to match the code panel in the lesson reader |
-| 5. Encode | The five stills are composited over a black base and cross-faded by fading their own alpha, and the narration is spliced with its pauses. One ffmpeg pass, roughly forty seconds per lesson |
-
-The finished video goes into **the same storage as the owner's uploads** —
-Supabase Storage when it is configured, `.data/uploads` on disk otherwise — and
-`src/content/lesson-videos.ts` records what was built. The manifest is committed;
-the generated audio, videos and posters are not. Configure Supabase Storage
-before production generation, because the local `.data` fallback is ignored by
-Git and will not travel with a deployment.
-
-### Watching one
-
-The bytes never travel without an access check. `/api/lesson-videos/[lessonId]`
-and `/api/course-videos/[slug]` read the viewer's account, apply the same rule as
-the lesson itself (`lib/access.ts`), and only then redirect the browser to
-Supabase's CDN (or stream from disk, honouring range requests, so seeking works).
-A signed-out visitor gets a `401`, and a student who does not own the program
-gets a `402` — the same answers the owner's uploaded materials give.
-
-`src/components/CoverVideo.tsx` is the player: play/pause, a scrubber, mute,
-download, and chapter buttons for the five slides, so each two-to-three-minute
-lesson is navigable rather than something to sit through.
-
-### Building them
+Anyone may watch a lesson video or a course welcome video. The routes `/api/lesson-videos/[lessonId]` and `/api/course-videos/[slug]` do not require a sign-in.
 
 ```bash
 npm run videos:setup        # fetch static ffmpeg into node_modules/.cache (once)
 npm run videos:synthesize   # create MP3 narration for every lesson, offline
-npm run videos:build -- --all --force  # render every lesson and update the manifest
-npm run videos:check        # verify all lesson videos exist and are 2–3 minutes long
-npm run videos:list         # show which narration and video files are present
-
-npm run videos:synthesize -- --lesson how-the-web-works --force
-npm run videos:build -- --lesson how-the-web-works --force
-npm run videos:build -- --course web-foundations --force
-npm run videos:build -- --slides-only --lesson how-the-web-works   # just the pictures
+npm run videos:build -- --all --force
+npm run videos:check
+npm run videos:list
 ```
-
-`videos:synthesize` uses the `en-gb` eSpeak-NG voice selected in each lesson's
-narration JSON and writes audio under `.data/lesson-videos/audio/`. It requires
-no API key and can be rerun safely; `--force` replaces existing audio.
-`videos:build` is additive by default: it renders lessons that have narration
-but no video yet, writes `src/content/lesson-videos.ts` and
-`src/content/course-videos.ts`, and leaves everything else alone. Use `--force`
-to re-render, and `KEEP_SLIDES=1` to keep the rendered stills for inspection.
-Each run prints one line per video: length, size and how long the encode took.
-
-To add a course's worth of lesson videos: write
-`content/lesson-videos/<courseId>.json` with one entry per lesson id (four
-paragraphs each — the lesson's own text is the best source), synthesize the
-narration, and build. The narration is plain prose: no markup or stage
-directions, with paragraph breaks where the slides should change.
 
 ## Run locally
 
@@ -335,16 +265,15 @@ This is the “what to paste where” map for continuing the build.
 | 8c. Checkouts | `src/lib/payments.ts`, `payments` table | Pending → paid fulfilment, idempotent webhook + return-URL handling |
 | 9. Buying API | `src/app/api/purchase/route.ts` (`/api/pass` is retired) | Join a GH₵0 program directly; priced programs go through checkout |
 | 9a. Checkout API | `src/app/api/checkout/*`, `src/app/api/webhooks/paystack/route.ts`, `src/app/checkout/verify/page.tsx` | Start a MoMo checkout, poll it, confirm demo payments, verify the provider's return, receive the webhook |
-| 10. Access rule | `src/lib/access.ts` | The one place the gate is decided: owner → owns the program (no previews, no passes) |
+| 10. Access rule | `src/lib/access.ts` | Public course and lesson reading; account status governs saved progress, not content access |
 | 10b. Teacher rules | `src/lib/owner-console.ts`, `src/app/api/owner/*` | Metrics, prices and protected student-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
 | 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/blob-store.ts`, `src/lib/app-state.ts`, `src/lib/course-content.ts` | Storage/disk blobs for owner lessons, their metadata in `app_state`, and the merge with the catalog |
-| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
+| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and public lesson-file streaming |
 | 10d. Owner console | `src/app/owner/page.tsx`, `src/app/owner/lessons/page.tsx`, `src/components/OwnerPricingCard.tsx`, `src/components/OwnerLessonManager.tsx` | Metrics, the price editor, the upload form and the published-lesson list |
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/owner/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
 | 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/owner/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
-| 10h. Lesson videos | `scripts/lesson-videos/*`, `content/lesson-videos/*.json`, `content/course-videos/*.json`, `src/lib/lesson-videos.ts`, `src/lib/course-videos.ts`, `src/content/*.ts`, `src/components/CoverVideo.tsx`, `src/components/LessonVideoGuide.tsx`, `src/components/CourseVideoWelcome.tsx`, `src/app/api/lesson-videos/*`, `src/app/api/course-videos/*` | The narrated walkthrough on every lesson and the welcome video on every course: the scripts, the generator, the manifest and the access-checked player |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
 | 11a. Public catalogue | `src/app/courses/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/lib/course-info.ts`, `src/components/CourseBrief.tsx` | The whole catalog and one page per course, readable without an account — including the long description, audience, prerequisites, tools and where the course leads |
 | 11b. Company pages | `src/app/about/page.tsx`, `src/app/pricing/page.tsx`, `src/app/contact/page.tsx`, `src/app/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/components/InfoPage.tsx` | About, the payment page and the legal pages, all on one shared shell |
@@ -903,26 +832,22 @@ Postgres error. Two causes are worth knowing:
   it and completing it again does not count the same lesson twice, so learning
   time and the weekly goal cannot drift upwards. Resetting a student's progress
   from the teacher console clears those credits so the lessons count again.
-- Course content is checked on the server in both lesson pages and the progress API.
-- The access rule lives in one module (`src/lib/access.ts`) and is applied by the
-  lesson page, the course page, the progress API and every file route: owner →
-  free preview → **active pass and a purchase**.
-- Preview lessons are accessible even when the pass has lapsed or the course is
-  not bought; a suspended account is refused everywhere, previews included.
-- A pass bought while one is active extends the current expiry instead of
-  resetting it, and issues an invoice for the period bought.
-- Comp grants (a pass, a course or a lesson) do not issue invoices and do not
-  count as revenue.
+- Course and lesson IDs are checked on the server before their catalogue content is rendered.
+- Published courses, lessons and their files are public; a purchase or sign-in
+  never gates the reader. A free student account can save progress and earn a
+  certificate. A paused account cannot save progress, but can still read public lessons.
+- Older passes, purchases and invoices remain in account history and do not
+  open or close lessons. New learners do not need to pay to study.
 - Only the owner account can publish or delete lessons; every other account
   receives `403` from the upload APIs even if they call them directly.
-- Lesson materials are streamed through an access-checked route
-  (`/api/lesson-files/...`), so a locked lesson's video or PDF cannot be opened
-  by copying the URL.
+- The public `/api/lesson-files/...` route verifies that a published lesson and
+  file exist, then streams or redirects to the file; copying the URL does not
+  create an access restriction.
 - Video edits are metadata: `trimStart`, `trimEnd`, `muted` and the poster image
   are stored next to the file and applied by the player
   (`src/components/TrimmedVideo.tsx`), so a trimmed lesson plays only the kept
-  range. The thumbnail is served through an access-checked route, and pictures
-  are re-exported so an edited image replaces the original file on disk.
+  range. The thumbnail is served through the public lesson-media route, and
+  pictures are re-exported so an edited image replaces the original file on disk.
 - The owner's photo and logo are also served through an access-checked route
   (`/api/branding/photo`, `/api/branding/logo`): signed-in learners can load
   them, anonymous visitors get `401`, and only the owner can replace or remove

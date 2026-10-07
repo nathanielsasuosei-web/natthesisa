@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireCurrentUser } from "@/lib/require-user";
-import { site } from "@/config/site";
 import { ownsProgram } from "@/lib/access";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
-import { programPrice } from "@/lib/plans";
 import { contentLessons } from "@/lib/course-content";
-import { isPaystackConfigured } from "@/lib/paystack";
-import ProgramOptions from "@/components/ProgramOptions";
 import Icon from "@/components/Icon";
 
 export const metadata: Metadata = { title: "Programs" };
 
 /**
- * Buying programs — the only thing students pay for.
- *
- * One program opens every course and every lesson under it, permanently.
- * There is nothing else to buy: no passes, no per-course prices, no previews.
+ * Programs are paths through the catalogue. Lessons are already public;
+ * this page only groups the courses so a student can pick a path.
  */
 export default async function ProgramsPage() {
   const user = await requireCurrentUser();
@@ -33,7 +27,6 @@ export default async function ProgramsPage() {
       description: program.description,
       courseCount: courses.length,
       lessonCount,
-      price: programPrice(program.id),
       owned: ownsProgram(user, program.id),
     };
   });
@@ -43,11 +36,11 @@ export default async function ProgramsPage() {
       <header className="text-center">
         <p className="text-xs font-bold text-[#6d4aff]">Programs</p>
         <h1 className="mt-2 text-3xl font-black tracking-[-.045em] sm:text-4xl">
-          {owned.length > 0 ? "Your programs." : "Buy a program. Learn everything in it."}
+          {owned.length > 0 ? "Your programs." : "The programs are free."}
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#756f7b]">
-          Every course and every lesson sits inside a program. Buy the program once and it is all
-          yours, forever — no subscriptions, no time limits, nothing else to pay. Prices are in {site.currency.label}.
+          Every course and every lesson is already open. You do not need to buy a program to read,
+          listen, or download files. A free account is only for progress and certificates.
         </p>
       </header>
 
@@ -62,46 +55,31 @@ export default async function ProgramsPage() {
           </Link>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-[#f6f3ff] p-4 text-xs text-[#3d3458]">
           <span>
-            <strong>You do not own a program yet.</strong> Choose one below — every course and lesson
-            inside opens the moment your payment confirms.
+            <strong>Nothing to buy.</strong> Pick a program below and start on the first lesson.
           </span>
           <Link href="/dashboard/courses" className="inline-flex items-center gap-1 font-black">
-            See what is inside <Icon name="arrow-right" size={13} />
+            See the courses <Icon name="arrow-right" size={13} />
           </Link>
         </div>
       )}
 
-      <ProgramOptions
-        programs={options}
-        momoPhone={user.paymentMethod.phone}
-        momoNetwork={user.paymentMethod.network}
-      />
-
-      <section className="open-columns grid gap-0 xl:grid-cols-3">
-        {[
-          ["spark", "One payment, forever", "A program never expires. Come back in a year and it is all still open."],
-          ["card", "The whole price, up front", "The program price is everything — no passes, no per-lesson fees."],
-          ["shield", "Invoices for everything", "Every purchase raises an invoice on your billing page."],
-        ].map(([icon, title, body]) => (
-          <div key={title} className="open-column flex gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff]">
-              <Icon name={icon as "shield"} size={17} />
-            </span>
-            <div>
-              <p className="text-xs font-extrabold">{title}</p>
-              <p className="mt-1 text-[10px] leading-4 text-[#918a97]">{body}</p>
-            </div>
-          </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {options.map((program) => (
+          <article key={program.id} className="flex flex-col rounded-[22px] border border-[#e8e4ec] bg-white p-6">
+            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#6d4aff]">Free</p>
+            <h2 className="mt-2 text-base font-black tracking-[-.02em]">{program.name}</h2>
+            <p className="mt-2 flex-1 text-[12px] leading-6 text-[#5d5763]">{program.tagline}</p>
+            <p className="mt-3 text-[11px] font-semibold text-[#817a87]">
+              {program.courseCount} course{program.courseCount === 1 ? "" : "s"} · {program.lessonCount} lessons
+            </p>
+            <Link href="/dashboard/courses" className="mt-5 rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-xs font-extrabold text-white">
+              Open the courses
+            </Link>
+          </article>
         ))}
-      </section>
-
-      <p className="text-center text-[9px] leading-4 text-[#9a939f]">
-        {isPaystackConfigured()
-          ? "Payments are processed securely by Paystack — approve with your MoMo PIN on your own phone. We never see or store your PIN."
-          : "Demo note: checkout and invoices are fully interactive, but no real money moves. The teacher connects live Mobile Money payments from the console."}
-      </p>
+      </div>
     </div>
   );
 }

@@ -13,6 +13,8 @@ interface Props {
   nextHref: string;
   nextLabel: string;
   suspended?: boolean;
+  /** False for a signed-out reader: the video stays, the progress button does not. */
+  track?: boolean;
 }
 
 /**
@@ -24,7 +26,7 @@ interface Props {
  * only at the foot of the page, because that is the moment the student is ready
  * to move on — and the same button is at the bottom for anyone who reads first.
  */
-export default function LessonVideoGuide({ lesson, courseId, complete, nextHref, nextLabel, suspended }: Props) {
+export default function LessonVideoGuide({ lesson, courseId, complete, nextHref, nextLabel, suspended, track = true }: Props) {
   const entry = lessonVideo(lesson.id);
   const video = entry ? lessonVideoFile(entry) : null;
   const course = entry ? getCourse(entry.courseId) : undefined;
@@ -80,14 +82,20 @@ export default function LessonVideoGuide({ lesson, courseId, complete, nextHref,
         >
           <Icon name="terminal" size={16} /> Jump to the practice task
         </a>
-        <LessonActions
-          courseId={courseId}
-          lessonId={lesson.id}
-          initiallyComplete={complete}
-          nextHref={nextHref}
-          nextLabel={nextLabel}
-          suspended={suspended}
-        />
+        {track ? (
+          <LessonActions
+            courseId={courseId}
+            lessonId={lesson.id}
+            initiallyComplete={complete}
+            nextHref={nextHref}
+            nextLabel={nextLabel}
+            suspended={suspended}
+          />
+        ) : (
+          <a href={nextHref} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3.5 text-sm font-extrabold text-white">
+            {nextLabel} <Icon name="arrow-right" size={16} />
+          </a>
+        )}
       </div>
     </section>
   );
