@@ -14,10 +14,20 @@
  *     but the bytes never reached this deployment's storage".
  *
  * Keep this module out of client components: `blob-store` uses Node APIs.
+ *
+ * Two things make the answer cheap enough to ask on every page view, and
+ * specific enough to act on:
+ *
+ *   - definite answers are remembered for a few minutes per instance, so a
+ *     lesson page and a course page do not each pay for their own round trip;
+ *   - a failure carries its *category* (`bucket-missing`, `auth-rejected`,
+ *     `network`, …) and the fix for it, so the teacher console and
+ *     `/api/health` can say which knob to turn instead of "try again later".
+ *     Failures are never cached, so a re-check is always a real re-check.
  */
 import { COURSE_VIDEOS } from "@/content/course-videos";
 import { LESSON_VIDEOS } from "@/content/lesson-videos";
-import { statBlob } from "./blob-store";
+import { statBlob, type BlobStat, type StorageFailureKind } from "./blob-store";
 import { courseVideo, type CourseVideoEntry } from "./course-videos";
 import { lessonVideo, type LessonVideoEntry } from "./lesson-videos";
 
@@ -33,6 +43,63 @@ export interface VideoAvailability<T> {
    * video", so a transient outage does not read as missing content.
    */
   unreachable: boolean;
+  /** Why it could not be reached, when it could not. */
+  failure: StorageFailureKind | null;
+  /** The fix, in plain language — for the owner console, never for students. */
+  hint: string | null;
+}
+
+interface PresenceAnswer {
+  /** True/false when storage answered, null when it could not be reached. */
+  present: boolean | null;
+  failure: StorageFailureKind | null;
+  hint: string | null;
+}
+
+/**
+ * Presence answers, remembered briefly.
+ *
+ * A lesson page asks about two objects (the video and its poster) on every
+ * render, and a course page asks again. Each question is one request to
+ * Supabase, so without a memory of the answer every page view pays for it —
+ * and a single rate-limit response on a cold start becomes a warning the
+ * reader can see. Answers are kept per instance, which on a serverless host
+ * means "for as long as this instance is warm": enough to collapse a burst of
+ * page views into one round trip, and never enough to serve a stale answer
+ * for long.
+ *
+ * Only *definite* answers are cached. A failure is not cached, so the owner
+ * console's "Check again" button always really checks again, and a storage
+ * blip clears on the next request rather than sticking for the TTL.
+ */
+const PRESENT_TTL_MS = 5 * 60_000; // a file that is there stays there
+const ABSENT_TTL_MS = 60_000; // …and a rebuild may land at any moment
+const CACHE_LIMIT = 1000;
+const presenceCache = new Map<string, { at: number; answer: PresenceAnswer }>();
+
+function cachedPresence(key: string): PresenceAnswer | null {
+  const hit = presenceCache.get(key);
+  if (!hit) return null;
+  const ttl = hit.answer.present ? PRESENT_TTL_MS : ABSENT_TTL_MS;
+  if (Date.now() - hit.at > ttl) {
+    presenceCache.delete(key);
+    return null;
+  }
+  return hit.answer;
+}
+
+function rememberPresence(key: string, answer: PresenceAnswer): void {
+  if (answer.present === null) return; // a failure is never cached
+  if (presenceCache.size >= CACHE_LIMIT) {
+    const oldest = presenceCache.keys().next().value;
+    if (oldest !== undefined) presenceCache.delete(oldest);
+  }
+  presenceCache.set(key, { at: Date.now(), answer });
+}
+
+/** Drops the cache — used by the owner console's re-check and by the scripts. */
+export function clearVideoAvailabilityCache(): void {
+  presenceCache.clear();
 }
 
 /**
@@ -45,7 +112,43 @@ export interface VideoAvailability<T> {
  * blip as "storage is unreachable" makes a healthy bucket look broken and
  * leaves the teacher with no useful action besides refreshing.
  */
-async function statWithRetry(key: string): Promise<Awaited<ReturnType<typeof statBlob>>> {
+/**
+ * One line per failure category, not one per key.
+ *
+ * The owner console checks every video in the catalog, so a bucket that has
+ * gone away would otherwise print a hundred stack traces in a single request —
+ * which on a serverless host means a hundred billed log lines saying the same
+ * thing. The first of each kind is logged in full; the rest are counted.
+ */
+const loggedFailures = new Map<StorageFailureKind, number>();
+
+function logFailureOnce(error: unknown): void {
+  const kind = (error as { kind?: StorageFailureKind }).kind ?? "unknown";
+  const seen = loggedFailures.get(kind) ?? 0;
+  loggedFailures.set(kind, seen + 1);
+  if (seen > 0) return;
+  console.error(`Could not reach video storage (${kind})`, error, {
+    hint: (error as { hint?: string }).hint ?? null,
+    note: "further failures of this kind are counted, not logged",
+  });
+}
+
+function failureOf(error: unknown): { failure: StorageFailureKind; hint: string | null } {
+  return {
+    failure: (error as { kind?: StorageFailureKind }).kind ?? "unknown",
+    hint: (error as { hint?: string }).hint ?? null,
+  };
+}
+
+/**
+ * One metadata read, retried once.
+ *
+ * The owner page checks many objects at once and Supabase can briefly return a
+ * network error or a rate-limit response when a deployment cold-starts.
+ * Treating that first blip as "storage is unreachable" makes a healthy bucket
+ * look broken and leaves the teacher with no useful action besides refreshing.
+ */
+async function statBlobWithRetry(key: string): Promise<BlobStat | null> {
   try {
     return await statBlob(key);
   } catch (firstError) {
@@ -53,46 +156,62 @@ async function statWithRetry(key: string): Promise<Awaited<ReturnType<typeof sta
     try {
       return await statBlob(key);
     } catch (secondError) {
-      console.error(`Could not reach video storage while checking ${key}`, secondError, {
-        firstError: firstError instanceof Error ? firstError.message : String(firstError),
-      });
+      logFailureOnce(secondError);
       throw secondError;
     }
   }
 }
 
-async function presence(key: string): Promise<boolean | null> {
+async function presence(key: string): Promise<PresenceAnswer> {
+  const cached = cachedPresence(key);
+  if (cached) return cached;
+  let answer: PresenceAnswer;
   try {
-    return (await statWithRetry(key)) !== null;
-  } catch {
-    return null;
+    answer = { present: (await statBlobWithRetry(key)) !== null, failure: null, hint: null };
+  } catch (error) {
+    answer = { present: null, ...failureOf(error) };
   }
+  rememberPresence(key, answer);
+  return answer;
 }
 
 /** A lesson's walkthrough, if the manifest lists one, with its storage state. */
 export async function lessonVideoAvailability(lessonId: string): Promise<VideoAvailability<LessonVideoEntry> | null> {
   const entry = lessonVideo(lessonId);
   if (!entry) return null;
-  const [video, poster] = await Promise.all([presence(entry.key), presence(entry.poster.key)]);
-  return {
-    entry,
-    video: video === true,
-    poster: poster === true,
-    unreachable: video === null || poster === null,
-  };
+  return availabilityFor(entry, entry.key, entry.poster.key);
 }
 
 /** A course's welcome video, if the manifest lists one, with its storage state. */
 export async function courseVideoAvailability(slug: string): Promise<VideoAvailability<CourseVideoEntry> | null> {
   const entry = courseVideo(slug);
   if (!entry) return null;
-  const [video, poster] = await Promise.all([presence(entry.key), presence(entry.poster.key)]);
+  return availabilityFor(entry, entry.key, entry.poster.key);
+}
+
+async function availabilityFor<T>(entry: T, key: string, posterKey: string): Promise<VideoAvailability<T>> {
+  const [video, poster] = await Promise.all([presence(key), presence(posterKey)]);
+  const failed = video.present === null ? video : poster.present === null ? poster : null;
   return {
     entry,
-    video: video === true,
-    poster: poster === true,
-    unreachable: video === null || poster === null,
+    video: video.present === true,
+    poster: poster.present === true,
+    unreachable: failed !== null,
+    failure: failed?.failure ?? null,
+    hint: failed?.hint ?? null,
   };
+}
+
+/**
+ * One manifest key, for a single cheap "is the bucket filled?" question.
+ *
+ * `/api/health` uses it to tell a broken storage configuration from a working
+ * one that simply has no videos in it yet — the two look the same to a student
+ * and need opposite fixes.
+ */
+export function sampleVideoKey(): { key: string; lessonId: string } | null {
+  const first = Object.values(LESSON_VIDEOS)[0];
+  return first ? { key: first.key, lessonId: first.lessonId } : null;
 }
 
 export interface StoredVideoCheck {
@@ -107,6 +226,10 @@ export interface StoredVideoCheck {
   poster: boolean | null;
   /** Present, but a different byte count than the manifest recorded. */
   sizeMismatch: boolean;
+  /** Why the answer is unknown, when it is. */
+  failure: StorageFailureKind | null;
+  /** The fix, in plain language. */
+  hint: string | null;
 }
 
 async function checkEntry(
@@ -120,15 +243,30 @@ async function checkEntry(
 ): Promise<StoredVideoCheck> {
   let video: boolean | null;
   let sizeMismatch = false;
+  let failure: StorageFailureKind | null = null;
+  let hint: string | null = null;
   try {
-    const stat = await statWithRetry(key);
+    const stat = await statBlobWithRetry(key);
     video = stat !== null;
     sizeMismatch = stat !== null && stat.size !== expectedSize;
   } catch (error) {
-    console.error(`Could not reach video storage while checking ${key}`, error);
     video = null;
+    ({ failure, hint } = failureOf(error));
   }
-  return { kind, id, courseId, title, key, expectedSize, video, poster: await presence(posterKey), sizeMismatch };
+  const poster = await presence(posterKey);
+  return {
+    kind,
+    id,
+    courseId,
+    title,
+    key,
+    expectedSize,
+    video,
+    poster: poster.present,
+    sizeMismatch,
+    failure: failure ?? poster.failure,
+    hint: hint ?? poster.hint,
+  };
 }
 
 /**
@@ -139,7 +277,12 @@ async function checkEntry(
  * keys unknown rather than throwing, so one outage cannot break the page or
  * script that asked.
  */
-export async function verifyVideoStorage(): Promise<{ checks: StoredVideoCheck[]; unreachable: boolean }> {
+export async function verifyVideoStorage(): Promise<{
+  checks: StoredVideoCheck[];
+  unreachable: boolean;
+  failure: StorageFailureKind | null;
+  hint: string | null;
+}> {
   const jobs: (() => Promise<StoredVideoCheck>)[] = [];
   for (const entry of Object.values(LESSON_VIDEOS)) {
     jobs.push(() =>
@@ -159,5 +302,11 @@ export async function verifyVideoStorage(): Promise<{ checks: StoredVideoCheck[]
   for (let index = 0; index < jobs.length; index += BATCH) {
     checks.push(...(await Promise.all(jobs.slice(index, index + BATCH).map((job) => job()))));
   }
-  return { checks, unreachable: checks.some((check) => check.video === null || check.poster === null) };
+  const failed = checks.find((check) => check.video === null || check.poster === null);
+  return {
+    checks,
+    unreachable: Boolean(failed),
+    failure: failed?.failure ?? null,
+    hint: failed?.hint ?? null,
+  };
 }

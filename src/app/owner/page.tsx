@@ -44,6 +44,11 @@ export default async function OwnerConsolePage() {
   const videoStorage = await verifyVideoStorage();
   const storageStatus = {
     unreachable: videoStorage.unreachable,
+    // The reason and its fix travel with the counts: "storage could not be
+    // reached" on its own leaves the teacher guessing between a paused
+    // project, a rotated key and a bucket name that does not match.
+    failure: videoStorage.failure,
+    hint: videoStorage.hint,
     missingVideos: videoStorage.checks.filter((check) => check.kind === "lesson" && check.video === false).length,
     missingPosters: videoStorage.checks.filter((check) => check.kind === "lesson" && check.poster === false).length,
     missingWelcomes: videoStorage.checks.filter((check) => check.kind === "welcome" && check.video === false).length,

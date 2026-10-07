@@ -16,6 +16,10 @@ interface Props {
    */
   storageStatus?: {
     unreachable: boolean;
+    /** Why storage could not be answered, when it could not. */
+    failure?: string | null;
+    /** The fix for that reason, in plain language. */
+    hint?: string | null;
     missingVideos: number;
     missingPosters: number;
     missingWelcomes: number;
@@ -38,6 +42,7 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
   const covered = coursesWithVideo.length;
   const storageMissing = (storageStatus?.missingVideos ?? 0) + (storageStatus?.missingWelcomes ?? 0);
   const storageUnknown = storageStatus?.unreachable ?? false;
+  const storageHint = storageStatus?.hint ?? null;
   // "Complete" means students can actually press play: listed in the manifest
   // *and* present in this deployment's storage.
   const complete = missingTotal === 0 && covered === COURSES.length && storageMissing === 0;
@@ -77,7 +82,9 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
             The video list names them, but the bytes never reached storage, so those lessons show the written
             material only. Run{" "}
             <code className="rounded bg-red-100 px-1 py-0.5 font-mono text-[9px]">npm run videos:verify</code> for
-            the full list, then rebuild with this deployment&apos;s storage variables set.
+            the full list, then rebuild with this deployment&apos;s storage variables set — or, without a terminal,
+            run the <strong>Lesson videos</strong> workflow (Actions → Lesson videos → Run workflow), which renders
+            every video and uploads it to this bucket.
           </p>
         </div>
       )}
@@ -85,8 +92,23 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
       {storageUnknown && storageMissing === 0 && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[10px] leading-5 text-amber-800">
           <p>
-            <span className="block">Video storage could not be reached just now, so these counts come from the video list only.</span>
-            <span className="block">Check the storage connection again before treating these counts as final.</span>
+            <span className="block font-extrabold">
+              Video storage could not be reached, so these counts come from the video list only.
+            </span>
+            <span className="block">
+              Students see “Video unavailable right now” on every lesson until this is fixed — the written lesson
+              still reads in full.
+            </span>
+          </p>
+          {storageHint && (
+            <p className="mt-2 rounded-lg bg-white/70 px-3 py-2 text-[10px] leading-5 text-amber-900">
+              <span className="block font-extrabold">What to do</span>
+              {storageHint}
+            </p>
+          )}
+          <p className="mt-2 text-[9px] text-amber-700/90">
+            <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-[9px]">/api/health</code> reports the
+            same finding as JSON, straight from this deployment.
           </p>
           <RefreshStorageButton />
         </div>

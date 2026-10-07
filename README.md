@@ -219,6 +219,53 @@ renders and uploads all 81 videos (about an hour), verifies the bucket, and
 commits the updated manifests back. Redeploy afterwards so the site serves the
 new manifest.
 
+### When a lesson says "Video unavailable right now"
+
+That is a *different* failure from the 410 above, and the difference matters:
+"no video yet" means storage answered and the file is not there, while
+"unavailable right now" means the app could not get an answer at all — so
+nothing is known about the file, including whether it exists. Every lesson
+shows it at once, because the cause is the storage connection rather than one
+video. Written lessons stay complete throughout.
+
+Open **`/api/health`** on the deployment and read `storage`. It asks the same
+question the lesson page asked and reports the answer in full: which backend is
+in use, whether the project was reachable, whether the key was accepted,
+whether the bucket exists, whether it is public, whether one sampled video is
+actually in it — and `storage.hint`, which names the fix. The five causes it
+distinguishes:
+
+| `storage.failure` | What it means | The fix |
+| --- | --- | --- |
+| `bucket-missing` | No bucket with the name in `SUPABASE_BUCKET` | Create it (Storage → New bucket), or correct the name — it must match exactly |
+| `auth-rejected` | Supabase refused `SUPABASE_SECRET_KEY` | Use the secret key (`sb_secret_…`), not the publishable one; replace it if rotated, then redeploy |
+| `network` / `timeout` | The project did not answer | Restore a paused free-tier project; check the URL and the host's egress rules |
+| `not-public` | `SUPABASE_BUCKET_PUBLIC=1` on a private bucket | Click Make public, or unset the flag to go back to signed URLs |
+| `rate-limited` / `server-error` | A burst, or Supabase's own outage | Wait a minute; the app retries and caches nothing when it fails |
+
+`storage.failure: null` with `storage.videos.samplePresent: false` is the one
+case no environment variable fixes: storage is healthy and the bucket is simply
+empty, which is the 410 situation above — run the **Lesson videos** workflow.
+
+The same finding, without a terminal, is in the teacher console: the **Lesson
+videos** card prints the reason and the fix whenever it cannot reach storage.
+
+Two behaviours worth knowing about, because they make a bad configuration less
+fatal than it looks:
+
+- A metadata read times out after 10 seconds, not a minute, so a storage
+  problem slows a lesson page down but does not turn it into a platform
+  timeout.
+- When the bucket is **public**, presence is confirmed through the object's own
+  URL if the authenticated call was refused. A wrong or rotated key then breaks
+  uploads and signed downloads, but the videos that are already in the bucket
+  keep playing instead of the whole library reporting itself unavailable.
+
+Definite answers ("this file is there", "it is not") are remembered for a few
+minutes per server instance, which collapses a burst of page views into one
+round trip. Failures are never cached, so the console's **Check again** button
+always really checks again.
+
 ## Run locally
 
 ```bash
