@@ -1,5 +1,6 @@
 import { lesson } from "./lesson-builder";
 import { PROGRAMS, PROGRAM_COURSES } from "./programs";
+import { WEB_FOUNDATIONS_MODULES } from "@/content/web-foundations";
 
 export type CourseCategory =
   | "Computer Science"
@@ -11,11 +12,32 @@ export type CourseCategory =
 export type CourseLevel = "Beginner" | "Intermediate";
 export type CourseTone = "violet" | "orange" | "cyan" | "green" | "pink" | "blue";
 
+/**
+ * What a section *is*, which decides how the reader draws it. Catalog lessons
+ * use the whole set; a lesson published from the owner console is plain prose
+ * plus code, and renders as `paragraph`.
+ */
+export type SectionKind =
+  | "paragraph"
+  | "definition"
+  | "example"
+  | "note"
+  | "warning"
+  | "table"
+  | "exercise";
+
 export interface LessonSection {
   heading: string;
   body: string;
+  kind?: SectionKind;
   code?: string;
   language?: string;
+  /** Caption printed above a code block ("Output", "Trace of the loop", …). */
+  codeLabel?: string;
+  /** Rows of a `table` section. The first row is the header. */
+  rows?: string[][];
+  /** Numbered steps of an `exercise` section. */
+  items?: string[];
 }
 
 export interface LessonFile {
@@ -40,11 +62,16 @@ export interface LessonFile {
 export interface Lesson {
   id: string;
   title: string;
+  /** Reading time in minutes, derived from the lesson's own word count. */
   duration: number;
   summary: string;
   objectives: string[];
   sections: LessonSection[];
   challenge: string;
+  /** "You should now be able to…" — the lesson's own summary statements. */
+  keyPoints?: string[];
+  /** The exercise set that closes a textbook lesson. */
+  exercises?: string[];
   preview?: boolean;
   /** "owner" marks a lesson published from the owner console. */
   source?: "catalog" | "owner";
@@ -109,86 +136,7 @@ const CORE_COURSES: Course[] = [
       "Publish a website to the internet",
     ],
     tags: ["HTML", "CSS", "Responsive design"],
-    modules: [
-      {
-        id: "web-under-the-hood",
-        title: "01 · The web under the hood",
-        description: "Understand the browser before you build for it.",
-        lessons: [
-          lesson(
-            "how-the-web-works",
-            "How the web works",
-            12,
-            "Every website begins with a conversation between a browser and a server. You will follow one request from a typed URL to pixels on a screen.",
-            "A URL identifies a resource. DNS finds the server, HTTPS carries the request, and the server returns files such as HTML, CSS and JavaScript. The browser parses those files and paints the page.",
-            "Browser  →  HTTPS request  →  Web server\nBrowser  ←  HTML + CSS + JS  ←  Web server",
-            "Open the Network panel on any website and identify its first document request.",
-            true
-          ),
-          lesson(
-            "html-document",
-            "Your first HTML document",
-            18,
-            "HTML gives content meaning. Build a valid document and learn what the browser does with each element.",
-            "A page has one document type, an html root, metadata inside head, and visible content inside body. Semantic tags describe purpose rather than appearance.",
-            "<!doctype html>\n<html lang=\"en\">\n  <head><title>My first page</title></head>\n  <body>\n    <h1>Hello, web!</h1>\n    <p>I built this with HTML.</p>\n  </body>\n</html>",
-            "Create a page with one heading, two paragraphs and a link to a site you use often."
-          ),
-          lesson(
-            "semantic-accessible-html",
-            "Semantic & accessible HTML",
-            20,
-            "Good structure helps people, browsers and search engines understand your page.",
-            "Use landmarks such as header, nav, main and footer. Pair every form input with a label, keep headings in order, and write useful alternative text for meaningful images.",
-            "<main>\n  <article>\n    <h1>Learning in public</h1>\n    <p>Small projects create visible progress.</p>\n  </article>\n</main>",
-            "Replace the generic div elements in a sample page with at least four semantic elements."
-          ),
-        ],
-      },
-      {
-        id: "style-the-page",
-        title: "02 · Style the page",
-        description: "Turn structured content into a polished interface.",
-        lessons: [
-          lesson(
-            "css-foundations",
-            "CSS foundations",
-            22,
-            "Use selectors, properties and values to control how HTML looks and responds.",
-            "The cascade combines browser defaults, inherited values, selector specificity and source order. Start with simple class selectors and let layout rules do most of the work.",
-            ".hero {\n  padding: 4rem 1.5rem;\n  background: #f4f1ff;\n  color: #17151f;\n}\n\n.hero__title {\n  max-width: 12ch;\n  font-size: clamp(2.5rem, 8vw, 5rem);\n}",
-            "Create a reusable card class with spacing, a border, rounded corners and a subtle shadow."
-          ),
-          lesson(
-            "flexbox-grid",
-            "Layouts with Flexbox & Grid",
-            26,
-            "Stop positioning elements by guesswork. Use two layout systems designed for interfaces.",
-            "Flexbox arranges items along one main axis and is ideal for nav bars and rows. Grid controls rows and columns together and is ideal for page sections and card collections.",
-            ".card-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n  gap: 1.25rem;\n}",
-            "Build a card grid that shows one column on small screens and three when space allows."
-          ),
-          lesson(
-            "responsive-design",
-            "Responsive design",
-            24,
-            "Make one interface feel intentional on phones, tablets and large screens.",
-            "Start with a fluid mobile layout, use flexible units, and add a breakpoint only when the content needs it. Test narrow widths and keyboard zoom—not just popular device presets.",
-            "@media (min-width: 48rem) {\n  .hero {\n    display: grid;\n    grid-template-columns: 1.2fr 1fr;\n    align-items: center;\n  }\n}",
-            "Audit your project at 320px, 768px and 1280px. Fix every horizontal scrollbar."
-          ),
-          lesson(
-            "publish-portfolio",
-            "Ship your portfolio",
-            28,
-            "Combine the course skills, check quality and put your work online.",
-            "A useful launch checklist covers content, responsive layout, keyboard navigation, page metadata, image sizes and broken links. Shipping creates feedback you cannot get from a local file.",
-            "git add .\ngit commit -m \"ship portfolio v1\"\ngit push origin main",
-            "Publish your portfolio and ask one person to complete a task on it without your help."
-          ),
-        ],
-      },
-    ],
+    modules: WEB_FOUNDATIONS_MODULES,
   },
   {
     id: "computer-science-essentials",
