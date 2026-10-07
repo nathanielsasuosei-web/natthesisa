@@ -3,6 +3,7 @@ import { COURSES } from "@/lib/courses";
 import { courseVideoCount } from "@/lib/course-videos";
 import { lessonVideoCount } from "@/lib/lesson-videos";
 import Icon from "./Icon";
+import RefreshStorageButton from "./RefreshStorageButton";
 
 interface Props {
   /** Slugs of the courses that have a welcome video. */
@@ -82,10 +83,13 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
       )}
 
       {storageUnknown && storageMissing === 0 && (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[10px] leading-5 text-amber-800">
-          Video storage could not be reached just now, so these counts come from the video list only — reload to
-          check the files themselves.
-        </p>
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[10px] leading-5 text-amber-800">
+          <p>
+            <span className="block">Video storage could not be reached just now, so these counts come from the video list only.</span>
+            <span className="block">Check the storage connection again before treating these counts as final.</span>
+          </p>
+          <RefreshStorageButton />
+        </div>
       )}
 
       {complete ? (
