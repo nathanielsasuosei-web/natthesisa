@@ -4,6 +4,7 @@ import { DATA_STRUCTURES_ALGORITHMS_MODULES } from "@/content/data-structures-al
 import { DATABASES_AND_SQL_MODULES } from "@/content/databases-and-sql";
 import { SOFTWARE_ENGINEERING_PRACTICES_MODULES } from "@/content/software-engineering-practices";
 import { SYSTEM_DESIGN_ARCHITECTURE_MODULES } from "@/content/system-design-architecture";
+import { DEVOPS_AND_DELIVERY_MODULES } from "@/content/devops-and-delivery";
 
 /**
  * The six programs, and the courses under them.
@@ -229,69 +230,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Monitor, back up and recover",
     ],
     tags: ["Docker", "CI/CD", "Observability"],
-    modules: [
-      module("commit-to-production", "01 · From commit to production", "Environments, containers and the pipeline that connects them.", [
-        lesson(
-          "environments-and-config",
-          "Environments and config",
-          22,
-          "The same code should run everywhere; only the configuration differs. Everything else is how a bug reaches production.",
-          "Keep secrets in the environment, never in the repo. Fail fast at boot when a required variable is missing, and give each environment its own database — sharing one is how a test wipes real data.",
-          "const required = [\"DATABASE_URL\", \"SESSION_SECRET\"];\nconst missing = required.filter((key) => !process.env[key]);\nif (missing.length) {\n  console.error(`Missing config: ${missing.join(\", \")}`);\n  process.exit(1);\n}",
-          "List every environment variable your app reads, mark which are secret, and make the app refuse to start without the required ones.",
-          true
-        ),
-        lesson(
-          "containers",
-          "Containers you can trust",
-          26,
-          "A container packages your app and its runtime so the build is the same on your laptop, in CI and in production.",
-          "Use a small base image, install dependencies from the lockfile, copy source last so layers cache, and run as a non-root user. One process per container; state belongs in a volume or a database.",
-          "FROM node:22-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --omit=dev\nCOPY . .\nUSER node\nENV NODE_ENV=production\nEXPOSE 3000\nCMD [\"node\", \"server.js\"]",
-          "Write a Dockerfile for one of your projects and check the image builds twice in a row with the cache hit."
-        ),
-        lesson(
-          "pipelines-in-practice",
-          "Deploy and rollback",
-          24,
-          "Deployment should be one command that either finishes or leaves the previous version running. Rolling back should be one more.",
-          "Build an immutable artifact, deploy it, run a smoke test against the real URL and only then switch traffic. Keep the previous release so rollback is a pointer change, not a rebuild.",
-          "npm ci && npm run build\nssh deploy@host 'ln -sfn releases/$(date +%s) current && systemctl reload app'\ncurl -fsS https://app.example.com/api/health || ./rollback.sh",
-          "Add a health check to your app and make your deploy script refuse to finish unless it returns healthy."
-        ),
-      ]),
-      module("running-it", "02 · Running it", "What you need on the day something goes wrong at 2am.", [
-        lesson(
-          "monitoring-and-logs",
-          "Monitoring that wakes you, logs that explain",
-          24,
-          "Metrics tell you something is wrong; logs tell you why. You need both, and you need them before the incident.",
-          "Track the four signals: latency, traffic, errors and saturation. Log structured events with a request id, never log secrets or full personal data, and alert on symptoms users feel rather than on CPU.",
-          "console.error(JSON.stringify({\n  level: \"error\",\n  event: \"purchase.failed\",\n  requestId,\n  code: \"PAYMENT_DECLINED\",\n  userId: user.id, // an id, never an email or card\n}));",
-          "Add one structured log line and one timing metric to a route you care about, then decide the threshold that should page you."
-        ),
-        lesson(
-          "backups-and-migrations",
-          "Backups and schema changes",
-          24,
-          "Data outlives code. Migrations must be safe to run while the old version is still serving traffic, and backups are only real once you have restored one.",
-          "Add columns as nullable, backfill, then enforce — never rename and rewrite in one step. Test the restore, not the backup, and write down how long recovery takes.",
-          "alter table users add column if not exists pass_expires_at timestamptz;\nupdate users set pass_expires_at = now() where pass_expires_at is null;\nalter table users alter column pass_expires_at set not null;",
-          "Write the migration order for renaming a column with zero downtime, then restore a backup into a scratch database."
-        ),
-        lesson(
-          "incidents-and-rollbacks",
-          "Incidents and blameless reviews",
-          22,
-          "Every outage is a lesson with a timestamp. The goal of a review is a system that cannot fail the same way, not a person to blame.",
-          "During an incident: stop the bleeding (roll back), then investigate. Afterwards write the timeline from data, name the contributing causes honestly and turn each one into an issue with an owner.",
-          "12:04  Deploy 41 ships; error rate 0.2% -> 14%\n12:06  Rollback to 40; errors return to baseline\n12:20  Root cause: migration added NOT NULL before backfill\nAction: migrations must be additive-only in one release (owner: NA)",
-          "Write the timeline of the last bug that hit production, from the deploy to the fix, and turn it into three actions."
-        ),
-      ]),
-    ],
+    modules: DEVOPS_AND_DELIVERY_MODULES,
   },
-
   {
     id: "vibe-coding-ship-with-ai",
     slug: "vibe-coding-ship-with-ai",
