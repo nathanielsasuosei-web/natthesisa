@@ -240,6 +240,26 @@ but no video yet, writes `src/content/lesson-videos.ts` and
 to re-render, and `KEEP_SLIDES=1` to keep the rendered stills for inspection.
 Each run prints one line per video: length, size and how long the encode took.
 
+### When a video answers 410 ("missing from storage")
+
+That error means the manifest (`src/content/lesson-videos.ts`, committed to
+Git) lists a video whose bytes are not in *this deployment's* storage: the
+files live in Supabase Storage or `.data/uploads`, neither of which travels
+with a `git push`. The lesson page degrades gracefully — the written lesson is
+always complete — but the walkthrough only plays once the bytes are where the
+app looks for them. Diagnose with:
+
+```bash
+npm run videos:verify   # every manifest entry against the configured storage
+```
+
+then fix from a machine that reaches the right storage: set the Supabase
+variables (production) or nothing (local disk), run `npm run videos:synthesize`
+once, and `npm run videos:build` to render whatever has narration but no video
+yet. `videos:build` uploads each finished file to the configured storage as it
+goes, so rebuilding *with the production variables set* is what fills the
+production bucket.
+
 To add a course's worth of lesson videos: write
 `content/lesson-videos/<courseId>.json` with one entry per lesson id (four
 paragraphs each — the lesson's own text is the best source), synthesize the

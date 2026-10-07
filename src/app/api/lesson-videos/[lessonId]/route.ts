@@ -61,7 +61,10 @@ export async function GET(
 
   const size = await storedBlobSize(record);
   if (size === null) {
-    return NextResponse.json({ error: "The lesson video is missing from storage." }, { status: 410 });
+    return NextResponse.json(
+      { error: "The lesson video is missing from storage.", code: "STORAGE_MISSING" },
+      { status: 410 }
+    );
   }
 
   const asciiName = entry.name.replace(/[^\x20-\x7e]/g, "_").replace(/"/g, "");

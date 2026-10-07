@@ -1,6 +1,7 @@
 import { getCourse } from "@/lib/courses";
 import type { Lesson } from "@/lib/courses";
-import { lessonVideo, lessonVideoFile } from "@/lib/lesson-videos";
+import { lessonVideoFile } from "@/lib/lesson-videos";
+import { lessonVideoAvailability } from "@/lib/video-availability";
 import CoverVideo from "./CoverVideo";
 import Icon from "./Icon";
 import LessonActions from "./LessonActions";
@@ -24,18 +25,25 @@ interface Props {
  * only at the foot of the page, because that is the moment the student is ready
  * to move on — and the same button is at the bottom for anyone who reads first.
  */
-export default function LessonVideoGuide({ lesson, courseId, complete, nextHref, nextLabel, suspended }: Props) {
-  const entry = lessonVideo(lesson.id);
-  const video = entry ? lessonVideoFile(entry) : null;
+export default async function LessonVideoGuide({ lesson, courseId, complete, nextHref, nextLabel, suspended }: Props) {
+  // The manifest alone is not enough to promise a player: the bytes live in a
+  // storage that does not travel with a deploy, so a video can be listed but
+  // unplayable. Only render the player when the file is really there; anything
+  // else falls back to the written lesson, which is always complete.
+  const availability = await lessonVideoAvailability(lesson.id);
+  const entry = availability?.entry ?? null;
+  const playable = availability?.video === true;
+  const unreachable = availability?.unreachable === true;
+  const video = entry && playable ? lessonVideoFile(entry) : null;
   const course = entry ? getCourse(entry.courseId) : undefined;
 
   return (
     <section className="mt-7">
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-[9px] font-black uppercase tracking-[.15em] text-[#6d4aff]">
-          {video ? "Watch the walkthrough" : "No video yet"}
+          {video ? "Watch the walkthrough" : unreachable ? "Video unavailable right now" : "No video yet"}
         </p>
-        {entry && (
+        {video && entry && (
           <span className="rounded-full bg-[#f0ecff] px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-[#5e3de0]">
             {Math.max(1, Math.round(entry.durationSeconds / 60))} min video
           </span>
@@ -53,7 +61,7 @@ export default function LessonVideoGuide({ lesson, courseId, complete, nextHref,
           <CoverVideo
             className="mt-4"
             src={video.href}
-            poster={video.poster ?? undefined}
+            poster={availability?.poster ? (video.poster ?? undefined) : undefined}
             title={lesson.title}
             durationSeconds={entry.durationSeconds}
             chapters={entry.chapters}
@@ -65,9 +73,15 @@ export default function LessonVideoGuide({ lesson, courseId, complete, nextHref,
             <Icon name="video" size={17} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-extrabold text-[#4a4450]">This lesson has no walkthrough video yet.</p>
+            <p className="text-xs font-extrabold text-[#4a4450]">
+              {unreachable
+                ? "The walkthrough video could not be reached just now."
+                : "This lesson has no walkthrough video yet."}
+            </p>
             <p className="mt-0.5 text-[10px] leading-4 text-[#918a97]">
-              The written lesson below is complete — read it, work through the example, then take on the challenge.
+              {unreachable
+                ? "Reload the page to try again — the written lesson below is complete either way."
+                : "The written lesson below is complete — read it, work through the example, then take on the challenge."}
             </p>
           </div>
         </div>
