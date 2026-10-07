@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
 import type { Lesson, LessonSection } from "@/lib/courses";
-import { accessMessage, lessonAccess } from "@/lib/access";
+import { lessonAccess } from "@/lib/access";
 import { contentLessons, contentModules, contentPercent, findContentLesson } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
 import { lessonWordCount } from "@/lib/lesson-builder";
@@ -14,7 +14,7 @@ import Logo from "@/components/Logo";
 import LessonActions from "@/components/LessonActions";
 import LessonMaterials from "@/components/LessonMaterials";
 import LessonProse from "@/components/LessonProse";
-import BuyProgram from "@/components/BuyProgram";
+import LessonNarrator from "@/components/LessonNarrator";
 
 export async function generateMetadata({ params }: { params: Promise<{ courseId: string; lessonId: string }> }): Promise<Metadata> {
   const { courseId, lessonId } = await params;
@@ -157,7 +157,7 @@ function Section({ section, index }: { section: LessonSection; index: number }) 
       </div>
 
       <div className={style.frame ? `mt-4 ${style.frame}` : "mt-4"}>
-        {section.body ? <LessonProse text={section.body} /> : null}
+        {section.body ? <LessonProse text={section.body} label={section.heading} /> : null}
         {section.rows?.length ? <DataTable rows={section.rows} /> : null}
         {section.items?.length ? (
           <ol className="my-4 grid gap-3 pl-1 text-[15px] leading-8 text-[#5f5965]">
@@ -166,7 +166,7 @@ function Section({ section, index }: { section: LessonSection; index: number }) 
                 <span className="mt-1 grid size-6 shrink-0 place-items-center rounded-full border border-[#d9d2e6] bg-white text-[10px] font-black text-[#6543e8]">
                   {itemIndex + 1}
                 </span>
-                <LessonProse text={item} className="[&_p]:my-0" />
+                <LessonProse text={item} label={section.heading} className="[&_p]:my-0" />
               </li>
             ))}
           </ol>
@@ -182,8 +182,7 @@ function Section({ section, index }: { section: LessonSection; index: number }) 
 /* -------------------------------------------------------------------------- */
 
 export default async function LessonPage({ params }: { params: Promise<{ courseId: string; lessonId: string }> }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  const user = await getCurrentUser().catch(() => null);
   const { courseId, lessonId } = await params;
   const course = getCourse(courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
@@ -191,37 +190,22 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const lessons = contentLessons(course);
   const modules = contentModules(course);
   const lessonIndex = lessons.findIndex((item) => item.id === lesson.id);
-  const access = lessonAccess(user, course, lesson);
-  const accessible = access.allowed;
+  // Reading and listening are public. Progress, certificates and uploaded
+  // files still require an account that owns the program.
+  const access = user ? lessonAccess(user, course, lesson) : null;
+  const canTrack = Boolean(user && access?.allowed);
+  const courseHref = user ? `/dashboard/courses/${course.slug}` : `/courses/${course.slug}`;
+  const homeHref = user ? "/dashboard" : "/";
 
-  if (!accessible) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#f7f7f4] px-5">
-        <div className="w-full max-w-md border-y border-[#ded9e3] py-8 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="lock" size={25} /></span>
-          <h1 className="mt-5 text-xl font-black tracking-[-.035em]">{lesson.title}</h1>
-          <p className="mt-2 text-sm leading-6 text-[#756f7b]">{accessMessage(access, course.shortTitle)}</p>
-          {access.needsPurchase && access.programId && (
-            <div className="mt-6">
-              <BuyProgram programId={access.programId} programName={access.programName ?? course.category} price={access.price} className="block [&>button]:w-full [&>button]:justify-center" />
-            </div>
-          )}
-          <Link href={`/dashboard/courses/${course.slug}`} className="mt-4 block text-xs font-bold text-[#756f7b]">Back to course</Link>
-        </div>
-      </main>
-    );
-  }
-
-  const progress = getOrCreateProgress(user, course.id);
-  progress.lastAccessedAt = new Date().toISOString();
-  const complete = progress.completedLessonIds.includes(lesson.id);
-  const percent = contentPercent(course, progress.completedLessonIds);
+  const progress = canTrack && user ? getOrCreateProgress(user, course.id) : null;
+  if (progress) progress.lastAccessedAt = new Date().toISOString();
+  const complete = progress?.completedLessonIds.includes(lesson.id) ?? false;
+  const percent = progress ? contentPercent(course, progress.completedLessonIds) : 0;
   const ownerBranding = lesson.source === "owner" ? brandingSummary(course.instructor.name) : null;
   const previousLesson = lessons[lessonIndex - 1];
   const nextLesson = lessons[lessonIndex + 1];
-  const nextAccessible = nextLesson ? lessonAccess(user, course, nextLesson).allowed : false;
-  const nextHref = nextLesson && nextAccessible ? `/learn/${course.id}/${nextLesson.id}` : `/dashboard/courses/${course.slug}`;
-  const nextLabel = nextLesson && nextAccessible ? "Next lesson" : nextLesson ? "Back to course" : "Finish course";
+  const nextHref = nextLesson ? `/learn/${course.id}/${nextLesson.id}` : courseHref;
+  const nextLabel = nextLesson ? "Next lesson" : "Back to course";
   const words = wordCount(lesson);
 
   return (
@@ -230,30 +214,32 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
         <div className="flex h-[66px] items-center px-4 sm:px-6">
           <Logo compact />
           <span className="mx-4 h-5 w-px bg-[#e1dde5]" />
-          <Link href={`/dashboard/courses/${course.slug}`} className="min-w-0 text-xs font-bold text-[#5c5662] hover:text-[#5f3ee1]"><span className="hidden sm:inline">{course.shortTitle}</span><span className="sm:hidden">Course</span></Link>
-          <div className="ml-auto flex items-center gap-3 sm:gap-5"><div className="hidden items-center gap-2 sm:flex"><div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#ece9ef]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div><span className="text-[10px] font-black text-[#6d6672]">{percent}%</span></div><Link href="/dashboard" className="grid size-9 place-items-center rounded-xl border border-[#e4e0e8] text-[#77717e] transition hover:border-violet-300" aria-label="Close lesson"><Icon name="close" size={17} /></Link></div>
+          <Link href={courseHref} className="min-w-0 text-xs font-bold text-[#5c5662] hover:text-[#5f3ee1]"><span className="hidden sm:inline">{course.shortTitle}</span><span className="sm:hidden">Course</span></Link>
+          <div className="ml-auto flex items-center gap-3 sm:gap-5">{canTrack ? <div className="hidden items-center gap-2 sm:flex"><div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#ece9ef]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div><span className="text-[10px] font-black text-[#6d6672]">{percent}%</span></div> : <Link href="/login?mode=signup" className="hidden text-[10px] font-bold text-[#6d4aff] sm:inline">Save your progress</Link>}<Link href={homeHref} className="grid size-9 place-items-center rounded-xl border border-[#e4e0e8] text-[#77717e] transition hover:border-violet-300" aria-label="Close lesson"><Icon name="close" size={17} /></Link></div>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-[1600px] lg:grid-cols-[290px_1fr] xl:grid-cols-[290px_1fr_248px]">
         <aside className="dashboard-scroll hidden h-[calc(100vh-66px)] overflow-y-auto border-r border-[#e7e3e9] bg-white lg:sticky lg:top-[66px] lg:block">
-          <div className="border-b border-[#ece9ef] p-5"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Course content</p><h2 className="mt-2 text-sm font-extrabold leading-5">{course.shortTitle}</h2><p className="mt-1 text-[10px] text-[#918a97]">{progress.completedLessonIds.length} of {lessons.length} lessons complete</p></div>
+          <div className="border-b border-[#ece9ef] p-5"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Course content</p><h2 className="mt-2 text-sm font-extrabold leading-5">{course.shortTitle}</h2><p className="mt-1 text-[10px] text-[#918a97]">{progress ? `${progress.completedLessonIds.length} of ${lessons.length} lessons complete` : "Free to read and listen"}</p></div>
           {modules.map((module) => (
-            <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress.completedLessonIds.includes(item.id); const itemAccess = lessonAccess(user, course, item).allowed; const current = item.id === lesson.id; return itemAccess ? <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 text-[8px] text-[#a19aa7]">{item.duration} min</p></div></Link> : <div key={item.id} className="flex items-center gap-3 border-b border-[#f0edf2] px-5 py-3 text-[#aaa4b0]"><Icon name="lock" size={15} /><p className="text-[10px] font-semibold">{item.title}</p></div>; })}</div>
+            <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress?.completedLessonIds.includes(item.id) ?? false; const current = item.id === lesson.id; return <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 text-[8px] text-[#a19aa7]">{item.duration} min</p></div></Link>; })}</div>
           ))}
         </aside>
 
         <main className="min-w-0">
-          <article className="mx-auto max-w-[790px] px-5 py-10 sm:px-8 sm:py-14">
+          <article id="lesson-article" className="mx-auto max-w-[790px] px-5 py-10 pb-28 sm:px-8 sm:py-14 sm:pb-32">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[#6d4aff]"><span>Lesson {lessonIndex + 1} of {lessons.length}</span></div>
-            <h1 className="mt-3 text-balance text-3xl font-black leading-[1.1] tracking-[-.045em] text-[#1d1922] sm:text-[44px]">{lesson.title}</h1>
-            <p className="mt-5 text-[17px] font-medium leading-8 text-[#5f5965]">{lesson.summary}</p>
+            <h1 data-speech={`Lesson. ${lesson.title}.`} data-speech-label="Title" className="mt-3 text-balance text-3xl font-black leading-[1.1] tracking-[-.045em] text-[#1d1922] sm:text-[44px]">{lesson.title}</h1>
+            <p data-speech={lesson.summary} data-speech-label="Introduction" className="mt-5 text-[17px] font-medium leading-8 text-[#5f5965]">{lesson.summary}</p>
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-y border-[#e6e2e9] py-3 text-[10px] font-semibold text-[#817a87]">
               <span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {lesson.duration} minutes</span>
               <span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> {words.toLocaleString()} words</span>
               <span className="inline-flex items-center gap-1.5"><Icon name="layers" size={14} /> {lesson.sections.length} sections</span>
               {complete && <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700"><Icon name="check" size={14} /> Completed</span>}
             </div>
+
+            <LessonNarrator key={lesson.id} title={lesson.title} words={words} />
 
             <section className="open-section mt-9 pb-1">
               <p className="text-[9px] font-black uppercase tracking-[.15em] text-[#6d4aff]">Learning objectives</p>
@@ -335,15 +321,23 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
               </section>
             )}
 
-            {lesson.files?.length ? <LessonMaterials files={lesson.files} /> : null}
+            {canTrack && lesson.files?.length ? <LessonMaterials files={lesson.files} /> : null}
 
             <div className="mt-10 grid gap-3 sm:grid-cols-[1fr_1.4fr]">
-              {previousLesson ? <Link href={`/learn/${course.id}/${previousLesson.id}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864] transition hover:border-violet-300"><Icon name="arrow-left" size={16} /> Previous lesson</Link> : <Link href={`/dashboard/courses/${course.slug}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864]"><Icon name="arrow-left" size={16} /> Course overview</Link>}
-              <LessonActions courseId={course.id} lessonId={lesson.id} initiallyComplete={complete} nextHref={nextHref} nextLabel={nextLabel} suspended={user.suspended} />
+              {previousLesson ? <Link href={`/learn/${course.id}/${previousLesson.id}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864] transition hover:border-violet-300"><Icon name="arrow-left" size={16} /> Previous lesson</Link> : <Link href={courseHref} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864]"><Icon name="arrow-left" size={16} /> Course overview</Link>}
+              {canTrack && user ? (
+                <LessonActions courseId={course.id} lessonId={lesson.id} initiallyComplete={complete} nextHref={nextHref} nextLabel={nextLabel} suspended={user.suspended} />
+              ) : (
+                <Link href={nextHref} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3.5 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">{nextLabel} <Icon name="arrow-right" size={16} /></Link>
+              )}
             </div>
-            {nextLesson && !nextAccessible && (
-              <p className="mt-3 text-right text-[10px] font-semibold text-[#8d8694]">
-                The next lesson is not open on your account yet — you&apos;ll find it, with its price, on the course page.
+            {!canTrack && (
+              <p className="mt-3 text-right text-[11px] font-semibold leading-5 text-[#8d8694]">
+                Free to read and listen to.{" "}
+                <Link href={user ? "/pricing" : "/login?mode=signup"} className="text-[#6d4aff] underline decoration-violet-300 underline-offset-2">
+                  {user ? "Get the program" : "Create an account"}
+                </Link>{" "}
+                to save progress and earn the certificate.
               </p>
             )}
           </article>

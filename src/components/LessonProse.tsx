@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { toSpoken } from "@/lib/speech-text";
 
 /**
  * The tiny amount of markup a textbook lesson needs.
@@ -78,7 +79,7 @@ function blocks(body: string): Block[] {
   return out;
 }
 
-export default function LessonProse({ text, className }: { text: string; className?: string }) {
+export default function LessonProse({ text, className, label = "Lesson" }: { text: string; className?: string; label?: string }) {
   const rendered = blocks(text);
   if (!rendered.length) return null;
 
@@ -93,7 +94,12 @@ export default function LessonProse({ text, className }: { text: string; classNa
               className={`prose-list my-4 grid gap-2.5 ${block.ordered ? "list-decimal" : "list-disc"} pl-5 text-[15px] leading-8 text-[#5f5965] sm:text-[15.5px]`}
             >
               {block.items.map((item, itemIndex) => (
-                <li key={itemIndex} className="pl-1.5 marker:font-bold marker:text-[#8b7fd0]">
+                <li
+                  key={itemIndex}
+                  data-speech={toSpoken(item)}
+                  data-speech-label={label}
+                  className="pl-1.5 marker:font-bold marker:text-[#8b7fd0]"
+                >
                   {inline(item, `l${index}-${itemIndex}`)}
                 </li>
               ))}
@@ -104,6 +110,8 @@ export default function LessonProse({ text, className }: { text: string; classNa
           return (
             <blockquote
               key={index}
+              data-speech={toSpoken(block.text)}
+              data-speech-label={label}
               className="my-5 border-l-[3px] border-[#b9a8ff] bg-[#faf9ff] py-3 pl-5 pr-4 text-[15px] font-semibold italic leading-8 text-[#544a6b]"
             >
               {inline(block.text, `q${index}`)}
@@ -111,7 +119,12 @@ export default function LessonProse({ text, className }: { text: string; classNa
           );
         }
         return (
-          <p key={index} className="my-4 first:mt-0 last:mb-0 text-[15px] leading-8 text-[#5f5965] sm:text-[15.5px] sm:leading-[1.85]">
+          <p
+            key={index}
+            data-speech={toSpoken(block.text)}
+            data-speech-label={label}
+            className="my-4 first:mt-0 last:mb-0 text-[15px] leading-8 text-[#5f5965] sm:text-[15.5px] sm:leading-[1.85]"
+          >
             {inline(block.text, `p${index}`)}
           </p>
         );

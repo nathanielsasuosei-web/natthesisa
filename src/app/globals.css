@@ -80,6 +80,14 @@ a {
 .animate-float { animation: nt-float 7s ease-in-out infinite; }
 .animate-pulse-ring { animation: nt-pulse-ring 2s infinite; }
 
+#lesson-article [data-speech].is-reading {
+  outline: 2px solid #6d4aff;
+  outline-offset: 5px;
+  border-radius: 14px;
+  scroll-margin-top: 96px;
+  scroll-margin-bottom: 180px;
+}
+
 /* ------------------------------------------------------------------ */
 /* Navigation motion                                                   */
 /* ------------------------------------------------------------------ */

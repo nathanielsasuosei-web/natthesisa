@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
-import { courseAccess, lessonAccess, ownsProgram } from "@/lib/access";
+import { courseAccess, ownsProgram } from "@/lib/access";
 import { formatMoney } from "@/lib/plans";
 import { contentLessons, contentMinutes, contentModules, contentPercent, ownerLessonsForCourse } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
@@ -37,11 +37,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const programName = access.programName ?? course.category;
   const owned = programId ? ownsProgram(user, programId) : false;
   const ownerBranding = ownerLessonsForCourse(course.id).length ? brandingSummary(course.instructor.name) : null;
-  // The next lesson the student can actually open. A locked course offers
-  // none — every lesson opens together once the program is paid for.
-  const nextLesson =
-    lessons.find((lesson) => !completed.includes(lesson.id) && lessonAccess(user, course, lesson).allowed) ??
-    lessons.find((lesson) => lessonAccess(user, course, lesson).allowed);
+  // Lessons are public to read. This is the next unread one, paid or not.
+  const nextLesson = lessons.find((lesson) => !completed.includes(lesson.id)) ?? lessons[0];
 
   return (
     <div className="space-y-6">
@@ -106,14 +103,19 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                   <div>
                     {module.lessons.map((lesson, lessonIndex) => {
                       const isDone = completed.includes(lesson.id);
-                      const accessible = lessonAccess(user, course, lesson).allowed;
-                      const content = <><span className={`grid size-8 shrink-0 place-items-center rounded-xl ${isDone ? "bg-emerald-100 text-emerald-700" : accessible ? "bg-[#f0ecff] text-[#6543e8]" : "bg-[#f1eff3] text-[#aaa4b0]"}`}>{isDone ? <Icon name="check" size={15} /> : accessible ? <Icon name="play" size={11} /> : <Icon name="lock" size={14} />}</span><div className="min-w-0 flex-1"><p className={`truncate text-xs font-bold ${accessible ? "text-[#4a4450]" : "text-[#98919e]"}`}>{lessonIndex + 1}. {lesson.title}</p><div className="mt-1 flex flex-wrap gap-2 text-[9px] text-[#a19aa7]"><span>{lesson.duration} min</span>{!accessible && <span className="font-bold text-[#8a6d1f]">{programName} program</span>}{lesson.source === "owner" && <span className="rounded-full bg-[#f0ecff] px-1.5 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]">New lesson</span>}{lesson.files?.length ? <span className="font-semibold text-[#7d7683]">{lesson.files.length} file{lesson.files.length === 1 ? "" : "s"}</span> : null}</div></div>{accessible && <Icon name="chevron-right" size={14} className="text-[#bbb5c0]" />}</>;
-                      return accessible ? (
-                        <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 transition first:border-0 hover:bg-[#fbfaff] sm:px-6">{content}</Link>
-                      ) : (
-                        <div key={lesson.id} className="flex flex-wrap items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 first:border-0 sm:px-6">
-                          {content}
-                        </div>
+                      return (
+                        <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 transition first:border-0 hover:bg-[#fbfaff] sm:px-6">
+                          <span className={`grid size-8 shrink-0 place-items-center rounded-xl ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-[#f0ecff] text-[#6543e8]"}`}>{isDone ? <Icon name="check" size={15} /> : <Icon name="play" size={11} />}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-bold text-[#4a4450]">{lessonIndex + 1}. {lesson.title}</p>
+                            <div className="mt-1 flex flex-wrap gap-2 text-[9px] text-[#a19aa7]">
+                              <span>{lesson.duration} min</span>
+                              {lesson.source === "owner" && <span className="rounded-full bg-[#f0ecff] px-1.5 py-0.5 font-black uppercase tracking-wide text-[#5e3de0]">New lesson</span>}
+                              {lesson.files?.length ? <span className="font-semibold text-[#7d7683]">{lesson.files.length} file{lesson.files.length === 1 ? "" : "s"}</span> : null}
+                            </div>
+                          </div>
+                          <Icon name="chevron-right" size={14} className="text-[#bbb5c0]" />
+                        </Link>
                       );
                     })}
                   </div>

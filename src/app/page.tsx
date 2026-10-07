@@ -130,7 +130,7 @@ export default async function LandingPage() {
           <div className="mt-11 grid gap-x-7 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
             {PROGRAMS.map((program) => {
               const course = COURSES.find((item) => item.category === program.category);
-              return course ? <CourseCard key={course.id} course={course} hrefBase="public" locked /> : null;
+              return course ? <CourseCard key={course.id} course={course} hrefBase="public" /> : null;
             })}
           </div>
           <div className="mt-7 flex flex-wrap justify-center gap-2">
