@@ -40,6 +40,7 @@ const POPULAR_COURSES: Array<{ slug: string; title: string; level: string }> = [
 
 const NAV_LINKS = [
   { href: "/#programs", label: "Programs" },
+  { href: "/natthesisa", label: "Natthesisa AI" },
   { href: "/pricing", label: "Pricing" },
   { href: "/studio", label: "Studio" },
   { href: "/about", label: "About" },

@@ -1,0 +1,42 @@
+{
+  "course": "software-engineering-practices",
+  "voice": "en-gb",
+  "lessons": {
+    "git-branches-and-commits": {
+      "title": "Welcome to Branches, commits and pull requests. Version control is a safety net and a conversation, and by the end of this clip both halves will make sense.",
+      "idea": "A branch is a moving label on a commit, which means branching is cheap and reversible. Commit in small complete steps, with a message that finishes the sentence this change will do something. Then open a pull request so the change can be read, questioned and improved before it reaches the main branch. Small commits and small reviews are the same habit seen from two sides.",
+      "example": "Four commands tell the whole story. Switch into a new branch named after the work. Stage the file. Commit it with a message that says what the change does, not which files moved. Push it with an upstream link. The branch is now a proposal: the work is saved, reviewable, and independent of main, and nothing is at risk until somebody merges it.",
+      "challenge": "Your turn. Take a change you already made and split it into two commits that each do one thing, writing both messages properly. If the second commit only makes sense because of the first, your split is honest; if it does not, you have found a natural boundary in the work."
+    },
+    "code-review": {
+      "title": "This lesson is Code review that helps. Review is about the code, not the person, and a good review leaves everyone moving faster.",
+      "idea": "Review for correctness first, then clarity, then style, in that order, and say why for each comment. Approve small changes quickly, because a review that sits for a day costs more than a slightly imperfect merge. Ask questions rather than issuing commands, and always name the risk you are pointing at, so the author can judge the trade-off instead of guessing at your preference.",
+      "example": "Read the comment. It states what works, names the problem, explains the consequence in one clause, and offers a specific alternative that would also be clearer. Nothing about the person, everything about the code. A comment like this can be accepted, discussed or rejected on its merits, which is exactly what makes review useful rather than personal.",
+      "challenge": "Your turn. Review a pull request you wrote a month ago and leave three comments: one bug, one clarity, one praise. The praise is not decoration; it tells the next reader which decisions were deliberate and worth keeping, and it makes your other two comments easier to hear."
+    },
+    "readable-code": {
+      "title": "This is Naming and structure that survives. Code is read far more often than it is written, and names are what make that reading cheap.",
+      "idea": "A name should say what a thing is or does, not what type it is. Keep a function at one level of abstraction, delete dead code rather than commenting it out, and let the shape of the data explain the flow of the program. When a function is hard to name, that is usually a signal it is doing two jobs, and splitting it produces both names for free.",
+      "example": "Compare the two versions. The first filters one array by whether another contains each id, using single letters and a boolean trap about which side is which. The second says pupils in class and filters pupils whose id is enrolled. Same behaviour, same performance, and the second one can be read by someone who did not write it. The rename is the fix; the logic never had to change.",
+      "challenge": "Your turn. Rename the worst three names in a file you own without changing any behaviour, then read the diff. A diff that is only renames and is obviously better is proof that naming carries real weight, and it is the safest kind of improvement you can make."
+    },
+    "unit-tests": {
+      "title": "This lesson is Tests that earn their keep. A test is a promise about behaviour, and the good ones fail for exactly one reason.",
+      "idea": "Arrange, act, assert: set up the world, do the thing, check the outcome. Test the interesting cases rather than the easy ones: empty input, the boundary value, the error path. And treat a test that needs a database, an API and a fake clock as information, because that combination is usually the design asking to be split into smaller pieces that are easier to test.",
+      "example": "Read the test as a sentence about the product. A pass extends from its current expiry, so renewing a weekly pass on day zero should end seven days later, and renewing a daily pass should end one day later. Both cases use the same helper, and the assertion is about the new expiry date. Nothing about the implementation leaks into the test, which is why it will still pass after a rewrite.",
+      "challenge": "Your turn. Write three tests for a function you already shipped: a normal case, a boundary and a failure. Then deliberately break the function and confirm the right test goes red. A test you have seen fail is a test you can trust."
+    },
+    "ci-pipeline": {
+      "title": "This is Continuous integration, where a robot runs the boring checks on every push so that it worked on my machine becomes a fact rather than a claim.",
+      "idea": "A pipeline installs dependencies from the lockfile, typechecks, runs the tests and builds, using the same commands a developer runs locally. Keep it fast, because a slow pipeline is a pipeline people bypass. And never merge a red build: a check that everyone ignores is worse than no check at all, since it teaches the team that green means nothing.",
+      "example": "The workflow runs on every push and every pull request. It checks out the code, installs Node at a pinned version, installs dependencies from the lockfile, then runs typecheck and tests. Four steps, a few minutes, and any change that breaks the type checker or a rule of the product is stopped before it can be merged. The protection is boring, which is exactly why it works.",
+      "challenge": "Your turn. Add a workflow that runs typecheck and tests to one of your repositories, then make it fail on purpose to see the red mark and the notification. Knowing what a failure looks like before you need it is most of the value of setting this up."
+    },
+    "planning-and-issues": {
+      "title": "This is the final lesson, Issues, scope and shipping small. Engineering is mostly deciding what not to build yet.",
+      "idea": "Write an issue as the user problem and the smallest acceptable change, not as a design. Slice the work so each slice is releasable on its own, because a slice that can ship gives you feedback while the rest is still being written. Estimate by comparing the work to something you have already done, rather than by guessing hours, because comparisons get better with experience and guesses do not.",
+      "example": "The issue states a problem a student has, and then the smallest change that solves it: a chip in the lesson list. It does not propose a schema change, an admin toggle or a filter. Someone could ship that chip in an afternoon and find out whether it helps. If it does, the next issue is easier to write; if it does not, you have spent an afternoon rather than a week.",
+      "challenge": "Your turn. Take your current project and cut it into three releases, each of which a real user could use. Then delete everything that is not in the first. What remains is the work that actually matters this week."
+    }
+  }
+}

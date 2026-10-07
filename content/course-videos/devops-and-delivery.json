@@ -1,0 +1,9 @@
+{
+  "course": "devops-and-delivery",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to DevOps and Delivery. I am Nana Aidoo, a platform engineer. This course is about the part nobody sees in a screenshot: getting your code to production reliably, knowing when it breaks, and being able to go back without panic.",
+    "build": "You are building a one-command deploy with a rollback and a dashboard that tells you when something breaks. You will keep environments and secrets honest, containerise an application reproducibly, make deployment and rollback a single step each, add metrics and structured logs that explain what happened, and run schema changes and backups that survive contact with real data.",
+    "how": "Six lessons, about two and a half hours, each with a video, a written lesson and a task you run for real. Practise the rollback and the restore on a quiet afternoon, deliberately. An incident is the wrong time to learn which command you needed."
+  }
+}

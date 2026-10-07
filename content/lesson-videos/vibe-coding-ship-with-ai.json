@@ -1,0 +1,42 @@
+{
+  "course": "vibe-coding-ship-with-ai",
+  "voice": "en-gb",
+  "lessons": {
+    "what-vibe-coding-is": {
+      "title": "Welcome to What vibe coding actually is, the opening lesson of Vibe Coding: Ship with AI. You will learn the loop that makes this way of building fast without making it careless.",
+      "idea": "Vibe coding is writing software by describing what you want and reviewing what comes back. The artificial intelligence does the typing; you supply the judgement. The loop is always the same: describe one thing, run it, read the difference, keep it or reject it, then repeat. Small steps are what keep the code reviewable, because a giant prompt produces a giant change that nobody, including you, can check.",
+      "example": "Look at the loop as a circle rather than a line. You describe one small change. The tool produces it. You run the project and look. You accept or reject. Then you describe the next small change, informed by what you just learned. The speed comes from the middle of the circle, and the safety comes from keeping the steps small enough to read.",
+      "challenge": "Your turn. Write the description of a single small feature you want, as if you were briefing another developer: what it does, where it goes, and what must not change. Then hand it over and read the result. The brief is the skill, and it gets better every time you write one."
+    },
+    "prompting-for-code": {
+      "title": "This lesson is Prompts that produce working code. A good prompt is a small specification, and it has four parts you can always write.",
+      "idea": "Name the stack and the file, give the inputs and the outputs, state what must not change, and describe how you will know it works. That is a specification, not a spell. When the answer comes back wrong, resist the urge to rewrite the whole prompt; find the missing constraint and add that one line, because the constraint you forgot is exactly the information you now have.",
+      "example": "Compare the two prompts. The first asks for a search feature, and gets something plausible that does not match the project. The second says which file, that it searches lesson titles and summaries, that the existing detail view must not change, and that it is done when an empty query shows all lessons. Four constraints, and the second answer usually works on the first try.",
+      "challenge": "Your turn. Take a prompt you already sent and rewrite it with a goal, constraints, the shape of the data and a definition of done. Then send the rewritten version and compare the two answers. The difference is the lesson."
+    },
+    "reading-ai-code": {
+      "title": "This is Reading code you did not write, the skill that separates someone using artificial intelligence from someone being carried by it.",
+      "idea": "Read the change, not the conversation, because the tool will always sound confident about code you have not checked. Ask where the data comes from, what happens with an empty list, what happens when the request fails, and what the code assumes about whoever calls it. If you cannot explain a line out loud, that is the line to change, however elegant it looks.",
+      "example": "The function fetches lessons and maps over the result. Three assumptions are hidden in it: that the response is an array, that every lesson has a title, and that the caller has already signed in. Run it against an error response and the first assumption fails immediately. That is not a reason to write more defensive code everywhere; it is a reason to make the assumption explicit and decide who is responsible for it.",
+      "challenge": "Your turn. Ask for a function, then write down every assumption it made. Fix the one that would break first in production. Learning to see assumptions is the whole craft, and it transfers to code written by humans too."
+    },
+    "build-a-page-in-an-hour": {
+      "title": "This lesson is Build a working page in an hour. One page, real data, styled and deployed, because the point is the loop rather than the size of the project.",
+      "idea": "Start from a template that already runs, so you spend your hour on the interesting part. Keep the state in one place so you can see everything that can change. Let the styling happen after the behaviour works, because a beautiful page that does not do the thing is still not done. And deploy early, since a real URL changes how honestly you judge your own work.",
+      "example": "The page has an input, a list and a button. The list renders from an array in state. The button adds to that array and clears the input. That is the whole application, and it contains every pattern that larger apps repeat: state, rendering, events and persistence. Build it once this small, and the shape of the next one is obvious.",
+      "challenge": "Your turn. Build and deploy a one-page app today: an input, a list, and a button that adds to it. Then send the link to somebody. The moment they use it, you will start noticing the things that actually matter, and that list is your next hour of work."
+    },
+    "iterate-and-debug": {
+      "title": "This is Iterating and debugging with artificial intelligence. When something breaks, the tool needs evidence, not adjectives.",
+      "idea": "Reproduce the problem first, then reduce it to the smallest case that still fails. Paste the error, the exact input and what you expected. Ask for one hypothesis at a time, and make the tool explain the cause before it writes a fix. Without that step you get a patch over a bug, which is worse than no fix at all because it hides the problem until it returns somewhere more expensive.",
+      "example": "The bug is that filtering by lesson does not work. The useful message says: given this list and this filter, I expect two items and I get all five. That single sentence contains the data, the operation and the expectation, and the cause is usually visible in the same reply. The unhelpful version says it is broken and asks for a fix, and produces guesses.",
+      "challenge": "Your turn. Take a real bug, write the smallest failing case, and ask for the cause before the fix. Note whether the explanation matches what you found when you tested. That comparison is how you calibrate how much to trust the tool."
+    },
+    "polish-and-publish": {
+      "title": "This is the final lesson, Polish, publish and keep it alive. Shipping is a checklist, not a feeling.",
+      "idea": "Handle the states a demo never shows: loading, empty and error. Write a README that says how to run it, add a health check, and tag the commit you deployed so going back is a decision rather than a rebuild. A page with an empty state that says something useful is worth more than one with a nicer gradient, and it is the difference between a demo and something people can rely on.",
+      "example": "Walk through the same list twice. With no items, it says there is nothing here yet and shows how to add the first one. While loading, it says it is loading. When the request fails, it says what went wrong and offers a retry. Three short messages, and the application now behaves like something made for a person rather than for a screenshot.",
+      "challenge": "Your turn. Go through your app and add empty and error states for every list and every form, then write the README. When you have finished, the list of things that still feel fragile is your backlog, and it is a much shorter list than it was this morning."
+    }
+  }
+}

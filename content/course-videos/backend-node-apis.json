@@ -1,0 +1,9 @@
+{
+  "course": "backend-node-apis",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Backend Development with Node.js. I am Ibrahim Cole, a backend engineer, and this course is the server side of the applications you have been building: routes that make sense, data that stays correct, and an API other people can rely on.",
+    "build": "You are building a tested course-platform REST API. You will design clear HTTP APIs with honest status codes, model relational application data with keys and constraints, validate everything that arrives from the outside, handle authentication and permissions on the server, and prove the important behaviour with integration tests before deploying it.",
+    "how": "Six lessons, roughly three hours. Each lesson opens with a walkthrough video, then a written lesson and a task that extends the API. Keep a client open beside you and call every route you write; an endpoint you have never requested yourself is an endpoint you do not yet understand."
+  }
+}

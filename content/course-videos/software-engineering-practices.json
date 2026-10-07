@@ -1,0 +1,9 @@
+{
+  "course": "software-engineering-practices",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Software Engineering Practices. I am Selina Adjei, an engineering lead. The gap between someone who can write code and someone who can be trusted with a codebase is not talent; it is a handful of habits, and this course is those habits, practised rather than described.",
+    "build": "You are taking a messy folder project to reviewed, tested and automatically shipped. You will use branches and pull requests confidently, give and receive useful code review, name and structure code so it survives, write tests that earn their keep, run a pipeline on every push, and slice work into small releasable pieces.",
+    "how": "Six lessons, about two and a half hours, each with a walkthrough video, a written lesson and a task on your own repository. Do the tasks on real work, not on a toy project; the value is in the pull request your colleague actually reviews and the pipeline that actually goes red."
+  }
+}

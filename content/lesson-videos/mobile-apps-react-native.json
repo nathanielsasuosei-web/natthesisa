@@ -1,0 +1,42 @@
+{
+  "course": "mobile-apps-react-native",
+  "voice": "en-gb",
+  "lessons": {
+    "native-vs-web": {
+      "title": "Welcome to Native apps versus the web, the opening lesson of Mobile Apps with React Native. You will learn what React Native shares with React and what genuinely changes on a phone.",
+      "idea": "React Native keeps your application logic in JavaScript and renders real platform views underneath. Your components describe the interface, a bridge carries messages between the two worlds, and the phone draws buttons, lists and text that feel native because they are native. What carries over from React is the mental model: components, props, state and one-way data flow. What changes is everything to do with the device.",
+      "example": "Follow one tap through the system. The press happens on a native view, which sends an event across the bridge. Your handler runs in JavaScript, updates state and returns a description of the new screen. The bridge carries that across, and the platform updates the views. Nothing re-renders HTML in a browser, which is why the same code respects each platform's own conventions.",
+      "challenge": "Your turn. Build a screen with a heading, a scrollable list and a button, and run it on both an iOS and an Android simulator. Compare what changed without you writing anything, because those differences are the platform working for you rather than against you."
+    },
+    "layouts-styling-native": {
+      "title": "This lesson is Layouts and styling. You will build adaptable mobile layouts with Flexbox, respect safe areas, and let the platform's own conventions guide the spacing.",
+      "idea": "Views are boxes, Text renders type and must wrap any string, and Image, ScrollView and TextInput cover most of the rest. Styles are objects rather than stylesheets, applied through the style prop, so there is no cascade to fight. Flexbox is the default layout system, with the main axis running down the screen unless you change it, and safe areas matter because a notch or a home indicator will happily cover your best work.",
+      "example": "The card is a View with padding, a radius and a shadow, wrapped around a Text and a smaller Text for the supporting line. Because layout flows down the column by default, the two texts stack without any positioning. Add flexDirection row to a parent and they sit side by side instead. Screen readers should scale with the user's settings, which is why sizes come from the framework rather than from fixed numbers.",
+      "challenge": "Your turn. Recreate a card from an app you like using only Views and Texts, then put it inside a safe area and test it on a device with a notch. Match the spacing closely rather than exactly; spacing is most of what makes an interface feel polished."
+    },
+    "mobile-navigation": {
+      "title": "This is Navigation patterns. You will connect screens in a way that matches what people expect on a phone, with a stack they can go back through.",
+      "idea": "Navigation is a stack of screens, so pushing and popping are the fundamental operations, and a route can receive parameters. Tabs are for destinations of equal weight; a stack is for going deeper into one of them. Keep a screen's state with the screen, so returning to a list finds it exactly as it was left, scroll position included. That behaviour is the whole point of a stack, and you get it for free when the navigator owns it.",
+      "example": "The list screen pushes a details route with the selected item's id as a parameter. The details screen reads that id and renders the item. Back returns to the list untouched, because the list screen was never destroyed — it was covered. Compare that with keeping the selection in a global store and swapping content in place, where going back means rebuilding everything and remembering where the user was.",
+      "challenge": "Your turn. Add a third screen to your app and make it editable from the second, then walk the whole flow with the back gesture on both platforms. Every extra tap you notice is a screen that should have been a sheet, and that observation is the design lesson."
+    },
+    "device-storage": {
+      "title": "This lesson is State and device storage. You will keep useful data between sessions without making the interface wait for the disk.",
+      "idea": "Store small, non-sensitive preferences locally, and use the platform's secure store for anything that must not be readable by another app. Treat serialisation as an explicit boundary: whatever you write is JSON, and whatever you read is untrusted input that may be missing, corrupted or from an older version of your app. And show a stable loading screen while the initial state is being restored, rather than letting the interface jump from empty to full.",
+      "example": "Saving is one line: serialise the habits and write them under a key. Restoring is the interesting part. Read the value, parse it inside a try, check that it is an array, and fall back to an empty list when any of that fails. Then keep a restoring flag in state so the screen shows a placeholder until the read finishes, which stops the flash of an empty app on every launch.",
+      "challenge": "Your turn. Persist a list of habits and recover safely when the stored JSON is invalid. The easiest way to test it is to write deliberate nonsense to the key yourself, then launch the app and confirm it behaves. That test takes two minutes and prevents a crash loop you cannot debug on someone else's phone."
+    },
+    "mobile-interactions": {
+      "title": "This is Gestures, feedback and polish. You will make taps, transitions and system feedback feel immediate and intentional, which is most of what people mean by an app feeling good.",
+      "idea": "A touch target needs enough space, so give small controls extra hit area rather than a bigger visual. Destructive actions need an undo or a confirmation, never a silent disappearance. Haptics reinforce what the eye already saw, and animation should be tied to meaning: something appeared, something moved because you moved it. When feedback is missing, people tap twice, and then they stop trusting the app.",
+      "example": "The Pressable gives the button extra hit area and marks itself as a button to assistive technology, which costs two props. Pressed state changes the opacity so the touch is acknowledged in the same frame it happens. Marking a task complete plays a short haptic and animates the row out, so the change is visible and the list does not jump. Three small decisions, and the interaction stops feeling like a website in a frame.",
+      "challenge": "Your turn. Audit every control in your app for touch size, accessible label and pressed feedback, and fix the ones that fail. Anything smaller than a fingertip, or unlabelled, or silent when tapped, is a control people will struggle with quietly."
+    },
+    "release-mobile-app": {
+      "title": "This is the final lesson, Test and release, where a working simulator build becomes an app other people can install with confidence.",
+      "idea": "Releasing is a checklist: identifiers, icons and splash screens, a version number that only ever increases, and platform-specific permissions declared for the stores to read. Then a release build, a store listing, and a recording of the main flow working. The technical steps are smaller than people expect, and doing them once means every later release is a routine rather than an event.",
+      "example": "The build configuration names the app, sets its identifier and its version. An icon at several sizes and a splash image are applied, and the build produces an installable file for each platform. The recording walks through what the app does, because reviewers and users both want to see the thing before they commit to it. That is the entire release, performed honestly.",
+      "challenge": "Your turn. Prepare a release build of your habit tracker with a real icon and one sentence describing what it does. Even if you never publish it, going through the motions teaches you what production mobile work actually costs."
+    }
+  }
+}

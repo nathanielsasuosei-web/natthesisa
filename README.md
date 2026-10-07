@@ -23,6 +23,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   browser and downloadable
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
+- **A narrated walkthrough video on every catalog lesson that has one**, plus the Natthesisa study assistant (`/natthesisa`). Both are public, like the lessons.
 - Server-saved lesson completion, course percentages and activity history
 - **Student email** — receipts for every purchase, a congratulations message on
   finishing a course, and a notice when a certificate is issued
@@ -165,6 +166,22 @@ npm run db:check        # also reports which backend is in use
 
 Set `LESSON_DATA_DIR` to put the disk fallback somewhere else, and `OWNER_EMAIL`
 to move ownership to a different account.
+
+## Lesson and course videos
+
+Every catalog lesson can have a narrated walkthrough. The videos are generated from the course content: a script supplies the narration, and the pictures are built from the lesson's own text. Course welcome videos use the same pipeline.
+
+The finished files live in the same storage as the owner's uploads. `src/content/lesson-videos.ts` records what was built. The manifest is committed; the generated audio, videos and posters are not.
+
+Anyone may watch a lesson video or a course welcome video. The routes `/api/lesson-videos/[lessonId]` and `/api/course-videos/[slug]` do not require a sign-in.
+
+```bash
+npm run videos:setup        # fetch static ffmpeg into node_modules/.cache (once)
+npm run videos:synthesize   # create MP3 narration for every lesson, offline
+npm run videos:build -- --all --force
+npm run videos:check
+npm run videos:list
+```
 
 ## Run locally
 

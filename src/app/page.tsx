@@ -266,6 +266,56 @@ export default async function LandingPage() {
           <p className="mt-5 text-center text-[11px] text-[#98919e]">A free account is optional. It only remembers your progress and prints a certificate.</p>
         </section>
 
+        <section className="border-t border-black/[.06] bg-white py-24">
+          <div className="mx-auto grid max-w-[1120px] items-center gap-10 px-5 sm:px-8 lg:grid-cols-2">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#efe9ff] px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-[#5c3be4]">
+                <Icon name="spark" size={14} /> Meet Natthesisa
+              </span>
+              <h2 className="mt-4 text-balance text-3xl font-black tracking-[-.045em] sm:text-4xl">Stuck at midnight? Ask Natthesisa.</h2>
+              <p className="mt-4 text-[15px] leading-7 text-[#6e6875]">
+                Your AI study companion lives inside every lesson. It explains ideas in plain
+                language, quizzes you until they stick, reviews your code and points you to
+                the right course — free, with no account required.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {["Plain-language explanations with tiny examples", "Quizzes with answers that teach, not just grade", "Code reviews and debugging help, any hour"].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm font-semibold text-[#49434f]">
+                    <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-[#f0ecff] text-[#6d4aff]"><Icon name="check" size={13} /></span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link href="/natthesisa" className="btn-shine inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-sm font-extrabold text-white shadow-[0_8px_24px_rgba(109,74,255,.3)] transition hover:-translate-y-0.5">
+                  Chat with Natthesisa <Icon name="arrow-right" size={15} />
+                </Link>
+                <Link href="/courses" className="inline-flex items-center gap-2 rounded-xl border border-[#dad5df] bg-white px-5 py-3 text-sm font-extrabold text-[#302b37] transition hover:-translate-y-0.5">
+                  Browse courses
+                </Link>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute -right-4 -top-4 size-28 rounded-[28px] bg-[#ffcf59] opacity-70 blur-2xl" />
+              <div className="relative rounded-[24px] border border-[#e7e2ee] bg-[#faf9fc] p-5 shadow-[0_24px_60px_rgba(36,28,61,.12)]">
+                <div className="flex items-center gap-2.5 border-b border-black/[.06] pb-3">
+                  <span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-[#8b6bff] to-[#6d4aff] text-xs font-black text-white">N</span>
+                  <div><p className="text-[13px] font-black">Natthesisa</p><p className="text-[10px] text-emerald-600">● Online · replies instantly</p></div>
+                </div>
+                <div className="space-y-3 pt-4">
+                  <div className="flex justify-end"><p className="max-w-[85%] rounded-2xl rounded-br-md bg-[#6d4aff] px-3.5 py-2.5 text-[12px] leading-5 text-white">What should I learn first? I&apos;m brand new 🌱</p></div>
+                  <div className="flex gap-2"><span className="grid size-6 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#8b6bff] to-[#6d4aff] text-[10px] font-black text-white">N</span><p className="max-w-[88%] rounded-2xl rounded-tl-md border border-[#ece8f1] bg-white px-3.5 py-2.5 text-[12px] leading-5 text-[#35313d]">Start with <strong>Web Foundations</strong> — HTML, CSS, and your first published site. Then JavaScript to make it interactive. Want a quiz to check the basics?</p></div>
+                  <div className="flex flex-wrap gap-1.5 pl-8">
+                    {["Quiz me", "Show courses", "Explain HTML"].map((chip) => (
+                      <span key={chip} className="rounded-full border border-[#ddd5f5] bg-[#faf8ff] px-2.5 py-1 text-[10px] font-bold text-[#5c3be4]">{chip}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="relative overflow-hidden border-y border-[#6040e5] bg-[#6d4aff] text-white">
           <div className="relative mx-auto max-w-[1120px] px-7 py-16 text-center sm:px-12">
             <div className="absolute -left-12 -top-20 size-52 rounded-full border-[35px] border-white/10" /><div className="absolute -bottom-16 -right-10 size-48 rounded-full bg-[#ffcf59]/30" />

@@ -1,0 +1,9 @@
+{
+  "course": "ai-apps-agents-and-apis",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to AI Apps, Agents and APIs. I am Kojo Asante, an AI engineer. This course treats a language model as what it is in production: an external dependency that is sometimes slow, sometimes wrong and occasionally expensive, and that you build a dependable product around.",
+    "build": "You are building a support assistant that answers from your own documents, with a cost ceiling. You will call a model safely from your backend, treat the prompt as product surface with a tested refusal rule, ground answers in your own data with retrieval and citations, give the assistant narrow tools whose permissions you control, measure quality, latency and spend, and decide what it must never see or store.",
+    "how": "Six lessons, about two and a half hours, each with a video, a written lesson and a task on your own project. Keep the numbers as you go: pass rate, latency, tokens. They are what turn a convincing demo into something you can put in front of customers."
+  }
+}

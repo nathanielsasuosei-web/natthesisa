@@ -15,6 +15,8 @@ import LessonActions from "@/components/LessonActions";
 import LessonMaterials from "@/components/LessonMaterials";
 import LessonProse from "@/components/LessonProse";
 import LessonNarrator from "@/components/LessonNarrator";
+import LessonVideoGuide from "@/components/LessonVideoGuide";
+import { lessonVideo } from "@/lib/lesson-videos";
 
 export async function generateMetadata({ params }: { params: Promise<{ courseId: string; lessonId: string }> }): Promise<Metadata> {
   const { courseId, lessonId } = await params;
@@ -223,7 +225,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
         <aside className="dashboard-scroll hidden h-[calc(100vh-66px)] overflow-y-auto border-r border-[#e7e3e9] bg-white lg:sticky lg:top-[66px] lg:block">
           <div className="border-b border-[#ece9ef] p-5"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Course content</p><h2 className="mt-2 text-sm font-extrabold leading-5">{course.shortTitle}</h2><p className="mt-1 text-[10px] text-[#918a97]">{progress ? `${progress.completedLessonIds.length} of ${lessons.length} lessons complete` : "Free to read and listen"}</p></div>
           {modules.map((module) => (
-            <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress?.completedLessonIds.includes(item.id) ?? false; const current = item.id === lesson.id; return <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 text-[8px] text-[#a19aa7]">{item.duration} min</p></div></Link>; })}</div>
+            <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress?.completedLessonIds.includes(item.id) ?? false; const current = item.id === lesson.id; return <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 flex items-center gap-1 text-[8px] text-[#a19aa7]">{item.duration} min{lessonVideo(item.id) && <><span className="text-[#c8c2d0]">·</span><span className="inline-flex items-center gap-0.5 font-black uppercase tracking-wide text-[#7c63e8]"><Icon name="video" size={8} /> video</span></>}</p></div></Link>; })}</div>
           ))}
         </aside>
 
@@ -240,6 +242,16 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
             </div>
 
             <LessonNarrator key={lesson.id} title={lesson.title} words={words} />
+
+            <LessonVideoGuide
+              lesson={lesson}
+              courseId={course.id}
+              complete={complete}
+              nextHref={nextHref}
+              nextLabel={nextLabel}
+              suspended={user?.suspended}
+              track={canTrack}
+            />
 
             <section className="open-section mt-9 pb-1">
               <p className="text-[9px] font-black uppercase tracking-[.15em] text-[#6d4aff]">Learning objectives</p>

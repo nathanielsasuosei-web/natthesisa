@@ -1,0 +1,42 @@
+{
+  "course": "databases-and-sql",
+  "voice": "en-gb",
+  "lessons": {
+    "tables-and-keys": {
+      "title": "Welcome to Tables, rows and keys, the opening lesson of Databases and SQL. You will learn how a database keeps facts from contradicting each other, and why that is the property everything else depends on.",
+      "idea": "A database is a set of tables where every row is one thing and every column is one fact about it. A primary key identifies a row permanently, which matters because everything else points at it. A foreign key says that a value must already exist in another table, and it is the database, not your code, that refuses inconsistent data. Constraints are promises you keep without remembering to.",
+      "example": "The students table has an identity primary key, a name, and an email marked unique and required. The second table references students with a foreign key. Now try to insert an enrolment for a student who does not exist, and the database rejects it. Try to insert a duplicate email and it rejects that too. Your application can be wrong, and the data still cannot be.",
+      "challenge": "Your turn. Model a small library with books, members and loans, where every loan must point at a real member and a real book. Then try to break it deliberately: delete a member who has a loan, and insert a loan for a book that does not exist. The errors you get are the design working."
+    },
+    "select-where-order": {
+      "title": "This lesson is SELECT, WHERE and ORDER BY. Most questions you have about data are three clauses: which table, which rows, and in what order.",
+      "idea": "Select only the columns you need, filter with WHERE, sort with ORDER BY and page with LIMIT. Reading fewer columns is faster and clearer than asking for everything and discarding it in code. One subtlety catches everyone: NULL is not equal to anything, not even itself, so a filter for missing values has to be written as IS NULL rather than an equals comparison.",
+      "example": "The query reads as a sentence. Take the name and the email from students, where the email is present, and where the name starts with the letter A, ignoring case, then order by name and return the first twenty. Each clause narrows the result. Note that the filter uses IS NOT NULL, and that the pattern match is case-insensitive, which is usually what a person typing into a search box expects.",
+      "challenge": "Your turn. Write a query that returns the five most recently enrolled students together with their course. Notice how much of the work is deciding what recently means, and which column can answer that question. Getting the question right is most of the job."
+    },
+    "joins": {
+      "title": "This is Joins: asking across tables. Data lives in separate tables so each fact is stored once, and joins are how you put the story back together for one question.",
+      "idea": "An inner join keeps only the rows that match on both sides. A left join keeps every row from the left table, filling in nulls where nothing matched. That second behaviour is what makes left joins useful for questions about absence: students with no enrolments, courses with no students, orders with no payment. The IS NULL filter after the join is what turns the join into the question.",
+      "example": "Three tables are joined: enrolments, students and courses. The enrolments table holds the relationships, so it goes in the middle. Each join adds a name where there was only an id. The result reads like a report: a person, a course and a grade, ordered by name. Without the joins, that same information would be unreadable id numbers, which is exactly why storing it once is right.",
+      "challenge": "Your turn. List every course with the number of students enrolled in it, including the courses with none. That last requirement is the whole lesson: it forces you to use a left join and to think carefully about what happens to a course nobody has joined yet."
+    },
+    "insert-update-delete": {
+      "title": "This lesson is Insert, update and delete safely. Writes are where mistakes become permanent, so the rules are about being narrow.",
+      "idea": "The dangerous part of an update or a delete is the WHERE clause, because forgetting it rewrites or removes the entire table. Write the statement in two steps: first select the rows you intend to change and check the count, then turn the same filter into the write. RETURNING shows exactly what changed, so you never have to guess or re-query to find out.",
+      "example": "The update sets one grade, for one student, in one course, and returns the id and the new grade. The filter names both keys so it cannot match more than one row. The delete removes enrolments that are both ungraded and older than a cutoff, and returns what went. Both statements describe a small, specific change, and both tell you afterwards exactly what happened.",
+      "challenge": "Your turn. Insert a student and their first enrolment in one transaction, update the grade, and print the changed row. Then run an update without a WHERE clause in a scratch database, and see how many rows you just changed. That experiment is worth more than a warning."
+    },
+    "indexes-and-explain": {
+      "title": "This is Indexes and EXPLAIN. You will stop guessing about performance and start measuring which plans the database actually chooses.",
+      "idea": "An index is a sorted shortcut the database keeps so it can find rows without reading the whole table. Indexes cost storage and make writes slightly slower, so you add them for the queries you really run: filters, joins and sorts. EXPLAIN shows the plan without running the query; EXPLAIN ANALYZE runs it and reports the real time and the real number of rows examined.",
+      "example": "Before the index, the plan shows a sequential scan over the whole enrolments table, and it reports the rows it had to read to find one student's records. Add an index on student id, run the same analysis again, and the plan changes to an index scan reading a handful of rows. Same query, same result, and the evidence is in the numbers rather than in an opinion.",
+      "challenge": "Your turn. Run EXPLAIN ANALYZE before and after adding an index on a column you filter by, and compare the row counts rather than the timings on a small table. The counts are stable and honest even when the timing is noisy, which is why they are the number to read."
+    },
+    "transactions-and-constraints": {
+      "title": "This is the final lesson, Transactions and constraints, where several statements become one all-or-nothing unit and two people cannot buy the same last seat.",
+      "idea": "A transaction groups statements so that either all of them take effect or none do. Begin opens it, commit makes it real, rollback undoes it. Locking a row with SELECT for update means a second request waits instead of reading a value that is about to change. Combined with a constraint that prevents the impossible state, that is how money, stock and seats stay correct under concurrency.",
+      "example": "Two sessions try to book the last seat. The first begins, locks the seat row, checks that it is available, decrements it and inserts the booking, then commits. The second session blocks on the lock until the first finishes, then reads a zero and answers that the class is full. Nobody double-books, and nothing in the application had to be clever about it.",
+      "challenge": "Your turn. Book the last seat of a class from two sessions at the same time, confirm that one succeeds and the other waits, and explain why the second one was refused. Then remove the lock and try again. Seeing the seat sold twice is the lesson."
+    }
+  }
+}

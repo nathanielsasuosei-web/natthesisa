@@ -1,0 +1,9 @@
+{
+  "course": "computer-science-essentials",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Computer Science Essentials. I am Daniel Kumi, and I teach the ideas that outlive every framework: how computers store and move data, how fast an algorithm is, how memory and networks actually work. This course is for anyone who writes code and wants to understand the machine underneath it, rather than memorise the syntax on top.",
+    "build": "You are building a visual algorithm explorer, and more importantly you are building a set of mental models. You will reason about data and binary representation, break problems into precise algorithms, compare the data structures you use every day, and explain memory, networks and operating systems without hand-waving.",
+    "how": "Six lessons across two modules, roughly two hours, each with a video walkthrough and a written explanation and a short task. Some of the tasks are readings of your own computer: opening a system monitor, running a traceroute. Do them. The moment a concept becomes something you have looked at yourself, it stops being abstract."
+  }
+}

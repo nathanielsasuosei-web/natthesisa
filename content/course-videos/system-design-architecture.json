@@ -1,0 +1,9 @@
+{
+  "course": "system-design-architecture",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to System Design and Architecture. I am Yaw Darko, a principal engineer. This course is about the decisions that are expensive to change later: what the contract is, where the data lives, what happens when something fails, and how you write those choices down so the next person understands them.",
+    "build": "You are designing a ticket-booking system, and defending every choice in a written decision record. You will sketch a system from requirements, choose between caches, queues and derived read models, design for failure with timeouts and circuit breakers, close the obvious authentication holes, and record the trade-offs and the conditions that would change your mind.",
+    "how": "Six lessons, about two and a half hours. Each has a video, a written lesson and a design task with no single right answer; you are graded here by how well you can explain your reasons. Write each decision down, because that habit is most of what separates a senior engineer from a fast one."
+  }
+}
