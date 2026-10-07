@@ -38,12 +38,33 @@ export interface VideoAvailability<T> {
 /**
  * Presence of one object: true when it is there, false when storage answers
  * and it is not, null when storage could not be reached at all.
+ *
+ * Storage metadata requests are deliberately retried once. The owner page
+ * checks many objects at once and Supabase can briefly return a network error
+ * or a rate-limit response when a deployment cold-starts. Treating that first
+ * blip as "storage is unreachable" makes a healthy bucket look broken and
+ * leaves the teacher with no useful action besides refreshing.
  */
+async function statWithRetry(key: string): Promise<Awaited<ReturnType<typeof statBlob>>> {
+  try {
+    return await statBlob(key);
+  } catch (firstError) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    try {
+      return await statBlob(key);
+    } catch (secondError) {
+      console.error(`Could not reach video storage while checking ${key}`, secondError, {
+        firstError: firstError instanceof Error ? firstError.message : String(firstError),
+      });
+      throw secondError;
+    }
+  }
+}
+
 async function presence(key: string): Promise<boolean | null> {
   try {
-    return (await statBlob(key)) !== null;
-  } catch (error) {
-    console.error(`Could not reach video storage while checking ${key}`, error);
+    return (await statWithRetry(key)) !== null;
+  } catch {
     return null;
   }
 }
@@ -100,7 +121,7 @@ async function checkEntry(
   let video: boolean | null;
   let sizeMismatch = false;
   try {
-    const stat = await statBlob(key);
+    const stat = await statWithRetry(key);
     video = stat !== null;
     sizeMismatch = stat !== null && stat.size !== expectedSize;
   } catch (error) {
@@ -131,7 +152,10 @@ export async function verifyVideoStorage(): Promise<{ checks: StoredVideoCheck[]
     );
   }
   const checks: StoredVideoCheck[] = [];
-  const BATCH = 20;
+  // Keep the request fan-out below Supabase's per-client burst limit. There
+  // can be hundreds of lesson entries in a catalog, and 20 metadata requests
+  // at once is enough to turn a cold start into a false outage warning.
+  const BATCH = 6;
   for (let index = 0; index < jobs.length; index += BATCH) {
     checks.push(...(await Promise.all(jobs.slice(index, index + BATCH).map((job) => job()))));
   }
