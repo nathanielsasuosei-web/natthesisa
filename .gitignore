@@ -21,3 +21,6 @@ npm-debug.log*
 
 # owner-uploaded lessons and lesson materials (runtime data)
 /.data/
+
+# Authoring scratch for long lessons. Not part of the app.
+/.arena/
