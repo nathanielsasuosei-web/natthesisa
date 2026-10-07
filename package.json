@@ -16,6 +16,7 @@
     "videos:synthesize": "tsx scripts/lesson-videos/synthesize.mts",
     "videos:list": "tsx scripts/lesson-videos/build.mts --list",
     "videos:check": "tsx scripts/lesson-videos/check.mts",
+    "videos:verify": "tsx scripts/lesson-videos/verify.mts",
     "videos:build": "tsx scripts/lesson-videos/build.mts"
   },
   "dependencies": {

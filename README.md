@@ -192,7 +192,32 @@ npm run videos:synthesize   # create MP3 narration for every lesson, offline
 npm run videos:build -- --all --force
 npm run videos:check
 npm run videos:list
+npm run videos:verify   # every manifest entry against the configured storage
 ```
+
+### When a video answers 410 ("missing from storage")
+
+That error means the manifest (`src/content/lesson-videos.ts`, committed to
+Git) lists a video whose bytes are not in *this deployment's* storage: the
+files live in Supabase Storage or `.data/uploads`, neither of which travels
+with a `git push`. The lesson page degrades gracefully — the written lesson is
+always complete — but the walkthrough only plays once the bytes are where the
+app looks for them. Diagnose with `npm run videos:verify`, then fix from a
+machine that reaches the right storage: set the Supabase variables (production)
+or nothing (local disk), run `npm run videos:synthesize` once, and
+`npm run videos:build` to render whatever has narration but no video yet.
+`videos:build` uploads each finished file to the configured storage as it goes,
+so rebuilding *with the production variables set* is what fills the production
+bucket.
+
+The hands-off way to fill the production bucket is the **Lesson videos**
+workflow (`.github/workflows/lesson-videos.yml`): add the three storage values
+as repository secrets under Settings → Secrets and variables → Actions
+(`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_BUCKET`), then
+Actions → Lesson videos → **Run workflow**. GitHub's runner synthesizes,
+renders and uploads all 81 videos (about an hour), verifies the bucket, and
+commits the updated manifests back. Redeploy afterwards so the site serves the
+new manifest.
 
 ## Run locally
 

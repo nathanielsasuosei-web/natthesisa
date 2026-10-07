@@ -28,7 +28,10 @@ export async function GET(_req: Request, context: { params: Promise<{ slug: stri
 
   const size = await storedBlobSize(record);
   if (size === null) {
-    return NextResponse.json({ error: "The course video thumbnail is missing from storage." }, { status: 410 });
+    return NextResponse.json(
+      { error: "The course video thumbnail is missing from storage.", code: "STORAGE_MISSING" },
+      { status: 410 }
+    );
   }
 
   return new NextResponse(diskBlobRange(record, 0, size - 1), {

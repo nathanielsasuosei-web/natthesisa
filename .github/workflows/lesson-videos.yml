@@ -1,0 +1,108 @@
+# Builds the narrated lesson videos and uploads them to the production bucket.
+#
+# Run it by hand from the Actions tab ("Run workflow"): the runner synthesizes
+# the narration, renders every lesson video and uploads each finished file to
+# Supabase Storage as it goes — the same `videos:*` scripts the README
+# documents, on a machine that can actually reach the bucket. The updated
+# manifests are committed back so `videos:verify` stays clean.
+#
+# One-time setup: Settings → Secrets and variables → Actions → New repository
+# secret, three times over:
+#
+#   NEXT_PUBLIC_SUPABASE_URL   https://<project>.supabase.co
+#   SUPABASE_SECRET_KEY        sb_secret_… (the secret key, never committed)
+#   SUPABASE_BUCKET            lesson-files (created under Storage → New bucket)
+#
+# The full library takes about an hour on a hosted runner. Scope it down with
+# the inputs below when only one course or lesson changed.
+name: Lesson videos
+
+on:
+  workflow_dispatch:
+    inputs:
+      course:
+        description: "Only this course (id or slug). Empty = every course."
+        required: false
+        default: ""
+      lesson:
+        description: "Only this lesson (id). Empty = every lesson."
+        required: false
+        default: ""
+
+# One build at a time: two runners uploading the same keys would only thrash.
+concurrency:
+  group: lesson-videos
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Check storage secrets
+        run: |
+          missing=0
+          for var in NEXT_PUBLIC_SUPABASE_URL SUPABASE_SECRET_KEY SUPABASE_BUCKET; do
+            if [ -z "${!var}" ]; then echo "::error::Missing Actions secret: $var"; missing=1; fi
+          done
+          if [ "$missing" = 1 ]; then
+            echo "Add the three secrets under Settings → Secrets and variables → Actions, then re-run."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Prove the bucket round-trips
+        run: npm run storage:check
+
+      - name: Fetch ffmpeg
+        run: npm run videos:setup
+
+      - name: Synthesize narration
+        run: |
+          args=""
+          [ -n "${{ inputs.course }}" ] && args="$args --course ${{ inputs.course }}"
+          [ -n "${{ inputs.lesson }}" ] && args="$args --lesson ${{ inputs.lesson }}"
+          # shellcheck disable=SC2086
+          npm run videos:synthesize -- $args
+
+      - name: Build and upload videos
+        run: |
+          args="--force"
+          [ -n "${{ inputs.course }}" ] && args="$args --course ${{ inputs.course }}"
+          [ -n "${{ inputs.lesson }}" ] && args="$args --lesson ${{ inputs.lesson }}"
+          # --force because "already in the manifest" must not mean "already in
+          # the bucket": the manifest is committed, the bytes are not.
+          # shellcheck disable=SC2086
+          npm run videos:build -- $args
+
+      - name: Verify the bucket holds every video
+        run: npm run videos:verify
+
+      - name: Commit the updated manifests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/content/lesson-videos.ts src/content/course-videos.ts
+          if git diff --cached --quiet; then
+            echo "Manifests unchanged — nothing to commit."
+          else
+            git commit -m "Update lesson-video manifests after production build" \
+              -m "Rendered by the Lesson videos workflow; sizes and timestamps match the bucket bytes."
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi

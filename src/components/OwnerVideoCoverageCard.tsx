@@ -9,6 +9,17 @@ interface Props {
   coursesWithVideo: string[];
   /** Course ids that still have lessons waiting for a walkthrough. */
   coursesWithGaps: { courseId: string; shortTitle: string; missing: number }[];
+  /**
+   * Whether the bytes behind the manifest entries are in this deployment's
+   * storage. Absent on callers that only know the manifest.
+   */
+  storageStatus?: {
+    unreachable: boolean;
+    missingVideos: number;
+    missingPosters: number;
+    missingWelcomes: number;
+    sizeMismatches: number;
+  };
 }
 
 /**
@@ -19,12 +30,16 @@ interface Props {
  * that is finished. This panel counts what is left and names the command that
  * renders it.
  */
-export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGaps }: Props) {
+export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGaps, storageStatus }: Props) {
   const lessons = COURSES.reduce((sum, course) => sum + course.modules.reduce((count, module) => count + module.lessons.length, 0), 0);
   const missingTotal = coursesWithGaps.reduce((sum, item) => sum + item.missing, 0);
   const withVideo = lessons - missingTotal;
   const covered = coursesWithVideo.length;
-  const complete = missingTotal === 0 && covered === COURSES.length;
+  const storageMissing = (storageStatus?.missingVideos ?? 0) + (storageStatus?.missingWelcomes ?? 0);
+  const storageUnknown = storageStatus?.unreachable ?? false;
+  // "Complete" means students can actually press play: listed in the manifest
+  // *and* present in this deployment's storage.
+  const complete = missingTotal === 0 && covered === COURSES.length && storageMissing === 0;
   const percent = lessons ? Math.round((withVideo / lessons) * 100) : 0;
   const firstGap = coursesWithGaps[0];
 
@@ -50,6 +65,28 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#eeeaf1]">
         <div className="h-full rounded-full bg-gradient-to-r from-[#6d4aff] to-[#9c83ff]" style={{ width: `${percent}%` }} />
       </div>
+
+      {storageMissing > 0 && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-[10px] font-extrabold text-red-700">
+            {storageMissing} video{storageMissing === 1 ? " file is" : " files are"} missing from this
+            deployment&apos;s storage
+          </p>
+          <p className="mt-1 text-[10px] leading-5 text-red-600/90">
+            The video list names them, but the bytes never reached storage, so those lessons show the written
+            material only. Run{" "}
+            <code className="rounded bg-red-100 px-1 py-0.5 font-mono text-[9px]">npm run videos:verify</code> for
+            the full list, then rebuild with this deployment&apos;s storage variables set.
+          </p>
+        </div>
+      )}
+
+      {storageUnknown && storageMissing === 0 && (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[10px] leading-5 text-amber-800">
+          Video storage could not be reached just now, so these counts come from the video list only — reload to
+          check the files themselves.
+        </p>
+      )}
 
       {complete ? (
         <p className="mt-4 text-[10px] leading-5 text-[#817a87]">

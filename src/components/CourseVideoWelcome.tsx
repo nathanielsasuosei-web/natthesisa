@@ -1,5 +1,5 @@
-import { courseVideo } from "@/lib/course-videos";
 import type { Course } from "@/lib/courses";
+import { courseVideoAvailability } from "@/lib/video-availability";
 import CoverVideo from "./CoverVideo";
 import Icon from "./Icon";
 
@@ -7,11 +7,15 @@ import Icon from "./Icon";
  * The welcome video on a course page.
  *
  * Renders nothing at all when the course has no video, so a course added to the
- * catalog before its clip is generated simply shows the page it always did.
+ * catalog before its clip is generated simply shows the page it always did —
+ * and likewise when the clip is listed but its bytes never reached this
+ * deployment's storage, which would otherwise render a player that can only
+ * fail.
  */
-export default function CourseVideoWelcome({ course, className = "" }: { course: Course; className?: string }) {
-  const entry = courseVideo(course.slug);
-  if (!entry) return null;
+export default async function CourseVideoWelcome({ course, className = "" }: { course: Course; className?: string }) {
+  const availability = await courseVideoAvailability(course.slug);
+  const entry = availability?.entry ?? null;
+  if (!entry || !availability?.video) return null;
   const lessons = course.modules.flatMap((module) => module.lessons).length;
 
   return (
@@ -29,7 +33,7 @@ export default function CourseVideoWelcome({ course, className = "" }: { course:
       <div className="p-4 sm:p-5">
         <CoverVideo
           src={`/api/course-videos/${course.slug}`}
-          poster={`/api/course-videos/${course.slug}/poster`}
+          poster={availability.poster ? `/api/course-videos/${course.slug}/poster` : undefined}
           title={`${course.title} welcome`}
           durationSeconds={entry.durationSeconds}
         />
