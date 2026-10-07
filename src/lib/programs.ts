@@ -3,6 +3,7 @@ import { lesson, module } from "./lesson-builder";
 import { DATA_STRUCTURES_ALGORITHMS_MODULES } from "@/content/data-structures-algorithms";
 import { DATABASES_AND_SQL_MODULES } from "@/content/databases-and-sql";
 import { SOFTWARE_ENGINEERING_PRACTICES_MODULES } from "@/content/software-engineering-practices";
+import { SYSTEM_DESIGN_ARCHITECTURE_MODULES } from "@/content/system-design-architecture";
 
 /**
  * The six programs, and the courses under them.
@@ -204,69 +205,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Write an architecture decision record",
     ],
     tags: ["Architecture", "Scalability", "APIs"],
-    modules: [
-      module("building-blocks", "01 · The building blocks", "Clients, services, data and the machinery that holds them together.", [
-        lesson(
-          "clients-and-apis",
-          "Clients, APIs and contracts",
-          24,
-          "An API is a promise: what you can ask for, what you will get back, and what happens when it goes wrong. Everything else in the system hangs off that promise.",
-          "Keep resources nouns and verbs in HTTP methods. Return the same shape for the same kind of error, version the contract when it must change, and make writes idempotent so a retry cannot double-charge.",
-          "GET    /api/tickets?eventId=42      -> { tickets: [...] }\nPOST   /api/bookings                 -> 201 { id, status: \"held\" }\nDELETE /api/bookings/ab12            -> 204 (idempotent)\n\n// Errors, always the same shape:\n{ \"error\": \"Seats sold out\", \"code\": \"SOLD_OUT\" }",
-          "Write the API contract for booking a seat, including the two failure responses a client must handle.",
-          true
-        ),
-        lesson(
-          "data-at-scale",
-          "Choosing where data lives",
-          26,
-          "The data model decides how the system behaves under load. Schemas, read patterns and consistency all follow from what the product must never get wrong.",
-          "Relational databases give you joins and transactions; key-value stores give you speed and simple scale; search engines give you text. Most products want one relational core plus a derived read model for the query that is too slow.",
-          "bookings (id, event_id, seat_id, state, held_until)\n  unique (event_id, seat_id) where state <> 'cancelled'\n\n-- Derived read model, rebuilt from bookings:\nseat_availability (event_id, seat_id, available boolean)",
-          "Model seats and bookings so that a seat can never be sold twice, even with two simultaneous buyers."
-        ),
-        lesson(
-          "caches-and-queues",
-          "Caches, queues and eventual work",
-          26,
-          "A cache answers a question faster than the source of truth. A queue moves work out of the request so a slow job cannot slow the user down.",
-          "Cache what is read often and changes rarely, and always have an expiry. Put email, image processing and reports on a queue with retries — then design the retry so a duplicate job is harmless.",
-          "// Read-through cache with a short life\nasync function eventWithAvailability(id) {\n  const key = `event:${id}:availability`;\n  const hit = await cache.get(key);\n  if (hit) return hit;\n  const fresh = await buildAvailability(id);\n  await cache.set(key, fresh, { ttl: 15 }); // seconds\n  return fresh;\n}",
-          "List every slow or unreliable step in your project and mark each one: cache it, queue it, or leave it inline."
-        ),
-      ]),
-      module("designing-for-reality", "02 · Designing for reality", "Failure, security and the written decisions that make a design reviewable.", [
-        lesson(
-          "reliability-and-failure",
-          "Designing for failure",
-          24,
-          "Everything fails: disks, networks, third parties, your own deploy. Reliability is deciding what should happen when it does.",
-          "Use timeouts everywhere, retry only idempotent work, and add a circuit breaker so one slow dependency cannot consume every request. Degrade instead of collapsing — a cached page beats a 500.",
-          "async function withTimeout<T>(work: Promise<T>, ms: number, fallback: T) {\n  let timer: NodeJS.Timeout;\n  const timeout = new Promise<T>((resolve) => {\n    timer = setTimeout(() => resolve(fallback), ms);\n  });\n  try {\n    return await Promise.race([work, timeout]);\n  } finally {\n    clearTimeout(timer!);\n  }\n}",
-          "Take your last outage or bug and write the three changes that would have contained it."
-        ),
-        lesson(
-          "security-and-auth",
-          "Authentication, authorisation and the obvious holes",
-          26,
-          "Security is mostly boring discipline: trust the server, check every request, store less, and never let the browser decide what a user may do.",
-          "Authenticate once, authorise every request. Hash passwords with a slow algorithm, keep secrets out of the client, validate input at the boundary and check ownership before returning anything.",
-          "// The check belongs next to the data, not in the button.\nconst purchase = await db.purchases.find({ id, userId: session.userId });\nif (!purchase) return notFound(); // not forbidden: say nothing\n\n// Server-side rule (the UI only reflects it):\nif (!hasActivePass(user) || !ownsCourse(user, courseId)) return forbidden();",
-          "Pick a route in your app and list who can call it, what they must prove, and what the server checks before answering."
-        ),
-        lesson(
-          "trade-offs-and-adrs",
-          "Trade-offs, and writing them down",
-          22,
-          "Every design decision buys something and pays for it elsewhere. An architecture decision record is how the next engineer learns why.",
-          "An ADR is short: context, decision, consequences. Write the alternatives you rejected and the conditions under which you would revisit — that is what turns an opinion into engineering.",
-          "# ADR 3: Hold seats with a short-lived reservation\n\nContext   Two buyers can pick the same seat at once.\nDecision  Create a booking row with state 'held' for 10 minutes.\nAlternatives  In-memory lock (lost on deploy); queue all bookings (slower UX).\nConsequences  Need a sweeper to expire holds; a crash cannot oversell.\nRevisit if  Holds exceed 20% of traffic.",
-          "Write one ADR for a decision you have already made. Include the option you rejected and why."
-        ),
-      ]),
-    ],
+    modules: SYSTEM_DESIGN_ARCHITECTURE_MODULES,
   },
-
   {
     id: "devops-and-delivery",
     slug: "devops-and-delivery",
