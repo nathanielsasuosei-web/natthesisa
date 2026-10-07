@@ -454,6 +454,7 @@ async function buildCourseVideo(options: {
   script: WelcomeScript;
   voice: string;
   ruler: TextRuler;
+  slidesOnly?: boolean;
 }): Promise<CourseVideoEntry | null> {
   const { course, script, voice, ruler } = options;
   const audio = path.join(AUDIO_DIR, `course-${course.slug}.mp3`);
@@ -482,6 +483,11 @@ async function buildCourseVideo(options: {
   for (let index = 0; index < plan.slides.length; index++) {
     const file = path.join(slidesDir, `${String(index + 1).padStart(2, "0")}-${plan.slides[index].id}.png`);
     slideFiles.push(await renderSlide(await builders[index](context), file, ruler));
+  }
+
+  if (options.slidesOnly) {
+    console.log(`\n   slides: ${slideFiles.map((file) => path.relative(ROOT, file)).join(", ")}`);
+    return null;
   }
 
   const key = `coursevideo__${course.slug}.mp4`;
@@ -535,9 +541,12 @@ interface CourseVideoEntry {
 function readCourseManifest(): Record<string, CourseVideoEntry> {
   if (!existsSync(COURSE_MANIFEST)) return {};
   const source = readFileSync(COURSE_MANIFEST, "utf8");
-  const start = source.indexOf("{");
+  // The file is a module, not JSON: skip the comment header and the type import
+  // and parse the object literal assigned to the exported constant.
+  const equals = source.indexOf("= {");
+  const start = equals === -1 ? -1 : equals + 2;
   const end = source.lastIndexOf("}");
-  if (start === -1 || end === -1) return {};
+  if (start === -1 || end <= start) return {};
   try {
     return JSON.parse(source.slice(start, end + 1)) as Record<string, CourseVideoEntry>;
   } catch {
@@ -591,9 +600,12 @@ export interface ManifestEntry {
 function readManifest(): Record<string, ManifestEntry> {
   if (!existsSync(MANIFEST)) return {};
   const source = readFileSync(MANIFEST, "utf8");
-  const start = source.indexOf("{");
+  // The file is a module, not JSON: skip the comment header and the type import
+  // and parse the object literal assigned to the exported constant.
+  const equals = source.indexOf("= {");
+  const start = equals === -1 ? -1 : equals + 2;
   const end = source.lastIndexOf("}");
-  if (start === -1 || end === -1) return {};
+  if (start === -1 || end <= start) return {};
   try {
     return JSON.parse(source.slice(start, end + 1)) as Record<string, ManifestEntry>;
   } catch {
@@ -700,7 +712,7 @@ async function main(): Promise<void> {
   // a wasted encode.
   const selected = targets.filter((target) => flags.force || flags.slidesOnly || !manifest[target.lesson.id]);
   const selectedWelcomes = welcomes.filter(
-    (welcome) => flags.force || (!flags.lesson && !courseManifest[welcome.course.slug])
+    (welcome) => flags.force || flags.slidesOnly || (!flags.lesson && !courseManifest[welcome.course.slug])
   );
 
   const audioFor = (id: string) => path.join(AUDIO_DIR, `${id}.mp3`);
@@ -736,7 +748,7 @@ async function main(): Promise<void> {
       const startedAt = Date.now();
       const id = `course-${welcome.course.slug}`;
       process.stdout.write(`… ${id}`);
-      const entry = await buildCourseVideo({ ...welcome, ruler });
+      const entry = await buildCourseVideo({ ...welcome, ruler, slidesOnly: flags.slidesOnly });
       if (entry) welcomeResults.push(entry);
       const seconds = ((Date.now() - startedAt) / 1000).toFixed(1);
       process.stdout.write(

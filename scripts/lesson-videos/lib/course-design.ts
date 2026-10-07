@@ -92,7 +92,6 @@ export async function welcomeBuildSlide(context: WelcomeContext): Promise<Op[]> 
   const accent = tone(context);
   const ops: Op[] = [box(0, 0, SLIDE_WIDTH, SLIDE_HEIGHT, PAPER)];
   label("What you will build", accent.solid, ops, false);
-  ops.push(text("01 / 03", "monobold", 18, MUTED_ON_LIGHT, SLIDE_WIDTH - MARGIN - 76, 98));
 
   const heading = await ruler.fit(course.project, "bold", [46, 42, 38, 34], CONTENT_WIDTH, 3);
   let y = 186;
@@ -120,7 +119,6 @@ export async function welcomeHowSlide(context: WelcomeContext): Promise<Op[]> {
   const accent = tone(context);
   const ops: Op[] = [box(0, 0, SLIDE_WIDTH, SLIDE_HEIGHT, PAPER)];
   label("How the course works", accent.solid, ops, false);
-  ops.push(text("02 / 03", "monobold", 18, MUTED_ON_LIGHT, SLIDE_WIDTH - MARGIN - 76, 98));
 
   const heading = await ruler.fit("Read it, watch it, build it", "bold", [46, 42, 38], CONTENT_WIDTH, 1);
   ops.push(text(heading.lines[0] ?? "How the course works", "bold", heading.size, INK, MARGIN, 186));

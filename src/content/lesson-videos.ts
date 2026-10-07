@@ -51,7 +51,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:48:09.281Z"
+    "generatedAt": "2026-10-07T03:54:55.230Z"
   },
   "html-document": {
     "lessonId": "html-document",
@@ -91,7 +91,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:48:08.856Z"
+    "generatedAt": "2026-10-07T03:54:54.203Z"
   },
   "semantic-accessible-html": {
     "lessonId": "semantic-accessible-html",
@@ -131,7 +131,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:48:53.421Z"
+    "generatedAt": "2026-10-07T03:55:37.159Z"
   },
   "css-foundations": {
     "lessonId": "css-foundations",
@@ -171,7 +171,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:48:51.964Z"
+    "generatedAt": "2026-10-07T03:55:37.250Z"
   },
   "flexbox-grid": {
     "lessonId": "flexbox-grid",
@@ -211,7 +211,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:49:34.557Z"
+    "generatedAt": "2026-10-07T03:56:17.476Z"
   },
   "responsive-design": {
     "lessonId": "responsive-design",
@@ -251,7 +251,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:49:34.777Z"
+    "generatedAt": "2026-10-07T03:56:16.861Z"
   },
   "publish-portfolio": {
     "lessonId": "publish-portfolio",
@@ -291,7 +291,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:50:13.551Z"
+    "generatedAt": "2026-10-07T03:56:55.287Z"
   },
   "what-computers-do": {
     "lessonId": "what-computers-do",
@@ -331,7 +331,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:50:19.195Z"
+    "generatedAt": "2026-10-07T03:58:06.602Z"
   },
   "binary-data": {
     "lessonId": "binary-data",
@@ -371,7 +371,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:50:58.000Z"
+    "generatedAt": "2026-10-07T03:58:04.576Z"
   },
   "logic-algorithms": {
     "lessonId": "logic-algorithms",
@@ -411,6 +411,6 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     ],
     "approximateTiming": false,
     "voice": "voice-00",
-    "generatedAt": "2026-10-07T03:50:59.116Z"
+    "generatedAt": "2026-10-07T03:58:29.154Z"
   }
 };

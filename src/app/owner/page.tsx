@@ -3,6 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { computeOwnerStats, estimateMonthlyRevenue, programPriceRows, toStudentRow } from "@/lib/owner-console";
 import { PROGRAMS } from "@/lib/programs";
+import OwnerVideoCoverageCard from "@/components/OwnerVideoCoverageCard";
+import { COURSES } from "@/lib/courses";
+import { courseVideo } from "@/lib/course-videos";
+import { lessonVideo } from "@/lib/lesson-videos";
 import OwnerPricingCard from "@/components/OwnerPricingCard";
 import OwnerPaymentsCard from "@/components/OwnerPaymentsCard";
 import { countPendingPayments, listRecentPayments } from "@/lib/payments";
@@ -23,6 +27,18 @@ export default async function OwnerConsolePage() {
   const monthlyValue = await estimateMonthlyRevenue();
   const users = (await listUsers()).map(toStudentRow);
   const maxEnrollment = Math.max(...stats.coursePerformance.map((item) => item.enrollments), 1);
+  // Video coverage: which courses have a welcome video, and which lessons are
+  // still waiting for a walkthrough (the videos are generated — see the README).
+  const coursesWithVideo = COURSES.filter((course) => courseVideo(course.slug)).map((course) => course.slug);
+  const coursesWithGaps = COURSES.map((course) => {
+    const lessons = course.modules.flatMap((module) => module.lessons);
+    return {
+      courseId: course.id,
+      shortTitle: course.shortTitle,
+      missing: lessons.filter((lesson) => !lessonVideo(lesson.id)).length,
+    };
+  }).filter((item) => item.missing > 0);
+
   const cards = [
     { label: "Students", value: stats.students.toLocaleString(), note: `${stats.withProgram} own a program`, icon: "users", style: "bg-violet-100 text-violet-700" },
     { label: "Lessons completed", value: stats.lessonsCompleted.toLocaleString(), note: `${stats.certificatesEarned} courses completed`, icon: "check", style: "bg-cyan-100 text-cyan-700" },
@@ -43,6 +59,8 @@ export default async function OwnerConsolePage() {
 
         <article className="open-column rounded-[22px] border border-[#e2dee7] bg-white p-5 sm:p-6"><div><h2 className="text-sm font-extrabold">Programs owned</h2><p className="mt-1 text-[10px] text-[#918a97]">Students holding each program</p></div><div className="mt-6 space-y-5">{stats.byProgram.map((item, index) => { const percent = stats.students ? Math.round((item.count / stats.students) * 100) : 0; const colors = ["bg-[#b8aae9]", "bg-[#6d4aff]", "bg-[#ff7448]", "bg-[#22b8cf]", "bg-[#51cf66]", "bg-[#ffcf59]"]; return <div key={item.programId}><div className="mb-2 flex justify-between text-[10px]"><span className="font-bold text-[#5f5965]">{item.name} · {fmtMoney(item.price)}</span><span className="font-black">{item.count} <span className="font-medium text-[#9a939f]">· {percent}%</span></span></div><div className="h-2 overflow-hidden rounded-full bg-[#eeeaf1]"><div className={`h-full rounded-full ${colors[index % colors.length]}`} style={{ width: `${percent}%` }} /></div></div>; })}</div><div className="mt-7 border-l-2 border-[#6d4aff] py-1 pl-4"><div className="flex items-center gap-2"><Icon name="spark" size={16} className="text-[#6d4aff]" /><p className="text-[10px] font-extrabold">Access snapshot</p></div><p className="mt-2 text-[9px] leading-4 text-[#817a87]">{stats.students ? Math.round((stats.withProgram / stats.students) * 100) : 0}% of students own at least one program.</p></div></article>
       </section>
+
+      <OwnerVideoCoverageCard coursesWithVideo={coursesWithVideo} coursesWithGaps={coursesWithGaps} />
 
       <OwnerPricingCard programs={programPriceRows()} />
 
