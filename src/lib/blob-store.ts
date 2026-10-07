@@ -114,25 +114,168 @@ function storageHeaders(contentType?: string): Record<string, string> {
   };
 }
 
-async function storageFetch(pathname: string, init: RequestInit = {}): Promise<Response> {
-  const response = await fetch(`${supabaseUrl()}/storage/v1${pathname}`, {
-    ...init,
-    headers: { ...storageHeaders(), ...(init.headers as Record<string, string> | undefined) },
-    signal: AbortSignal.timeout(60_000),
-    cache: "no-store",
-  });
-  return response;
+/**
+ * Uploads get the long timeout — a 200 MB video on a slow link needs it.
+ * Metadata reads do not: they happen while a page is rendering, and a probe
+ * that waits a minute turns a storage blip into a platform timeout, so the
+ * reader sees an error page instead of the lesson. Ten seconds is already far
+ * longer than a healthy `/object/info` call takes.
+ */
+const WRITE_TIMEOUT_MS = 60_000;
+const READ_TIMEOUT_MS = 10_000;
+
+async function storageFetch(pathname: string, init: RequestInit = {}, timeoutMs = WRITE_TIMEOUT_MS): Promise<Response> {
+  try {
+    return await fetch(`${supabaseUrl()}/storage/v1${pathname}`, {
+      ...init,
+      headers: { ...storageHeaders(), ...(init.headers as Record<string, string> | undefined) },
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: "no-store",
+    });
+  } catch (error) {
+    // A connection that never got as far as an answer is still a Storage
+    // failure, and the category is what tells a paused project from a typo.
+    throw storageErrorFromException(error);
+  }
 }
 
-function describeStorageError(response: Response, body: string): string {
-  const detail = body.slice(0, 200).replace(/\s+/g, " ");
-  if (response.status === 400 && /bucket/i.test(body)) {
-    return `Storage bucket “${bucketName()}” was not found. Create it in the Supabase dashboard (Storage → New bucket).`;
+/**
+ * What actually went wrong, as a category rather than a message.
+ *
+ * "Storage could not be reached" is four different problems wearing one coat,
+ * and only one of them is fixed by trying again: a bucket that does not exist,
+ * a key Supabase refuses, a project that is paused, and a genuine outage all
+ * look identical to a `catch`. Naming the cause is what lets the teacher
+ * console and `/api/health` say which knob to turn instead of shrugging.
+ */
+export type StorageFailureKind =
+  | "bucket-missing"
+  | "auth-rejected"
+  | "not-public"
+  | "rate-limited"
+  | "server-error"
+  | "timeout"
+  | "network"
+  | "unknown";
+
+/** Thrown by every Storage call that fails, carrying its category and a fix. */
+export class StorageError extends Error {
+  readonly kind: StorageFailureKind;
+  readonly status: number | null;
+  /** Plain-language next step, safe to show the owner (never a credential). */
+  readonly hint: string;
+
+  constructor(kind: StorageFailureKind, message: string, hint: string, status: number | null = null) {
+    super(message);
+    this.name = "StorageError";
+    this.kind = kind;
+    this.hint = hint;
+    this.status = status;
   }
-  if (response.status === 401 || response.status === 403) {
-    return `Supabase rejected SUPABASE_SECRET_KEY (${response.status}). ${detail}`;
+}
+
+/** The fix for each failure category, written for the person who has to act. */
+export function storageHint(kind: StorageFailureKind, status: number | null = null): string {
+  const bucket = bucketName();
+  switch (kind) {
+    case "bucket-missing":
+      return (
+        `Supabase has no bucket called “${bucket}” in this project. Either create it ` +
+        "(Storage → New bucket) or point SUPABASE_BUCKET at the bucket that does exist — the name " +
+        "must match exactly, including case — then redeploy."
+      );
+    case "auth-rejected":
+      return (
+        `Supabase refused SUPABASE_SECRET_KEY${status ? ` (${status})` : ""}. Use the *secret* key ` +
+        "(sb_secret_…, Project settings → API keys) — the publishable/anon key cannot read object " +
+        "metadata or sign URLs. If the key was rotated, replace it in the host's environment " +
+        "variables and redeploy; and if the project is paused, restore it first."
+      );
+    case "not-public":
+      return (
+        `SUPABASE_BUCKET_PUBLIC is on but the bucket “${bucket}” is private, so the permanent URLs ` +
+        "the app hands out are refused. Click Storage → the bucket → Make public, or unset " +
+        "SUPABASE_BUCKET_PUBLIC to go back to one-hour signed URLs (which work either way)."
+      );
+    case "rate-limited":
+      return (
+        "Supabase Storage rate-limited the request (429). This is usually a burst of parallel " +
+        "checks on a cold start and settles by itself; the app already retries once."
+      );
+    case "server-error":
+      return (
+        `Supabase Storage answered ${status ?? "5xx"} — a problem on Supabase's side, not in this ` +
+        "deployment's configuration. Check https://status.supabase.com and try again in a minute."
+      );
+    case "timeout":
+      return (
+        `Supabase Storage did not answer within ${READ_TIMEOUT_MS / 1000}s. The project may be ` +
+        "overloaded, or the host's region may have a slow route to it."
+      );
+    case "network":
+      return (
+        `This deployment could not reach ${supabaseHost() || "the Supabase project"} at all — the ` +
+        "connection failed before any HTTP answer. On the free plan a Supabase project pauses " +
+        "after a week of inactivity and stops answering: open the dashboard and restore it. " +
+        "Otherwise check NEXT_PUBLIC_SUPABASE_URL for a typo, and the host's egress/network rules."
+      );
+    default:
+      return "Storage failed for a reason this app does not recognise yet. Read the error above.";
   }
-  return `Supabase Storage answered ${response.status}. ${detail}`;
+}
+
+/** Hostname only — never the project ref in a place a stranger could read. */
+function supabaseHost(): string {
+  try {
+    return new URL(supabaseUrl()).host;
+  } catch {
+    return "";
+  }
+}
+
+/** Turns a Storage response into a categorised, actionable error. */
+function storageErrorFromResponse(response: Response, body: string): StorageError {
+  const detail = body.slice(0, 200).replace(/\s+/g, " ").trim();
+  const status = response.status;
+  if (status === 400 && /bucket not found|bucket_id|does not exist|invalid bucket/i.test(body)) {
+    const kind: StorageFailureKind = "bucket-missing";
+    return new StorageError(kind, `Storage bucket “${bucketName()}” was not found. ${detail}`, storageHint(kind, status), status);
+  }
+  if (status === 400 && /not public|public bucket/i.test(body)) {
+    const kind: StorageFailureKind = "not-public";
+    return new StorageError(kind, `The bucket “${bucketName()}” is not public. ${detail}`, storageHint(kind, status), status);
+  }
+  if (status === 401 || status === 403) {
+    const kind: StorageFailureKind = "auth-rejected";
+    return new StorageError(kind, `Supabase rejected SUPABASE_SECRET_KEY (${status}). ${detail}`, storageHint(kind, status), status);
+  }
+  if (status === 429) {
+    const kind: StorageFailureKind = "rate-limited";
+    return new StorageError(kind, `Supabase Storage rate-limited the request. ${detail}`, storageHint(kind, status), status);
+  }
+  if (status >= 500) {
+    const kind: StorageFailureKind = "server-error";
+    return new StorageError(kind, `Supabase Storage answered ${status}. ${detail}`, storageHint(kind, status), status);
+  }
+  // A 400 that mentions the bucket is still most likely a bucket problem;
+  // anything else is reported as unrecognised rather than guessed at.
+  const kind: StorageFailureKind = status === 400 && /bucket/i.test(body) ? "bucket-missing" : "unknown";
+  return new StorageError(kind, `Supabase Storage answered ${status}. ${detail}`, storageHint(kind, status), status);
+}
+
+/** Categorises whatever a failed `fetch` threw (DNS, refusal, abort). */
+export function storageErrorFromException(error: unknown): StorageError {
+  if (error instanceof StorageError) return error;
+  const message = error instanceof Error ? error.message : String(error);
+  const name = error instanceof Error ? error.name : "";
+  const kind: StorageFailureKind =
+    name === "TimeoutError" || name === "AbortError" || /timeout|aborted/i.test(message) ? "timeout" : "network";
+  return new StorageError(kind, `Could not reach Supabase Storage: ${message}`, storageHint(kind));
+}
+
+/** Reads a failed response's body and throws the categorised error for it. */
+async function throwStorageError(response: Response): Promise<never> {
+  throw storageErrorFromResponse(response, await response.text().catch(() => ""));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -152,7 +295,7 @@ export async function putBlob(key: string, data: Uint8Array, contentType: string
     body: data as unknown as BodyInit,
   });
   if (!response.ok) {
-    throw new Error(describeStorageError(response, await response.text().catch(() => "")));
+    await throwStorageError(response);
   }
 }
 
@@ -165,13 +308,52 @@ export async function deleteBlob(key: string): Promise<void> {
   }
   const response = await storageFetch(`/object/${bucketName()}/${encodeURIComponent(key)}`, { method: "DELETE" });
   if (!response.ok && response.status !== 404) {
-    throw new Error(describeStorageError(response, await response.text().catch(() => "")));
+    await throwStorageError(response);
   }
 }
 
 export interface BlobStat {
   size: number;
   contentType: string | null;
+}
+
+/**
+ * Asks the public object URL whether a file is there, without any credentials.
+ *
+ * Only used as a second opinion when the authenticated metadata call was
+ * refused: a public bucket serves its objects to anyone, so a deployment with
+ * a rotated or wrong `SUPABASE_SECRET_KEY` can still tell "present" from
+ * "absent" — and still play the video — instead of reporting the whole library
+ * as unavailable. Returns `undefined` when it cannot tell (the bucket is not
+ * public after all, or the network failed), which leaves the original error in
+ * charge.
+ */
+async function publicStat(key: string): Promise<BlobStat | null | undefined> {
+  const url = publicBlobUrl(key);
+  if (!url) return undefined;
+  let response: Response;
+  try {
+    // A one-byte range: enough to prove the object exists and read its length
+    // from `Content-Range`, without pulling a video down to find that out.
+    response = await fetch(url, {
+      headers: { Range: "bytes=0-0" },
+      signal: AbortSignal.timeout(READ_TIMEOUT_MS),
+      cache: "no-store",
+    });
+  } catch {
+    return undefined;
+  }
+  if (response.ok || response.status === 206) {
+    await response.body?.cancel().catch(() => {});
+    const range = /\/(\d+)\s*$/.exec(response.headers.get("content-range") ?? "");
+    const size = range ? Number.parseInt(range[1], 10) : Number(response.headers.get("content-length") ?? 0);
+    return { size: Number.isFinite(size) ? size : 0, contentType: response.headers.get("content-type") };
+  }
+  const body = await response.text().catch(() => "");
+  if (response.status === 404 || /object not found/i.test(body)) return null;
+  // "Bucket not public", or anything else: this route cannot answer, so let the
+  // authenticated error stand rather than claiming the file is missing.
+  return undefined;
 }
 
 export async function statBlob(key: string): Promise<BlobStat | null> {
@@ -181,10 +363,22 @@ export async function statBlob(key: string): Promise<BlobStat | null> {
     const stats = statSync(target);
     return stats.isFile() ? { size: stats.size, contentType: null } : null;
   }
-  const response = await storageFetch(`/object/info/${bucketName()}/${encodeURIComponent(key)}`);
-  if (response.status === 404) return null;
-  if (!response.ok) {
-    throw new Error(describeStorageError(response, await response.text().catch(() => "")));
+  let response: Response;
+  try {
+    response = await storageFetch(`/object/info/${bucketName()}/${encodeURIComponent(key)}`, {}, READ_TIMEOUT_MS);
+  } catch (error) {
+    throw storageErrorFromException(error);
+  }
+  if (response.status === 404) return null;  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    const failure = storageErrorFromResponse(response, body);
+    // A refused metadata call is not proof the file is gone: on a public bucket
+    // the object URL needs no key at all, so ask it before giving up.
+    if (failure.kind === "auth-rejected" || failure.kind === "not-public") {
+      const second = await publicStat(key);
+      if (second !== undefined) return second;
+    }
+    throw failure;
   }
   const info = (await response.json().catch(() => ({}))) as {
     size?: number;
@@ -250,7 +444,7 @@ export async function signedBlobUrl(
     body: JSON.stringify({ expiresIn: expiresInSeconds }),
   });
   if (!response.ok) {
-    throw new Error(describeStorageError(response, await response.text().catch(() => "")));
+    await throwStorageError(response);
   }
   const body = (await response.json().catch(() => ({}))) as { signedURL?: string; signedUrl?: string };
   const relative = body.signedURL ?? body.signedUrl;
@@ -276,4 +470,175 @@ export function readDiskBlob(key: string, range?: { start: number; end: number }
   if (!stats.isFile()) return null;
   const stream = range ? createReadStream(target, range) : createReadStream(target);
   return { body: Readable.toWeb(stream) as unknown as ReadableStream, size: stats.size };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Diagnosis                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export interface StorageProbe {
+  backend: BlobBackend;
+  /** All three Supabase variables are set. */
+  configured: boolean;
+  /** The variables that are missing, which is why the disk fallback is in use. */
+  missingVars: string[];
+  /** Bucket name, or null on the disk backend. */
+  bucket: string | null;
+  /** How the browser is sent to a file: a permanent CDN URL or a signed one. */
+  urlStyle: "public" | "signed" | null;
+  /** Hostname of the project — never a key, never a full URL with credentials. */
+  host: string | null;
+  /** Did the project answer at all? Null on the disk backend. */
+  reachable: boolean | null;
+  /** Did it accept SUPABASE_SECRET_KEY? */
+  authOk: boolean | null;
+  bucketExists: boolean | null;
+  /** What Supabase says about the bucket, as opposed to what the env claims. */
+  bucketIsPublic: boolean | null;
+  /**
+   * False only in the direction that breaks: the app is configured to hand out
+   * permanent public URLs (`SUPABASE_BUCKET_PUBLIC=1`) for a bucket Supabase
+   * says is private, so every one of those URLs is refused. A public bucket
+   * with the flag *off* is fine — signed URLs work on it too — and reports
+   * true, with the missed optimisation left to `npm run storage:check`.
+   */
+  publicUrlsWillWork: boolean | null;
+  /**
+   * One real object, checked: the difference between "storage is broken" and
+   * "storage is fine and simply does not have the videos yet".
+   */
+  sample: { present: boolean; size: number | null } | null;
+  failure: StorageFailureKind | null;
+  /** The error text, for the logs and for `/api/health`. */
+  error: string | null;
+  /** What to do about it. Null when nothing is wrong. */
+  hint: string | null;
+  ms: number;
+}
+
+/**
+ * Asks the configured storage how it is, in the terms a person can act on.
+ *
+ * Two requests at most: the bucket's own metadata (which proves the project is
+ * reachable, the key is accepted, the bucket exists and whether it is public),
+ * then one object from the manifest when a `sampleKey` is given. That pair
+ * separates every reason a lesson page can say "video unavailable": a paused
+ * project, a wrong key, a bucket that was never created, a bucket that is
+ * private while the app assumes it is public, and a healthy bucket that simply
+ * has not been filled yet.
+ *
+ * `sampleKey` is optional so this module never has to import the manifests.
+ */
+export async function probeStorage(sampleKey?: string): Promise<StorageProbe> {
+  const started = Date.now();
+  const probe: StorageProbe = {
+    backend: blobBackend(),
+    configured: storageConfigured(),
+    missingVars: [],
+    bucket: null,
+    urlStyle: null,
+    host: null,
+    reachable: null,
+    authOk: null,
+    bucketExists: null,
+    bucketIsPublic: null,
+    publicUrlsWillWork: null,
+    sample: null,
+    failure: null,
+    error: null,
+    hint: null,
+    ms: 0,
+  };
+  const finish = (): StorageProbe => {
+    probe.ms = Date.now() - started;
+    return probe;
+  };
+
+  if (!probe.configured) {
+    probe.missingVars = [
+      ["NEXT_PUBLIC_SUPABASE_URL", supabaseUrl()],
+      ["SUPABASE_SECRET_KEY", secretKey()],
+      ["SUPABASE_BUCKET", (process.env.SUPABASE_BUCKET ?? "").trim()],
+    ]
+      .filter(([, value]) => !value)
+      .map(([name]) => name);
+    probe.reachable = true; // the disk is always reachable; the question is whether it persists
+    if (sampleKey) {
+      const stat = await statBlob(sampleKey).catch(() => null);
+      probe.sample = { present: stat !== null, size: stat?.size ?? null };
+    }
+    probe.hint =
+      "Files are being written to this server's disk instead of object storage. That works in " +
+      "development, but on a host with an ephemeral filesystem (Vercel, any container) everything " +
+      "written disappears on the next deploy — which is why a video can be listed and still not " +
+      "play. Set NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and SUPABASE_BUCKET, create the " +
+      "bucket once, and redeploy.";
+    return finish();
+  }
+
+  probe.bucket = bucketName();
+  probe.urlStyle = publicBucket() ? "public" : "signed";
+  probe.host = supabaseHost();
+
+  let info: { id?: string; name?: string; public?: boolean } | null = null;
+  try {
+    const response = await storageFetch(`/bucket/${encodeURIComponent(bucketName())}`, {}, READ_TIMEOUT_MS);
+    const body = await response.text().catch(() => "");
+    if (response.ok) {
+      probe.reachable = true;
+      probe.authOk = true;
+      probe.bucketExists = true;
+      info = body ? (JSON.parse(body) as { id?: string; name?: string; public?: boolean }) : null;
+      probe.bucketIsPublic = Boolean(info?.public);
+      probe.publicUrlsWillWork = publicBucket() ? probe.bucketIsPublic : true;
+    } else {
+      probe.reachable = true; // an answer, even a refusal, means the project is reachable
+      const failure = storageErrorFromResponse(response, body);
+      probe.authOk = failure.kind === "auth-rejected" ? false : null;
+      probe.bucketExists = failure.kind === "bucket-missing" ? false : null;
+      probe.failure = failure.kind;
+      probe.error = failure.message;
+      probe.hint = failure.hint;
+    }
+  } catch (error) {
+    const failure = storageErrorFromException(error);
+    probe.reachable = false;
+    probe.failure = failure.kind;
+    probe.error = failure.message;
+    probe.hint = failure.hint;
+  }
+
+  // The public-flag mismatch is its own outage: every URL the app hands out is
+  // refused, so videos fail at the player rather than at the metadata check.
+  if (probe.publicUrlsWillWork === false && !probe.hint) {
+    probe.failure = "not-public";
+    probe.hint = storageHint("not-public");
+  }
+
+  if (sampleKey) {
+    try {
+      const stat = await statBlob(sampleKey);
+      probe.sample = { present: stat !== null, size: stat?.size ?? null };
+      // A refused key on a *public* bucket is a partial outage, and saying so
+      // stops the owner replacing a working bucket: the files still play
+      // through their permanent URLs, and it is uploads and signed downloads
+      // that are broken.
+      if (probe.failure === "auth-rejected" && stat !== null) {
+        probe.hint =
+          `${probe.hint ?? "Supabase refused SUPABASE_SECRET_KEY."} The bucket is public, so the videos that are already in it still play — ` +
+          "existing files are served straight from the CDN. Uploads and signed downloads stay broken " +
+          "until the key is replaced.";
+      }
+    } catch (error) {
+      const failure = storageErrorFromException(error);
+      probe.sample = null;
+      if (!probe.failure) {
+        probe.failure = failure.kind;
+        probe.error = failure.message;
+        probe.hint = failure.hint;
+      }
+    }
+  }
+
+  return finish();
 }
