@@ -25,17 +25,15 @@ export function lesson(
     summary,
     preview,
     objectives: [
-      `Explain the purpose of ${title.toLowerCase()}`,
-      "Apply the idea in a small working example",
-      "Recognize the pattern in a real project",
+      "Explain the central concept and identify the problem it solves.",
+      "Trace or adapt the worked example, explaining the role of its important steps.",
+      "Complete the challenge and verify the result against its expected behavior or constraints.",
     ],
+    // `summary` is already shown as the lesson introduction. Keeping it out of
+    // the sections avoids repeating the same paragraph in the reader.
     sections: [
       {
-        heading: "Start with the idea",
-        body: summary,
-      },
-      {
-        heading: "How it works",
+        heading: "Core concept",
         body: concept,
         code,
         language: code ? "code" : undefined,

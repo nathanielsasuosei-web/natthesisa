@@ -87,6 +87,7 @@ export interface Course {
 const CORE_COURSES: Course[] = [
   {
     id: "web-foundations",
+    cover: "/course-covers/web-development-foundations.jpg",
     slug: "web-foundations",
     title: "Web Development Foundations",
     shortTitle: "Web Foundations",
@@ -191,6 +192,7 @@ const CORE_COURSES: Course[] = [
   },
   {
     id: "computer-science-essentials",
+    cover: "/course-covers/computer-science-essentials.jpg",
     slug: "computer-science-essentials",
     title: "Computer Science Essentials",
     shortTitle: "CS Essentials",
@@ -286,6 +288,7 @@ const CORE_COURSES: Course[] = [
   },
   {
     id: "javascript-zero-to-builder",
+    cover: "/course-covers/javascript-zero-to-builder.jpg",
     slug: "javascript-zero-to-builder",
     title: "JavaScript: Zero to Builder",
     shortTitle: "JavaScript",
@@ -390,6 +393,7 @@ const CORE_COURSES: Course[] = [
   },
   {
     id: "react-production-apps",
+    cover: "/course-covers/react-production-apps.jpg",
     slug: "react-production-apps",
     title: "Build Production Apps with React",
     shortTitle: "React Apps",
@@ -493,6 +497,7 @@ const CORE_COURSES: Course[] = [
   },
   {
     id: "mobile-apps-react-native",
+    cover: "/course-covers/mobile-apps-react-native.jpg",
     slug: "mobile-apps-react-native",
     title: "Mobile Apps with React Native",
     shortTitle: "Mobile Apps",
@@ -587,6 +592,7 @@ const CORE_COURSES: Course[] = [
   },
   {
     id: "backend-node-apis",
+    cover: "/course-covers/backend-node-apis.jpg",
     slug: "backend-node-apis",
     title: "Backend Development with Node.js",
     shortTitle: "Node.js Backend",
