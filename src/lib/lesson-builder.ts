@@ -145,33 +145,8 @@ export function objectivesFor(spec: LessonSpec): string[] {
 /* Builders                                                                   */
 /* -------------------------------------------------------------------------- */
 
-/** The original positional signature, kept only until every lesson is migrated. */
-type LegacyLessonArgs = [string, string, number, string, string, string | undefined, string, boolean?];
-
-function legacyLesson([id, title, duration, summary, concept, code, challenge, preview]: LegacyLessonArgs): Lesson {
-  return {
-    id,
-    title,
-    duration,
-    summary,
-    preview: preview ?? false,
-    objectives: [
-      "Explain the central concept and identify the problem it solves.",
-      "Trace or adapt the worked example, explaining the role of its important steps.",
-      "Complete the challenge and verify the result against its expected behavior or constraints.",
-    ],
-    sections: [{ heading: "Core concept", body: concept, kind: "paragraph", code, language: code ? "code" : undefined }],
-    challenge,
-  };
-}
-
 /** Build a catalog lesson from a written spec. */
-export function lesson(spec: LessonSpec): Lesson;
-/** @deprecated Migration shim: positional form, removed once all lessons are spec-based. */
-export function lesson(...args: LegacyLessonArgs): Lesson;
-export function lesson(...args: [LessonSpec] | LegacyLessonArgs): Lesson {
-  if (typeof args[0] !== "object") return legacyLesson(args as LegacyLessonArgs);
-  const spec = args[0] as LessonSpec;
+export function lesson(spec: LessonSpec): Lesson {
   const sections: LessonSection[] = spec.sections.map((section) => ({
     heading: section.heading,
     body: section.body ?? "",

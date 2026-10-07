@@ -6,6 +6,7 @@ import { SOFTWARE_ENGINEERING_PRACTICES_MODULES } from "@/content/software-engin
 import { SYSTEM_DESIGN_ARCHITECTURE_MODULES } from "@/content/system-design-architecture";
 import { DEVOPS_AND_DELIVERY_MODULES } from "@/content/devops-and-delivery";
 import { VIBE_CODING_SHIP_WITH_AI_MODULES } from "@/content/vibe-coding-ship-with-ai";
+import { AI_APPS_AGENTS_AND_APIS_MODULES } from "@/content/ai-apps-agents-and-apis";
 
 /**
  * The six programs, and the courses under them.
@@ -280,69 +281,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Measure quality, latency and cost",
     ],
     tags: ["LLMs", "RAG", "Agents"],
-    modules: [
-      module("wiring-ai-in", "01 · Wiring AI into an app", "The API call, the prompt and your own data.", [
-        lesson(
-          "calling-a-model-api",
-          "Calling a model from your server",
-          24,
-          "The model call belongs on the server, behind your own API, where the key lives and where you can log, limit and cache it.",
-          "Send a system prompt, the message history and a token limit. Always set a timeout, always handle a refusal or an empty answer, and never put the provider key in the browser.",
-          "const res = await fetch(\"https://api.provider.com/v1/chat\", {\n  method: \"POST\",\n  headers: { \"content-type\": \"application/json\", authorization: `Bearer ${process.env.AI_KEY}` },\n  body: JSON.stringify({\n    model: \"small-and-fast\",\n    max_tokens: 400,\n    messages: [\n      { role: \"system\", content: \"Answer only from the notes provided.\" },\n      { role: \"user\", content: question },\n    ],\n  }),\n  signal: AbortSignal.timeout(20_000),\n});",
-          "Add a server route that asks a model one question and returns its answer. Log the tokens used.",
-          true
-        ),
-        lesson(
-          "prompts-as-product",
-          "The prompt is product surface",
-          24,
-          "A prompt is not a string in a file — it is behaviour your users feel. Treat it like code: versioned, reviewed and tested.",
-          "Put the instructions, the tone and the refusal rule in one place. Say what to do when it does not know, keep the output shape stable, and change it with a test that shows the difference.",
-          "You are the support assistant for codemasterghana.\nAnswer in at most three sentences, in plain English.\nUse ONLY the notes below. If the notes do not contain the\nanswer, reply exactly: \"I will pass this to a human.\"\n\nNotes:\n{{retrieved}}",
-          "Write your system prompt with an explicit refusal rule, then try three questions it should refuse."
-        ),
-        lesson(
-          "context-and-rag",
-          "Your own data: retrieval (RAG)",
-          28,
-          "Models do not know your product. Retrieval finds the few paragraphs that matter and puts them in the prompt, so answers are grounded in your documents.",
-          "Split documents into overlapping chunks, embed them, store the vectors, then search for the closest chunks to the question and pass those as context. Return citations so the user can check.",
-          "const chunks = splitIntoChunks(document, { size: 800, overlap: 120 });\nfor (const chunk of chunks) {\n  await store.save({ text: chunk, vector: await embed(chunk), source: document.id });\n}\n\nconst hits = await store.search(await embed(question), { top: 5 });\nconst answer = await askModel(question, hits.map((h) => h.text).join(\"\\n---\\n\"));\nanswer.sources = hits.map((h) => h.source);",
-          "Index five of your own pages and ask a question whose answer appears in only one of them."
-        ),
-      ]),
-      module("agents-and-guardrails", "02 · Agents and guardrails", "Tools, evals, cost and the safety rules that let you ship.", [
-        lesson(
-          "tools-and-agents",
-          "Tools and agents",
-          26,
-          "An agent is a model that can call your functions: look up an order, create a ticket, send a receipt. The power and the risk are the same thing.",
-          "Expose narrow, well-named tools with validated arguments. The model proposes a call; your code decides whether to run it — permissions, limits and confirmations stay on your side.",
-          "const tools = {\n  lookupOrder: {\n    description: \"Find an order by its reference.\",\n    run: async ({ reference }) => orders.findByRef(String(reference)),\n  },\n};\n\n// The model asks, the server authorises:\nif (call.name === \"lookupOrder\" && !canReadOrders(session.user)) {\n  return refuse(\"Not allowed to read orders.\");\n}",
-          "Give your assistant one read-only tool and one write tool. Write down who is allowed to trigger the write."
-        ),
-        lesson(
-          "evals-and-cost",
-          "Evals, latency and cost",
-          24,
-          "You cannot improve what you do not measure. A small set of real questions, scored automatically, is worth more than any demo.",
-          "Keep a test set of questions with expected answers or rubrics, run it on every prompt change, and record tokens, latency and failures. Cap the spend per user and per day.",
-          "const suite = [\n  { q: \"How do I buy a program?\", must: [\"Programs\", \"Billing\"] },\n  { q: \"Who is the president of Ghana?\", mustRefuse: true },\n];\n\nfor (const test of suite) {\n  const { answer, tokens, ms } = await run(test.q);\n  report({ ...test, answer, tokens, ms, pass: check(test, answer) });\n}",
-          "Build a five-question suite for your assistant and record the pass rate, average latency and tokens per answer."
-        ),
-        lesson(
-          "safety-and-ship",
-          "Safety, privacy and shipping",
-          24,
-          "Shipping AI means deciding what it may never see, say or do — and making those decisions in code, not in the prompt alone.",
-          "Sent prompts and outputs are data: keep personal details out, tell users they are talking to an AI, keep a human path for anything that matters, and log enough to investigate without storing more than you need.",
-          "Rules the code enforces, not just the prompt:\n- strip emails, phones and card numbers before the call\n- refuse medical, legal and financial advice\n- \"Talk to a human\" button on every answer\n- keep a 30-day log of prompts and citations, no raw PII",
-          "Write your assistant's data rules: what it may receive, what it must never store, and how a user reaches a human."
-        ),
-      ]),
-    ],
-  },
-];
+    modules: AI_APPS_AGENTS_AND_APIS_MODULES,
+  },];
 
 /* -------------------------------------------------------------------------- */
 /* Lookups                                                                    */
