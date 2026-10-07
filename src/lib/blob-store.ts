@@ -156,6 +156,7 @@ export type StorageFailureKind =
   | "server-error"
   | "timeout"
   | "network"
+  | "invalid-url"
   | "unknown";
 
 /** Thrown by every Storage call that fails, carrying its category and a fix. */
@@ -219,6 +220,13 @@ export function storageHint(kind: StorageFailureKind, status: number | null = nu
         "after a week of inactivity and stops answering: open the dashboard and restore it. " +
         "Otherwise check NEXT_PUBLIC_SUPABASE_URL for a typo, and the host's egress/network rules."
       );
+    case "invalid-url":
+      return (
+        `NEXT_PUBLIC_SUPABASE_URL (${supabaseUrl() || "(empty)"}) is not a complete URL, so every ` +
+        "Storage request fails before it is even sent. It must include the scheme — " +
+        "https://abcdefghijklmnop.supabase.co — not just the host or the project ref. Copy it " +
+        "from Supabase dashboard → Project settings → Data API → Project URL, then redeploy."
+      );
     default:
       return "Storage failed for a reason this app does not recognise yet. Read the error above.";
   }
@@ -268,6 +276,13 @@ export function storageErrorFromException(error: unknown): StorageError {
   if (error instanceof StorageError) return error;
   const message = error instanceof Error ? error.message : String(error);
   const name = error instanceof Error ? error.name : "";
+  // A URL that does not parse never reaches the network, so "network" would be
+  // a lie: no amount of retrying or restoring a paused project fixes a value
+  // that is missing its https:// scheme. Call it what it is.
+  if (/Failed to parse URL|Invalid URL/i.test(message)) {
+    const kind: StorageFailureKind = "invalid-url";
+    return new StorageError(kind, `Could not reach Supabase Storage: ${message}`, storageHint(kind));
+  }
   const kind: StorageFailureKind =
     name === "TimeoutError" || name === "AbortError" || /timeout|aborted/i.test(message) ? "timeout" : "network";
   return new StorageError(kind, `Could not reach Supabase Storage: ${message}`, storageHint(kind));

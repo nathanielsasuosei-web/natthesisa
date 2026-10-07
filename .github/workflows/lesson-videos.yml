@@ -46,9 +46,9 @@ jobs:
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -63,9 +63,30 @@ jobs:
             echo "Add the three secrets under Settings → Secrets and variables → Actions, then re-run."
             exit 1
           fi
+          # A URL without its https:// scheme parses fine nowhere, and the
+          # round-trip step would only say "could not reach the bucket" twenty
+          # seconds and one npm ci later. Catch it here, before anything runs.
+          # The shape check mirrors scripts/supabase-check.mts.
+          if ! node -e '
+            const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+            try { new URL(url); } catch {
+              console.error("::error::NEXT_PUBLIC_SUPABASE_URL is not a complete URL.");
+              console.error("It must be the full project URL including the scheme, e.g. https://abcdefghijklmnop.supabase.co");
+              console.error("Supabase dashboard → Project settings → Data API → Project URL.");
+              process.exit(1);
+            }
+          '; then
+            exit 1
+          fi
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+
+      # Cheaper to learn here than from a failed probe: validates the URL
+      # shape, proves the secret key against /storage/v1/bucket, and lists the
+      # buckets that exist — so "no bucket by that name" says so by name.
+      - name: Validate the Supabase settings
+        run: npm run supabase:check
 
       - name: Prove the bucket round-trips
         run: npm run storage:check
