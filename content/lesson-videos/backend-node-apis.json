@@ -1,0 +1,42 @@
+{
+  "course": "backend-node-apis",
+  "voice": "voice-00",
+  "lessons": {
+    "server-runtime": {
+      "title": "Welcome to Node.js and the server runtime, the first lesson of Backend Development with Node.js. You will run JavaScript outside the browser, on a machine that other people can reach.",
+      "idea": "Node runs JavaScript with access to the operating system: files, processes, timers and the network. It uses an event loop, which means one thread handles many connections by never waiting idly. A request arrives, your code starts work, and while that work is pending the loop serves someone else. The whole style follows from one rule: never block the loop with slow synchronous work.",
+      "example": "The health endpoint is the smallest possible server. It creates an HTTP listener, and for every request that arrives it writes a JSON body with a status and an OK flag, then ends the response. There is no framework in the way, so you can see exactly what the client receives. Every framework you use afterwards is a layer over this call.",
+      "challenge": "Your turn. Create a server with a health endpoint that returns JSON, then change the status code to something else and watch how a browser or a client treats it. Understanding that the status line is part of the response is the first step towards an API people can build on."
+    },
+    "http-rest": {
+      "title": "This lesson is HTTP and RESTful routes. You will design resource-based routes with meaningful methods, honest status codes and consistent response shapes.",
+      "idea": "A route describes a resource, and the method describes what you are doing to it: GET reads, POST creates, PATCH changes, DELETE removes. The status code reports the outcome, and the body carries the result. Consistency is the real prize: when every error looks the same, every client can handle errors the same way, which is what makes an API pleasant to consume.",
+      "example": "Enrolment has four routes. A POST on the enrolments collection creates one. A GET on a single enrolment reads it. A PATCH updates the grade and returns the updated row. A DELETE removes it and answers with no content at all. Notice that the noun stays the same and only the method changes; that is what makes the API predictable from its first route.",
+      "challenge": "Your turn. Design the routes and the response statuses for enrolling a student and for completing a lesson. Write down what you return when the lesson is already complete, because the second attempt is where most designs get vague and clients get confused."
+    },
+    "validation-errors": {
+      "title": "This is Validation and error handling. You will treat every piece of incoming data as untrusted, and turn failures into responses a client can act on.",
+      "idea": "Validate at the boundary: shape, types, ranges and permissions, before any of it reaches your logic. When something is wrong, answer with a clear status and a message that names the field. Keep internal details out of public responses, because stack traces and database errors tell an attacker more than they tell your user, and log enough context to investigate later.",
+      "example": "The account payload arrives with a name, an email and a weekly goal. The handler checks that the name is a non-empty string, that the email matches an expected shape, and that the goal is a sensible number. The first failure returns a four-hundred response naming the field. Nothing downstream has to defend itself, because nothing invalid ever gets through.",
+      "challenge": "Your turn. Add validation for an account payload, then send it deliberately bad data: an empty name, an email with no at sign, and a negative goal. Every one of those should produce a message a person can fix. Reading your own error messages is the fastest way to make them better."
+    },
+    "database-modeling": {
+      "title": "This lesson is Database modeling, where product rules become tables, relationships, constraints and the indexes that make the queries you run fast.",
+      "idea": "Give every entity a stable key. Store each fact in exactly one place, so it cannot disagree with itself. Enforce rules with constraints rather than with hope, because the database refusing bad data is stronger than any code path remembering to check. Add indexes for the lookups you actually perform, and not for every column, since each index is storage and slows writes.",
+      "example": "Five tables describe the platform. Users own purchases, purchases point at a program, courses belong to a program, and progress rows connect a user to a lesson with a completed flag and a time. Every arrow is a foreign key, so an enrolment cannot point at a course that does not exist. The unique constraint on user and lesson is what makes marking a lesson complete twice harmless.",
+      "challenge": "Your turn. Model users, courses, lessons, purchases and progress with keys and relationships, then ask the schema three questions: can this row exist without its parent, can the same fact be stored twice, and what happens if the same request arrives twice. Those three questions catch most design mistakes."
+    },
+    "auth-permissions": {
+      "title": "This is Authentication and permissions. You will establish who is making a request, then verify what that person is allowed to do with the exact thing they asked for.",
+      "idea": "Authentication establishes identity; authorization checks permission for a specific resource and action. They are separate questions and they belong on the server. Passwords get hashed with a deliberately slow algorithm, sessions live in httpOnly cookies so scripts cannot read them, and every request is checked again on the server, because anything the client can send can be forged.",
+      "example": "The matrix has rows for the actions and columns for the roles. A learner can read their own progress but no one else's. An instructor can read the students in their course. The owner can do everything. Writing the matrix before the code turns authorisation from a set of scattered if statements into a table you can check line by line, and then test.",
+      "challenge": "Your turn. Write an authorisation matrix for learners, instructors and administrators, then compare it with what your routes actually check. Every difference you find is either a hole or a missing feature, and both are worth knowing about before someone else finds them."
+    },
+    "test-deploy-api": {
+      "title": "This is the final lesson, Test and deploy the API, where you prove the important behaviour automatically and prepare the service for real traffic.",
+      "idea": "Test at the public boundary: send a request, then assert the status, the response body and the effect on the database. Those three assertions catch what unit tests miss, because they test the contract rather than the implementation. For deployment, secrets come from the environment, a health check tells the platform whether the service is alive, and structured logs tell you what happened when it is not.",
+      "example": "Three integration tests cover the case that matters. Completing a lesson succeeds and writes a progress row. Opening a locked course returns a payment-required status and writes nothing. A suspended account is refused even with a valid session. Each test sets up its own data and asserts the database afterwards, so the tests describe the rules of the product rather than the shape of the code.",
+      "challenge": "Your turn. Write integration tests for successful completion, locked course access and suspended accounts, then deploy the API with environment variables and a health check. When those three tests pass against the deployed URL, you have an API you can change without fear."
+    }
+  }
+}

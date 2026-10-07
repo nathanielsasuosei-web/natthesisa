@@ -11,7 +11,11 @@
     "db:check": "tsx scripts/check-db.mts",
     "payments:check": "tsx scripts/check-payments.mts",
     "storage:check": "tsx scripts/check-storage.mts",
-    "supabase:check": "tsx scripts/supabase-check.mts"
+    "supabase:check": "tsx scripts/supabase-check.mts",
+    "videos:setup": "tsx scripts/lesson-videos/setup.mts",
+    "videos:list": "tsx scripts/lesson-videos/build.mts --list",
+    "videos:check": "tsx scripts/lesson-videos/check.mts",
+    "videos:build": "tsx scripts/lesson-videos/build.mts"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

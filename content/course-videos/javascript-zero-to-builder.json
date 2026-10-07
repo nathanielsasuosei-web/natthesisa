@@ -1,0 +1,9 @@
+{
+  "course": "javascript-zero-to-builder",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to JavaScript: Zero to Builder. I am Elena Park, a full-stack developer, and in this course we go from variables and functions all the way to fetching live data from an API, while building something you will actually keep using. If you can write a little HTML and CSS, you have everything you need to start.",
+    "build": "The project is a smart task planner that talks to a public API. You will write clear JavaScript with functions and objects, model real application data with arrays and maps, update the interface through the DOM, request remote data without freezing the page, and debug the runtime problems that appear in every real project.",
+    "how": "Seven lessons, about three hours, and one rule: type every example yourself. Each lesson opens with a short video, then the written lesson, then a practice task. The last lesson brings state, events, storage and the network together into the planner. Ship it, then use it for a week; that is where the real learning happens."
+  }
+}

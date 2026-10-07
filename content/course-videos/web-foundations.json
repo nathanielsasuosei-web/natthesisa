@@ -1,0 +1,9 @@
+{
+  "course": "web-foundations",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Web Development Foundations. I am Maya Owusu, a frontend engineer, and this is the course I wish I had when I started. It assumes no experience at all: we begin with how a browser and a server talk to each other, and finish with a website of yours that anybody in the world can open. Seven lessons, and every one of them ends with something you have built rather than something you have read.",
+    "build": "You are building a responsive personal portfolio: a real multi-section website you write yourself in HTML and CSS. Along the way you will write semantic, accessible markup, style layouts with Flexbox and Grid, and make one interface feel intentional on a phone, a tablet and a large screen. By the end it is published on the internet, and it is the first item in your portfolio rather than the last.",
+    "how": "The course is two modules and about two and a half hours of reading and practice. Each lesson opens with a short video, then goes deeper in writing, then asks you for one concrete task. Work with a code editor open beside you, and do not skip the challenges: writing the CSS is what teaches it. When you publish that portfolio, the course has done its job."
+  }
+}

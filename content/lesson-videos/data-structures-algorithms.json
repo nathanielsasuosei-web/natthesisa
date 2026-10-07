@@ -1,0 +1,42 @@
+{
+  "course": "data-structures-algorithms",
+  "voice": "voice-00",
+  "lessons": {
+    "big-o-not-scary": {
+      "title": "Welcome to Big-O without the fear, the opening lesson of Data Structures and Algorithms. In two minutes you will have the vocabulary every performance conversation is built on.",
+      "idea": "Big-O describes how the work grows as the input grows, not how many milliseconds something takes. A single pass over the data is order n. A loop inside a loop is order n squared. Halving the problem on each pass is order log n. Constants and small terms are dropped because they stop mattering at scale, which is exactly when the answer decides whether your program is usable.",
+      "example": "Compare the two functions side by side. Adding every number in a list touches each element once, so the work doubles when the list doubles: order n. Checking every pair touches each element for every other element, so doubling the list quadruples the work: order n squared. Same input, same result, and the difference between a fast program and one that never finishes.",
+      "challenge": "Your turn. Take two functions you wrote last week and label each one with its Big-O, then write the number of steps for inputs of ten and of a thousand. Doing that arithmetic by hand is what turns the notation from a symbol into an intuition you can trust."
+    },
+    "arrays-and-two-pointers": {
+      "title": "This lesson is Arrays, strings and two pointers, where instant indexed reads meet the technique that collapses nested loops into a single pass.",
+      "idea": "An array is contiguous memory, so reading an item by index costs the same whether it is the first or the last. That is why arrays are the right home for ordered data. The trade-off is insertion and removal at the front, which shifts everything else. Two pointers exploit the instant reads: walk a sorted array from both ends and the nested loop disappears.",
+      "example": "The problem asks whether two numbers in a sorted list add up to a target. Start one pointer at each end. If the sum is too small, move the left pointer right to increase it. If it is too large, move the right pointer left to decrease it. Every step eliminates a whole column of the brute-force table, so the quadratic loop becomes a single pass down the list.",
+      "challenge": "Your turn. Reverse a string in place with two pointers instead of a library call, then count why the loop runs half as many times as the string is long. Understanding the count is the difference between copying a technique and owning it."
+    },
+    "maps-and-sets": {
+      "title": "This is Maps and sets: looking things up in one step. You will replace the inner loop of slow code with a single lookup.",
+      "idea": "A hash function turns a key into a position, so inserting, finding and deleting all happen in constant time on average. A set is a map without values, which makes it the natural answer to have I seen this before. The transformation is almost always the same shape: one pass to remember what you have seen, one check as you go, and the quadratic algorithm becomes linear.",
+      "example": "Finding duplicates by comparing every pair is order n squared. The version on screen keeps a set of numbers already visited. For each number it asks one question: is this already in the set? If yes, there is the duplicate. If no, add it to the set. One pass, one structure, and the same answer in a fraction of the work on any realistic input.",
+      "challenge": "Your turn. Count how often each word appears in a paragraph with one pass and one map, then explain what changed compared with sorting the words first. Being able to say why one approach is better, in one sentence, is what makes the choice stick."
+    },
+    "sorting-and-searching": {
+      "title": "This lesson is Sorting and searching. Sorting is the move that makes everything else cheaper: searching, de-duplicating, merging and grouping all get simpler on ordered data.",
+      "idea": "Binary search halves the search space on every step. A million sorted items need about twenty comparisons, because two to the twentieth power is just over a million. Sorting first costs order n log n, and then every search costs order log n. If you search many times, or if many users do, that trade is one of the best bargains in computing.",
+      "example": "Low and high start at the ends of the sorted list. The middle is computed, and one comparison decides which half still matters. The range halves, and the loop repeats. Twenty steps later, either the value is found or the range is empty and it is provably absent. Note that the algorithm relies on the list being sorted; run it on unsorted data and the premise is gone.",
+      "challenge": "Your turn. Search a sorted list of a million numbers for a value that is not there, and predict the number of comparisons before you run it. If your prediction is close, you understand binary search well enough to explain it to someone else."
+    },
+    "recursion-and-memoization": {
+      "title": "This is Recursion and memoization, where a problem is solved by solving a smaller copy of itself, and where caching turns an exponential function into a linear one.",
+      "idea": "A recursive function has a base case and a step that moves towards it. The danger is repeated work: the naive Fibonacci implementation recomputes the same values exponentially many times, which is why it feels slow at forty and impossible at fifty. Memoization caches each result the first time it is computed, and the tree of calls collapses into a single path per value.",
+      "example": "The function checks whether the answer for this input is already in the cache. If it is, it returns immediately. If not, it computes the result from two smaller inputs, stores it, and returns it. That is the whole change: a map, a lookup and a store. The exponential blow-up disappears, and the running time becomes proportional to the input rather than to its powers.",
+      "challenge": "Your turn. Write a recursive coin-change counter, then add a cache and measure both versions on the same input. Watching one number turn from seconds into milliseconds teaches the idea better than a proof does."
+    },
+    "trees-graphs-traversal": {
+      "title": "This is the final lesson, Trees, graphs and traversal, where hierarchies and connections are searched with the same two strategies.",
+      "idea": "A tree is a hierarchy: files, comments, decisions. A graph is anything connected to anything: friends, routes, dependencies. Depth-first search follows one branch to its end, which suits recursion and small graphs. Breadth-first search explores level by level, and because it visits in order of distance, it finds the shortest path in an unweighted graph. Same data, two questions.",
+      "example": "The breadth-first search keeps a queue of paths and a set of stops already seen. It takes the first path, checks whether its last stop is the goal, then adds every unseen neighbour as a longer path. Because the shortest paths are always explored first, the moment the goal appears, the path that found it is the shortest one. No sorting, no backtracking, just the queue doing the ordering.",
+      "challenge": "Your turn. Model a small map as an object of neighbours and find the shortest route between two stops. Then swap the queue for a stack and watch the same code find a different route. Recognising that one change is the whole difference between the two searches is the point of the lesson."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "course": "mobile-apps-react-native",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Mobile Apps with React Native. I am Sofia Adeyemi, a mobile engineer. If you already know some JavaScript or React, this is the shortest path to putting an app on a real phone, and it starts by understanding exactly where React Native draws the line between JavaScript and the platform.",
+    "build": "You are building a cross-platform habit tracking app. You will build native screens with React Native, set up stack and tab navigation, style layouts that feel right on a phone, use device features such as the camera with permissions handled properly, keep long lists scrolling smoothly, and prepare a release build you could actually submit.",
+    "how": "Six lessons, about two and a half hours. Each one opens with a short video, then the written lesson and a task you do in the app itself. Run everything on a simulator as you go, and test on both platforms when a task asks you to; the differences between them are part of what you are learning."
+  }
+}

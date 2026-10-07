@@ -1,0 +1,42 @@
+{
+  "course": "system-design-architecture",
+  "voice": "voice-00",
+  "lessons": {
+    "clients-and-apis": {
+      "title": "Welcome to Clients, APIs and contracts, the opening lesson of System Design and Architecture. An API is a promise, and everything else in the system hangs off how carefully that promise is written.",
+      "idea": "Keep resources as nouns and let the HTTP methods be the verbs. Return the same shape for the same kind of error, every time, because clients write error handling once and reuse it. Version the contract when it must change, and make writes idempotent so that a retry cannot charge someone twice. The contract is the product boundary, and it outlives your implementation.",
+      "example": "Booking a seat has two failure responses a client must handle. A conflict when the seat is already taken, and a payment-required when the booking needs paying for. Both return the same error envelope, with a code the client can branch on and a message it can show. Success returns the booking. Four outcomes, one shape, no guessing, and the client code writes itself.",
+      "challenge": "Your turn. Write the API contract for booking a seat, including the two failure responses a client must handle. Naming the failures before the success is the habit that separates a design from a hope."
+    },
+    "data-at-scale": {
+      "title": "This lesson is Choosing where data lives. The data model decides how the system behaves under load, and what it must never get wrong.",
+      "idea": "Relational databases give you joins, constraints and transactions. Key-value stores give you speed and simple horizontal scale. Search engines give you text relevance. Most products want one relational core that owns the truth, plus derived read models for the queries that are too slow or too awkward to answer from the core. Derived data can always be rebuilt; the truth cannot.",
+      "example": "Seats and bookings in the same relational database, with a unique constraint on the pair of class and seat. Now two simultaneous buyers both try to insert, and the database refuses the second one. No application logic, no clever locking, and no scenario in which the same seat is sold twice. The constraint is the design, and everything else is convenience around it.",
+      "challenge": "Your turn. Model seats and bookings so a seat can never be sold twice, even with two buyers clicking at the same moment. Then decide what happens to the loser: an error, a wait, or a queue. Choosing the answer is designing the product, not the database."
+    },
+    "caches-and-queues": {
+      "title": "This is Caches, queues and eventual work. A cache answers a question faster than the source of truth, and a queue moves work out of the request so a slow job cannot slow a person down.",
+      "idea": "Cache what is read often and changes rarely, and always give it an expiry, because a cache without an expiry is a bug waiting for the one day you need it to be right. Put email, image processing and reports on a queue with retries, then design those retries so a duplicate job is harmless. Most systems are made of a fast answer, a durable record and a background worker.",
+      "example": "Walk through the table of steps. A product listing read thousands of times an hour: cache it, with a short expiry. An email that can take three seconds to send: queue it, with retries. A payment authorisation: leave it inline, because the user must know the answer now and a queue would only hide a failure. Cache, queue or inline, decided per step rather than by habit.",
+      "challenge": "Your turn. List every slow or unreliable step in your project and mark each one as cache, queue or leave inline. The list is short, but writing it down turns a collection of practices into a design you can defend."
+    },
+    "reliability-and-failure": {
+      "title": "This lesson is Designing for failure. Everything fails: disks, networks, third parties and your own deploy. Reliability is deciding what should happen when it does.",
+      "idea": "Put timeouts everywhere, because a request that waits forever holds a connection and a worker. Retry only work that is safe to repeat, and add a circuit breaker so one slow dependency cannot consume every request you have. Then degrade instead of collapsing: a cached page, an empty list with an apology, or a feature turned off is almost always better than an error page for the whole site.",
+      "example": "The recommendations service is slow. Without protection, every request waits on it until the thread pool is exhausted and the entire site is down. With a timeout and a breaker, the first few requests wait, the breaker trips, and every later request skips the dependency and renders the page without recommendations. The feature is degraded, the product is not.",
+      "challenge": "Your turn. Take your last outage or your worst bug and write the three changes that would have contained it. Containment, not prevention, is usually the difference between an incident and an outage, because the failure you plan for is never quite the one that happens."
+    },
+    "security-and-auth": {
+      "title": "This is Authentication, authorisation and the obvious holes. Security is mostly boring discipline, repeated on every request.",
+      "idea": "Authenticate once, then authorise every request, on the server, against the specific resource that was asked for. Hash passwords with a deliberately slow algorithm, keep secrets out of anything the client can read, validate input at the boundary, and check ownership before returning data. Most real breaches are not clever: they are a missing check that one route forgot.",
+      "example": "Take one route and interrogate it. Who may call it? A signed-in student. What must they prove? A valid session cookie, httpOnly so scripts cannot read it. What does the server check? That the record belongs to the student making the request, not merely that somebody is signed in. Three questions, and the third one is the check that is missing from most insecure APIs.",
+      "challenge": "Your turn. Pick a route in your application and list who can call it, what they must prove, and what the server checks before returning anything. Then do the same for the route next to it. Doing this for every route takes an hour and finds the holes that matter."
+    },
+    "trade-offs-and-adrs": {
+      "title": "This is the final lesson, Trade-offs and writing them down. Every decision buys something and pays for it elsewhere, and an architecture decision record is how the next engineer learns why.",
+      "idea": "An ADR is short: context, decision, consequences. The valuable part is the alternatives you rejected and the conditions under which you would revisit the decision, because that turns an opinion into engineering. Six months later, nobody remembers the meeting; they remember the file. Writing it takes fifteen minutes and saves the next person a week of wondering whether the choice was deliberate.",
+      "example": "Read the record. The context is that sessions must survive a redeploy and the team has no dedicated cache. The decision is to store sessions in the existing database with an index on expiry. The consequences are a little extra query load, no new infrastructure, and a clear trigger to revisit if session reads exceed a threshold. Decision, cost, and the condition that changes the answer.",
+      "challenge": "Your turn. Write one ADR for a decision you have already made, including the option you rejected and why. Then file it next to the code it affects. A decision with a written context is the difference between a codebase that has been designed and one that has merely accumulated."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "course": "data-structures-algorithms",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Data Structures and Algorithms. I am Kwame Mensah, a staff engineer. This course is not about memorising puzzles for an interview; it is about the two or three ideas that decide whether your program finishes in a moment or a minute, and about being able to explain that choice to a colleague.",
+    "build": "You are building a route planner that finds the fastest path through a small map, and alongside it you are building judgement. You will measure cost with Big-O, choose between arrays, maps, stacks and queues on purpose, search and sort data efficiently, and reach for recursion and traversal when a problem is naturally shaped that way.",
+    "how": "Six lessons, about two and a half hours. Each has a short video, a written explanation and a task you write yourself. Do the arithmetic by hand when a lesson asks you to count steps; the numbers are what turn notation into intuition. Everything here stays useful for the rest of your career."
+  }
+}

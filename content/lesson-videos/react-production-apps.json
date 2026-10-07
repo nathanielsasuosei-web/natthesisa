@@ -1,0 +1,48 @@
+{
+  "course": "react-production-apps",
+  "voice": "voice-00",
+  "lessons": {
+    "react-mental-model": {
+      "title": "Welcome to The React mental model, the opening lesson of Build Production Apps with React. By the end of this clip you will know what React is actually doing, and the whole library will stop feeling like magic.",
+      "idea": "React lets you describe what the interface should look like for the current data. A component is a function of its props and its state, and calling it produces a description of some interface. React then works out the smallest set of changes to apply to the browser. Keep that calculation pure, because a function that also mutates something is a function you can no longer reason about. Side effects belong in event handlers or effects.",
+      "example": "Read the component as a single sentence: given a name, it returns a heading that welcomes that person back. There is no state, no lifecycle and no event handling, just data in and description out. That is why it is easy to test and easy to move: the same input always produces the same output, and nothing else in the application can change because it ran.",
+      "challenge": "Your turn. Take a dashboard screenshot and break it into a named component tree, top to bottom. Name the data each component receives. That sketch is the design work; the code that follows is mostly transcription, and it is where most of the quality is decided."
+    },
+    "props-composition": {
+      "title": "This lesson is Props and composition. You will make components flexible by passing data and nesting content, instead of adding one more option every time somebody needs something different.",
+      "idea": "Props flow down from a parent to a child, and that direction is what makes an application predictable. Composition goes one step further: a component can receive other components as children, or in named slots, and decide where they appear. The component then owns the layout and the behaviour, and whoever uses it owns the content. That is the answer to most cases where you would otherwise add a boolean with a vague name.",
+      "example": "The card takes a title and its children. The heading and the section wrapper belong to the card; the body is whatever was passed in. One card can now hold a metric, a chart or an empty state without changing a line inside it. Nothing inside the card knows what the content is, and nothing passing the content knows how the card looks.",
+      "challenge": "Your turn. Create one Card component and use it three times: for a metric, for a chart and for an empty state. If the third use needs a new prop, ask whether it needs a slot instead. The props list you end up with is the interface you are designing."
+    },
+    "state-events": {
+      "title": "This is State and events. You will represent the smallest facts that change, derive everything else while rendering, and stop keeping two copies of the same truth.",
+      "idea": "State belongs in the closest common owner of every component that needs it: no higher, because lifting it too far makes everything re-render, and no lower, because two components cannot share what neither of them owns. And never duplicate state. If a value can be calculated from props or from state you already have, calculate it during render, because two copies of a fact are two facts that will disagree eventually.",
+      "example": "The query is state, because the user types it and nothing else can tell you what it is. The visible courses are not state, because they are a filter of the query over the list. Keeping only the query means there is exactly one place a bug about filtering can live, and the list can never be out of step with the box the user typed in.",
+      "challenge": "Your turn. Build a searchable list with one source of truth for the query, and derive the visible items during render. Then try to add a second piece of state for the filtered results and notice how much harder it becomes to keep them in agreement."
+    },
+    "forms-validation": {
+      "title": "This lesson is Forms and validation. You will turn user input into an interaction that is clear, accessible, and honest about what the server will accept.",
+      "idea": "Validate at the moments that help: on blur for a field, on submit for the whole form, and never while somebody is halfway through typing their own name. Connect each message to its field so assistive technology announces it, keep what the user typed when the save fails, and never treat client validation as security. The server is the final authority, and the client is a courtesy.",
+      "example": "The submit handler prevents the browser's default navigation, collects the form data, validates it and sends it. When the server replies with a field error, the same state that holds the messages holds the user's input, so nothing is lost. The error appears next to the field it belongs to, and the submit button reports that it is busy while the request is in flight.",
+      "challenge": "Your turn. Build a profile form with inline errors and a visible successful-save state. Then submit something invalid, and check with the keyboard that the message is reachable and announced. A form that behaves well on a bad day is worth more than one that looks good on a good one."
+    },
+    "data-fetching": {
+      "title": "This is Data fetching states. You will design the whole life of remote data rather than the one screenshot where everything worked.",
+      "idea": "A data view has more states than success: loading, error, empty, stale and current. Model them explicitly so the interface cannot be in two of them at once. Cancel or ignore requests that are no longer relevant, because a slow response from an abandoned screen is the classic way wrong data reaches the right place. And load independent resources together rather than in a chain, since a waterfall of requests is the most common reason a page feels slow.",
+      "example": "Two pieces of state: the data and the status. The status starts as loading, becomes success with the rows, or becomes error with a message a person can act on. A retry sets it back to loading and keeps the previous list at low opacity, so the page does not flash. Because the status is named, the component only has to render it, and the interesting decisions live in one small place you can test.",
+      "challenge": "Your turn. Build a data panel that can show a skeleton, a retryable error, an empty state and results. Then throttle your connection to slow and watch the skeleton appear. Loading, empty and error are not edge cases; they are most of the time your users spend on the page."
+    },
+    "routing-architecture": {
+      "title": "This lesson is Routing and app architecture. You will give every major screen a stable address and organise the code around the features a product actually has.",
+      "idea": "Routes should match the concepts users talk about, which usually means a noun per page and an identifier in the path. Keep feature-specific components close to the route that uses them, promote something into shared only when a second feature needs it, and draw a clear boundary between data that comes from the server and state that belongs to the interaction. Folders you can navigate are worth more than folders that look clever.",
+      "example": "The structure is a sentence. A dashboard page, a course page that takes a slug, a lesson page nested under its course. Components and library code sit beside them rather than in one enormous folder. Anybody opening the project can guess where a change belongs, and that guess is usually right, which is the only real measure of project structure.",
+      "challenge": "Your turn. Design the routes and folders for an online learning dashboard with course and lesson pages. Before you write any code, give each screen a URL and say which data it needs. Deciding that on paper takes ten minutes and saves a week of refactoring later."
+    },
+    "ship-react-dashboard": {
+      "title": "This is the final lesson, Ship the analytics dashboard. Performance, accessibility and the awkward cases are what turn a project into a product.",
+      "idea": "Measure before you optimise: the profiler tells you which component is slow, and a guess rarely does. Check keyboard flow, semantic landmarks, loading performance, error recovery and small screens. Then write down the decisions another developer would need to continue: why the data lives here, what the boundaries are, and what you deliberately left out. Shipping is a checklist, and the checklist is the lesson.",
+      "example": "The build runs and every error is fixed before deployment, because a warning you ignore today becomes an incident on a Friday. Then the audit: tab through the whole dashboard without a mouse, confirm every control is reachable and labelled, watch the first load on a throttled connection, and pull the network cable to see the error states. Five checks, and most of the quality is inside them.",
+      "challenge": "Your turn. Deploy the dashboard and complete a keyboard-only quality audit of every screen. Note each problem you find, fix the three worst, and then hand the list to somebody else. A quality audit you can hand over is how a project stays good after you have moved on."
+    }
+  }
+}

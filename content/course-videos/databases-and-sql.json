@@ -1,0 +1,9 @@
+{
+  "course": "databases-and-sql",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Databases and SQL. I am Ama Boateng, a data engineer. Almost every application you will ever work on keeps its truth in a relational database, and this course teaches you to design that database and ask it real questions, in a language that has been worth learning for fifty years.",
+    "build": "You are building a school database that answers real report questions in a single query. You will design tables with primary and foreign keys and constraints, query with SELECT, WHERE and ORDER BY, join across tables, write and delete safely, add indexes backed by EXPLAIN rather than by faith, and use transactions so that two people cannot break the same data.",
+    "how": "Six lessons, two and a half hours. Each opens with a video, then the written lesson and a query for you to write. Keep a database client open and run everything: SQL is learned in the console. When a query of yours answers a question about the data, you have arrived."
+  }
+}
