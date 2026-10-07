@@ -22,7 +22,7 @@ const header = [
 
 const migrateHeader = [
   "-- ---------------------------------------------------------------------------",
-  "-- Migrations: reshape a database made by an older build (additive only).",
+  "-- Migrations: reshape a database made by an older build (data-preserving).",
   "-- The app runs these itself on first request; they are printed here so a",
   "-- manual paste heals a stale database the same way. Safe to re-run.",
   "-- ---------------------------------------------------------------------------",

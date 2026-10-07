@@ -522,18 +522,17 @@ npm run db:schema > db/schema.sql   # already committed
 ```
 
 A database made by an older build heals itself on the next request: after the
-creates, the app runs additive migrations (`ADD COLUMN IF NOT EXISTS`,
-backfills, role normalization) that reshape a stale `users` table into the
-current one. The migration only adds — it never drops, renames or retypes, so
-existing rows survive it — and the two roles are normalized: the row flagged
-`owner` becomes `owner`, and every other account (including one that held the
-old `admin` role) becomes `student`, keeping its progress, purchases and
-invoices. An existing paid plan is translated into the remaining time of a
-month pass. Pasting
-`db/schema.sql` by hand heals the same way, because the migrations are printed
-in it. If a statement cannot apply (duplicate emails, a wrongly typed column),
-the server log names it — `[codemasterghana] schema statement failed …` — and
-that line is what to paste back for the hand-written fix.
+creates, the app runs idempotent migrations to add/backfill columns and
+normalize roles. The payment-table repair can also retype incompatible payment
+ID columns and replace stale constraints; existing user and payment rows are
+preserved. The row flagged `owner` becomes `owner`, and every other account
+(including one that held the old `admin` role) becomes `student`, keeping its
+progress, purchases and invoices. An existing paid plan is translated into
+the remaining time of a month pass. Pasting `db/schema.sql` by hand heals the
+same way, because the migrations are printed in it. If a statement cannot
+apply (duplicate emails, a wrongly typed column), the server log names it —
+`[codemasterghana] schema statement failed …` — and that line is what to paste
+back for the hand-written fix.
 
 An embedded database is a single process, so it cannot recover from being killed
 mid-write: PGlite can leave a data directory that PostgreSQL refuses to start
@@ -770,13 +769,18 @@ Postgres error. Two causes are worth knowing:
 
 - **A `payments` table that came from somewhere else.** A database shared with
   another project can already have a `payments` table whose `user_id` is
-  `uuid`, whose `status` / `provider` rules were written for a different app,
-  or which demands a column this app never fills. Any of those refuses every
-  checkout while sign-in and the rest of the site look perfectly healthy. The
-  app aligns that table by itself on the first request after deploying — see
-  the heal block at the end of `MIGRATION_STATEMENTS` in
-  `src/lib/schema.ts`. Nothing has to be pasted or renamed, no rows are
-  touched, and a column it cannot convert is logged rather than fatal.
+  `uuid`, whose foreign key points at that project's `accounts` table instead
+  of this app's `users`, whose `status` / `provider` rules were written for a
+  different app, or which demands a column this app never fills. Any of those
+  can refuse checkout while sign-in and the rest of the site look perfectly
+  healthy. On the first request after deploying, the app aligns payment ID
+  types, removes stale foreign keys (keeping or installing the `users.id`
+  relationship), and repairs the other known payment constraints. Existing
+  payment rows are preserved; the new account foreign key is not validated
+  against old rows, but it protects new checkouts. See the heal blocks at the
+  end of `MIGRATION_STATEMENTS` in `src/lib/schema.ts`. If the database role
+  cannot alter tables, paste the generated `db/schema.sql` into the database's
+  SQL editor instead.
 - **Paystack refusing the charge.** The message then quotes Paystack ("Invalid
   key", "Currency not supported by merchant", …). Run `npm run payments:check`
   and make sure Ghana cedis (GHS) are activated on the Paystack account.

@@ -69,7 +69,7 @@ create table if not exists payments (
    );
 
 -- ---------------------------------------------------------------------------
--- Migrations: reshape a database made by an older build (additive only).
+-- Migrations: reshape a database made by an older build (data-preserving).
 -- The app runs these itself on first request; they are printed here so a
 -- manual paste heals a stale database the same way. Safe to re-run.
 -- ---------------------------------------------------------------------------
@@ -240,9 +240,9 @@ begin
         select conname from pg_constraint
          where conrelid = 'payments'::regclass
            and contype = 'f'
-           and conkey = array[(select attnum from pg_attribute
-                                where attrelid = 'payments'::regclass
-                                  and attname = column_to_fix.column_name and not attisdropped)]
+           and (select attnum from pg_attribute
+                 where attrelid = 'payments'::regclass
+                   and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
       loop
         execute format('alter table payments drop constraint %I', attached_key.conname);
         raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
@@ -254,6 +254,58 @@ begin
     end;
   end loop;
 end $$;
+
+do $heal$
+declare
+  payment_user_attnum smallint;
+  users_id_attnum smallint;
+  keep_user_fk boolean := false;
+  attached_key record;
+begin
+  select attnum into payment_user_attnum
+    from pg_attribute
+   where attrelid = 'payments'::regclass
+     and attname = 'user_id'
+     and not attisdropped;
+  select attnum into users_id_attnum
+    from pg_attribute
+   where attrelid = 'users'::regclass
+     and attname = 'id'
+     and not attisdropped;
+
+  for attached_key in
+    select conname, conkey, confrelid, confkey
+      from pg_constraint
+     where conrelid = 'payments'::regclass
+       and contype = 'f'
+  loop
+    if payment_user_attnum is not null
+       and users_id_attnum is not null
+       and attached_key.conkey = array[payment_user_attnum]::smallint[]
+       and attached_key.confrelid = 'users'::regclass
+       and attached_key.confkey = array[users_id_attnum]::smallint[] then
+      keep_user_fk := true;
+    else
+      begin
+        execute format('alter table payments drop constraint %I', attached_key.conname);
+        raise warning '[codemasterghana] dropped stale payments foreign key % (only payments.user_id -> users.id is supported)', attached_key.conname;
+      exception when others then
+        raise warning '[codemasterghana] could not drop stale payments foreign key %: %', attached_key.conname, sqlerrm;
+      end;
+    end if;
+  end loop;
+
+  if payment_user_attnum is not null and users_id_attnum is not null and not keep_user_fk then
+    begin
+      execute 'alter table payments add constraint payments_user_id_fkey foreign key (user_id) references users(id) on delete cascade not valid';
+      raise notice '[codemasterghana] added payments.user_id -> users.id foreign key (not validated for legacy rows)';
+    exception when others then
+      raise warning '[codemasterghana] could not add payments.user_id -> users.id foreign key: %', sqlerrm;
+    end;
+  end if;
+exception when others then
+  raise warning '[codemasterghana] payments foreign key cleanup skipped: %', sqlerrm;
+end $heal$;
 
 do $heal$
 declare

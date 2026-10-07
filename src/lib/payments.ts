@@ -145,12 +145,11 @@ export class CheckoutError extends Error {
  *
  * The generic banner ("The checkout could not be started.") is a dead end for
  * everyone: it says nothing a student can act on and hides a fixable database
- * problem from the teacher. A legacy `payments` table produced exactly that
- * banner for days — `22P02 invalid input syntax for type uuid`, from a
- * `user_id` column that could not hold this app's account ids — while the
- * reason lived only in the host's logs. Naming the layer costs nothing and
- * turns the next report into a diagnosis. The Postgres code itself is only
- * logged, never shown: it is not the student's problem to read.
+ * problem from the teacher. A legacy `payments` table can fail on type,
+ * constraint, or stale foreign-key mismatches while the reason lives only in
+ * the host's logs. Naming the layer costs nothing and turns the next report
+ * into a diagnosis. The Postgres code itself is only logged, never shown: it
+ * is not the student's problem to read.
  */
 export function describeCheckoutFailure(error: unknown): string {
   const code = (error as { code?: string } | null)?.code;
@@ -165,7 +164,7 @@ export function describeCheckoutFailure(error: unknown): string {
     case "42703":
       return "the payments table is missing a column this app needs";
     case "23503":
-      return "the payments table points at an account that does not exist";
+      return "the payments table still has an outdated account link";
     case "42P01":
       return "the payments table is missing";
     default:
