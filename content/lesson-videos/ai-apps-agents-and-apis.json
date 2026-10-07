@@ -1,0 +1,42 @@
+{
+  "course": "ai-apps-agents-and-apis",
+  "voice": "voice-00",
+  "lessons": {
+    "calling-a-model-api": {
+      "title": "Welcome to Calling a model from your server, the opening lesson of AI Apps, Agents and APIs. The model call belongs on the server, behind your own endpoint, where the key lives.",
+      "idea": "Send a system prompt, the message history and a token limit, and put the provider's key where only the server can read it. Set a timeout on every call, because a slow model must not hold your request open forever. And handle the outcomes that are not an answer: a refusal, an empty reply, a rate limit, an error. The model is a dependency like any other, and it fails in more ways than one.",
+      "example": "The route receives a question, calls the model with a system prompt and a strict token limit, and returns the text. Around the call there is a timeout and a try-catch that turns a failure into a clear response. Afterwards it logs the tokens used, which is the number that decides whether the feature is viable. Nothing here is clever; it is the same discipline as any other external service.",
+      "challenge": "Your turn. Add a server route that asks a model one question and returns the answer, and log the tokens used for each call. Then send a question that the model cannot answer well and decide what your endpoint should return. That decision is your first product decision about AI."
+    },
+    "prompts-as-product": {
+      "title": "This lesson is The prompt is product surface. A prompt is not a string in a file; it is behaviour your users feel, so treat it like code.",
+      "idea": "Keep the instructions, the tone and the refusal rule in one place, versioned like anything else. Say explicitly what the assistant should do when it does not know, because otherwise it will guess. Keep the output shape stable so the interface can rely on it, and change the prompt with a test that shows the difference, so improvement is measured rather than felt.",
+      "example": "The system prompt does three jobs. It states who the assistant is and who it is talking to. It states the tone and the length it should aim for. And it states the refusal rule: when the answer is not in the documentation, say so and offer a human contact. Then the three test questions check that the rule holds, including the case where the honest answer is I do not know.",
+      "challenge": "Your turn. Write your system prompt with an explicit refusal rule, then ask three questions it should refuse. If the assistant answers any of them confidently, your rule needs to be more specific. A refusal you have tested is worth more than a promise you have written."
+    },
+    "context-and-rag": {
+      "title": "This is Your own data: retrieval. Models do not know your product, so retrieval finds the few paragraphs that matter and puts them in the prompt.",
+      "idea": "Split the documents into overlapping chunks, turn each into a vector, and store them. When a question arrives, embed it too, find the closest chunks, and pass those as context. Overlap matters because the answer to a question often sits across a boundary. And always return the sources so the user can check, because a grounded answer with a citation can be verified and a confident one cannot.",
+      "example": "The pipeline runs in two halves. Indexing happens once: split, embed, store. Answering happens per question: embed the question, search for the nearest chunks, put them in the prompt with instructions to answer only from that material. The instruction is what stops the model filling gaps from its general knowledge, and the citations are what let a reader catch it when it tries.",
+      "challenge": "Your turn. Index five of your own pages and ask a question whose answer appears in only one of them. If the answer arrives with the right citation, retrieval is working. If it arrives without, you are reading the model's memory rather than your documentation."
+    },
+    "tools-and-agents": {
+      "title": "This lesson is Tools and agents. An agent is a model that can call your functions, and the power and the risk are exactly the same thing.",
+      "idea": "Expose narrow, well-named tools with validated arguments. The model proposes a call; your code decides whether to run it. Permissions, limits and confirmations stay on your side of the boundary, because the model cannot be trusted with a decision that has consequences. Give it a lookup before you give it a write, and a write only when you can describe exactly who may trigger it.",
+      "example": "Two tools, deliberately unequal. Look up order takes an order number and returns its status, and it is safe to call in a loop. Refund order takes an order number and moves money. The second one checks that the requester owns the order, refuses refunds above a threshold, and asks for confirmation before it runs. The model may propose; the server disposes.",
+      "challenge": "Your turn. Give your assistant one read-only tool and one write tool, then write down who is allowed to trigger the write. If that sentence is not easy to write, the tool is too broad, and narrowing it is the actual work."
+    },
+    "evals-and-cost": {
+      "title": "This is Evals, latency and cost. You cannot improve what you do not measure, and a small set of real questions scored automatically is worth more than any demo.",
+      "idea": "Keep a test set of questions with expected answers or a scoring rule, and run it on every prompt change. Record the pass rate, the latency and the tokens, and cap spending per user and per day. Without that suite, every prompt edit is a guess, and the guess is usually judged on the three examples that happen to be in front of you at the time.",
+      "example": "Five questions, one spreadsheet. Each has a question, the expected behaviour, and the actual behaviour after the last change. A prompt edit moves the pass rate from three to four, which is a real improvement you can defend, and it shows that latency rose by two hundred milliseconds, which may or may not be worth it. Numbers turn a matter of taste into a decision.",
+      "challenge": "Your turn. Build a five-question suite for your assistant and record the pass rate, the average latency and the tokens per answer. Then change one thing in the prompt and run it again. Two numbers, one change, and you are now doing engineering rather than prompting."
+    },
+    "safety-and-ship": {
+      "title": "This is the final lesson, Safety, privacy and shipping. Shipping AI means deciding what it may never see, say or do, and making those decisions in code.",
+      "idea": "Everything sent and returned is data. Keep personal details out of the prompt, tell users they are talking to an assistant, and keep a human path for anything that matters. Log enough to investigate without storing more than you need, and enforce the rules in code rather than only in the prompt, because a prompt is a request and code is a limit.",
+      "example": "The data rules read as three lists. What the assistant may receive: lesson titles, progress counts, nothing identifying. What it must never store: anything a user typed that contains personal details, and full transcripts beyond a short retention window. How a person reaches a human: a contact link in every response that could matter. Written down, these are testable; unwritten, they are hopes.",
+      "challenge": "Your turn. Write your assistant's data rules: what it may receive, what it must never store, and how a user reaches a human. Then check that the code enforces each one. Any rule you cannot find in the code is not a rule yet, and that gap is the most valuable thing you will find this week."
+    }
+  }
+}

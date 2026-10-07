@@ -1,0 +1,42 @@
+{
+  "course": "computer-science-essentials",
+  "voice": "voice-00",
+  "lessons": {
+    "what-computers-do": {
+      "title": "Welcome to What computers actually do, the first lesson of Computer Science Essentials. In the next two minutes you will see the four moves every computer makes, from the smallest calculator to the largest data centre.",
+      "idea": "A computer accepts input, stores data, processes it, and produces output, then repeats. That is the whole vocabulary: hardware performs a very small set of operations extremely quickly, and software creates the useful abstractions by arranging those operations into instructions, functions and systems. Once you can point at the input, the stored data, the processing and the output in any program, nothing about a computer feels mysterious again.",
+      "example": "Trace a familiar app through the four stages. What you type is input. Your draft is the stored data, kept on disk as well as in memory. Formatting and searching are processing. The screen you are reading is output. Notice that the arrows go round the outside: the output of one pass becomes the input of the next, which is why software is written as small steps that repeat.",
+      "challenge": "Your turn. Choose an app you use every day and list its inputs, the data it stores, the processing it performs and the outputs it produces. Write it as four columns on paper. When you can fill those columns honestly, you have the mental model this course is built on."
+    },
+    "binary-data": {
+      "title": "This is Bits, bytes and data. You will learn how text, photographs and sound all become patterns of two states, and why that simplicity is exactly what makes computers so powerful.",
+      "idea": "A bit is a zero or a one. Eight bits make a byte. On its own a pattern of bits means nothing; meaning comes from interpretation, which is the format. The same eight bits can be the number one hundred and ninety-eight, a character in a text file, or part of the colour of one pixel. Files are containers that record which interpretation applies, and that is why opening a photo in a text editor shows you nonsense.",
+      "example": "Counting in binary is counting with place values instead of ten symbols. The number thirteen in decimal is one, one, zero, one in binary, because eight plus four plus zero plus one equals thirteen. Every place value doubles as you move left. That is the same rule as decimal, where each place is ten times the one before, which is why the arithmetic you already know still works.",
+      "challenge": "Your turn. Convert the decimal numbers seven, eighteen and forty-two into binary using place values, then convert them back to check. When you can do that without a calculator, the words kilobyte, megabyte and gigabyte stop being marketing and start being measurements."
+    },
+    "logic-algorithms": {
+      "title": "This lesson is Logic and algorithms, where an unclear goal becomes a finite sequence of unambiguous steps that a computer can follow.",
+      "idea": "An algorithm has defined inputs, ordered operations and an expected output. Conditions choose a path, loops repeat work, and functions name a process so it can be reused. The word unambiguous matters: a person can fill in the gaps in a vague instruction, a machine cannot. Writing an algorithm is mostly the discipline of removing the gaps before you type any code.",
+      "example": "Follow the pseudocode that finds the largest number in a list. It assumes the first number is the best so far, then visits every remaining number. Wherever it finds something larger, it replaces the best. At the end, best holds the answer. Three ideas do all the work: a starting assumption, a loop, and a condition that updates the answer as the loop runs.",
+      "challenge": "Your turn. Write pseudocode that finds the smallest price in a shopping basket. Include the empty basket case, because real data is smaller and stranger than the examples. Then read your steps out loud and ask where a machine could do the wrong thing. That question is the beginning of testing."
+    },
+    "data-structures": {
+      "title": "This lesson is Data structures. You will see how the way data is organised decides which operations are easy, which are fast, and which become painfully expensive.",
+      "idea": "Arrays keep things in order and allow instant access by index. Stacks are last in, first out. Queues are first in, first out. Maps connect unique keys to values, so a lookup does not have to search. None of these is better in general; each one is better for a particular pattern of use. Choosing a structure is choosing which operation you want to be cheap.",
+      "example": "Two lines show the idea. Pushing a task and then popping it gives you the most recent task first, which is exactly how a stack of papers behaves, and how undo works. Setting a value in a map keyed by user id means later code can ask for that user directly instead of scanning a list. Both are ordinary operations on ordinary data; the structure is the whole difference.",
+      "challenge": "Your turn. For browser history, a support queue and a phone book, choose a data structure for each and explain the choice in one sentence. Notice that your sentence is about the operation you perform most often, not about the data itself. That is how the decision is really made."
+    },
+    "memory-processes": {
+      "title": "This lesson is Memory, programs and processes. You will see what actually changes when a program on disk becomes something the computer is running right now.",
+      "idea": "The operating system loads a program, gives it resources, and protects it from every other program on the machine. A process has its own address space, its own stack of active function calls, and a heap for data that must outlive a single call. Two programs can therefore use the same variable names and the same memory addresses without ever colliding, because the operating system keeps their worlds apart.",
+      "example": "Think of the journey rather than the terms. A program file sits on disk doing nothing. The operating system loads it, assigns it memory and processor time, and it becomes a running process. The stack grows and shrinks as functions are called and return. The heap holds what you allocate yourself. When the process exits, both are reclaimed at once, which is why restarting a program fixes so much.",
+      "challenge": "Your turn. Open your system monitor and find three processes. Compare their memory use and their processor time, and guess which is doing the most work. Then close the largest one and watch its memory return. Seeing that number fall is the fastest way to believe the model."
+    },
+    "networks-internet": {
+      "title": "This is Networks and the internet, where independently owned machines cooperate to move information around the world, and no single company is in charge.",
+      "idea": "Data is split into packets, which are small labelled pieces of a message. Internet Protocol handles addressing and routing, moving each packet towards its destination one hop at a time. TCP adds ordering and reliability, so packets that arrive out of order or not at all can be reassembled. Application protocols sit on top and define what the messages mean; HTTP is the one the web speaks.",
+      "example": "Reading the stack from the top down makes it concrete. HTTP describes the request and the response. TCP guarantees the bytes arrive in order. IP finds a path across networks. The link layer moves bits over Wi-Fi or Ethernet. Each layer solves one problem and trusts the layer beneath it, which is why the same web page loads over a phone, a laptop or a satellite link.",
+      "challenge": "Your turn. Run a traceroute to a public website and count the hops. Each line is another network that agreed to carry your packets. That list of anonymous routers is the internet: not one machine, but thousands of independent networks passing a small envelope along."
+    }
+  }
+}

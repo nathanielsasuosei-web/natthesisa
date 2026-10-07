@@ -1,0 +1,48 @@
+{
+  "course": "web-foundations",
+  "voice": "voice-00",
+  "lessons": {
+    "how-the-web-works": {
+      "title": "Welcome to How the web works, the opening lesson of Web Development Foundations. In the next two minutes you will follow one request from a typed address to pixels on a screen, and see why that short journey explains almost everything else you will do on the web.",
+      "idea": "Every website begins with a conversation. A URL identifies something you want, DNS turns the name inside it into the address of a server, and HTTPS carries your request there and brings a response back. That response is only files: HTML for structure, CSS for appearance, JavaScript for behaviour. The browser parses them and paints the page you are looking at. Nothing mysterious happens in between. There is a request, a response, and a rendering step.",
+      "example": "Here is that conversation in one picture. The browser sends an HTTPS request to a web server, the server answers with HTML, CSS and JavaScript, and the browser turns those files into the page. Open the developer tools in any browser, choose the Network panel, and reload this site. The very first row is the document request, with its status code, its size and the time it took.",
+      "challenge": "Your turn. Open the Network panel on a website you use every day and identify its first document request. Note the status code, how many kilobytes came back, and how long the server took to answer. That single row is this whole lesson in miniature, so once you can explain it, you can explain the web."
+    },
+    "html-document": {
+      "title": "This is Your first HTML document. By the end of this clip you will know what every line of a valid page is for, and why the browser refuses to guess when the structure is missing.",
+      "idea": "HTML gives content meaning rather than appearance. A page has one document type, a single html root, metadata inside head, and everything visible inside body. Headings describe importance, paragraphs describe prose, and links connect one resource to another. When the structure is honest, browsers, search engines and screen readers all read the same story, and your CSS has something solid to style.",
+      "example": "Look at the skeleton. The doctype tells the browser this is modern HTML. The html element carries the language of the page, which screen readers use to choose a voice. Inside head, the title names the page in a tab, a bookmark and a search result. Inside body, an h1 introduces the page and paragraphs hold the writing. Two paragraphs and a link later, you have a page a person can actually read.",
+      "challenge": "Your turn. Create a page with one heading, two paragraphs and a link to a site you use often. Keep the indentation tidy so the nesting is obvious, then open it in a browser and check the title appears in the tab. That small habit of checking structure first will save you hours later."
+    },
+    "semantic-accessible-html": {
+      "title": "This lesson is Semantic and accessible HTML. You will learn how structure alone can make a page easier to use with a keyboard, easier to read aloud, and easier for a search engine to understand.",
+      "idea": "Semantic elements describe purpose instead of appearance. Landmarks such as header, nav, main and footer tell assistive technology where the navigation ends and the content begins, so a screen reader can jump straight to the interesting part. Headings kept in order build a table of contents for the page. Every form input needs a label, and every meaningful image needs alternative text that explains what it contributes rather than what it depicts.",
+      "example": "Here the same content is written twice. In the first version every block is a plain div, so nothing announces itself. In the second, main, article, h1 and p carry the meaning. Nothing changes visually, and yet a keyboard user can skip the navigation, a screen reader can list the headings, and a search engine can tell which sentence is the title of the page.",
+      "challenge": "Your turn. Take a page you have already written and replace at least four generic div elements with semantic ones. Then unplug your mouse, tab through the page, and confirm you can always see where you are and reach every link. Accessibility is not an extra step at the end; it is a habit you build now."
+    },
+    "css-foundations": {
+      "title": "This is CSS foundations. In the next two minutes you will see how the cascade decides which rule wins, and how a handful of small classes can carry the whole visual identity of a page.",
+      "idea": "The cascade combines browser defaults, inherited values, selector specificity and source order. That order is a feature, not a bug: it lets you write a sensible default and then override one detail. Start with simple class selectors, keep specificity low, and let layout rules do most of the work. When two rules disagree, read them in cascade order rather than adding another rule on top.",
+      "example": "The hero section sets only three things: padding, a background and a text colour. The title inside it uses clamp, which takes a minimum size, a preferred size based on viewport width, and a maximum. One line, and the heading grows with the screen without ever becoming unreadable. Colour, spacing and type scale are the three decisions that make a page feel designed rather than default.",
+      "challenge": "Your turn. Create a reusable card class with spacing, a border, rounded corners and a subtle shadow. Use it three times on the page with different content, and check that it never needs to be adjusted. A class you can reuse unchanged is a class you have designed well."
+    },
+    "flexbox-grid": {
+      "title": "This lesson is Layouts with Flexbox and Grid. Two layout systems, one clear rule for choosing between them, and no more positioning elements by guesswork.",
+      "idea": "Flexbox arranges items along one main axis, so it fits navigation bars, button rows and anything that should line up in a line. Grid controls rows and columns together, so it fits page sections, dashboards and collections of cards. Both replace floats, absolute offsets and luck. The habit worth building is simple: decide whether you are describing a line or a grid, then reach for the tool that matches.",
+      "example": "The card grid is one rule. Display grid switches the layout mode, grid-template-columns with repeat and auto-fit asks for as many columns as will fit, and minmax sets the smallest a card may become before wrapping. Gap keeps the spacing in one place. Nothing here names the number of cards, so adding a seventh card needs no CSS at all.",
+      "challenge": "Your turn. Build a card grid that shows one column on a small screen and three when there is room. Resize the window slowly and watch where the layout decides to change, because that moment is exactly where your breakpoint belongs."
+    },
+    "responsive-design": {
+      "title": "This is Responsive design. One interface has to feel intentional on a phone, a tablet and a large monitor, and the way to get there is a single fluid layout rather than three separate ones.",
+      "idea": "Start with the narrow layout, because it forces you to decide what matters. Use flexible units such as fractions, percentages and viewport-relative sizes, and add a breakpoint only when the content genuinely needs one, not because a device exists. Test at awkward widths and at keyboard zoom rather than at popular screen presets. Responsiveness is not about devices; it is about the space the content is given.",
+      "example": "The hero becomes a two-column grid at forty-eight rems. Below that width it stays a single column, which is the layout you designed first. The breakpoint is written in rems so it follows the reader's text size rather than their screen resolution. One media query, one improved layout, and no duplication of the markup.",
+      "challenge": "Your turn. Audit your project at three hundred and twenty, seven hundred and sixty-eight and twelve hundred and eighty pixels wide. Fix every accidental horizontal scrollbar you find, then zoom the page to two hundred percent with the keyboard and check the layout still holds."
+    },
+    "publish-portfolio": {
+      "title": "This is the last lesson of the course, Ship your portfolio, where the project leaves your laptop and becomes something a stranger can open on their phone.",
+      "idea": "A useful launch checklist covers content, layout, keyboard navigation, page metadata, image weight and broken links, in that order, because a beautiful page with a broken link is still a broken page. Shipping is what creates feedback: until someone else can open your work, you are guessing. A first version online beats a perfect version in a folder.",
+      "example": "Publishing is three commands. Stage everything you changed, commit it with a short message that says what the change was for, and push it to your remote. Your host picks the change up and rebuilds the site, usually within a minute. Then open the live address on a real phone, on a slow connection, and click every link as though you were a visitor.",
+      "challenge": "Your turn. Publish your portfolio and ask one person to complete a task on it without your help, such as finding your best project and your contact details. Watch where they hesitate, and fix that before you add anything new. Real feedback is worth more than another feature."
+    }
+  }
+}

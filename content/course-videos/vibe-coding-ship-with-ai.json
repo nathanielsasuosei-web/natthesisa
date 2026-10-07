@@ -1,0 +1,9 @@
+{
+  "course": "vibe-coding-ship-with-ai",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Vibe Coding: Ship with AI. I am Efua Sarpong, a product engineer. You are going to build real software by describing what you want, and you are going to understand every line of it. That second half is what separates somebody using these tools from somebody being carried by them.",
+    "build": "You are building a small app by conversation: deployed, working, and understood line by line. You will run the describe, review and iterate loop, write prompts that produce working code, read diffs you did not write and catch the assumptions in them, build and deploy a first page in an hour, debug with evidence instead of adjectives, and ship something that handles the empty and error states a demo never shows.",
+    "how": "Six lessons, about two and a half hours. Each has a video, a written lesson and a task you do with a real tool in front of you. Keep every prompt you write and every diff you accept; a week later, reading your own trail is the fastest way to see your judgement improving."
+  }
+}

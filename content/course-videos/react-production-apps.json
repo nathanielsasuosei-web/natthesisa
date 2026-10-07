@@ -1,0 +1,9 @@
+{
+  "course": "react-production-apps",
+  "voice": "voice-00",
+  "welcome": {
+    "intro": "Welcome to Build Production Apps with React. I am Noah Mensah, a product engineer, and this course is about the difference between a React demo and a React application: component APIs, state that lives in the right place, data that loads safely, and a structure another engineer can navigate.",
+    "build": "You are building a responsive analytics dashboard: the kind of application where components are reused, data arrives asynchronously, and one broken panel must not take down the page. You will design reusable component APIs, manage local and shared state, load server data with all of its states, and ship a complete, structured app.",
+    "how": "Seven lessons, about three hours. Every lesson has a walkthrough video, a written explanation and a task that changes the project you are building. The habits matter as much as the features: model the states, then render them. Work through it with the dashboard running in front of you and the React profiler open."
+  }
+}

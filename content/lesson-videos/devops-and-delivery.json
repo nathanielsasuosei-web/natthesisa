@@ -1,0 +1,42 @@
+{
+  "course": "devops-and-delivery",
+  "voice": "voice-00",
+  "lessons": {
+    "environments-and-config": {
+      "title": "Welcome to Environments and config, the opening lesson of DevOps and Delivery. The same code should run everywhere, and only the configuration should differ.",
+      "idea": "Secrets belong in the environment, never in the repository, because a secret in git is a secret on every laptop that ever cloned it. Fail fast at boot when a required variable is missing, so a misconfiguration is a startup error rather than a strange failure three hours later. Give each environment its own database, since a shared one is how a test run erases real data.",
+      "example": "Read the startup checks. Each required variable is read, validated and reported if missing. The app refuses to start rather than serving requests with an empty key that will fail unpredictably under load. Every environment then differs only in its values: local points at a local database, staging at a copy, production at the real one. The code is identical in all three.",
+      "challenge": "Your turn. List every environment variable your app reads, mark which ones are secret, and make the app refuse to start when a required one is missing. Then check that .env files are ignored by git. Ten minutes now prevents the worst kind of leak."
+    },
+    "containers": {
+      "title": "This lesson is Containers you can trust. A container packages your application and its runtime so the build is the same on your machine, in continuous integration and in production.",
+      "idea": "Use a small base image, install dependencies from the lockfile so the build is reproducible, and copy your source last so the dependency layer stays cached between builds. Run the process as a non-root user, keep one process per container, and put state in a volume or a database rather than inside the container, because the container is meant to be disposable.",
+      "example": "The Dockerfile has four steps. Choose a slim Node image. Copy the lockfile and install dependencies, which is the slow layer. Copy the source, which is the fast layer that changes on every commit. Then switch to the non-root user and start the server. Build it twice and watch the second build skip the install entirely. That cache is why this order matters.",
+      "challenge": "Your turn. Write a Dockerfile for one of your projects and build it twice in a row, confirming that the second build hits the dependency cache. Then change one source file and build again. Watching which layers re-run tells you whether you ordered the file correctly."
+    },
+    "pipelines-in-practice": {
+      "title": "This is Deploy and rollback. Deployment should be one command that either finishes or leaves the previous version running, and rolling back should be one command more.",
+      "idea": "Build an immutable artifact, deploy it, run a smoke test against the real URL, and only then switch traffic. Keep the previous release around so a rollback is a pointer change rather than a rebuild under pressure. Deployments go wrong at the edges, not in the middle: the moment after the switch is when you want your checks to be running, not your hopes.",
+      "example": "The deploy script builds a versioned artifact, uploads it, starts it alongside the running version, and waits for the health endpoint to answer. Only when health returns does it move traffic. If health fails, it stops and leaves the old version serving. The unhealthy release never sees a single user, and nobody has to be woken up to undo it.",
+      "challenge": "Your turn. Add a health check to your application and make your deploy script refuse to finish unless it returns healthy. Then deploy a deliberately broken build and watch it refuse. Practising a rollback on a quiet afternoon is how you stay calm in an incident."
+    },
+    "monitoring-and-logs": {
+      "title": "This lesson is Monitoring that wakes you, and logs that explain. Metrics tell you something is wrong; logs tell you why, and you want both before the incident rather than during it.",
+      "idea": "Track the four signals: latency, traffic, errors and saturation. Log structured events with a request id, so a single request can be followed across services, and never log secrets or full personal data. Alert on the symptoms users feel, such as a slow checkout or a failing sign-in, rather than on internal numbers like processor usage that may be high and completely healthy.",
+      "example": "One route gains two lines. A log entry shaped as data: event, request id, route, outcome and duration. And a timing metric for the same route. When a user reports a slow request, the id in their error message finds the log line, and the metric shows whether it was one request or a pattern. That is the whole investigative workflow, and it costs two lines.",
+      "challenge": "Your turn. Add one structured log line and one timing metric to a route you care about, then decide the threshold at which you would want to be woken up. Choosing that threshold forces you to say what good looks like, which is most of monitoring."
+    },
+    "backups-and-migrations": {
+      "title": "This is Backups and schema changes. Data outlives code, so migrations must be safe to run while the old version is still answering requests.",
+      "idea": "Add columns as nullable, backfill them, then enforce the constraint in a later step. Never rename and rewrite in one move, because the old code and the new code both run during a deploy and only one of them can be right at a time. And test the restore, not the backup: an untested backup is a file, and recovery time is a number you want to know before you need it.",
+      "example": "Renaming a column with no downtime takes four deploys. Add the new column. Write to both. Copy the data across and read from the new one. Then stop writing to the old one and drop it. Each step is boring and reversible, and at no point do the two versions of the code disagree about where the data lives.",
+      "challenge": "Your turn. Write the migration order for renaming a column with zero downtime, then restore a backup into a scratch database and time how long it takes. That number is your real recovery objective, and it is usually a surprise."
+    },
+    "incidents-and-rollbacks": {
+      "title": "This is the final lesson, Incidents and blameless reviews. Every outage is a lesson with a timestamp, and the goal of the review is a system that cannot fail that way again.",
+      "idea": "During an incident, stop the bleeding first: roll back, then investigate. Afterwards, write the timeline from data rather than memory, name the contributing causes honestly, and turn each one into an issue with an owner. Blameless does not mean consequence-free; it means looking for the missing check, the misleading alert and the deploy that had no smoke test.",
+      "example": "The timeline reads from the deploy to the fix. The change shipped at nine, health passed and traffic switched. Errors began at seven minutes past nine. The alert fired at thirteen minutes. The rollback completed at twenty. Three contributing causes follow: the smoke test covered only the homepage, the alert threshold was too slow, and one engineer held the deploy. Every one becomes an issue.",
+      "challenge": "Your turn. Write the timeline of the last bug that reached production, from the deploy to the fix, and turn it into issues with owners. The timeline is not about who typed what; it is about which safety net had a hole, and holes can be patched."
+    }
+  }
+}

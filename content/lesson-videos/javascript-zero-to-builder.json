@@ -1,0 +1,48 @@
+{
+  "course": "javascript-zero-to-builder",
+  "voice": "voice-00",
+  "lessons": {
+    "values-variables": {
+      "title": "Welcome to Values and variables, the first lesson of JavaScript: Zero to Builder. By the end of this clip you will be storing information, changing it, and printing the result, which is already a working program.",
+      "idea": "Programs become useful when they can remember something and transform it. A variable is a name for a value. Use const by default, because most things should not change once they are set, and let when a binding genuinely has to be reassigned. JavaScript gives you strings, numbers, booleans, null, undefined, objects and functions, and a variable can hold any of them without ceremony.",
+      "example": "Read the three lines as a sentence. A learner's name is stored as a string. A lesson count is stored as a number, and then increased by one. The template string on the last line prints both values together. Notice that the value changed while the name stayed the same. That is the entire idea of state in a program, and everything else builds on it.",
+      "challenge": "Your turn. Create variables for a course title, the total number of lessons and the number completed. Then calculate the percentage complete and print it. When the number comes out right, you have written a real program, and you already know how every progress bar in every app works."
+    },
+    "conditions-loops": {
+      "title": "This lesson is Conditions and loops. You will control which instructions run, and how many times they repeat, which is how a program starts making decisions.",
+      "idea": "Conditions branch on a boolean expression: either the block runs, or it does not. Loops repeat work. Reading every value with for of is the clear option when you want all of them; array methods such as map and filter are better when you are describing a transformation. The trick with loops is to ask what changes each time round, and what the loop is accumulating.",
+      "example": "Follow the loop over a list of scores. For each score the condition asks whether it is at least eighty. When the answer is yes, one line of output appears. Nothing else happens for the others. Two ideas, one after the other, produce behaviour that feels like judgement. Rebinding the loop variable is never needed here, which is why the example uses const inside the loop.",
+      "challenge": "Your turn. Loop through five lesson scores and count how many are seventy or higher. Write the count before you write the loop, so you have decided what is accumulating. Then change one score to exactly seventy and check the boundary behaves the way you intended."
+    },
+    "functions-scope": {
+      "title": "This is Functions and scope. You will package behaviour into small named units that are easier to reuse, easier to test, and easier to read a week later.",
+      "idea": "Parameters are a function's inputs, and the return value is its output. Scope decides where a name can be seen. Prefer functions that do one clear job and hand back data, rather than functions that reach out and change something far away, because a function that only reads its inputs and returns a value can be understood on its own. That property is what makes code testable.",
+      "example": "The progress function takes two numbers and returns a percentage. The first line handles the case that would otherwise divide by zero, returning zero for an empty course. Only then does it do the arithmetic. Returning early for the awkward case keeps the happy path at the bottom of the function, which is where a reader looks for it. Rounding happens once, at the end.",
+      "challenge": "Your turn. Write a function that converts minutes into a friendly hours and minutes label, then call it three times with different values. Notice that you only solved the problem once, and the three calls are much easier to read than three copies of the arithmetic would have been."
+    },
+    "arrays-objects": {
+      "title": "This lesson is Arrays and objects, the two shapes that let you model real application data without inventing your own structure.",
+      "idea": "Arrays preserve order and are what you use for lists. Objects group related values by key and are what you use for records. Together they cover almost every piece of data an application handles: a list of lessons, where each lesson is an object with a title, a duration and a completion flag. Methods such as map, filter and find then let you describe what you want instead of managing indexes by hand.",
+      "example": "Read the pipeline in one direction. Filter keeps only the lessons whose complete flag is false, which gives you an array. Map then turns each of those lessons into its title, which gives you an array of strings. Two small steps, no index variable, and the shape of the result is obvious from the shape of the code. That is worth more than saving characters.",
+      "challenge": "Your turn. From an array of course objects, return the titles of the beginner courses only. Write it as a chain of two steps, and then rewrite it with a loop, and compare which version you would want to read in six months. You will probably choose the chain, and now you know why."
+    },
+    "dom-events": {
+      "title": "This is The DOM and events, where your logic meets a real page and the learner's actions become part of the program.",
+      "idea": "The DOM is the browser's object representation of your HTML, a live tree you can read and change. Query for stable selectors such as a data attribute, listen for the events you care about, and update accessible state as well as appearance. Keep the code that decides what should happen separate from the code that draws it, because the decision is the part you will want to test and change.",
+      "example": "The button is found by its data attribute. A click listener then changes the button's text and sets aria pressed to true. That second line matters more than it looks: assistive technology announces a pressed toggle button, so a sighted user and a screen reader user get the same information. The interface now has state, and the state is described in the markup rather than only in the styling.",
+      "challenge": "Your turn. Add a button that toggles a card between incomplete and complete. Change the styling and the accessible state together, and check with the keyboard that you can reach the button and that the change is announced. Accessibility here is not extra work; it is one extra attribute."
+    },
+    "async-apis": {
+      "title": "This lesson is Async JavaScript and APIs. You will request data without freezing the page, and handle every outcome instead of assuming the network always works.",
+      "idea": "A promise represents a result that does not exist yet. The await keyword lets you write promise-based code as though it were ordinary sequential code, which is why it reads so much better. A resilient request has four states to think about: loading, success, empty and error. Most broken interfaces are missing one of the last two, because most examples only demonstrate the happy path.",
+      "example": "Read the function from top to bottom. It awaits a fetch, then checks response dot ok before parsing anything, because a failed request still returns a response. If it is not ok, it throws with a readable message. Then it returns the parsed JSON. Callers can now handle success and failure in one place, and the error users see is a sentence instead of a stack trace.",
+      "challenge": "Your turn. Fetch a public JSON endpoint and render three things: a loading message, the data, and an error message. Then turn off your network and reload the page. Seeing your own error message appear is how you learn to trust your error handling, and it takes about a minute."
+    },
+    "ship-javascript-app": {
+      "title": "This is the final lesson, Build and ship the task planner, where state, events and storage come together in one maintainable project.",
+      "idea": "The plan is always the same. Decide the shape of your data first. Render from that data rather than from the DOM. Route every interaction through a small set of update functions. Persist only what must survive a refresh. When those four decisions are made deliberately, features become additions rather than rewrites, and bugs become findable because there is exactly one place each thing can go wrong.",
+      "example": "The state object holds the tasks and the current filter. The add task function pushes a task with a generated id, then calls render. It does not touch the DOM itself, and render never changes the state. That one-way flow is the whole architecture: events change state, state produces the picture. Everything else you will learn about frameworks is a refinement of this loop.",
+      "challenge": "Your turn. Ship the planner with add, complete, filter and persistence. Then use it for a week on real tasks. Nothing teaches interface design faster than being the user of the thing you built, and the changes you make in that week will be better than any you make from a specification."
+    }
+  }
+}

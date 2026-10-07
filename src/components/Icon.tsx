@@ -7,7 +7,8 @@ export type IconName =
   | "flame" | "target" | "trophy" | "download" | "calendar" | "chevron-right"
   | "chevron-down" | "spark" | "shield" | "globe" | "terminal" | "close" | "menu"
   | "settings" | "bell" | "mail" | "layers" | "certificate" | "briefcase" | "pause"
-  | "upload" | "file" | "video" | "plus" | "crown" | "pencil";
+  | "upload" | "file" | "video" | "plus" | "crown" | "pencil"
+  | "volume" | "volume-off";
 
 const PATHS: Record<IconName, string> = {
   "arrow-right": "M5 12h14M13 6l6 6-6 6",
@@ -55,6 +56,8 @@ const PATHS: Record<IconName, string> = {
   pause: "M8 5v14m8-14v14",
   upload: "M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3",
   file: "M6 3h7l5 5v13H6V3Zm7 0v5h5",
+  "volume": "M11 5 6 9H2v6h4l5 4V5Zm4.5 3.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12",
+  "volume-off": "M11 5 6 9H2v6h4l5 4V5Zm5 4 4 6m0-6-4 6",
   video: "M3 6h12v12H3V6Zm12 4 6-3v10l-6-3v-4Z",
   plus: "M12 5v14M5 12h14",
   crown: "m3 8 4 9h10l4-9-5.5 4L12 5 8.5 12 3 8Zm4 12h10",
