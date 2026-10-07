@@ -1,10 +1,10 @@
-import { lesson } from "./lesson-builder";
 import { PROGRAMS, PROGRAM_COURSES } from "./programs";
 import { WEB_FOUNDATIONS_MODULES } from "@/content/web-foundations";
 import { COMPUTER_SCIENCE_ESSENTIALS_MODULES } from "@/content/computer-science-essentials";
 import { JAVASCRIPT_ZERO_TO_BUILDER_MODULES } from "@/content/javascript-zero-to-builder";
 import { REACT_PRODUCTION_APPS_MODULES } from "@/content/react-production-apps";
 import { MOBILE_APPS_REACT_NATIVE_MODULES } from "@/content/mobile-apps-react-native";
+import { BACKEND_NODE_APIS_MODULES } from "@/content/backend-node-apis";
 
 export type CourseCategory =
   | "Computer Science"
@@ -267,79 +267,8 @@ const CORE_COURSES: Course[] = [
       "Test and deploy a Node.js service",
     ],
     tags: ["Node.js", "APIs", "Databases"],
-    modules: [
-      {
-        id: "api-foundations",
-        title: "01 · API foundations",
-        description: "Build predictable boundaries between clients and servers.",
-        lessons: [
-          lesson(
-            "server-runtime",
-            "Node.js & the server runtime",
-            18,
-            "Use JavaScript outside the browser and understand the event-driven runtime behind it.",
-            "Node.js runs JavaScript with operating-system APIs for files, processes and networking. Its event loop is effective for many concurrent I/O tasks when code avoids blocking work.",
-            "import http from \"node:http\";\n\nhttp.createServer((req, res) => {\n  res.end(\"API is healthy\");\n}).listen(3000);",
-            "Create a server with a /health endpoint that returns JSON.",
-            true
-          ),
-          lesson(
-            "http-rest",
-            "HTTP & RESTful routes",
-            27,
-            "Design resource-based routes with meaningful methods, statuses and response shapes.",
-            "GET reads, POST creates, PATCH changes and DELETE removes. Status codes communicate the result. Consistent errors help every client recover predictably.",
-            "GET    /api/courses\nPOST   /api/courses\nGET    /api/courses/:id\nPATCH  /api/courses/:id",
-            "Design the routes and response statuses for enrollment and lesson completion."
-          ),
-          lesson(
-            "validation-errors",
-            "Validation & error handling",
-            25,
-            "Treat all external input as untrusted and turn failures into useful responses.",
-            "Validate shape, type, range and permissions at the server boundary. Keep internal error detail out of public responses, but log enough context to investigate.",
-            "if (typeof body.title !== \"string\" || !body.title.trim()) {\n  return Response.json({ error: \"Title is required\" }, { status: 400 });\n}",
-            "Add validation for an account payload with name, email and weekly goal."
-          ),
-        ],
-      },
-      {
-        id: "data-and-security",
-        title: "02 · Data & security",
-        description: "Persist trustworthy data and protect each operation.",
-        lessons: [
-          lesson(
-            "database-modeling",
-            "Database modeling",
-            31,
-            "Turn product rules into tables, relationships, constraints and useful indexes.",
-            "Give each entity a stable key, normalize facts that update independently and enforce rules with constraints. Add indexes for frequent lookup paths, not every column.",
-            "users 1 ─── * enrollments * ─── 1 courses\nusers 1 ─── * lesson_progress * ─── 1 lessons",
-            "Model users, courses, lessons, purchases and progress with keys and relationships."
-          ),
-          lesson(
-            "auth-permissions",
-            "Authentication & permissions",
-            32,
-            "Know who is making a request, then verify what that person is allowed to do.",
-            "Authentication establishes identity; authorization checks permission for the exact resource and action. Hash passwords with a dedicated slow algorithm and keep session cookies httpOnly and secure.",
-            "const user = await requireSession(request);\nif (course.ownerId !== user.id && user.role !== \"admin\") {\n  return new Response(\"Forbidden\", { status: 403 });\n}",
-            "Write an authorization matrix for learners, instructors and administrators."
-          ),
-          lesson(
-            "test-deploy-api",
-            "Test & deploy the API",
-            35,
-            "Prove important behavior automatically and prepare the service for real traffic.",
-            "Test outcomes at the public boundary: status, response and database effect. Use environment variables for secrets, health checks for operations and structured logs for investigation.",
-            "test(\"blocks a learner from admin data\", async () => {\n  const response = await requestAs(learner).get(\"/api/owner/users\");\n  expect(response.status).toBe(403);\n});",
-            "Write integration tests for successful completion, locked course access and suspended accounts."
-          ),
-        ],
-      },
-    ],
-  },
-];
+    modules: BACKEND_NODE_APIS_MODULES,
+  },];
 
 /**
  * The catalog: the six core courses, then the program courses.
