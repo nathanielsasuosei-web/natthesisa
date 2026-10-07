@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { site } from "@/config/site";
 import { COURSES } from "@/lib/courses";
-import { isPaystackConfigured } from "@/lib/paystack";
 import Logo from "./Logo";
 import Icon from "./Icon";
 
@@ -77,9 +76,9 @@ export default function PublicFooter() {
         <div className="mt-10 flex flex-col gap-3 border-t border-[#eeeaf1] pt-6 text-[11px] text-[#918a97] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.name}. Built in Accra, Ghana.</p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span>Prices in {site.currency.label} ({site.currency.symbol})</span>
+            <span>Lessons, files and narration are free</span>
             <span className="hidden sm:inline">·</span>
-            <span>{isPaystackConfigured() ? "Mobile Money, cards & bank transfer via Paystack" : "Payments are a demo in this build"}</span>
+            <span>No account required to start</span>
           </p>
         </div>
       </div>

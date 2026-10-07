@@ -68,7 +68,7 @@ export default async function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center px-6 py-12 text-center"><span className="grid size-12 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="book" size={23} /></span><h3 className="mt-3 text-sm font-extrabold">Choose your first program</h3><p className="mt-1 max-w-sm text-xs leading-5 text-[#817a87]">Buy a program to open every course and lesson inside it — start with Web Development or Computer Science.</p><Link href="/dashboard/plans" className="mt-4 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-xs font-bold text-white">See programs</Link></div>
+            <div className="flex flex-col items-center px-6 py-12 text-center"><span className="grid size-12 place-items-center rounded-2xl bg-[#eee9ff] text-[#6d4aff]"><Icon name="book" size={23} /></span><h3 className="mt-3 text-sm font-extrabold">Start a course</h3><p className="mt-1 max-w-sm text-xs leading-5 text-[#817a87]">Every lesson is already open. Start with Web Development or Computer Science — no payment required.</p><Link href="/dashboard/courses" className="mt-4 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-xs font-bold text-white">Browse courses</Link></div>
           )}
         </article>
 

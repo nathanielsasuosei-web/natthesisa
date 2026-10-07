@@ -190,8 +190,8 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const lessons = contentLessons(course);
   const modules = contentModules(course);
   const lessonIndex = lessons.findIndex((item) => item.id === lesson.id);
-  // Reading and listening are public. Progress, certificates and uploaded
-  // files still require an account that owns the program.
+  // The lesson, its files and the narration are public. A free account only
+  // remembers progress and prints the certificate.
   const access = user ? lessonAccess(user, course, lesson) : null;
   const canTrack = Boolean(user && access?.allowed);
   const courseHref = user ? `/dashboard/courses/${course.slug}` : `/courses/${course.slug}`;
@@ -321,7 +321,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
               </section>
             )}
 
-            {canTrack && lesson.files?.length ? <LessonMaterials files={lesson.files} /> : null}
+            {lesson.files?.length ? <LessonMaterials files={lesson.files} /> : null}
 
             <div className="mt-10 grid gap-3 sm:grid-cols-[1fr_1.4fr]">
               {previousLesson ? <Link href={`/learn/${course.id}/${previousLesson.id}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864] transition hover:border-violet-300"><Icon name="arrow-left" size={16} /> Previous lesson</Link> : <Link href={courseHref} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddd8e2] bg-white px-5 py-3.5 text-sm font-bold text-[#5e5864]"><Icon name="arrow-left" size={16} /> Course overview</Link>}
@@ -331,13 +331,13 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
                 <Link href={nextHref} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3.5 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">{nextLabel} <Icon name="arrow-right" size={16} /></Link>
               )}
             </div>
-            {!canTrack && (
+            {!user && (
               <p className="mt-3 text-right text-[11px] font-semibold leading-5 text-[#8d8694]">
-                Free to read and listen to.{" "}
-                <Link href={user ? "/pricing" : "/login?mode=signup"} className="text-[#6d4aff] underline decoration-violet-300 underline-offset-2">
-                  {user ? "Get the program" : "Create an account"}
+                Nothing here is locked.{" "}
+                <Link href="/login?mode=signup" className="text-[#6d4aff] underline decoration-violet-300 underline-offset-2">
+                  Create a free account
                 </Link>{" "}
-                to save progress and earn the certificate.
+                only if you want progress saved and a certificate.
               </p>
             )}
           </article>

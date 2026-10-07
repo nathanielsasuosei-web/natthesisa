@@ -3,7 +3,6 @@ import Link from "next/link";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
 import { contentTotals, lessonCountsByCourse, lessonMinutesByCourse } from "@/lib/course-content";
-import { formatMoney, programPrice } from "@/lib/plans";
 import { getCurrentUser } from "@/lib/session";
 import { avatarHref } from "@/lib/avatars";
 import { ensureContentReady } from "@/lib/bootstrap";
@@ -15,7 +14,7 @@ import Icon from "@/components/Icon";
 export const metadata: Metadata = {
   title: "All courses",
   description:
-    "Every codemasterghana course, in full: web, app and backend development, computer science, software engineering, and building with AI. Compare what each course covers before you buy.",
+    "Every codemasterghana course, in full: web, app and backend development, computer science, software engineering, and building with AI. Every lesson is free to read.",
 };
 
 export const dynamic = "force-dynamic";
@@ -25,8 +24,7 @@ export const dynamic = "force-dynamic";
  *
  * The landing page shows a selection; this page shows everything, grouped by
  * program, with the real description of each course — so the answer to "what
- * would I actually learn?" does not require an account. Buying happens per
- * program: one payment opens every course and lesson under it.
+ * would I actually learn?" does not require an account. Every lesson is free.
  */
 export default async function CoursesPage() {
   await ensureContentReady();
@@ -53,21 +51,18 @@ export default async function CoursesPage() {
     >
       <InfoSection title="How the catalogue is organised">
         <p>
-          A <strong>program</strong> is a path: a group of courses that belong together and get harder as you go. You
-          buy the program once, and every course and lesson under it opens permanently. There is nothing else to
-          pay — no subscriptions, no time limits, no per-lesson fees.
+          A <strong>program</strong> is a path: a group of courses that belong together and get harder as you go.
+          Every lesson, file and narration is free to open. Nothing is locked behind a payment or an account.
         </p>
         <InfoList
           items={groups.map(({ program, courses }) => (
             <>
-              The <strong>{program.name}</strong> program ({courses.length} course{courses.length === 1 ? "" : "s"},{" "}
-              {formatMoney(programPrice(program.id))}): {program.tagline.toLowerCase()}.
+              The <strong>{program.name}</strong> program ({courses.length} course{courses.length === 1 ? "" : "s"}): {program.tagline.toLowerCase()}.
             </>
           ))}
         />
         <p>
-          See <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing</Link> for the whole
-          picture, including how payment works.
+          Open any course and start on the first lesson. No payment and no account.
         </p>
       </InfoSection>
 
@@ -81,7 +76,7 @@ export default async function CoursesPage() {
                 </span>
                 <h2 className="text-lg font-black tracking-[-.03em]">{program.name}</h2>
                 <span className="rounded-full bg-[#6d4aff] px-2.5 py-1 text-[10px] font-black text-white">
-                  {formatMoney(programPrice(program.id))}
+                  Free
                 </span>
               </div>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6e6875]">{program.description}</p>
@@ -99,7 +94,6 @@ export default async function CoursesPage() {
                 hrefBase="public"
                 lessonCount={counts[course.id] ?? 0}
                 minutes={minutes[course.id] ?? 0}
-                price={programPrice(program.id)}
               />
             ))}
           </div>
@@ -117,8 +111,8 @@ export default async function CoursesPage() {
             a: "Lessons are focused reading sessions with a worked example and a practical challenge. The listed duration covers the lesson itself; allow extra time to complete the exercise and final project. Study at your own pace and spread the work across as many sessions as you need.",
           },
           {
-            q: "Can I see a lesson before paying?",
-            a: "Every course page shows the full curriculum — every lesson title and summary — so you know exactly what you are buying. The lessons themselves open once you own the program.",
+            q: "Do I need to pay or sign in?",
+            a: "No. Every lesson, file and narration is open. A free account is only for saving progress and printing a certificate.",
           },
           {
             q: "What do I get at the end?",

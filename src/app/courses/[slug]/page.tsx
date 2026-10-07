@@ -5,7 +5,7 @@ import { getCourse } from "@/lib/courses";
 import { programForCategory } from "@/lib/programs";
 import { courseBrief } from "@/lib/course-info";
 import { contentLessons, contentMinutes, contentModules } from "@/lib/course-content";
-import { formatMoney, programPrice } from "@/lib/plans";
+
 import { getCurrentUser } from "@/lib/session";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { isOwner } from "@/lib/owner";
@@ -49,7 +49,6 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
   const modules = contentModules(course);
   const minutes = contentMinutes(course);
   const program = programForCategory(course.category);
-  const price = program ? programPrice(program.id) : 0;
   const startHref = user ? `/dashboard/courses/${course.slug}` : "/login?mode=signup";
   const firstLesson = lessons[0];
   const readHref = firstLesson ? `/learn/${course.id}/${firstLesson.id}` : startHref;
@@ -97,7 +96,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
             </p>
             <p className="mt-1 text-2xl font-black tracking-[-.04em] text-[#1b1822]">{lessons.length} lessons</p>
             <p className="mt-1 text-[11px] text-[#8a8390]">
-              Open any lesson, no account needed. The {program?.name ?? "program"} ({formatMoney(price)}) saves progress and issues the certificate.
+              Every lesson, file and narration is free. An account is optional, and only remembers your progress.
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
@@ -110,8 +109,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
           </div>
         </div>
         <p className="border-t border-[#f0edf3] bg-[#fbfafc] px-5 py-3 text-[11px] leading-5 text-[#7d7683] sm:px-6">
-          Every lesson is public: read it and listen to it without signing in. An account
-          is only for saving your place and earning the certificate.
+          Every lesson, file and narration is free. No account and no payment is required to study.
         </p>
       </section>
 
