@@ -2,6 +2,7 @@ import { lesson } from "./lesson-builder";
 import { PROGRAMS, PROGRAM_COURSES } from "./programs";
 import { WEB_FOUNDATIONS_MODULES } from "@/content/web-foundations";
 import { COMPUTER_SCIENCE_ESSENTIALS_MODULES } from "@/content/computer-science-essentials";
+import { JAVASCRIPT_ZERO_TO_BUILDER_MODULES } from "@/content/javascript-zero-to-builder";
 
 export type CourseCategory =
   | "Computer Science"
@@ -189,86 +190,7 @@ const CORE_COURSES: Course[] = [
       "Debug common runtime problems",
     ],
     tags: ["JavaScript", "DOM", "APIs"],
-    modules: [
-      {
-        id: "javascript-language",
-        title: "01 · The language",
-        description: "Build a dependable foundation in JavaScript.",
-        lessons: [
-          lesson(
-            "values-variables",
-            "Values & variables",
-            18,
-            "Programs become useful when they can remember information and transform it.",
-            "Use const by default and let when a binding must change. JavaScript values include strings, numbers, booleans, null, undefined, objects and functions.",
-            "const learner = \"Amina\";\nlet lessonsComplete = 3;\nlessonsComplete += 1;\n\nconsole.log(`${learner}: ${lessonsComplete}`);",
-            "Create variables for a course title, total lessons and completed lessons, then calculate the percentage.",
-            true
-          ),
-          lesson(
-            "conditions-loops",
-            "Conditions & loops",
-            22,
-            "Control which instructions run and how often they repeat.",
-            "Conditions branch on boolean expressions. for...of reads naturally when you need every value in a collection; array methods can express transformations with less manual state.",
-            "for (const score of scores) {\n  if (score >= 80) {\n    console.log(\"Excellent work\");\n  }\n}",
-            "Loop through five lesson scores and count how many are 70 or higher."
-          ),
-          lesson(
-            "functions-scope",
-            "Functions & scope",
-            25,
-            "Package behavior into small, named units that are easier to reuse and test.",
-            "Parameters are a function's inputs and return values are its outputs. Scope controls where names are visible. Prefer functions that do one clear job and return data instead of changing distant state.",
-            "function progress(completed, total) {\n  if (total === 0) return 0;\n  return Math.round((completed / total) * 100);\n}",
-            "Write and call a function that converts minutes into a friendly hours-and-minutes label."
-          ),
-          lesson(
-            "arrays-objects",
-            "Arrays & objects",
-            27,
-            "Model lists and structured records, then combine them to represent real application data.",
-            "Arrays preserve order. Objects group related values by key. Methods such as map, filter and find produce concise data pipelines without manually managing indexes.",
-            "const openLessons = lessons\n  .filter((lesson) => !lesson.complete)\n  .map((lesson) => lesson.title);",
-            "From an array of course objects, return the titles of beginner courses only."
-          ),
-        ],
-      },
-      {
-        id: "javascript-in-browser",
-        title: "02 · JavaScript in the browser",
-        description: "Connect your logic to a real interface and live data.",
-        lessons: [
-          lesson(
-            "dom-events",
-            "The DOM & events",
-            26,
-            "Read the page as data, respond to people and update only what changed.",
-            "The DOM is the browser's object representation of HTML. Query stable selectors, listen for events, update accessible state and keep business logic separate from rendering code.",
-            "const button = document.querySelector(\"[data-complete]\");\nbutton.addEventListener(\"click\", () => {\n  button.textContent = \"Completed ✓\";\n  button.setAttribute(\"aria-pressed\", \"true\");\n});",
-            "Add a button that toggles a card between incomplete and complete states."
-          ),
-          lesson(
-            "async-apis",
-            "Async JavaScript & APIs",
-            30,
-            "Request data without freezing the page and handle every outcome clearly.",
-            "Promises represent future results. await makes promise-based code easier to read. A resilient request handles loading, success, empty and error states rather than assuming the network always works.",
-            "async function loadCourses() {\n  const response = await fetch(\"/api/courses\");\n  if (!response.ok) throw new Error(\"Request failed\");\n  return response.json();\n}",
-            "Fetch a public JSON endpoint and render both a loading message and an error message."
-          ),
-          lesson(
-            "ship-javascript-app",
-            "Build & ship the task planner",
-            34,
-            "Bring state, events, storage and an API together in one maintainable project.",
-            "Plan data first, render from that data, route every interaction through a small set of update functions, and persist only the state needed after refresh.",
-            "const state = { tasks: [], filter: \"all\" };\n\nfunction addTask(title) {\n  state.tasks.push({ id: crypto.randomUUID(), title, done: false });\n  render();\n}",
-            "Ship the planner with add, complete, filter and persistence features."
-          ),
-        ],
-      },
-    ],
+    modules: JAVASCRIPT_ZERO_TO_BUILDER_MODULES,
   },
   {
     id: "react-production-apps",
