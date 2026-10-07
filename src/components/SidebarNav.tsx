@@ -11,6 +11,7 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/dashboard", label: "Overview", icon: "home" },
   { href: "/dashboard/courses", label: "Explore courses", icon: "courses" },
   { href: "/dashboard/code", label: "Code lab", icon: "terminal" },
+  { href: "/natthesisa", label: "Natthesisa AI", icon: "spark" },
   { href: "/dashboard/progress", label: "My progress", icon: "progress" },
   { href: "/dashboard/plans", label: "Programs", icon: "spark" },
   { href: "/dashboard/billing", label: "Billing", icon: "card" },
@@ -72,13 +73,13 @@ export default function SidebarNav({
       <Logo href="/dashboard" inverse className="px-1" />
       <div className="mt-9 space-y-1">
         <p className="mb-2 px-3 text-[9px] font-extrabold uppercase tracking-[.18em] text-[#66606f]">Learn</p>
-        {NAV.slice(0, 3).map((item) => (
+        {NAV.slice(0, 4).map((item) => (
           <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${active(item.href) ? "bg-[#6d4aff] text-white shadow-[0_8px_20px_rgba(109,74,255,.22)]" : "text-[#9e98a6] hover:bg-white/[.05] hover:text-white"}`}>
             <Icon name={item.icon} size={18} /> {item.label}
           </Link>
         ))}
         <p className="mb-2 mt-7 px-3 text-[9px] font-extrabold uppercase tracking-[.18em] text-[#66606f]">Account</p>
-        {NAV.slice(3).map((item) => (
+        {NAV.slice(4).map((item) => (
           <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${active(item.href) ? "bg-[#6d4aff] text-white shadow-[0_8px_20px_rgba(109,74,255,.22)]" : "text-[#9e98a6] hover:bg-white/[.05] hover:text-white"}`}>
             <Icon name={item.icon} size={18} /> {item.label}
             {item.href.endsWith("plans") && programsOwned === 0 && <span className="ml-auto rounded-full bg-[#ffcf59] px-1.5 py-0.5 text-[8px] font-black uppercase text-[#4b3800]">Buy</span>}

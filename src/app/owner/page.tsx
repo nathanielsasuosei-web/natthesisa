@@ -28,8 +28,6 @@ export default async function OwnerConsolePage() {
   const monthlyValue = await estimateMonthlyRevenue();
   const users = (await listUsers()).map(toStudentRow);
   const maxEnrollment = Math.max(...stats.coursePerformance.map((item) => item.enrollments), 1);
-  // Video coverage: which courses have a welcome video, and which lessons are
-  // still waiting for a walkthrough (the videos are generated — see the README).
   const coursesWithVideo = COURSES.filter((course) => courseVideo(course.slug)).map((course) => course.slug);
   const coursesWithGaps = COURSES.map((course) => {
     const lessons = course.modules.flatMap((module) => module.lessons);
@@ -42,7 +40,7 @@ export default async function OwnerConsolePage() {
   // ...and whether the bytes behind those manifest entries are actually in
   // this deployment's storage. A video can be listed but unplayable — the
   // files do not travel with a deploy — so the card warns rather than
-  // claiming "every lesson has a walkthrough" when students would get a 410.
+  // claiming "every lesson has a walkthrough" when viewers would get a 410.
   const videoStorage = await verifyVideoStorage();
   const storageStatus = {
     unreachable: videoStorage.unreachable,

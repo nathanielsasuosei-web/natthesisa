@@ -14,6 +14,8 @@ interface Props {
   nextHref: string;
   nextLabel: string;
   suspended?: boolean;
+  /** False for a signed-out reader: the video stays, the progress button does not. */
+  track?: boolean;
 }
 
 /**
@@ -25,7 +27,7 @@ interface Props {
  * only at the foot of the page, because that is the moment the student is ready
  * to move on — and the same button is at the bottom for anyone who reads first.
  */
-export default async function LessonVideoGuide({ lesson, courseId, complete, nextHref, nextLabel, suspended }: Props) {
+export default async function LessonVideoGuide({ lesson, courseId, complete, nextHref, nextLabel, suspended, track = true }: Props) {
   // The manifest alone is not enough to promise a player: the bytes live in a
   // storage that does not travel with a deploy, so a video can be listed but
   // unplayable. Only render the player when the file is really there; anything
@@ -94,14 +96,20 @@ export default async function LessonVideoGuide({ lesson, courseId, complete, nex
         >
           <Icon name="terminal" size={16} /> Jump to the practice task
         </a>
-        <LessonActions
-          courseId={courseId}
-          lessonId={lesson.id}
-          initiallyComplete={complete}
-          nextHref={nextHref}
-          nextLabel={nextLabel}
-          suspended={suspended}
-        />
+        {track ? (
+          <LessonActions
+            courseId={courseId}
+            lessonId={lesson.id}
+            initiallyComplete={complete}
+            nextHref={nextHref}
+            nextLabel={nextLabel}
+            suspended={suspended}
+          />
+        ) : (
+          <a href={nextHref} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3.5 text-sm font-extrabold text-white">
+            {nextLabel} <Icon name="arrow-right" size={16} />
+          </a>
+        )}
       </div>
     </section>
   );

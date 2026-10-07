@@ -15,6 +15,7 @@ const SEEN_KEY = "natthesisa-seen-v1";
 export default function NatthesisaWidget() {
   const [open, setOpen] = useState(false);
   const [unseen, setUnseen] = useState(false);
+  const [initialPrompt, setInitialPrompt] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -32,8 +33,23 @@ export default function NatthesisaWidget() {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
+    const onLessonHelp = (event: Event) => {
+      const detail = (event as CustomEvent<{ prompt?: unknown }>).detail;
+      setInitialPrompt(typeof detail?.prompt === "string" ? detail.prompt : null);
+      setOpen(true);
+      setUnseen(false);
+      try {
+        window.localStorage.setItem(SEEN_KEY, "1");
+      } catch {
+        // Ignore — the nudge simply reappears next visit.
+      }
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("natthesisa:open", onLessonHelp);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("natthesisa:open", onLessonHelp);
+    };
   }, []);
 
   // The dedicated page renders the chat full-size — the bubble would double up.
@@ -57,7 +73,12 @@ export default function NatthesisaWidget() {
       {/* Chat panel */}
       {open && (
         <div className="nat-panel-in fixed bottom-24 right-4 z-[60] h-[min(600px,calc(100dvh-7rem))] w-[min(400px,calc(100vw-2rem))] overflow-hidden rounded-[24px] border border-[#e2dde9] bg-white shadow-[0_30px_80px_rgba(36,28,61,.30)] sm:bottom-24 sm:right-6">
-          <NatthesisaChat variant="widget" onClose={() => setOpen(false)} />
+          <NatthesisaChat
+            variant="widget"
+            onClose={() => setOpen(false)}
+            initialPrompt={initialPrompt}
+            onInitialPromptConsumed={() => setInitialPrompt(null)}
+          />
         </div>
       )}
 

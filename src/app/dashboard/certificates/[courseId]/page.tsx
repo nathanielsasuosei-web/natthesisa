@@ -34,14 +34,14 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
     return (
       <div className="mx-auto max-w-md border-y border-[#ded9e3] py-8 text-center">
         <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#f0ecff] text-[#6d4aff]"><Icon name={finished ? "lock" : "certificate"} size={25} /></span>
-        <h1 className="mt-4 text-xl font-black">{finished ? "Program needed" : "Complete the course first"}</h1>
+        <h1 className="mt-4 text-xl font-black">{finished ? "Account paused" : "Complete the course first"}</h1>
         <p className="mt-2 text-sm leading-6 text-[#756f7b]">
           {finished
-            ? "Buy the program this course belongs to and your certificate is ready to create and share."
-            : `Finish every lesson in ${course.title} to earn this certificate.`}
+            ? "This account is paused, so a certificate cannot be issued yet. Contact your teacher."
+            : `Finish every lesson in ${course.title} to earn this certificate. The lessons are free to read.`}
         </p>
-        <Link href={finished ? "/dashboard/plans" : `/dashboard/courses/${course.slug}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white">
-          {finished ? "See programs" : "Continue course"} <Icon name="arrow-right" size={14} />
+        <Link href={`/dashboard/courses/${course.slug}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white">
+          {finished ? "Back to the course" : "Continue course"} <Icon name="arrow-right" size={14} />
         </Link>
       </div>
     );

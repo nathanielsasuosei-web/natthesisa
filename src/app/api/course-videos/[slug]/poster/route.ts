@@ -1,33 +1,17 @@
 import { NextResponse } from "next/server";
-import { accessMessage, lessonAccess } from "@/lib/access";
 import { getCourse } from "@/lib/courses";
-import { contentLessons } from "@/lib/course-content";
 import { courseVideo } from "@/lib/course-videos";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
-import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** The welcome video's own artwork, shown before it plays. Access-gated the same way. */
+/** The welcome video's own artwork, shown before it plays. Public, like the course. */
 export async function GET(_req: Request, context: { params: Promise<{ slug: string }> }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in to watch this course video." }, { status: 401 });
-
   const { slug } = await context.params;
   const entry = courseVideo(slug);
   const course = entry ? getCourse(entry.courseId) : undefined;
   if (!entry || !course) return NextResponse.json({ error: "This course has no video." }, { status: 404 });
-
-  const first = contentLessons(course)[0];
-  if (!first) return NextResponse.json({ error: "Course not found." }, { status: 404 });
-  const access = lessonAccess(user, course, first);
-  if (!access.allowed) {
-    return NextResponse.json(
-      { error: accessMessage(access, course.shortTitle), code: "ACCESS_REQUIRED", reason: access.reason },
-      { status: 402 }
-    );
-  }
 
   const record = {
     id: "course-video-poster",

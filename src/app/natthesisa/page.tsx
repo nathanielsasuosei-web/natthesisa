@@ -11,16 +11,18 @@ import Icon from "@/components/Icon";
 export const metadata: Metadata = {
   title: "Natthesisa — your AI study companion",
   description:
-    "Meet Natthesisa: explanations in plain language, quizzes that make ideas stick, code debugging help and course guidance — free for every codemasterghana student.",
+    "Meet Natthesisa: your AI study companion in every lesson. Get explanations, quizzes and code help, then generate code and build website or React Native mobile-app starters."
 };
 
 export const revalidate = 0;
 
 const CAPABILITIES = [
-  { icon: "book", title: "Explains anything", body: "HTML to Big-O, in plain language with tiny examples." },
+  { icon: "book", title: "Explains every lesson", body: "Get plain-language explanations using the lesson you are studying." },
   { icon: "target", title: "Quizzes you", body: "Practice questions with answers that teach, not just grade." },
-  { icon: "code", title: "Debugs with you", body: "Paste code + the error — get a review and a fix path." },
-  { icon: "courses", title: "Guides your path", body: "Which course next, based on your goal and level." },
+  { icon: "code", title: "Generates and debugs code", body: "Ask for a code example, paste an error, or review a snippet together." },
+  { icon: "browser", title: "Builds websites", body: "Describe a site and get a responsive project you can preview and edit." },
+  { icon: "mobile", title: "Builds mobile apps", body: "Create an Expo / React Native starter you can open on a phone." },
+  { icon: "courses", title: "Guides your path", body: "Find the next course based on your goals and level." },
 ] as const;
 
 export default async function NatthesisaPage() {
@@ -47,10 +49,10 @@ export default async function NatthesisaPage() {
               Meet <span className="text-[#6d4aff]">Natthesisa</span>.
             </h1>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-[#6e6875]">
-              The senior student who never sleeps. Natthesisa explains concepts,
-              quizzes you until ideas stick, helps debug your code and points you
-              to the right lesson — free for every student, right inside your
-              lessons.
+              Your AI study companion, right inside every lesson. Natthesisa
+              explains course material, quizzes you, generates and reviews code,
+              and helps you build websites and React Native mobile apps — free for
+              every student.
             </p>
 
             <div className="mt-7 grid gap-3 sm:grid-cols-2">

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { accessMessage, lessonAccess } from "@/lib/access";
 import { findContentLesson } from "@/lib/course-content";
 import { getCourse } from "@/lib/courses";
 import { lessonVideo } from "@/lib/lesson-videos";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
-import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,20 +10,13 @@ export const dynamic = "force-dynamic";
 /**
  * Serves the video that belongs to a catalog lesson.
  *
- * The bytes live in the same storage as the owner's uploads, but the *rule* is
- * the lesson rule: the video is part of the lesson, so whoever may open the
- * lesson may watch it, and nobody else. That check happens here rather than in
- * the page, because a browser can be pointed straight at this URL — the
- * redirect below is only handed out after `lessonAccess()` says yes, which is
- * also what stops a locked lesson's video being fetched by copying a link.
+ * The video is part of the public lesson, so anyone may watch it. The route
+ * still checks that the lesson exists before handing out the file.
  */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ lessonId: string }> }
 ) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in to watch this lesson video." }, { status: 401 });
-
   const { lessonId } = await context.params;
   const entry = lessonVideo(lessonId);
   if (!entry) return NextResponse.json({ error: "This lesson has no video." }, { status: 404 });
@@ -33,14 +24,6 @@ export async function GET(
   const course = getCourse(entry.courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
-
-  const access = lessonAccess(user, course, lesson);
-  if (!access.allowed) {
-    return NextResponse.json(
-      { error: accessMessage(access, course.shortTitle), code: "ACCESS_REQUIRED", reason: access.reason },
-      { status: 402 }
-    );
-  }
 
   const download = req.nextUrl.searchParams.get("download") === "1";
   const record = {

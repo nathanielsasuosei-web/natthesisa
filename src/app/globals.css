@@ -80,6 +80,14 @@ a {
 .animate-float { animation: nt-float 7s ease-in-out infinite; }
 .animate-pulse-ring { animation: nt-pulse-ring 2s infinite; }
 
+#lesson-article [data-speech].is-reading {
+  outline: 2px solid #6d4aff;
+  outline-offset: 5px;
+  border-radius: 14px;
+  scroll-margin-top: 96px;
+  scroll-margin-bottom: 180px;
+}
+
 /* ------------------------------------------------------------------ */
 /* Navigation motion                                                   */
 /* ------------------------------------------------------------------ */
@@ -180,36 +188,6 @@ a {
   outline: 3px solid rgb(109 74 255 / .35);
   outline-offset: 3px;
 }
-
-/* ------------------------------------------------------------------ */
-/* Natthesisa — the AI study companion                                 */
-/* ------------------------------------------------------------------ */
-
-@keyframes nat-panel-in {
-  from { opacity: 0; transform: translateY(14px) scale(.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.nat-panel-in {
-  transform-origin: bottom right;
-  animation: nat-panel-in .28s cubic-bezier(.22,1,.36,1) both;
-}
-
-@keyframes nat-think {
-  0%, 60%, 100% { transform: translateY(0); opacity: .45; }
-  30% { transform: translateY(-4px); opacity: 1; }
-}
-
-.nat-think-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #6d4aff;
-  animation: nat-think 1.1s ease-in-out infinite;
-}
-
-.nat-think-dot:nth-child(2) { animation-delay: .15s; }
-.nat-think-dot:nth-child(3) { animation-delay: .3s; }
 
 /*
  * Open editorial layout
@@ -420,10 +398,40 @@ a {
   .animate-fade-up { animation: none; opacity: 1; }
   .animate-nav-drop, .animate-menu-in, .animate-ticker-up, .animate-icon-pop { animation: none; }
   .animate-menu-item { animation: none; opacity: 1; }
+  .btn-shine::after { display: none; }
   .nat-panel-in { animation: none; }
   .nat-think-dot { animation: none; opacity: 1; }
-  .btn-shine::after { display: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Natthesisa — the AI study companion                                 */
+/* ------------------------------------------------------------------ */
+
+@keyframes nat-panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.nat-panel-in {
+  transform-origin: bottom right;
+  animation: nat-panel-in .28s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes nat-think {
+  0%, 60%, 100% { transform: translateY(0); opacity: .45; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.nat-think-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #6d4aff;
+  animation: nat-think 1.1s ease-in-out infinite;
+}
+
+.nat-think-dot:nth-child(2) { animation-delay: .15s; }
+.nat-think-dot:nth-child(3) { animation-delay: .3s; }
 
 /* ------------------------------------------------------------------ */
 /* Certificates                                                        */
