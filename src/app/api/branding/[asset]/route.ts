@@ -1,21 +1,12 @@
 import { NextResponse } from "next/server";
 import { brandingAsset } from "@/lib/branding";
-import { getCurrentUser } from "@/lib/session";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Serves the owner's profile photo or logo.
- *
- * Signed-in learners can load it (it appears on lesson pages); everyone else
- * gets a 401, so the owner's images are never public.
- */
+/** Serves the owner's profile photo or logo. Shown on public lesson pages. */
 export async function GET(_req: Request, context: { params: Promise<{ asset: string }> }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in to view this image." }, { status: 401 });
-
   const { asset } = await context.params;
   if (asset !== "photo" && asset !== "logo") {
     return NextResponse.json({ error: "Not found." }, { status: 404 });

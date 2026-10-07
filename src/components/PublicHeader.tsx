@@ -55,7 +55,7 @@ const ANNOUNCEMENTS = [
   },
   {
     badge: "New",
-    text: "One payment per program — every course and lesson inside, forever",
+    text: "Every lesson is free — read, listen and download without an account",
     href: "/pricing",
   },
 ];
@@ -346,20 +346,20 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
                 <span className="grid size-9 place-items-center rounded-xl bg-[#6d4aff] transition-transform duration-300 hover:scale-110 hover:rotate-6">
                   <Icon name="play" size={14} />
                 </span>
-                <p className="mt-4 text-sm font-black leading-6">One payment, everything inside</p>
+                <p className="mt-4 text-sm font-black leading-6">Every lesson is open</p>
                 <p className="mt-1.5 text-[11px] leading-5 text-white/60">
-                  Buy the program once and every course and lesson in it opens — permanently.
+                  Read, listen and download without paying or creating an account.
                 </p>
-                <Link href="/pricing" className="btn-shine mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-extrabold text-[#17151f] transition hover:-translate-y-0.5 hover:bg-[#ffcf59]">
-                  See program prices <Icon name="arrow-right" size={14} />
+                <Link href="/courses" className="btn-shine mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-extrabold text-[#17151f] transition hover:-translate-y-0.5 hover:bg-[#ffcf59]">
+                  Browse the courses <Icon name="arrow-right" size={14} />
                 </Link>
               </div>
             </div>
             <div className="animate-menu-item border-t border-black/[.05] bg-[#faf9fb]" style={{ animationDelay: "480ms" }}>
               <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-2 px-8 py-3 text-[11px] text-[#817a87]">
                 <p>
-                  One payment per program · Everything inside stays yours ·{" "}
-                  <Link href="/pricing" className="font-bold text-[#5c3be4] underline">See pricing</Link>
+                  Free to study · A free account saves progress ·{" "}
+                  <Link href="/courses" className="font-bold text-[#5c3be4] underline">Open the courses</Link>
                 </p>
                 <p className="flex items-center gap-1.5">
                   <Icon name="shield" size={13} className="text-emerald-600" />

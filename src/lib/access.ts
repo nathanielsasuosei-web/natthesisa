@@ -7,19 +7,12 @@ import type { User } from "./store";
 /**
  * Who may open a lesson.
  *
- * The rule is one line, and it is enforced here rather than in each page so
- * that a page, an API route and a file download can never disagree:
+ * The catalogue is public. Anyone may read a lesson, listen to it, and open
+ * its files. A signed-in student may save progress and earn a certificate
+ * without buying a program. The only account that is refused is one the
+ * teacher has paused.
  *
- *   1. The owner (the teacher) opens everything.
- *   2. Otherwise a student must own the program the course belongs to.
- *
- * There are no free previews and no passes: every course and every lesson
- * sits under a program, and paying for the program opens all of them,
- * permanently. Older course / lesson purchases stay on the account as history
- * but open nothing — the program is the only door.
- *
- * Everything that streams a video, downloads a PDF or records progress goes
- * through `lessonAccess()`.
+ * The teacher console is a separate door and is not opened here.
  */
 
 export type AccessReason = "owner" | "ok" | "purchase-required" | "suspended";
@@ -74,17 +67,17 @@ function decide(user: User, course: Course): AccessDecision {
   const price = program ? programPrice(program.id) : coursePrice(course.id);
   const programId = program?.id ?? null;
   const programName = program?.name ?? null;
-  if (isOwner(user)) {
-    return { allowed: true, reason: "owner", needsPurchase: false, price, programId, programName };
-  }
-  if (user.suspended) {
+  if (user.suspended && !isOwner(user)) {
     return { allowed: false, reason: "suspended", needsPurchase: false, price, programId, programName };
   }
-  // A course whose category has no program is a content bug: locked, never open.
-  if (program && ownsProgram(user, program.id)) {
-    return { allowed: true, reason: "ok", needsPurchase: false, price, programId, programName };
-  }
-  return { allowed: false, reason: "purchase-required", needsPurchase: true, price, programId, programName };
+  return {
+    allowed: true,
+    reason: isOwner(user) ? "owner" : "ok",
+    needsPurchase: false,
+    price,
+    programId,
+    programName,
+  };
 }
 
 export function courseAccess(user: User, course: Course): AccessDecision {

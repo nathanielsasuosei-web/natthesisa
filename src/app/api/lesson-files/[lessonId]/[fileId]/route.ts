@@ -1,27 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { accessMessage, lessonAccess } from "@/lib/access";
-import { findContentLesson, findUploadedLessonCourse } from "@/lib/course-content";
+import { findUploadedLessonCourse } from "@/lib/course-content";
 import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
-import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
  * Serves materials attached to an owner-published lesson.
- *
- * Access is checked on the server with the same rule as the lesson itself
- * (`access.ts`): an active pass AND the course or lesson paid for, unless the
- * owner marked the lesson a free preview. A page cannot be trusted to gate a
- * video, so the rule is repeated here.
+ * Lesson files are public, the same way the lesson text is.
  */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ lessonId: string; fileId: string }> }
 ) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in to open this lesson material." }, { status: 401 });
-
   const { lessonId, fileId } = await context.params;
   const record = getUploadedLesson(lessonId);
   if (!record) return NextResponse.json({ error: "Lesson material not found." }, { status: 404 });
@@ -30,17 +21,6 @@ export async function GET(
   if (!located) return NextResponse.json({ error: "This lesson is no longer part of a course." }, { status: 404 });
 
   const lesson = located.record;
-  const course = located.course;
-  const mergedLesson = findContentLesson(course, lessonId);
-  if (!mergedLesson) return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
-  const access = lessonAccess(user, course, mergedLesson);
-  if (!access.allowed) {
-    return NextResponse.json(
-      { error: accessMessage(access, course.shortTitle), code: "ACCESS_REQUIRED", reason: access.reason },
-      { status: 402 }
-    );
-  }
-
   const file = lesson.files.find((candidate) => candidate.id === fileId);
   if (!file) return NextResponse.json({ error: "File not found." }, { status: 404 });
 

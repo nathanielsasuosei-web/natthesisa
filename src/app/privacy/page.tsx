@@ -80,9 +80,8 @@ export default function PrivacyPage() {
 
       <InfoSection title="Payments, honestly">
         <p>
-          No real money moves through this application today. The program checkout is a working demonstration:
-          it records the order, the invoice and your access in the database, exactly as the live version will, but it
-          never asks for — and never stores — card or Mobile Money details.
+          Studying does not require a payment. No card or Mobile Money details are collected in order to
+          open a lesson, a file, or the narration.
         </p>
         <p>
           When a payment gateway is connected (for example Paystack or Flutterwave, which support Ghanaian cards and

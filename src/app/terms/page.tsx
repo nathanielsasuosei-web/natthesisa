@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/config/site";
-import { formatMoney, pricing } from "@/lib/plans";
 import { ensureContentReady } from "@/lib/bootstrap";
 import InfoPage, { InfoContactStrip, InfoFaq, InfoList, InfoSection } from "@/components/InfoPage";
 
@@ -13,13 +12,10 @@ export const metadata: Metadata = {
 
 const UPDATED = "Last updated 5 October 2026";
 
-// Owner-set prices appear in these terms, so the page must be rendered per
-// request rather than prerendered with the default prices baked in.
 export const dynamic = "force-dynamic";
 
 export default async function TermsPage() {
   await ensureContentReady();
-  const prices = pricing();
 
   return (
     <InfoPage
@@ -49,26 +45,23 @@ export default async function TermsPage() {
 
       <InfoSection title="Programs and what they cost">
         <p>
-          The teacher sets the prices. In this build the default program price is{" "}
-          <strong>{formatMoney(prices.program)}</strong>, in Ghana cedis, and any single program may be priced
-          differently. The prices that apply to you are the ones shown on the{" "}
-          <Link href="/pricing" className="font-bold text-[#5e3de0] underline">pricing page</Link> and at checkout when you buy.
+          The lessons, files and narration are free. You do not need to pay, and you do not need an
+          account, to study. A free account only remembers progress and prints a certificate. Older
+          checkout records, if any, stay on the account as history and do not gate the lessons.
         </p>
         <InfoList
           items={[
-            <><strong>A program opens everything under it.</strong> One payment opens every course and every lesson in that program, permanently. There is nothing else to buy for that program.</>,
-            <><strong>What you buy stays yours.</strong> A program purchase is recorded on your account permanently and never expires.</>,
-            <><strong>No real payment is taken in this build.</strong> The checkout works and your access is recorded exactly as it will be, but no card, Mobile Money or bank details are collected and no money changes hands.</>,
+            <><strong>A program is a path, not a paywall.</strong> Every course and every lesson in it is open to read, listen to and download.</>,
+            <><strong>An account is optional.</strong> Create one if you want progress saved. It is free.</>,
+            <><strong>No payment is required to study.</strong> The site does not ask for card, Mobile Money or bank details in order to open a lesson.</>,
           ]}
         />
       </InfoSection>
 
       <InfoSection title="Refunds">
         <p>
-          Because no real money is collected today, there is nothing to refund. When live payments are switched on, the
-          policy will be: a program you have not opened can be refunded within 7 days of purchase; a program you have
-          already studied is not refundable, because the content has been delivered. Faults are different — if something
-          you paid for does not work and we cannot fix it, you get your money back.
+          Studying does not require a payment, so there is nothing to refund in order to use the lessons.
+          If a payment was taken by mistake on an older checkout, write to us and we will sort it out.
         </p>
       </InfoSection>
 
@@ -86,7 +79,7 @@ export default async function TermsPage() {
       <InfoSection title="What you may do with the material">
         <p>
           The lessons, videos, slides, code samples, artwork and course text belong to the teacher or to the platform,
-          and your purchase gives you a personal licence to learn from them.
+          and reading them gives you a personal licence to learn from them. It is not a licence to republish them.
         </p>
         <InfoList
           items={[
@@ -142,8 +135,8 @@ export default async function TermsPage() {
             a: "Yes. The projects you build are yours. The course material is licensed to you for learning, not for redistribution, so put your own work in your portfolio rather than our lessons.",
           },
           {
-            q: "What does the program price include?",
-            a: "Everything under that program: every course, every lesson, the code lab and the lesson materials — permanently. There is nothing else to buy for that program.",
+            q: "Do I have to pay to read a lesson?",
+            a: "No. Every course, lesson, file and narration is open. An account is optional and free; it only saves progress and prints a certificate.",
           },
           {
             q: "What happens if I share my account?",
@@ -151,7 +144,7 @@ export default async function TermsPage() {
           },
           {
             q: "Can I get an invoice for my school or employer?",
-            a: "Yes. Every purchase creates an invoice number shown on your billing page; for a formal invoice in an organisation's name, contact us with the details.",
+            a: "There is nothing to invoice for studying — the lessons are free. If you need a letter confirming enrolment, contact us with the details.",
           },
         ]}
       />

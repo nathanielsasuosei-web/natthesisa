@@ -23,11 +23,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   browser and downloadable
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
-- **A narrated 2½-minute video on every catalog lesson.** Each lesson opens
-  with a walkthrough — title card, the core idea, the worked example, the
-  practice task and a pointer to the next lesson. The player has chapter buttons,
-  so a student can jump straight to the part they need. Course welcome videos
-  are supported separately by the same generation pipeline.
+- **A narrated walkthrough video on every catalog lesson that has one**, plus the Natthesisa study assistant (`/natthesisa`). Both are public, like the lessons.
 - Server-saved lesson completion, course percentages and activity history
 - **Student email** — receipts for every purchase, a congratulations message on
   finishing a course, and a notice when a certificate is issued
@@ -173,78 +169,19 @@ to move ownership to a different account.
 
 ## Lesson and course videos
 
-Every lesson in the catalog has a narrated walkthrough targeted at two and a
-half minutes (within the requested two-to-three-minute range). Course welcome
-videos use the same generation pipeline when their narration is available.
-The lesson videos are **generated from the course content itself**: a script per
-lesson supplies the narration, and the pictures — title card, the core idea,
-the worked example, the practice task, and a pointer to the next lesson — are
-built from the lesson's own text, code and duration, styled with the site's own
-colours and the course's tone.
+Every catalog lesson can have a narrated walkthrough. The videos are generated from the course content: a script supplies the narration, and the pictures are built from the lesson's own text. Course welcome videos use the same pipeline.
 
-No hand animation or manual editing is needed: add a course, add its scripts,
-synthesize the narration and run the builder. The generated video files go into
-the configured media storage; the scripts and manifest stay versioned.
+The finished files live in the same storage as the owner's uploads. `src/content/lesson-videos.ts` records what was built. The manifest is committed; the generated audio, videos and posters are not.
 
-### How one video is made
-
-| Step | What happens |
-| --- | --- |
-| 1. Narration | Four paragraphs per lesson (title, idea, example, challenge) are written in `content/lesson-videos/<course>.json` and synthesized into `.data/lesson-videos/audio/<lessonId>.mp3` by `npm run videos:synthesize` using the local eSpeak-NG English voice (`en-gb`) — no API key or external TTS service |
-| 2. Timing | The pauses in the recording mark where one slide ends and the next begins: `scripts/lesson-videos/lib/timeline.ts` finds them, matches each one to the sentence it follows, and falls back to a proportional split when a pause is too weak to trust |
-| 3. Reading pauses | The worked example and challenge get reading pauses, and the remaining pause time is spread across all four paragraph boundaries until the finished lesson is 150 seconds (2½ minutes), giving students time to read each slide |
-| 4. Slides | `lib/design.ts` lays each slide out with real text measurements (ffmpeg draws a line once and the ink is measured), and `lib/code.ts` colours the worked example to match the code panel in the lesson reader |
-| 5. Encode | The five stills are composited over a black base and cross-faded by fading their own alpha, and the narration is spliced with its pauses. One ffmpeg pass, roughly forty seconds per lesson |
-
-The finished video goes into **the same storage as the owner's uploads** —
-Supabase Storage when it is configured, `.data/uploads` on disk otherwise — and
-`src/content/lesson-videos.ts` records what was built. The manifest is committed;
-the generated audio, videos and posters are not. Configure Supabase Storage
-before production generation, because the local `.data` fallback is ignored by
-Git and will not travel with a deployment.
-
-### Watching one
-
-The bytes never travel without an access check. `/api/lesson-videos/[lessonId]`
-and `/api/course-videos/[slug]` read the viewer's account, apply the same rule as
-the lesson itself (`lib/access.ts`), and only then redirect the browser to
-Supabase's CDN (or stream from disk, honouring range requests, so seeking works).
-A signed-out visitor gets a `401`, and a student who does not own the program
-gets a `402` — the same answers the owner's uploaded materials give.
-
-`src/components/CoverVideo.tsx` is the player: play/pause, a scrubber, mute,
-download, and chapter buttons for the five slides, so each two-to-three-minute
-lesson is navigable rather than something to sit through.
-
-### Building them
+Anyone may watch a lesson video or a course welcome video. The routes `/api/lesson-videos/[lessonId]` and `/api/course-videos/[slug]` do not require a sign-in.
 
 ```bash
 npm run videos:setup        # fetch static ffmpeg into node_modules/.cache (once)
 npm run videos:synthesize   # create MP3 narration for every lesson, offline
-npm run videos:build -- --all --force  # render every lesson and update the manifest
-npm run videos:check        # verify all lesson videos exist and are 2–3 minutes long
-npm run videos:list         # show which narration and video files are present
-
-npm run videos:synthesize -- --lesson how-the-web-works --force
-npm run videos:build -- --lesson how-the-web-works --force
-npm run videos:build -- --course web-foundations --force
-npm run videos:build -- --slides-only --lesson how-the-web-works   # just the pictures
+npm run videos:build -- --all --force
+npm run videos:check
+npm run videos:list
 ```
-
-`videos:synthesize` uses the `en-gb` eSpeak-NG voice selected in each lesson's
-narration JSON and writes audio under `.data/lesson-videos/audio/`. It requires
-no API key and can be rerun safely; `--force` replaces existing audio.
-`videos:build` is additive by default: it renders lessons that have narration
-but no video yet, writes `src/content/lesson-videos.ts` and
-`src/content/course-videos.ts`, and leaves everything else alone. Use `--force`
-to re-render, and `KEEP_SLIDES=1` to keep the rendered stills for inspection.
-Each run prints one line per video: length, size and how long the encode took.
-
-To add a course's worth of lesson videos: write
-`content/lesson-videos/<courseId>.json` with one entry per lesson id (four
-paragraphs each — the lesson's own text is the best source), synthesize the
-narration, and build. The narration is plain prose: no markup or stage
-directions, with paragraph breaks where the slides should change.
 
 ## Run locally
 
@@ -326,7 +263,6 @@ This is the “what to paste where” map for continuing the build.
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/owner/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
 | 10g. Edited playback | `src/components/TrimmedVideo.tsx`, `src/app/api/owner/lesson-files/[lessonId]/[fileId]/route.ts`, `src/app/api/lesson-files/[lessonId]/[fileId]/poster/route.ts` | Saving edits on published files, and playing the trimmed clip with its thumbnail |
-| 10h. Lesson videos | `scripts/lesson-videos/*`, `content/lesson-videos/*.json`, `content/course-videos/*.json`, `src/lib/lesson-videos.ts`, `src/lib/course-videos.ts`, `src/content/*.ts`, `src/components/CoverVideo.tsx`, `src/components/LessonVideoGuide.tsx`, `src/components/CourseVideoWelcome.tsx`, `src/app/api/lesson-videos/*`, `src/app/api/course-videos/*` | The narrated walkthrough on every lesson and the welcome video on every course: the scripts, the generator, the manifest and the access-checked player |
 | 11. Marketing UI | `src/app/page.tsx` | Public landing page |
 | 11a. Public catalogue | `src/app/courses/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/lib/course-info.ts`, `src/components/CourseBrief.tsx` | The whole catalog and one page per course, readable without an account — including the long description, audience, prerequisites, tools and where the course leads |
 | 11b. Company pages | `src/app/about/page.tsx`, `src/app/pricing/page.tsx`, `src/app/contact/page.tsx`, `src/app/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/components/InfoPage.tsx` | About, the payment page and the legal pages, all on one shared shell |
