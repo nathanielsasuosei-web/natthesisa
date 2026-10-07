@@ -105,6 +105,7 @@ export const PROGRAMS: ProgramInfo[] = [
 export const PROGRAM_COURSES: Course[] = [
   {
     id: "data-structures-algorithms",
+    cover: "/course-covers/data-structures-algorithms.jpg",
     slug: "data-structures-algorithms",
     title: "Data Structures & Algorithms",
     shortTitle: "DSA",
@@ -190,6 +191,7 @@ export const PROGRAM_COURSES: Course[] = [
 
   {
     id: "databases-and-sql",
+    cover: "/course-covers/databases-sql.jpg",
     slug: "databases-and-sql",
     title: "Databases & SQL",
     shortTitle: "Databases & SQL",
@@ -275,6 +277,7 @@ export const PROGRAM_COURSES: Course[] = [
 
   {
     id: "software-engineering-practices",
+    cover: "/course-covers/software-engineering-practices.jpg",
     slug: "software-engineering-practices",
     title: "Software Engineering Practices",
     shortTitle: "SE Practices",
@@ -360,6 +363,7 @@ export const PROGRAM_COURSES: Course[] = [
 
   {
     id: "system-design-architecture",
+    cover: "/course-covers/system-design-architecture.jpg",
     slug: "system-design-architecture",
     title: "System Design & Architecture",
     shortTitle: "System Design",

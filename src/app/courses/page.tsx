@@ -114,7 +114,7 @@ export default async function CoursesPage() {
           },
           {
             q: "How long does a course take?",
-            a: "Most courses are six to eight lessons of roughly 10–15 minutes each. Reading carefully and doing the exercises, that is a week at an hour a day — or a weekend if you have a free Saturday.",
+            a: "Lessons are focused reading sessions with a worked example and a practical challenge. The listed duration covers the lesson itself; allow extra time to complete the exercise and final project. Study at your own pace and spread the work across as many sessions as you need.",
           },
           {
             q: "Can I see a lesson before paying?",

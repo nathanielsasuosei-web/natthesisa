@@ -31,7 +31,20 @@ export default function CourseCard({ course, progress, locked = false, hrefBase 
       data-visual={showVisual}
       className="open-course-card group flex h-full flex-col overflow-hidden rounded-[22px] border border-[#e8e5ed] bg-white shadow-[0_8px_30px_rgba(28,23,43,.04)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_18px_45px_rgba(45,32,87,.11)]"
     >
-      {showVisual && <CourseVisual course={course} className="h-40" />}
+      {showVisual && (course.cover ? (
+        <div className="h-40 overflow-hidden bg-[#efedf4]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={course.cover}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          />
+        </div>
+      ) : (
+        <CourseVisual course={course} className="h-40" />
+      ))}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center justify-between gap-3">
           <span className="text-[11px] font-bold uppercase tracking-[.12em] text-[#6d4aff]">{course.category}</span>
