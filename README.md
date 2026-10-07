@@ -260,6 +260,15 @@ yet. `videos:build` uploads each finished file to the configured storage as it
 goes, so rebuilding *with the production variables set* is what fills the
 production bucket.
 
+The hands-off way to fill the production bucket is the **Lesson videos**
+workflow (`.github/workflows/lesson-videos.yml`): add the three storage values
+as repository secrets under Settings → Secrets and variables → Actions
+(`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_BUCKET`), then
+Actions → Lesson videos → **Run workflow**. GitHub's runner synthesizes,
+renders and uploads all 81 videos (about an hour), verifies the bucket, and
+commits the updated manifests back. Redeploy afterwards so the site serves the
+new manifest.
+
 To add a course's worth of lesson videos: write
 `content/lesson-videos/<courseId>.json` with one entry per lesson id (four
 paragraphs each — the lesson's own text is the best source), synthesize the
