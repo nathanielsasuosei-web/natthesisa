@@ -412,5 +412,2845 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     "approximateTiming": false,
     "voice": "voice-00",
     "generatedAt": "2026-10-07T03:58:29.154Z"
+  },
+  "data-structures": {
+    "lessonId": "data-structures",
+    "courseId": "computer-science-essentials",
+    "title": "Data structures",
+    "durationSeconds": 112.25,
+    "narrationSeconds": 78.45,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__data-structures.mp4",
+    "name": "Data structures — video walkthrough.mp4",
+    "size": 2708076,
+    "poster": {
+      "key": "lessonvideo__data-structures--poster.jpg",
+      "name": "Data structures — poster.jpg",
+      "size": 43154,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 17.05
+      },
+      {
+        "label": "Worked example",
+        "start": 38.36
+      },
+      {
+        "label": "Your turn",
+        "start": 75.72
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:05:36.221Z"
+  },
+  "memory-processes": {
+    "lessonId": "memory-processes",
+    "courseId": "computer-science-essentials",
+    "title": "Memory, programs & processes",
+    "durationSeconds": 110.42,
+    "narrationSeconds": 76.62,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__memory-processes.mp4",
+    "name": "Memory, programs & processes — video walkthrough.mp4",
+    "size": 2613231,
+    "poster": {
+      "key": "lessonvideo__memory-processes--poster.jpg",
+      "name": "Memory, programs & processes — poster.jpg",
+      "size": 45671,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 15.01
+      },
+      {
+        "label": "Worked example",
+        "start": 38.22
+      },
+      {
+        "label": "Your turn",
+        "start": 76.29
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:05:35.842Z"
+  },
+  "networks-internet": {
+    "lessonId": "networks-internet",
+    "courseId": "computer-science-essentials",
+    "title": "Networks & the internet",
+    "durationSeconds": 108.28,
+    "narrationSeconds": 74.48,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__networks-internet.mp4",
+    "name": "Networks & the internet — video walkthrough.mp4",
+    "size": 2600625,
+    "poster": {
+      "key": "lessonvideo__networks-internet--poster.jpg",
+      "name": "Networks & the internet — poster.jpg",
+      "size": 49130,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.43
+      },
+      {
+        "label": "Worked example",
+        "start": 39.38
+      },
+      {
+        "label": "Your turn",
+        "start": 78.72
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:06:09.657Z"
+  },
+  "values-variables": {
+    "lessonId": "values-variables",
+    "courseId": "javascript-zero-to-builder",
+    "title": "Values & variables",
+    "durationSeconds": 115.12,
+    "narrationSeconds": 81.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__values-variables.mp4",
+    "name": "Values & variables — video walkthrough.mp4",
+    "size": 2785741,
+    "poster": {
+      "key": "lessonvideo__values-variables--poster.jpg",
+      "name": "Values & variables — poster.jpg",
+      "size": 43106,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 20.2
+      },
+      {
+        "label": "Worked example",
+        "start": 43.81
+      },
+      {
+        "label": "Your turn",
+        "start": 83.69
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:06:11.646Z"
+  },
+  "conditions-loops": {
+    "lessonId": "conditions-loops",
+    "courseId": "javascript-zero-to-builder",
+    "title": "Conditions & loops",
+    "durationSeconds": 108.46,
+    "narrationSeconds": 74.66,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__conditions-loops.mp4",
+    "name": "Conditions & loops — video walkthrough.mp4",
+    "size": 2527279,
+    "poster": {
+      "key": "lessonvideo__conditions-loops--poster.jpg",
+      "name": "Conditions & loops — poster.jpg",
+      "size": 41238,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.07
+      },
+      {
+        "label": "Worked example",
+        "start": 37.83
+      },
+      {
+        "label": "Your turn",
+        "start": 77.83
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:06:40.578Z"
+  },
+  "functions-scope": {
+    "lessonId": "functions-scope",
+    "courseId": "javascript-zero-to-builder",
+    "title": "Functions & scope",
+    "durationSeconds": 106.16,
+    "narrationSeconds": 72.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__functions-scope.mp4",
+    "name": "Functions & scope — video walkthrough.mp4",
+    "size": 2549902,
+    "poster": {
+      "key": "lessonvideo__functions-scope--poster.jpg",
+      "name": "Functions & scope — poster.jpg",
+      "size": 42541,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 15.01
+      },
+      {
+        "label": "Worked example",
+        "start": 33.59
+      },
+      {
+        "label": "Your turn",
+        "start": 77.99
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:06:44.285Z"
+  },
+  "arrays-objects": {
+    "lessonId": "arrays-objects",
+    "courseId": "javascript-zero-to-builder",
+    "title": "Arrays & objects",
+    "durationSeconds": 109.27,
+    "narrationSeconds": 75.47,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__arrays-objects.mp4",
+    "name": "Arrays & objects — video walkthrough.mp4",
+    "size": 2574033,
+    "poster": {
+      "key": "lessonvideo__arrays-objects--poster.jpg",
+      "name": "Arrays & objects — poster.jpg",
+      "size": 44620,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.65
+      },
+      {
+        "label": "Worked example",
+        "start": 34.04
+      },
+      {
+        "label": "Your turn",
+        "start": 79.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:07:15.707Z"
+  },
+  "dom-events": {
+    "lessonId": "dom-events",
+    "courseId": "javascript-zero-to-builder",
+    "title": "The DOM & events",
+    "durationSeconds": 110.16,
+    "narrationSeconds": 76.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__dom-events.mp4",
+    "name": "The DOM & events — video walkthrough.mp4",
+    "size": 2896999,
+    "poster": {
+      "key": "lessonvideo__dom-events--poster.jpg",
+      "name": "The DOM & events — poster.jpg",
+      "size": 42594,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.89
+      },
+      {
+        "label": "Worked example",
+        "start": 36.11
+      },
+      {
+        "label": "Your turn",
+        "start": 81.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:07:16.594Z"
+  },
+  "async-apis": {
+    "lessonId": "async-apis",
+    "courseId": "javascript-zero-to-builder",
+    "title": "Async JavaScript & APIs",
+    "durationSeconds": 115.12,
+    "narrationSeconds": 81.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__async-apis.mp4",
+    "name": "Async JavaScript & APIs — video walkthrough.mp4",
+    "size": 3026605,
+    "poster": {
+      "key": "lessonvideo__async-apis--poster.jpg",
+      "name": "Async JavaScript & APIs — poster.jpg",
+      "size": 47124,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.9
+      },
+      {
+        "label": "Worked example",
+        "start": 39.12
+      },
+      {
+        "label": "Your turn",
+        "start": 83.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:07:49.103Z"
+  },
+  "ship-javascript-app": {
+    "lessonId": "ship-javascript-app",
+    "courseId": "javascript-zero-to-builder",
+    "title": "Build & ship the task planner",
+    "durationSeconds": 109.61,
+    "narrationSeconds": 75.81,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ship-javascript-app.mp4",
+    "name": "Build & ship the task planner — video walkthrough.mp4",
+    "size": 2641203,
+    "poster": {
+      "key": "lessonvideo__ship-javascript-app--poster.jpg",
+      "name": "Build & ship the task planner — poster.jpg",
+      "size": 49098,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.15
+      },
+      {
+        "label": "Worked example",
+        "start": 35.54
+      },
+      {
+        "label": "Your turn",
+        "start": 73.92
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:07:48.123Z"
+  },
+  "react-mental-model": {
+    "lessonId": "react-mental-model",
+    "courseId": "react-production-apps",
+    "title": "The React mental model",
+    "durationSeconds": 115.38,
+    "narrationSeconds": 81.58,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__react-mental-model.mp4",
+    "name": "The React mental model — video walkthrough.mp4",
+    "size": 2747959,
+    "poster": {
+      "key": "lessonvideo__react-mental-model--poster.jpg",
+      "name": "The React mental model — poster.jpg",
+      "size": 45475,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 17.34
+      },
+      {
+        "label": "Worked example",
+        "start": 42.31
+      },
+      {
+        "label": "Your turn",
+        "start": 79.77
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:21:14.248Z"
+  },
+  "props-composition": {
+    "lessonId": "props-composition",
+    "courseId": "react-production-apps",
+    "title": "Props & composition",
+    "durationSeconds": 111.1,
+    "narrationSeconds": 77.3,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__props-composition.mp4",
+    "name": "Props & composition — video walkthrough.mp4",
+    "size": 2685815,
+    "poster": {
+      "key": "lessonvideo__props-composition--poster.jpg",
+      "name": "Props & composition — poster.jpg",
+      "size": 48158,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12
+      },
+      {
+        "label": "Worked example",
+        "start": 42.17
+      },
+      {
+        "label": "Your turn",
+        "start": 80.83
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:21:13.802Z"
+  },
+  "state-events": {
+    "lessonId": "state-events",
+    "courseId": "react-production-apps",
+    "title": "State & events",
+    "durationSeconds": 106.11,
+    "narrationSeconds": 72.31,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__state-events.mp4",
+    "name": "State & events — video walkthrough.mp4",
+    "size": 2556765,
+    "poster": {
+      "key": "lessonvideo__state-events--poster.jpg",
+      "name": "State & events — poster.jpg",
+      "size": 42236,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.41
+      },
+      {
+        "label": "Worked example",
+        "start": 34.46
+      },
+      {
+        "label": "Your turn",
+        "start": 78.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:21:49.515Z"
+  },
+  "forms-validation": {
+    "lessonId": "forms-validation",
+    "courseId": "react-production-apps",
+    "title": "Forms & validation",
+    "durationSeconds": 107.33,
+    "narrationSeconds": 73.53,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__forms-validation.mp4",
+    "name": "Forms & validation — video walkthrough.mp4",
+    "size": 2594716,
+    "poster": {
+      "key": "lessonvideo__forms-validation--poster.jpg",
+      "name": "Forms & validation — poster.jpg",
+      "size": 41389,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.44
+      },
+      {
+        "label": "Worked example",
+        "start": 32.98
+      },
+      {
+        "label": "Your turn",
+        "start": 76.98
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:21:47.167Z"
+  },
+  "data-fetching": {
+    "lessonId": "data-fetching",
+    "courseId": "react-production-apps",
+    "title": "Data fetching states",
+    "durationSeconds": 116.9,
+    "narrationSeconds": 83.1,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__data-fetching.mp4",
+    "name": "Data fetching states — video walkthrough.mp4",
+    "size": 2816393,
+    "poster": {
+      "key": "lessonvideo__data-fetching--poster.jpg",
+      "name": "Data fetching states — poster.jpg",
+      "size": 44276,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.45
+      },
+      {
+        "label": "Worked example",
+        "start": 44.21
+      },
+      {
+        "label": "Your turn",
+        "start": 84.72
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:22:25.073Z"
+  },
+  "routing-architecture": {
+    "lessonId": "routing-architecture",
+    "courseId": "react-production-apps",
+    "title": "Routing & app architecture",
+    "durationSeconds": 108.25,
+    "narrationSeconds": 74.45,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__routing-architecture.mp4",
+    "name": "Routing & app architecture — video walkthrough.mp4",
+    "size": 2627989,
+    "poster": {
+      "key": "lessonvideo__routing-architecture--poster.jpg",
+      "name": "Routing & app architecture — poster.jpg",
+      "size": 47472,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.22
+      },
+      {
+        "label": "Worked example",
+        "start": 39.59
+      },
+      {
+        "label": "Your turn",
+        "start": 77.8
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:22:25.454Z"
+  },
+  "ship-react-dashboard": {
+    "lessonId": "ship-react-dashboard",
+    "courseId": "react-production-apps",
+    "title": "Ship the analytics dashboard",
+    "durationSeconds": 116.95,
+    "narrationSeconds": 83.15,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ship-react-dashboard.mp4",
+    "name": "Ship the analytics dashboard — video walkthrough.mp4",
+    "size": 2708511,
+    "poster": {
+      "key": "lessonvideo__ship-react-dashboard--poster.jpg",
+      "name": "Ship the analytics dashboard — poster.jpg",
+      "size": 49286,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.74
+      },
+      {
+        "label": "Worked example",
+        "start": 37.31
+      },
+      {
+        "label": "Your turn",
+        "start": 84.71
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:23:03.553Z"
+  },
+  "native-vs-web": {
+    "lessonId": "native-vs-web",
+    "courseId": "mobile-apps-react-native",
+    "title": "Native apps vs the web",
+    "durationSeconds": 110.21,
+    "narrationSeconds": 76.41,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__native-vs-web.mp4",
+    "name": "Native apps vs the web — video walkthrough.mp4",
+    "size": 2725118,
+    "poster": {
+      "key": "lessonvideo__native-vs-web--poster.jpg",
+      "name": "Native apps vs the web — poster.jpg",
+      "size": 46035,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.41
+      },
+      {
+        "label": "Worked example",
+        "start": 35.95
+      },
+      {
+        "label": "Your turn",
+        "start": 80.62
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:23:02.827Z"
+  },
+  "layouts-styling-native": {
+    "lessonId": "layouts-styling-native",
+    "courseId": "mobile-apps-react-native",
+    "title": "Layouts & styling",
+    "durationSeconds": 115.41,
+    "narrationSeconds": 81.61,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__layouts-styling-native.mp4",
+    "name": "Layouts & styling — video walkthrough.mp4",
+    "size": 2744805,
+    "poster": {
+      "key": "lessonvideo__layouts-styling-native--poster.jpg",
+      "name": "Layouts & styling — poster.jpg",
+      "size": 43019,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.07
+      },
+      {
+        "label": "Worked example",
+        "start": 40.42
+      },
+      {
+        "label": "Your turn",
+        "start": 85.81
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:23:40.474Z"
+  },
+  "mobile-navigation": {
+    "lessonId": "mobile-navigation",
+    "courseId": "mobile-apps-react-native",
+    "title": "Navigation patterns",
+    "durationSeconds": 107.05,
+    "narrationSeconds": 73.25,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__mobile-navigation.mp4",
+    "name": "Navigation patterns — video walkthrough.mp4",
+    "size": 2495863,
+    "poster": {
+      "key": "lessonvideo__mobile-navigation--poster.jpg",
+      "name": "Navigation patterns — poster.jpg",
+      "size": 43193,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.45
+      },
+      {
+        "label": "Worked example",
+        "start": 36.33
+      },
+      {
+        "label": "Your turn",
+        "start": 78.49
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:23:38.784Z"
+  },
+  "device-storage": {
+    "lessonId": "device-storage",
+    "courseId": "mobile-apps-react-native",
+    "title": "State & device storage",
+    "durationSeconds": 109.11,
+    "narrationSeconds": 75.31,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__device-storage.mp4",
+    "name": "State & device storage — video walkthrough.mp4",
+    "size": 2564139,
+    "poster": {
+      "key": "lessonvideo__device-storage--poster.jpg",
+      "name": "State & device storage — poster.jpg",
+      "size": 45597,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.52
+      },
+      {
+        "label": "Worked example",
+        "start": 38.34
+      },
+      {
+        "label": "Your turn",
+        "start": 78.34
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:31:22.298Z"
+  },
+  "mobile-interactions": {
+    "lessonId": "mobile-interactions",
+    "courseId": "mobile-apps-react-native",
+    "title": "Gestures, feedback & polish",
+    "durationSeconds": 113.11,
+    "narrationSeconds": 79.31,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__mobile-interactions.mp4",
+    "name": "Gestures, feedback & polish — video walkthrough.mp4",
+    "size": 2708851,
+    "poster": {
+      "key": "lessonvideo__mobile-interactions--poster.jpg",
+      "name": "Gestures, feedback & polish — poster.jpg",
+      "size": 49053,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.89
+      },
+      {
+        "label": "Worked example",
+        "start": 39.36
+      },
+      {
+        "label": "Your turn",
+        "start": 83.07
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:31:23.375Z"
+  },
+  "release-mobile-app": {
+    "lessonId": "release-mobile-app",
+    "courseId": "mobile-apps-react-native",
+    "title": "Test & release",
+    "durationSeconds": 103.26,
+    "narrationSeconds": 69.46,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__release-mobile-app.mp4",
+    "name": "Test & release — video walkthrough.mp4",
+    "size": 2289875,
+    "poster": {
+      "key": "lessonvideo__release-mobile-app--poster.jpg",
+      "name": "Test & release — poster.jpg",
+      "size": 39164,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.23
+      },
+      {
+        "label": "Worked example",
+        "start": 34.03
+      },
+      {
+        "label": "Your turn",
+        "start": 75.87
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:31:56.096Z"
+  },
+  "server-runtime": {
+    "lessonId": "server-runtime",
+    "courseId": "backend-node-apis",
+    "title": "Node.js & the server runtime",
+    "durationSeconds": 109.79,
+    "narrationSeconds": 75.99,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__server-runtime.mp4",
+    "name": "Node.js & the server runtime — video walkthrough.mp4",
+    "size": 2667510,
+    "poster": {
+      "key": "lessonvideo__server-runtime--poster.jpg",
+      "name": "Node.js & the server runtime — poster.jpg",
+      "size": 50960,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.76
+      },
+      {
+        "label": "Worked example",
+        "start": 33.79
+      },
+      {
+        "label": "Your turn",
+        "start": 79.62
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:31:57.791Z"
+  },
+  "http-rest": {
+    "lessonId": "http-rest",
+    "courseId": "backend-node-apis",
+    "title": "HTTP & RESTful routes",
+    "durationSeconds": 107.2,
+    "narrationSeconds": 73.4,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__http-rest.mp4",
+    "name": "HTTP & RESTful routes — video walkthrough.mp4",
+    "size": 2478224,
+    "poster": {
+      "key": "lessonvideo__http-rest--poster.jpg",
+      "name": "HTTP & RESTful routes — poster.jpg",
+      "size": 45581,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.37
+      },
+      {
+        "label": "Worked example",
+        "start": 34.95
+      },
+      {
+        "label": "Your turn",
+        "start": 78.88
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:32:30.829Z"
+  },
+  "validation-errors": {
+    "lessonId": "validation-errors",
+    "courseId": "backend-node-apis",
+    "title": "Validation & error handling",
+    "durationSeconds": 108.12,
+    "narrationSeconds": 74.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__validation-errors.mp4",
+    "name": "Validation & error handling — video walkthrough.mp4",
+    "size": 2571842,
+    "poster": {
+      "key": "lessonvideo__validation-errors--poster.jpg",
+      "name": "Validation & error handling — poster.jpg",
+      "size": 48070,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.45
+      },
+      {
+        "label": "Worked example",
+        "start": 33.14
+      },
+      {
+        "label": "Your turn",
+        "start": 76.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:32:33.472Z"
+  },
+  "database-modeling": {
+    "lessonId": "database-modeling",
+    "courseId": "backend-node-apis",
+    "title": "Database modeling",
+    "durationSeconds": 114.88,
+    "narrationSeconds": 81.08,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__database-modeling.mp4",
+    "name": "Database modeling — video walkthrough.mp4",
+    "size": 2670731,
+    "poster": {
+      "key": "lessonvideo__database-modeling--poster.jpg",
+      "name": "Database modeling — poster.jpg",
+      "size": 45052,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.98
+      },
+      {
+        "label": "Worked example",
+        "start": 37.93
+      },
+      {
+        "label": "Your turn",
+        "start": 78.57
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:33:07.952Z"
+  },
+  "auth-permissions": {
+    "lessonId": "auth-permissions",
+    "courseId": "backend-node-apis",
+    "title": "Authentication & permissions",
+    "durationSeconds": 104.28,
+    "narrationSeconds": 70.48,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__auth-permissions.mp4",
+    "name": "Authentication & permissions — video walkthrough.mp4",
+    "size": 2633515,
+    "poster": {
+      "key": "lessonvideo__auth-permissions--poster.jpg",
+      "name": "Authentication & permissions — poster.jpg",
+      "size": 50881,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.57
+      },
+      {
+        "label": "Worked example",
+        "start": 35.32
+      },
+      {
+        "label": "Your turn",
+        "start": 75.1
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:33:09.072Z"
+  },
+  "test-deploy-api": {
+    "lessonId": "test-deploy-api",
+    "courseId": "backend-node-apis",
+    "title": "Test & deploy the API",
+    "durationSeconds": 109.01,
+    "narrationSeconds": 75.21,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__test-deploy-api.mp4",
+    "name": "Test & deploy the API — video walkthrough.mp4",
+    "size": 2810882,
+    "poster": {
+      "key": "lessonvideo__test-deploy-api--poster.jpg",
+      "name": "Test & deploy the API — poster.jpg",
+      "size": 45950,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.36
+      },
+      {
+        "label": "Worked example",
+        "start": 32.22
+      },
+      {
+        "label": "Your turn",
+        "start": 79.68
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:33:44.687Z"
+  },
+  "big-o-not-scary": {
+    "lessonId": "big-o-not-scary",
+    "courseId": "data-structures-algorithms",
+    "title": "Big-O without the fear",
+    "durationSeconds": 109.5,
+    "narrationSeconds": 75.7,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__big-o-not-scary.mp4",
+    "name": "Big-O without the fear — video walkthrough.mp4",
+    "size": 3131882,
+    "poster": {
+      "key": "lessonvideo__big-o-not-scary--poster.jpg",
+      "name": "Big-O without the fear — poster.jpg",
+      "size": 54420,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.67
+      },
+      {
+        "label": "Worked example",
+        "start": 37.96
+      },
+      {
+        "label": "Your turn",
+        "start": 80.16
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:33:45.903Z"
+  },
+  "arrays-and-two-pointers": {
+    "lessonId": "arrays-and-two-pointers",
+    "courseId": "data-structures-algorithms",
+    "title": "Arrays, strings and two pointers",
+    "durationSeconds": 107.78,
+    "narrationSeconds": 73.98,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__arrays-and-two-pointers.mp4",
+    "name": "Arrays, strings and two pointers — video walkthrough.mp4",
+    "size": 3036052,
+    "poster": {
+      "key": "lessonvideo__arrays-and-two-pointers--poster.jpg",
+      "name": "Arrays, strings and two pointers — poster.jpg",
+      "size": 56586,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.07
+      },
+      {
+        "label": "Worked example",
+        "start": 39.21
+      },
+      {
+        "label": "Your turn",
+        "start": 74.22
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:47:14.929Z"
+  },
+  "maps-and-sets": {
+    "lessonId": "maps-and-sets",
+    "courseId": "data-structures-algorithms",
+    "title": "Maps and sets: looking things up in one step",
+    "durationSeconds": 110.26,
+    "narrationSeconds": 76.46,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__maps-and-sets.mp4",
+    "name": "Maps and sets: looking things up in one step — video walkthrough.mp4",
+    "size": 2963575,
+    "poster": {
+      "key": "lessonvideo__maps-and-sets--poster.jpg",
+      "name": "Maps and sets: looking things up in one step — poster.jpg",
+      "size": 66175,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.62
+      },
+      {
+        "label": "Worked example",
+        "start": 38.55
+      },
+      {
+        "label": "Your turn",
+        "start": 80.1
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:47:15.287Z"
+  },
+  "sorting-and-searching": {
+    "lessonId": "sorting-and-searching",
+    "courseId": "data-structures-algorithms",
+    "title": "Sorting and searching",
+    "durationSeconds": 110.73,
+    "narrationSeconds": 76.93,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__sorting-and-searching.mp4",
+    "name": "Sorting and searching — video walkthrough.mp4",
+    "size": 3079418,
+    "poster": {
+      "key": "lessonvideo__sorting-and-searching--poster.jpg",
+      "name": "Sorting and searching — poster.jpg",
+      "size": 54028,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.58
+      },
+      {
+        "label": "Worked example",
+        "start": 41.15
+      },
+      {
+        "label": "Your turn",
+        "start": 83.08
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:47:51.366Z"
+  },
+  "recursion-and-memoization": {
+    "lessonId": "recursion-and-memoization",
+    "courseId": "data-structures-algorithms",
+    "title": "Recursion and memoization",
+    "durationSeconds": 106.92,
+    "narrationSeconds": 73.12,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__recursion-and-memoization.mp4",
+    "name": "Recursion and memoization — video walkthrough.mp4",
+    "size": 2898507,
+    "poster": {
+      "key": "lessonvideo__recursion-and-memoization--poster.jpg",
+      "name": "Recursion and memoization — poster.jpg",
+      "size": 58856,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.45
+      },
+      {
+        "label": "Worked example",
+        "start": 39.93
+      },
+      {
+        "label": "Your turn",
+        "start": 80.31
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:47:50.514Z"
+  },
+  "trees-graphs-traversal": {
+    "lessonId": "trees-graphs-traversal",
+    "courseId": "data-structures-algorithms",
+    "title": "Trees, graphs and traversal",
+    "durationSeconds": 111.62,
+    "narrationSeconds": 77.82,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__trees-graphs-traversal.mp4",
+    "name": "Trees, graphs and traversal — video walkthrough.mp4",
+    "size": 3189001,
+    "poster": {
+      "key": "lessonvideo__trees-graphs-traversal--poster.jpg",
+      "name": "Trees, graphs and traversal — poster.jpg",
+      "size": 59064,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.71
+      },
+      {
+        "label": "Worked example",
+        "start": 35.52
+      },
+      {
+        "label": "Your turn",
+        "start": 76.27
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:48:28.572Z"
+  },
+  "tables-and-keys": {
+    "lessonId": "tables-and-keys",
+    "courseId": "databases-and-sql",
+    "title": "Tables, rows and keys",
+    "durationSeconds": 115.54,
+    "narrationSeconds": 81.74,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__tables-and-keys.mp4",
+    "name": "Tables, rows and keys — video walkthrough.mp4",
+    "size": 3181322,
+    "poster": {
+      "key": "lessonvideo__tables-and-keys--poster.jpg",
+      "name": "Tables, rows and keys — poster.jpg",
+      "size": 56739,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 19.98
+      },
+      {
+        "label": "Worked example",
+        "start": 35.84
+      },
+      {
+        "label": "Your turn",
+        "start": 78.03
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:48:28.646Z"
+  },
+  "select-where-order": {
+    "lessonId": "select-where-order",
+    "courseId": "databases-and-sql",
+    "title": "SELECT, WHERE, ORDER BY",
+    "durationSeconds": 114.86,
+    "narrationSeconds": 81.06,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__select-where-order.mp4",
+    "name": "SELECT, WHERE, ORDER BY — video walkthrough.mp4",
+    "size": 2694006,
+    "poster": {
+      "key": "lessonvideo__select-where-order--poster.jpg",
+      "name": "SELECT, WHERE, ORDER BY — poster.jpg",
+      "size": 50595,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.63
+      },
+      {
+        "label": "Worked example",
+        "start": 38.57
+      },
+      {
+        "label": "Your turn",
+        "start": 86.19
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:49:05.510Z"
+  },
+  "joins": {
+    "lessonId": "joins",
+    "courseId": "databases-and-sql",
+    "title": "Joins: asking across tables",
+    "durationSeconds": 113.6,
+    "narrationSeconds": 79.8,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__joins.mp4",
+    "name": "Joins: asking across tables — video walkthrough.mp4",
+    "size": 3006944,
+    "poster": {
+      "key": "lessonvideo__joins--poster.jpg",
+      "name": "Joins: asking across tables — poster.jpg",
+      "size": 54180,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.71
+      },
+      {
+        "label": "Worked example",
+        "start": 40.24
+      },
+      {
+        "label": "Your turn",
+        "start": 84.58
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:49:05.465Z"
+  },
+  "insert-update-delete": {
+    "lessonId": "insert-update-delete",
+    "courseId": "databases-and-sql",
+    "title": "Insert, update and delete safely",
+    "durationSeconds": 108.54,
+    "narrationSeconds": 74.74,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__insert-update-delete.mp4",
+    "name": "Insert, update and delete safely — video walkthrough.mp4",
+    "size": 2831829,
+    "poster": {
+      "key": "lessonvideo__insert-update-delete--poster.jpg",
+      "name": "Insert, update and delete safely — poster.jpg",
+      "size": 53565,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.51
+      },
+      {
+        "label": "Worked example",
+        "start": 34.93
+      },
+      {
+        "label": "Your turn",
+        "start": 77.25
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:49:40.626Z"
+  },
+  "indexes-and-explain": {
+    "lessonId": "indexes-and-explain",
+    "courseId": "databases-and-sql",
+    "title": "Indexes and EXPLAIN",
+    "durationSeconds": 106.24,
+    "narrationSeconds": 72.44,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__indexes-and-explain.mp4",
+    "name": "Indexes and EXPLAIN — video walkthrough.mp4",
+    "size": 2706750,
+    "poster": {
+      "key": "lessonvideo__indexes-and-explain--poster.jpg",
+      "name": "Indexes and EXPLAIN — poster.jpg",
+      "size": 55427,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.63
+      },
+      {
+        "label": "Worked example",
+        "start": 35.16
+      },
+      {
+        "label": "Your turn",
+        "start": 73.36
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:49:39.591Z"
+  },
+  "transactions-and-constraints": {
+    "lessonId": "transactions-and-constraints",
+    "courseId": "databases-and-sql",
+    "title": "Transactions and constraints",
+    "durationSeconds": 107.83,
+    "narrationSeconds": 74.03,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__transactions-and-constraints.mp4",
+    "name": "Transactions and constraints — video walkthrough.mp4",
+    "size": 2885139,
+    "poster": {
+      "key": "lessonvideo__transactions-and-constraints--poster.jpg",
+      "name": "Transactions and constraints — poster.jpg",
+      "size": 60942,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.36
+      },
+      {
+        "label": "Worked example",
+        "start": 35.81
+      },
+      {
+        "label": "Your turn",
+        "start": 78.9
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:53:32.930Z"
+  },
+  "git-branches-and-commits": {
+    "lessonId": "git-branches-and-commits",
+    "courseId": "software-engineering-practices",
+    "title": "Branches, commits and pull requests",
+    "durationSeconds": 108.98,
+    "narrationSeconds": 75.18,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__git-branches-and-commits.mp4",
+    "name": "Branches, commits and pull requests — video walkthrough.mp4",
+    "size": 2908881,
+    "poster": {
+      "key": "lessonvideo__git-branches-and-commits--poster.jpg",
+      "name": "Branches, commits and pull requests — poster.jpg",
+      "size": 56015,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.26
+      },
+      {
+        "label": "Worked example",
+        "start": 35.53
+      },
+      {
+        "label": "Your turn",
+        "start": 74.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:53:31.773Z"
+  },
+  "code-review": {
+    "lessonId": "code-review",
+    "courseId": "software-engineering-practices",
+    "title": "Code review that helps",
+    "durationSeconds": 105.19,
+    "narrationSeconds": 71.39,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__code-review.mp4",
+    "name": "Code review that helps — video walkthrough.mp4",
+    "size": 2711254,
+    "poster": {
+      "key": "lessonvideo__code-review--poster.jpg",
+      "name": "Code review that helps — poster.jpg",
+      "size": 54316,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.31
+      },
+      {
+        "label": "Worked example",
+        "start": 33.97
+      },
+      {
+        "label": "Your turn",
+        "start": 73.79
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:54:06.500Z"
+  },
+  "readable-code": {
+    "lessonId": "readable-code",
+    "courseId": "software-engineering-practices",
+    "title": "Naming and structure that survives",
+    "durationSeconds": 103,
+    "narrationSeconds": 69.2,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__readable-code.mp4",
+    "name": "Naming and structure that survives — video walkthrough.mp4",
+    "size": 2747536,
+    "poster": {
+      "key": "lessonvideo__readable-code--poster.jpg",
+      "name": "Naming and structure that survives — poster.jpg",
+      "size": 53257,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.13
+      },
+      {
+        "label": "Worked example",
+        "start": 32.77
+      },
+      {
+        "label": "Your turn",
+        "start": 74.53
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:54:08.364Z"
+  },
+  "unit-tests": {
+    "lessonId": "unit-tests",
+    "courseId": "software-engineering-practices",
+    "title": "Tests that earn their keep",
+    "durationSeconds": 104.59,
+    "narrationSeconds": 70.79,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__unit-tests.mp4",
+    "name": "Tests that earn their keep — video walkthrough.mp4",
+    "size": 2764472,
+    "poster": {
+      "key": "lessonvideo__unit-tests--poster.jpg",
+      "name": "Tests that earn their keep — poster.jpg",
+      "size": 52164,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.33
+      },
+      {
+        "label": "Worked example",
+        "start": 36.2
+      },
+      {
+        "label": "Your turn",
+        "start": 77.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:54:41.712Z"
+  },
+  "ci-pipeline": {
+    "lessonId": "ci-pipeline",
+    "courseId": "software-engineering-practices",
+    "title": "A pipeline on every push",
+    "durationSeconds": 103.65,
+    "narrationSeconds": 69.85,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ci-pipeline.mp4",
+    "name": "A pipeline on every push — video walkthrough.mp4",
+    "size": 2658366,
+    "poster": {
+      "key": "lessonvideo__ci-pipeline--poster.jpg",
+      "name": "A pipeline on every push — poster.jpg",
+      "size": 55457,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.92
+      },
+      {
+        "label": "Worked example",
+        "start": 31.06
+      },
+      {
+        "label": "Your turn",
+        "start": 71.58
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:54:43.513Z"
+  },
+  "planning-and-issues": {
+    "lessonId": "planning-and-issues",
+    "courseId": "software-engineering-practices",
+    "title": "Issues, scope and shipping small",
+    "durationSeconds": 102.14,
+    "narrationSeconds": 68.34,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__planning-and-issues.mp4",
+    "name": "Issues, scope and shipping small — video walkthrough.mp4",
+    "size": 2700180,
+    "poster": {
+      "key": "lessonvideo__planning-and-issues--poster.jpg",
+      "name": "Issues, scope and shipping small — poster.jpg",
+      "size": 53572,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.97
+      },
+      {
+        "label": "Worked example",
+        "start": 32.94
+      },
+      {
+        "label": "Your turn",
+        "start": 74.53
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:55:14.301Z"
+  },
+  "clients-and-apis": {
+    "lessonId": "clients-and-apis",
+    "courseId": "system-design-architecture",
+    "title": "Clients, APIs and contracts",
+    "durationSeconds": 111.8,
+    "narrationSeconds": 78,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__clients-and-apis.mp4",
+    "name": "Clients, APIs and contracts — video walkthrough.mp4",
+    "size": 3066606,
+    "poster": {
+      "key": "lessonvideo__clients-and-apis--poster.jpg",
+      "name": "Clients, APIs and contracts — poster.jpg",
+      "size": 60058,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 16.12
+      },
+      {
+        "label": "Worked example",
+        "start": 39.62
+      },
+      {
+        "label": "Your turn",
+        "start": 85.49
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:55:20.815Z"
+  },
+  "data-at-scale": {
+    "lessonId": "data-at-scale",
+    "courseId": "system-design-architecture",
+    "title": "Choosing where data lives",
+    "durationSeconds": 108.9,
+    "narrationSeconds": 75.1,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__data-at-scale.mp4",
+    "name": "Choosing where data lives — video walkthrough.mp4",
+    "size": 3056546,
+    "poster": {
+      "key": "lessonvideo__data-at-scale--poster.jpg",
+      "name": "Choosing where data lives — poster.jpg",
+      "size": 61620,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.96
+      },
+      {
+        "label": "Worked example",
+        "start": 34.99
+      },
+      {
+        "label": "Your turn",
+        "start": 78.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:55:50.304Z"
+  },
+  "caches-and-queues": {
+    "lessonId": "caches-and-queues",
+    "courseId": "system-design-architecture",
+    "title": "Caches, queues and eventual work",
+    "durationSeconds": 110.5,
+    "narrationSeconds": 76.7,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__caches-and-queues.mp4",
+    "name": "Caches, queues and eventual work — video walkthrough.mp4",
+    "size": 3195834,
+    "poster": {
+      "key": "lessonvideo__caches-and-queues--poster.jpg",
+      "name": "Caches, queues and eventual work — poster.jpg",
+      "size": 58970,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 16.16
+      },
+      {
+        "label": "Worked example",
+        "start": 39.04
+      },
+      {
+        "label": "Your turn",
+        "start": 80.04
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:55:55.053Z"
+  },
+  "reliability-and-failure": {
+    "lessonId": "reliability-and-failure",
+    "courseId": "system-design-architecture",
+    "title": "Designing for failure",
+    "durationSeconds": 112.22,
+    "narrationSeconds": 78.42,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__reliability-and-failure.mp4",
+    "name": "Designing for failure — video walkthrough.mp4",
+    "size": 3118891,
+    "poster": {
+      "key": "lessonvideo__reliability-and-failure--poster.jpg",
+      "name": "Designing for failure — poster.jpg",
+      "size": 52954,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.99
+      },
+      {
+        "label": "Worked example",
+        "start": 39.59
+      },
+      {
+        "label": "Your turn",
+        "start": 81.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:59:16.602Z"
+  },
+  "security-and-auth": {
+    "lessonId": "security-and-auth",
+    "courseId": "system-design-architecture",
+    "title": "Authentication, authorisation and the obvious holes",
+    "durationSeconds": 108.25,
+    "narrationSeconds": 74.45,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__security-and-auth.mp4",
+    "name": "Authentication, authorisation and the obvious holes — video walkthrough.mp4",
+    "size": 3070248,
+    "poster": {
+      "key": "lessonvideo__security-and-auth--poster.jpg",
+      "name": "Authentication, authorisation and the obvious holes — poster.jpg",
+      "size": 73545,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.75
+      },
+      {
+        "label": "Worked example",
+        "start": 32.2
+      },
+      {
+        "label": "Your turn",
+        "start": 73.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:59:15.329Z"
+  },
+  "trade-offs-and-adrs": {
+    "lessonId": "trade-offs-and-adrs",
+    "courseId": "system-design-architecture",
+    "title": "Trade-offs, and writing them down",
+    "durationSeconds": 114.23,
+    "narrationSeconds": 80.43,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__trade-offs-and-adrs.mp4",
+    "name": "Trade-offs, and writing them down — video walkthrough.mp4",
+    "size": 3256051,
+    "poster": {
+      "key": "lessonvideo__trade-offs-and-adrs--poster.jpg",
+      "name": "Trade-offs, and writing them down — poster.jpg",
+      "size": 57859,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.78
+      },
+      {
+        "label": "Worked example",
+        "start": 39.98
+      },
+      {
+        "label": "Your turn",
+        "start": 78.9
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:59:54.128Z"
+  },
+  "environments-and-config": {
+    "lessonId": "environments-and-config",
+    "courseId": "devops-and-delivery",
+    "title": "Environments and config",
+    "durationSeconds": 110.08,
+    "narrationSeconds": 76.28,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__environments-and-config.mp4",
+    "name": "Environments and config — video walkthrough.mp4",
+    "size": 3036571,
+    "poster": {
+      "key": "lessonvideo__environments-and-config--poster.jpg",
+      "name": "Environments and config — poster.jpg",
+      "size": 51992,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.58
+      },
+      {
+        "label": "Worked example",
+        "start": 37.1
+      },
+      {
+        "label": "Your turn",
+        "start": 80.5
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T15:59:55.440Z"
+  },
+  "containers": {
+    "lessonId": "containers",
+    "courseId": "devops-and-delivery",
+    "title": "Containers you can trust",
+    "durationSeconds": 104.28,
+    "narrationSeconds": 70.48,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__containers.mp4",
+    "name": "Containers you can trust — video walkthrough.mp4",
+    "size": 2704124,
+    "poster": {
+      "key": "lessonvideo__containers--poster.jpg",
+      "name": "Containers you can trust — poster.jpg",
+      "size": 50483,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.55
+      },
+      {
+        "label": "Worked example",
+        "start": 31.92
+      },
+      {
+        "label": "Your turn",
+        "start": 76.26
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:00:31.544Z"
+  },
+  "pipelines-in-practice": {
+    "lessonId": "pipelines-in-practice",
+    "courseId": "devops-and-delivery",
+    "title": "Deploy and rollback",
+    "durationSeconds": 107.07,
+    "narrationSeconds": 73.27,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__pipelines-in-practice.mp4",
+    "name": "Deploy and rollback — video walkthrough.mp4",
+    "size": 2708372,
+    "poster": {
+      "key": "lessonvideo__pipelines-in-practice--poster.jpg",
+      "name": "Deploy and rollback — poster.jpg",
+      "size": 51221,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.26
+      },
+      {
+        "label": "Worked example",
+        "start": 33.33
+      },
+      {
+        "label": "Your turn",
+        "start": 77.27
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:00:32.914Z"
+  },
+  "monitoring-and-logs": {
+    "lessonId": "monitoring-and-logs",
+    "courseId": "devops-and-delivery",
+    "title": "Monitoring that wakes you, logs that explain",
+    "durationSeconds": 112.4,
+    "narrationSeconds": 78.6,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__monitoring-and-logs.mp4",
+    "name": "Monitoring that wakes you, logs that explain — video walkthrough.mp4",
+    "size": 3023328,
+    "poster": {
+      "key": "lessonvideo__monitoring-and-logs--poster.jpg",
+      "name": "Monitoring that wakes you, logs that explain — poster.jpg",
+      "size": 64138,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.76
+      },
+      {
+        "label": "Worked example",
+        "start": 42.4
+      },
+      {
+        "label": "Your turn",
+        "start": 84.55
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:01:10.325Z"
+  },
+  "backups-and-migrations": {
+    "lessonId": "backups-and-migrations",
+    "courseId": "devops-and-delivery",
+    "title": "Backups and schema changes",
+    "durationSeconds": 102.71,
+    "narrationSeconds": 68.91,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__backups-and-migrations.mp4",
+    "name": "Backups and schema changes — video walkthrough.mp4",
+    "size": 2700753,
+    "poster": {
+      "key": "lessonvideo__backups-and-migrations--poster.jpg",
+      "name": "Backups and schema changes — poster.jpg",
+      "size": 60540,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.39
+      },
+      {
+        "label": "Worked example",
+        "start": 38.84
+      },
+      {
+        "label": "Your turn",
+        "start": 73.65
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:01:09.619Z"
+  },
+  "incidents-and-rollbacks": {
+    "lessonId": "incidents-and-rollbacks",
+    "courseId": "devops-and-delivery",
+    "title": "Incidents and blameless reviews",
+    "durationSeconds": 110.21,
+    "narrationSeconds": 76.41,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__incidents-and-rollbacks.mp4",
+    "name": "Incidents and blameless reviews — video walkthrough.mp4",
+    "size": 2966582,
+    "poster": {
+      "key": "lessonvideo__incidents-and-rollbacks--poster.jpg",
+      "name": "Incidents and blameless reviews — poster.jpg",
+      "size": 52927,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.6
+      },
+      {
+        "label": "Worked example",
+        "start": 38.96
+      },
+      {
+        "label": "Your turn",
+        "start": 78.79
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:01:49.331Z"
+  },
+  "what-vibe-coding-is": {
+    "lessonId": "what-vibe-coding-is",
+    "courseId": "vibe-coding-ship-with-ai",
+    "title": "What vibe coding actually is",
+    "durationSeconds": 110.99,
+    "narrationSeconds": 77.19,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__what-vibe-coding-is.mp4",
+    "name": "What vibe coding actually is — video walkthrough.mp4",
+    "size": 3100901,
+    "poster": {
+      "key": "lessonvideo__what-vibe-coding-is--poster.jpg",
+      "name": "What vibe coding actually is — poster.jpg",
+      "size": 59695,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 17.45
+      },
+      {
+        "label": "Worked example",
+        "start": 39.64
+      },
+      {
+        "label": "Your turn",
+        "start": 79.96
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:01:49.612Z"
+  },
+  "prompting-for-code": {
+    "lessonId": "prompting-for-code",
+    "courseId": "vibe-coding-ship-with-ai",
+    "title": "Prompts that produce working code",
+    "durationSeconds": 105.95,
+    "narrationSeconds": 72.15,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__prompting-for-code.mp4",
+    "name": "Prompts that produce working code — video walkthrough.mp4",
+    "size": 2949033,
+    "poster": {
+      "key": "lessonvideo__prompting-for-code--poster.jpg",
+      "name": "Prompts that produce working code — poster.jpg",
+      "size": 54197,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.24
+      },
+      {
+        "label": "Worked example",
+        "start": 35.17
+      },
+      {
+        "label": "Your turn",
+        "start": 73.81
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:08:52.521Z"
+  },
+  "reading-ai-code": {
+    "lessonId": "reading-ai-code",
+    "courseId": "vibe-coding-ship-with-ai",
+    "title": "Reading code you did not write",
+    "durationSeconds": 107.44,
+    "narrationSeconds": 73.64,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__reading-ai-code.mp4",
+    "name": "Reading code you did not write — video walkthrough.mp4",
+    "size": 2856078,
+    "poster": {
+      "key": "lessonvideo__reading-ai-code--poster.jpg",
+      "name": "Reading code you did not write — poster.jpg",
+      "size": 54255,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.74
+      },
+      {
+        "label": "Worked example",
+        "start": 36.71
+      },
+      {
+        "label": "Your turn",
+        "start": 79.8
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:08:52.896Z"
+  },
+  "build-a-page-in-an-hour": {
+    "lessonId": "build-a-page-in-an-hour",
+    "courseId": "vibe-coding-ship-with-ai",
+    "title": "Build a working page in an hour",
+    "durationSeconds": 108.38,
+    "narrationSeconds": 74.58,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__build-a-page-in-an-hour.mp4",
+    "name": "Build a working page in an hour — video walkthrough.mp4",
+    "size": 2957987,
+    "poster": {
+      "key": "lessonvideo__build-a-page-in-an-hour--poster.jpg",
+      "name": "Build a working page in an hour — poster.jpg",
+      "size": 49325,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.25
+      },
+      {
+        "label": "Worked example",
+        "start": 39.08
+      },
+      {
+        "label": "Your turn",
+        "start": 77.72
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:09:29.775Z"
+  },
+  "iterate-and-debug": {
+    "lessonId": "iterate-and-debug",
+    "courseId": "vibe-coding-ship-with-ai",
+    "title": "Iterating and debugging with AI",
+    "durationSeconds": 105.38,
+    "narrationSeconds": 71.58,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__iterate-and-debug.mp4",
+    "name": "Iterating and debugging with AI — video walkthrough.mp4",
+    "size": 2754155,
+    "poster": {
+      "key": "lessonvideo__iterate-and-debug--poster.jpg",
+      "name": "Iterating and debugging with AI — poster.jpg",
+      "size": 55272,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.75
+      },
+      {
+        "label": "Worked example",
+        "start": 36.8
+      },
+      {
+        "label": "Your turn",
+        "start": 77.14
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:09:30.126Z"
+  },
+  "polish-and-publish": {
+    "lessonId": "polish-and-publish",
+    "courseId": "vibe-coding-ship-with-ai",
+    "title": "Polish, publish, and keep it alive",
+    "durationSeconds": 103.16,
+    "narrationSeconds": 69.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__polish-and-publish.mp4",
+    "name": "Polish, publish, and keep it alive — video walkthrough.mp4",
+    "size": 2697556,
+    "poster": {
+      "key": "lessonvideo__polish-and-publish--poster.jpg",
+      "name": "Polish, publish, and keep it alive — poster.jpg",
+      "size": 53170,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.04
+      },
+      {
+        "label": "Worked example",
+        "start": 29.43
+      },
+      {
+        "label": "Your turn",
+        "start": 75.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:10:05.856Z"
+  },
+  "calling-a-model-api": {
+    "lessonId": "calling-a-model-api",
+    "courseId": "ai-apps-agents-and-apis",
+    "title": "Calling a model from your server",
+    "durationSeconds": 111.51,
+    "narrationSeconds": 77.71,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__calling-a-model-api.mp4",
+    "name": "Calling a model from your server — video walkthrough.mp4",
+    "size": 3053744,
+    "poster": {
+      "key": "lessonvideo__calling-a-model-api--poster.jpg",
+      "name": "Calling a model from your server — poster.jpg",
+      "size": 53854,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.51
+      },
+      {
+        "label": "Worked example",
+        "start": 37.69
+      },
+      {
+        "label": "Your turn",
+        "start": 80.85
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:10:06.854Z"
+  },
+  "prompts-as-product": {
+    "lessonId": "prompts-as-product",
+    "courseId": "ai-apps-agents-and-apis",
+    "title": "The prompt is product surface",
+    "durationSeconds": 108.33,
+    "narrationSeconds": 74.53,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__prompts-as-product.mp4",
+    "name": "The prompt is product surface — video walkthrough.mp4",
+    "size": 2978414,
+    "poster": {
+      "key": "lessonvideo__prompts-as-product--poster.jpg",
+      "name": "The prompt is product surface — poster.jpg",
+      "size": 55545,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.38
+      },
+      {
+        "label": "Worked example",
+        "start": 32.15
+      },
+      {
+        "label": "Your turn",
+        "start": 74.96
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:10:42.761Z"
+  },
+  "context-and-rag": {
+    "lessonId": "context-and-rag",
+    "courseId": "ai-apps-agents-and-apis",
+    "title": "Your own data: retrieval (RAG)",
+    "durationSeconds": 110.6,
+    "narrationSeconds": 76.8,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__context-and-rag.mp4",
+    "name": "Your own data: retrieval (RAG) — video walkthrough.mp4",
+    "size": 3110389,
+    "poster": {
+      "key": "lessonvideo__context-and-rag--poster.jpg",
+      "name": "Your own data: retrieval (RAG) — poster.jpg",
+      "size": 63859,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.86
+      },
+      {
+        "label": "Worked example",
+        "start": 38.23
+      },
+      {
+        "label": "Your turn",
+        "start": 80.09
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:10:44.333Z"
+  },
+  "tools-and-agents": {
+    "lessonId": "tools-and-agents",
+    "courseId": "ai-apps-agents-and-apis",
+    "title": "Tools and agents",
+    "durationSeconds": 107.1,
+    "narrationSeconds": 73.3,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__tools-and-agents.mp4",
+    "name": "Tools and agents — video walkthrough.mp4",
+    "size": 2887030,
+    "poster": {
+      "key": "lessonvideo__tools-and-agents--poster.jpg",
+      "name": "Tools and agents — poster.jpg",
+      "size": 52863,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.94
+      },
+      {
+        "label": "Worked example",
+        "start": 37.34
+      },
+      {
+        "label": "Your turn",
+        "start": 76.03
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:11:18.461Z"
+  },
+  "evals-and-cost": {
+    "lessonId": "evals-and-cost",
+    "courseId": "ai-apps-agents-and-apis",
+    "title": "Evals, latency and cost",
+    "durationSeconds": 106.05,
+    "narrationSeconds": 72.25,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__evals-and-cost.mp4",
+    "name": "Evals, latency and cost — video walkthrough.mp4",
+    "size": 2939695,
+    "poster": {
+      "key": "lessonvideo__evals-and-cost--poster.jpg",
+      "name": "Evals, latency and cost — poster.jpg",
+      "size": 54341,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 12.41
+      },
+      {
+        "label": "Worked example",
+        "start": 32.87
+      },
+      {
+        "label": "Your turn",
+        "start": 75.96
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:11:18.736Z"
+  },
+  "safety-and-ship": {
+    "lessonId": "safety-and-ship",
+    "courseId": "ai-apps-agents-and-apis",
+    "title": "Safety, privacy and shipping",
+    "durationSeconds": 114.15,
+    "narrationSeconds": 80.35,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__safety-and-ship.mp4",
+    "name": "Safety, privacy and shipping — video walkthrough.mp4",
+    "size": 3250643,
+    "poster": {
+      "key": "lessonvideo__safety-and-ship--poster.jpg",
+      "name": "Safety, privacy and shipping — poster.jpg",
+      "size": 58234,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.65
+      },
+      {
+        "label": "Worked example",
+        "start": 36.77
+      },
+      {
+        "label": "Your turn",
+        "start": 79.82
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "voice-00",
+    "generatedAt": "2026-10-07T16:27:02.690Z"
   }
 };
