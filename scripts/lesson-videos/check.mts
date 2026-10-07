@@ -6,17 +6,21 @@
  * build simply produces fewer videos than it should, and nobody notices until a
  * learner opens a lesson with no walkthrough.
  *
- * The same rules are applied to the course welcome scripts.
+ * The same rules are applied to the course welcome scripts. It also verifies
+ * the generated manifest: all catalog lessons need a video entry before the
+ * check passes, which catches incomplete builds rather than just missing prose.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { COURSES } from "../../src/lib/courses";
-import { lessonVideoCount } from "../../src/lib/lesson-videos";
+import { lessonVideo, lessonVideoCount } from "../../src/lib/lesson-videos";
 
 const ROOT = process.cwd();
 const LESSON_SCRIPTS = path.join(ROOT, "content/lesson-videos");
 const COURSE_SCRIPTS = path.join(ROOT, "content/course-videos");
 const AUDIO_DIR = path.join(ROOT, ".data/lesson-videos/audio");
+const MIN_VIDEO_SECONDS = 120;
+const MAX_VIDEO_SECONDS = 180;
 
 function readDir(dir: string): { file: string; data: Record<string, unknown> }[] {
   if (!existsSync(dir)) return [];
@@ -63,6 +67,15 @@ function main(): void {
     if (!scripted.has(lessonId)) unscripted.push(lesson);
   }
 
+  const missingVideos = [...lessons].filter(([lessonId]) => !lessonVideo(lessonId));
+  const outOfRangeVideos: { lessonId: string; title: string; duration: number }[] = [];
+  for (const [lessonId, lesson] of lessons) {
+    const video = lessonVideo(lessonId);
+    if (video && (video.durationSeconds < MIN_VIDEO_SECONDS || video.durationSeconds > MAX_VIDEO_SECONDS)) {
+      outOfRangeVideos.push({ lessonId, title: lesson.title, duration: video.durationSeconds });
+    }
+  }
+
   const welcomeCourses = new Set<string>();
   for (const { file, data } of readDir(COURSE_SCRIPTS)) {
     const courseId = String(data.course ?? "");
@@ -81,6 +94,9 @@ function main(): void {
   }
 
   const withAudio = [...scripted.keys()].filter((lessonId) => existsSync(path.join(AUDIO_DIR, `${lessonId}.mp3`)));
+  const missingAudio = [...scripted.keys()].filter(
+    (lessonId) => !lessonVideo(lessonId) && !existsSync(path.join(AUDIO_DIR, `${lessonId}.mp3`))
+  );
   const welcomesWithAudio = [...welcomeCourses].filter((courseId) => {
     const course = COURSES.find((item) => item.id === courseId);
     return course ? existsSync(path.join(AUDIO_DIR, `course-${course.slug}.mp3`)) : false;
@@ -89,12 +105,30 @@ function main(): void {
   console.log(`lessons in the catalog      ${lessons.size}`);
   console.log(`lessons with a script       ${scripted.size}  (${wordCount.toLocaleString()} words of narration)`);
   console.log(`lessons with narration      ${withAudio.length}`);
+  console.log(`lessons with a video        ${lessonVideoCount()}`);
+  console.log(`videos outside 120–180 sec  ${outOfRangeVideos.length}`);
   console.log(`course welcome scripts      ${welcomeCourses.size} of ${COURSES.length}  (${welcomesWithAudio.length} narrated)`);
-  console.log(`videos in the manifest      ${lessonVideoCount()}`);
   console.log("");
   if (unscripted.length) {
     console.log(`No script yet (${unscripted.length}):`);
     for (const lesson of unscripted) console.log(`  · ${lesson.title}`);
+    console.log("");
+  }
+  if (missingAudio.length) {
+    console.log(`No narration audio yet (${missingAudio.length}):`);
+    for (const lessonId of missingAudio) console.log(`  · ${lessons.get(lessonId)?.title ?? lessonId}`);
+    console.log("");
+  }
+  if (missingVideos.length) {
+    console.log(`No video yet (${missingVideos.length}):`);
+    for (const [, lesson] of missingVideos) console.log(`  · ${lesson.title}`);
+    console.log("");
+  }
+  if (outOfRangeVideos.length) {
+    console.log(`Video length outside 2–3 minutes (${outOfRangeVideos.length}):`);
+    for (const video of outOfRangeVideos) {
+      console.log(`  · ${video.title} — ${video.duration.toFixed(1)} seconds`);
+    }
     console.log("");
   }
   if (problems.length) {
@@ -103,8 +137,11 @@ function main(): void {
     process.exitCode = 1;
     return;
   }
-  console.log(problems.length ? "" : "✓ every lesson and course has a script, and every script has a home");
-  if (unscripted.length) process.exitCode = 1;
+  if (unscripted.length || missingAudio.length || missingVideos.length || outOfRangeVideos.length) {
+    process.exitCode = 1;
+    return;
+  }
+  console.log("✓ every lesson has narration, a generated video, and a matching script");
 }
 
 main();

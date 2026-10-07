@@ -25,7 +25,7 @@
  * muxed with the narration. No image library, no browser, no timeline editor —
  * which is also why it runs in a couple of minutes on a small machine.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { putBlob } from "../../src/lib/blob-store";
 import { COURSES, getCourse, type Course, type Lesson } from "../../src/lib/courses";
@@ -47,7 +47,7 @@ import {
   type WelcomeContext,
 } from "./lib/course-design";
 import { TextRuler, slideFilter } from "./lib/draw";
-import { detectSilences, ffmpegPath, runOrThrow } from "./lib/ffmpeg";
+import { detectSilences, ffmpegPath, mediaDuration, runOrThrow } from "./lib/ffmpeg";
 import { FADE, planTimeline, type Beat, type Plan } from "./lib/timeline";
 
 const FPS = 24;
@@ -55,7 +55,7 @@ const CRF = process.env.VIDEO_CRF ?? "23";
 const PRESET = process.env.VIDEO_PRESET ?? "veryfast";
 const LEAD_IN = 1.8; // silence before the voice, so the title card can land
 const TAIL = 3.2; // seconds of outro after the last sentence
-const TARGET_SECONDS = 120; // stretch the reading pauses until the lesson reaches two minutes
+const TARGET_SECONDS = 150; // every lesson walkthrough targets 2.5 minutes
 
 const ROOT = process.cwd();
 const WORK = path.join(ROOT, ".data/lesson-videos");
@@ -213,7 +213,7 @@ async function renderSlide(ops: Op[], file: string, ruler: TextRuler): Promise<s
  * own alpha, so the incoming slide fades up as the outgoing one fades down —
  * the change of picture lands on the sentence it belongs to. Each still is only
  * composited over the window it is on screen, which keeps the encode close to
- * the cost of the pictures themselves: a two-minute lesson renders in well
+ * the cost of the pictures themselves: a two-and-a-half-minute lesson renders in well
  * under a minute.
  */
 async function encodeVideo(options: {
@@ -301,8 +301,10 @@ async function encodeVideo(options: {
 }
 
 /**
- * Stretches the reading pauses until a video reaches its target length, so
- * every lesson in the series plays for roughly the same two minutes.
+ * Stretches natural reading pauses, then evenly pads the paragraph gaps until
+ * the lesson reaches its target length. The extra silence is attached to the
+ * lesson's four slide boundaries, not hidden in a long end card, so learners
+ * have time to read each slide while the matching narration is quiet.
  */
 function planToTarget(options: {
   beats: Beat[];
@@ -312,9 +314,24 @@ function planToTarget(options: {
 }): Plan {
   const { beats, audioDuration, silences, target } = options;
   let plan = planTimeline({ beats, audioDuration, silences, leadIn: LEAD_IN, tail: TAIL });
-  for (const pauseScale of [1.15, 1.3, 1.45, 1.6, 1.8]) {
+  const pauseScales = [1.15, 1.3, 1.45, 1.6, 1.8];
+  for (const pauseScale of pauseScales) {
     if (plan.total >= target) break;
     plan = planTimeline({ beats, audioDuration, silences, leadIn: LEAD_IN, tail: TAIL, pauseScale });
+  }
+
+  if (plan.total < target) {
+    const narratedParagraphs = beats.filter((beat) => beat.narration.trim()).length;
+    const pausePadding = narratedParagraphs ? (target - plan.total) / narratedParagraphs : 0;
+    plan = planTimeline({
+      beats,
+      audioDuration,
+      silences,
+      leadIn: LEAD_IN,
+      tail: TAIL,
+      pauseScale: pauseScales[pauseScales.length - 1],
+      pausePadding,
+    });
   }
   return plan;
 }
@@ -382,6 +399,10 @@ async function buildLesson(options: {
     output,
     metadataTitle: `${lesson.title} — ${course.title}`,
   });
+  const actualDuration = await mediaDuration(output);
+  if (actualDuration < 120 || actualDuration > 180) {
+    throw new Error(`${lesson.id}: rendered duration ${actualDuration.toFixed(2)}s is outside 120–180 seconds`);
+  }
   await runOrThrow(["-hide_banner", "-y", "-i", inputPath(slideFiles[0]), "-frames:v", "1", "-q:v", "3", poster]);
 
   const video = readFileSync(output);
@@ -395,7 +416,7 @@ async function buildLesson(options: {
     lessonId: lesson.id,
     courseId: course.id,
     title: lesson.title,
-    durationSeconds: Number(plan.total.toFixed(2)),
+    durationSeconds: Number(actualDuration.toFixed(2)),
     narrationSeconds: Number(audioDuration.toFixed(2)),
     width: SLIDE_WIDTH,
     height: SLIDE_HEIGHT,
@@ -554,6 +575,12 @@ function readCourseManifest(): Record<string, CourseVideoEntry> {
   }
 }
 
+function writeGeneratedFile(file: string, contents: string): void {
+  const temporary = `${file}.${process.pid}.tmp`;
+  writeFileSync(temporary, contents);
+  renameSync(temporary, file);
+}
+
 function writeCourseManifest(entries: Record<string, CourseVideoEntry>): void {
   const order = new Map(COURSES.map((course, index) => [course.slug, index]));
   const sorted = Object.values(entries).sort((a, b) => (order.get(a.slug) ?? 9999) - (order.get(b.slug) ?? 9999));
@@ -571,7 +598,7 @@ function writeCourseManifest(entries: Record<string, CourseVideoEntry>): void {
     "export const COURSE_VIDEOS: Record<string, CourseVideoEntry> = " + body + ";",
     "",
   ].join("\n");
-  writeFileSync(COURSE_MANIFEST, header);
+  writeGeneratedFile(COURSE_MANIFEST, header);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -641,7 +668,7 @@ import type { LessonVideoEntry } from "@/lib/lesson-videos";
 
 export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = ${body};
 `;
-  writeFileSync(MANIFEST, header);
+  writeGeneratedFile(MANIFEST, header);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -730,6 +757,8 @@ async function main(): Promise<void> {
   if (!ready.length && !readyWelcomes.length) return;
 
   const started = Date.now();
+  const updated = { ...manifest };
+  const updatedCourses = { ...courseManifest };
   const results: (ManifestEntry | null)[] = [];
   const welcomeResults: CourseVideoEntry[] = [];
   const queue: (() => Promise<void>)[] = [
@@ -738,6 +767,10 @@ async function main(): Promise<void> {
       process.stdout.write(`… ${target.lesson.id}`);
       const entry = await buildLesson({ ...target, ruler, slidesOnly: flags.slidesOnly });
       results.push(entry);
+      if (entry) {
+        updated[entry.lessonId] = entry;
+        writeManifest(updated);
+      }
       const seconds = ((Date.now() - startedAt) / 1000).toFixed(1);
       const size = entry ? `${(entry.size / 1024 / 1024).toFixed(1)} MB` : "no audio";
       process.stdout.write(
@@ -749,7 +782,11 @@ async function main(): Promise<void> {
       const id = `course-${welcome.course.slug}`;
       process.stdout.write(`… ${id}`);
       const entry = await buildCourseVideo({ ...welcome, ruler, slidesOnly: flags.slidesOnly });
-      if (entry) welcomeResults.push(entry);
+      if (entry) {
+        welcomeResults.push(entry);
+        updatedCourses[entry.slug] = entry;
+        writeCourseManifest(updatedCourses);
+      }
       const seconds = ((Date.now() - startedAt) / 1000).toFixed(1);
       process.stdout.write(
         `\r✓ ${id.padEnd(34)} ${entry ? `${entry.durationSeconds.toFixed(0)}s` : "—"}  ${entry ? `${(entry.size / 1024 / 1024).toFixed(1)} MB` : ""}  ${seconds}s\n`
@@ -766,12 +803,7 @@ async function main(): Promise<void> {
     })
   );
 
-  const updated = { ...manifest };
-  for (const entry of results) if (entry) updated[entry.lessonId] = entry;
   writeManifest(updated);
-
-  const updatedCourses = { ...courseManifest };
-  for (const entry of welcomeResults) updatedCourses[entry.slug] = entry;
   writeCourseManifest(updatedCourses);
 
   const total = Object.values(updated);

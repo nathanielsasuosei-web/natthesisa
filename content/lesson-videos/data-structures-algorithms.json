@@ -1,9 +1,9 @@
 {
   "course": "data-structures-algorithms",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "big-o-not-scary": {
-      "title": "Welcome to Big-O without the fear, the opening lesson of Data Structures and Algorithms. In two minutes you will have the vocabulary every performance conversation is built on.",
+      "title": "Welcome to Big-O without the fear, the opening lesson of Data Structures and Algorithms. In two and a half minutes you will have the vocabulary every performance conversation is built on.",
       "idea": "Big-O describes how the work grows as the input grows, not how many milliseconds something takes. A single pass over the data is order n. A loop inside a loop is order n squared. Halving the problem on each pass is order log n. Constants and small terms are dropped because they stop mattering at scale, which is exactly when the answer decides whether your program is usable.",
       "example": "Compare the two functions side by side. Adding every number in a list touches each element once, so the work doubles when the list doubles: order n. Checking every pair touches each element for every other element, so doubling the list quadruples the work: order n squared. Same input, same result, and the difference between a fast program and one that never finishes.",
       "challenge": "Your turn. Take two functions you wrote last week and label each one with its Big-O, then write the number of steps for inputs of ten and of a thousand. Doing that arithmetic by hand is what turns the notation from a symbol into an intuition you can trust."

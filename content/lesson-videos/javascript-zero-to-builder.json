@@ -1,6 +1,6 @@
 {
   "course": "javascript-zero-to-builder",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "values-variables": {
       "title": "Welcome to Values and variables, the first lesson of JavaScript: Zero to Builder. By the end of this clip you will be storing information, changing it, and printing the result, which is already a working program.",

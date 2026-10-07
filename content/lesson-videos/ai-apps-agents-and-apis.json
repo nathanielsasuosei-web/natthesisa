@@ -1,6 +1,6 @@
 {
   "course": "ai-apps-agents-and-apis",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "calling-a-model-api": {
       "title": "Welcome to Calling a model from your server, the opening lesson of AI Apps, Agents and APIs. The model call belongs on the server, behind your own endpoint, where the key lives.",

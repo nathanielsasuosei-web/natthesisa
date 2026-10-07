@@ -1,9 +1,9 @@
 {
   "course": "web-foundations",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "how-the-web-works": {
-      "title": "Welcome to How the web works, the opening lesson of Web Development Foundations. In the next two minutes you will follow one request from a typed address to pixels on a screen, and see why that short journey explains almost everything else you will do on the web.",
+      "title": "Welcome to How the web works, the opening lesson of Web Development Foundations. In the next two and a half minutes you will follow one request from a typed address to pixels on a screen, and see why that short journey explains almost everything else you will do on the web.",
       "idea": "Every website begins with a conversation. A URL identifies something you want, DNS turns the name inside it into the address of a server, and HTTPS carries your request there and brings a response back. That response is only files: HTML for structure, CSS for appearance, JavaScript for behaviour. The browser parses them and paints the page you are looking at. Nothing mysterious happens in between. There is a request, a response, and a rendering step.",
       "example": "Here is that conversation in one picture. The browser sends an HTTPS request to a web server, the server answers with HTML, CSS and JavaScript, and the browser turns those files into the page. Open the developer tools in any browser, choose the Network panel, and reload this site. The very first row is the document request, with its status code, its size and the time it took.",
       "challenge": "Your turn. Open the Network panel on a website you use every day and identify its first document request. Note the status code, how many kilobytes came back, and how long the server took to answer. That single row is this whole lesson in miniature, so once you can explain it, you can explain the web."
@@ -21,7 +21,7 @@
       "challenge": "Your turn. Take a page you have already written and replace at least four generic div elements with semantic ones. Then unplug your mouse, tab through the page, and confirm you can always see where you are and reach every link. Accessibility is not an extra step at the end; it is a habit you build now."
     },
     "css-foundations": {
-      "title": "This is CSS foundations. In the next two minutes you will see how the cascade decides which rule wins, and how a handful of small classes can carry the whole visual identity of a page.",
+      "title": "This is CSS foundations. In the next two and a half minutes you will see how the cascade decides which rule wins, and how a handful of small classes can carry the whole visual identity of a page.",
       "idea": "The cascade combines browser defaults, inherited values, selector specificity and source order. That order is a feature, not a bug: it lets you write a sensible default and then override one detail. Start with simple class selectors, keep specificity low, and let layout rules do most of the work. When two rules disagree, read them in cascade order rather than adding another rule on top.",
       "example": "The hero section sets only three things: padding, a background and a text colour. The title inside it uses clamp, which takes a minimum size, a preferred size based on viewport width, and a maximum. One line, and the heading grows with the screen without ever becoming unreadable. Colour, spacing and type scale are the three decisions that make a page feel designed rather than default.",
       "challenge": "Your turn. Create a reusable card class with spacing, a border, rounded corners and a subtle shadow. Use it three times on the page with different content, and check that it never needs to be adjusted. A class you can reuse unchanged is a class you have designed well."

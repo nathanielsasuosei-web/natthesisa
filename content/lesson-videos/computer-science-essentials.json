@@ -1,9 +1,9 @@
 {
   "course": "computer-science-essentials",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "what-computers-do": {
-      "title": "Welcome to What computers actually do, the first lesson of Computer Science Essentials. In the next two minutes you will see the four moves every computer makes, from the smallest calculator to the largest data centre.",
+      "title": "Welcome to What computers actually do, the first lesson of Computer Science Essentials. In the next two and a half minutes you will see the four moves every computer makes, from the smallest calculator to the largest data centre.",
       "idea": "A computer accepts input, stores data, processes it, and produces output, then repeats. That is the whole vocabulary: hardware performs a very small set of operations extremely quickly, and software creates the useful abstractions by arranging those operations into instructions, functions and systems. Once you can point at the input, the stored data, the processing and the output in any program, nothing about a computer feels mysterious again.",
       "example": "Trace a familiar app through the four stages. What you type is input. Your draft is the stored data, kept on disk as well as in memory. Formatting and searching are processing. The screen you are reading is output. Notice that the arrows go round the outside: the output of one pass becomes the input of the next, which is why software is written as small steps that repeat.",
       "challenge": "Your turn. Choose an app you use every day and list its inputs, the data it stores, the processing it performs and the outputs it produces. Write it as four columns on paper. When you can fill those columns honestly, you have the mental model this course is built on."
