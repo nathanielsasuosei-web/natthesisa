@@ -3,6 +3,7 @@ import { PROGRAMS, PROGRAM_COURSES } from "./programs";
 import { WEB_FOUNDATIONS_MODULES } from "@/content/web-foundations";
 import { COMPUTER_SCIENCE_ESSENTIALS_MODULES } from "@/content/computer-science-essentials";
 import { JAVASCRIPT_ZERO_TO_BUILDER_MODULES } from "@/content/javascript-zero-to-builder";
+import { REACT_PRODUCTION_APPS_MODULES } from "@/content/react-production-apps";
 
 export type CourseCategory =
   | "Computer Science"
@@ -215,86 +216,7 @@ const CORE_COURSES: Course[] = [
       "Structure and ship a complete React app",
     ],
     tags: ["React", "State", "Architecture"],
-    modules: [
-      {
-        id: "react-model",
-        title: "01 · Think in components",
-        description: "Learn React's model for describing changing interfaces.",
-        lessons: [
-          lesson(
-            "react-mental-model",
-            "The React mental model",
-            17,
-            "React lets you describe what the interface should look like for the current data.",
-            "A component is a function of props and state. Rendering calculates a UI description; committing applies the necessary changes to the browser. Keep rendering pure and put side effects in event handlers or effects.",
-            "function Welcome({ name }) {\n  return <h1>Welcome back, {name}</h1>;\n}",
-            "Break a dashboard screenshot into a named component tree.",
-            true
-          ),
-          lesson(
-            "props-composition",
-            "Props & composition",
-            24,
-            "Create flexible components by passing data and nesting content rather than adding endless options.",
-            "Props flow down from parent to child. Composition through children or focused slots lets callers control content while the component owns layout and behavior.",
-            "function Card({ title, children }) {\n  return (\n    <section className=\"card\">\n      <h2>{title}</h2>\n      {children}\n    </section>\n  );\n}",
-            "Create one Card component and use it for a metric, a chart and an empty state."
-          ),
-          lesson(
-            "state-events",
-            "State & events",
-            28,
-            "Represent the smallest changing facts and derive everything else during render.",
-            "State belongs in the closest common owner of every component that needs it. Avoid duplicate state: if a value can be calculated from props or existing state, calculate it.",
-            "const [query, setQuery] = useState(\"\");\nconst visible = courses.filter((course) =>\n  course.title.toLowerCase().includes(query.toLowerCase())\n);",
-            "Build a searchable list with one source of truth for the query."
-          ),
-        ],
-      },
-      {
-        id: "react-application",
-        title: "02 · Build the application",
-        description: "Scale from components into a reliable product.",
-        lessons: [
-          lesson(
-            "forms-validation",
-            "Forms & validation",
-            27,
-            "Turn user input into clear, accessible and trustworthy interactions.",
-            "Validate at useful moments, connect errors to fields, preserve input after failure and never rely on client validation for security. Server validation remains the final authority.",
-            "function handleSubmit(event) {\n  event.preventDefault();\n  const data = new FormData(event.currentTarget);\n  // validate, then send\n}",
-            "Build a profile form with inline errors and a visible successful-save state."
-          ),
-          lesson(
-            "data-fetching",
-            "Data fetching states",
-            29,
-            "Design the full lifecycle of remote data, not only the successful screenshot.",
-            "A data view needs loading, error, empty, stale and success states. Cancel obsolete requests and avoid waterfalls by loading independent resources together.",
-            "const [data, setData] = useState(null);\nconst [status, setStatus] = useState(\"loading\");",
-            "Create a data panel that can display a skeleton, retry error, empty state and results."
-          ),
-          lesson(
-            "routing-architecture",
-            "Routing & app architecture",
-            31,
-            "Give every major screen a stable URL and organize code around product features.",
-            "Routes should match user concepts. Keep feature-specific components close to their route, share truly generic UI, and draw a clear boundary between server data and interactive client state.",
-            "app/\n  dashboard/page.tsx\n  courses/[slug]/page.tsx\ncomponents/\nlib/",
-            "Design routes and folders for an online learning dashboard with course and lesson pages."
-          ),
-          lesson(
-            "ship-react-dashboard",
-            "Ship the analytics dashboard",
-            36,
-            "Polish performance, accessibility and edge cases before you call the build complete.",
-            "Measure before optimizing. Check keyboard flow, semantic landmarks, loading performance, error recovery and small screens. Then document the decisions another developer needs to continue.",
-            "npm run build\n# fix every error before deployment",
-            "Deploy the dashboard and complete a keyboard-only quality audit."
-          ),
-        ],
-      },
-    ],
+    modules: REACT_PRODUCTION_APPS_MODULES,
   },
   {
     id: "mobile-apps-react-native",
