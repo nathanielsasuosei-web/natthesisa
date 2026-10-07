@@ -65,7 +65,9 @@ export async function runOrThrow(args: string[], options: { collectStdout?: bool
 
 /** Duration in seconds, read from ffmpeg's header line for the file. */
 export async function mediaDuration(file: string): Promise<number> {
-  const result = await run(["-hide_banner", "-i", file, "-f", "null", "-"]);
+  // `-t 0` stops after the container header: read the final duration without
+  // decoding every frame in a two-and-a-half-minute video.
+  const result = await run(["-hide_banner", "-i", file, "-t", "0", "-f", "null", "-"]);
   const match = /Duration: (\d+):(\d\d):(\d\d(?:\.\d+)?)/.exec(result.stderr);
   if (!match) throw new Error(`Could not read the duration of ${file}`);
   return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);

@@ -1,6 +1,6 @@
 {
   "course": "system-design-architecture",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "clients-and-apis": {
       "title": "Welcome to Clients, APIs and contracts, the opening lesson of System Design and Architecture. An API is a promise, and everything else in the system hangs off how carefully that promise is written.",

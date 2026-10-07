@@ -18,8 +18,8 @@ interface Props {
 /**
  * The video a lesson opens with: the walkthrough, right under the title.
  *
- * A student lands on a lesson, presses play, and two minutes later knows what
- * the lesson is about, has seen the worked example and has the practice task in
+ * A student lands on a lesson, presses play, and a couple of minutes later
+ * knows what the lesson is about, has seen the worked example and has the practice task in
  * front of them. The "mark complete" control sits with the clip rather than
  * only at the foot of the page, because that is the moment the student is ready
  * to move on — and the same button is at the bottom for anyone who reads first.

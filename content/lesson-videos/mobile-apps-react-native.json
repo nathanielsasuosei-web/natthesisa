@@ -1,6 +1,6 @@
 {
   "course": "mobile-apps-react-native",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "native-vs-web": {
       "title": "Welcome to Native apps versus the web, the opening lesson of Mobile Apps with React Native. You will learn what React Native shares with React and what genuinely changes on a phone.",

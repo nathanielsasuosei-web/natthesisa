@@ -1,6 +1,6 @@
 {
   "course": "react-production-apps",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "react-mental-model": {
       "title": "Welcome to The React mental model, the opening lesson of Build Production Apps with React. By the end of this clip you will know what React is actually doing, and the whole library will stop feeling like magic.",

@@ -8,15 +8,15 @@
  * a proportional split of the narration (which is also the fallback when the
  * pauses are not clear enough to trust).
  *
- * Two deliberate silences are added on top:
+ * Deliberate silences are added at paragraph boundaries:
  *
  *   after the worked example   time to read the code
  *   after the challenge        time to think about the answer
+ *   across all four boundaries padding to reach the 150-second target
  *
- * They are the reason a two-minute lesson is watchable: the voice is roughly
- * a hundred seconds, and the reading pauses are what let a learner keep up.
  * `build.ts` splices the gaps into the recording (both cuts land in a pause,
- * so nothing is clipped) and shifts every later slide by the same amount.
+ * so nothing is clipped) and shifts every later slide by the same amount. The
+ * additional padding makes every lesson walkthrough about two and a half minutes.
  *
  * Everything here is in *audio* time; `build.ts` adds the lead-in that lets the
  * title card settle before the voice starts.
@@ -153,6 +153,8 @@ export function planTimeline(options: {
   tail: number;
   /** Multiplier for the deliberate reading pauses, used to reach a target length. */
   pauseScale?: number;
+  /** Extra silence added after each spoken paragraph. */
+  pausePadding?: number;
 }): Plan {
   const { beats, audioDuration, leadIn, tail } = options;
   const narrated = beats.filter((beat) => beat.narration.trim().length > 0);
@@ -163,7 +165,8 @@ export function planTimeline(options: {
   const cuts = [...boundaries, audioDuration];
   const paragraphLengths = cuts.map((cut, index) => cut - (index === 0 ? 0 : cuts[index - 1]));
   const pauseScale = options.pauseScale ?? 1;
-  const gaps = narrated.map((beat) => (READING_PAUSES[beat.id] ?? 0) * pauseScale);
+  const pausePadding = options.pausePadding ?? 0;
+  const gaps = narrated.map((beat) => (READING_PAUSES[beat.id] ?? 0) * pauseScale + pausePadding);
 
   const speechStarts: number[] = [];
   let track = leadIn;

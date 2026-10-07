@@ -13,6 +13,7 @@
     "storage:check": "tsx scripts/check-storage.mts",
     "supabase:check": "tsx scripts/supabase-check.mts",
     "videos:setup": "tsx scripts/lesson-videos/setup.mts",
+    "videos:synthesize": "tsx scripts/lesson-videos/synthesize.mts",
     "videos:list": "tsx scripts/lesson-videos/build.mts --list",
     "videos:check": "tsx scripts/lesson-videos/check.mts",
     "videos:build": "tsx scripts/lesson-videos/build.mts"
@@ -37,6 +38,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "tailwindcss": "^4.1.16",
+    "text2wav": "^0.0.14",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }

@@ -1,6 +1,6 @@
 {
   "course": "backend-node-apis",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "server-runtime": {
       "title": "Welcome to Node.js and the server runtime, the first lesson of Backend Development with Node.js. You will run JavaScript outside the browser, on a machine that other people can reach.",
