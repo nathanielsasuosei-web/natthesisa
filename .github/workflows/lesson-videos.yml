@@ -60,7 +60,14 @@ jobs:
             if [ -z "${!var}" ]; then echo "::error::Missing Actions secret: $var"; missing=1; fi
           done
           if [ "$missing" = 1 ]; then
-            echo "Add the three secrets under Settings → Secrets and variables → Actions, then re-run."
+            echo "This job reads the three values as REPOSITORY secrets (it declares no"
+            echo "environment), so add them under Settings → Secrets and variables →"
+            echo "Actions → Secrets → New repository secret:"
+            echo "  NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, SUPABASE_BUCKET"
+            echo "If they already exist under the 'Production' or 'Preview' environment,"
+            echo "move them to repository scope — environment secrets are invisible to a"
+            echo "job that does not declare that environment. Use the same three values"
+            echo "the production site uses, then re-run this workflow."
             exit 1
           fi
 
