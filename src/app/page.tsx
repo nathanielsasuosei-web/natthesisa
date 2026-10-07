@@ -274,12 +274,12 @@ export default async function LandingPage() {
               </span>
               <h2 className="mt-4 text-balance text-3xl font-black tracking-[-.045em] sm:text-4xl">Stuck at midnight? Ask Natthesisa.</h2>
               <p className="mt-4 text-[15px] leading-7 text-[#6e6875]">
-                Your AI study companion lives inside every lesson. It explains ideas in plain
-                language, quizzes you until they stick, reviews your code and points you to
-                the right course — free, with no account required.
+                Your AI study companion lives inside every lesson. Ask about the current
+                material, get a quiz or code review, and build code, websites, or React Native
+                app starters. Chat is free; project generation is available to signed-in students.
               </p>
               <ul className="mt-6 space-y-3">
-                {["Plain-language explanations with tiny examples", "Quizzes with answers that teach, not just grade", "Code reviews and debugging help, any hour"].map((item) => (
+                {["Lesson-aware explanations and helpful practice hints", "Quizzes with answers that teach, not just grade", "Generate code, build websites and create mobile-app starters"].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm font-semibold text-[#49434f]">
                     <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-[#f0ecff] text-[#6d4aff]"><Icon name="check" size={13} /></span>
                     {item}

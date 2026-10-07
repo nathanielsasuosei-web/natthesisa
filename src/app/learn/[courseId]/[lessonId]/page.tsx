@@ -16,6 +16,7 @@ import LessonMaterials from "@/components/LessonMaterials";
 import LessonProse from "@/components/LessonProse";
 import LessonNarrator from "@/components/LessonNarrator";
 import LessonVideoGuide from "@/components/LessonVideoGuide";
+import LessonNatthesisa from "@/components/LessonNatthesisa";
 import { lessonVideo } from "@/lib/lesson-videos";
 
 export async function generateMetadata({ params }: { params: Promise<{ courseId: string; lessonId: string }> }): Promise<Metadata> {
@@ -211,7 +212,14 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const words = wordCount(lesson);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f4]">
+    <div
+      className="min-h-screen bg-[#f7f7f4]"
+      data-natthesisa-context="lesson"
+      data-course-id={course.id}
+      data-course-title={course.title}
+      data-lesson-id={lesson.id}
+      data-lesson-title={lesson.title}
+    >
       <header className="sticky top-0 z-40 border-b border-[#e6e2e9] bg-white/90 backdrop-blur-xl">
         <div className="flex h-[66px] items-center px-4 sm:px-6">
           <Logo compact />
@@ -241,6 +249,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
               {complete && <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700"><Icon name="check" size={14} /> Completed</span>}
             </div>
 
+            <LessonNatthesisa lessonTitle={lesson.title} />
             <LessonNarrator key={lesson.id} title={lesson.title} words={words} />
 
             <LessonVideoGuide

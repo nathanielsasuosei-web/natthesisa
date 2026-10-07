@@ -54,6 +54,7 @@ const MONACO_LANGUAGE: Record<LabLanguage, string> = {
   html: "html",
   css: "css",
   js: "javascript",
+  typescript: "typescript",
   python: "python",
   json: "json",
   markdown: "markdown",

@@ -6,7 +6,7 @@
  * live preview and the "download project" button.
  */
 
-export type LabLanguage = "html" | "css" | "js" | "python" | "json" | "markdown" | "text";
+export type LabLanguage = "html" | "css" | "js" | "typescript" | "python" | "json" | "markdown" | "text";
 
 export interface LabFile {
   name: string;
@@ -26,7 +26,8 @@ export function languageForFileName(name: string): LabLanguage {
   const lower = name.toLowerCase();
   if (lower.endsWith(".html") || lower.endsWith(".htm")) return "html";
   if (lower.endsWith(".css")) return "css";
-  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs")) return "js";
+  if (lower.endsWith(".ts") || lower.endsWith(".tsx") || lower.endsWith(".mts") || lower.endsWith(".cts")) return "typescript";
+  if (lower.endsWith(".js") || lower.endsWith(".jsx") || lower.endsWith(".mjs") || lower.endsWith(".cjs")) return "js";
   if (lower.endsWith(".py")) return "python";
   if (lower.endsWith(".json")) return "json";
   if (lower.endsWith(".md") || lower.endsWith(".markdown")) return "markdown";
@@ -357,6 +358,15 @@ function escapeClosingTags(code: string): string {
   return code.replace(/<\/(script|style)/gi, "<\\/$1");
 }
 
+/** Recognize an Expo / React Native project, which needs a device or Expo Go to run. */
+export function isReactNativeProject(files: LabFile[]): boolean {
+  const names = new Set(files.map((file) => file.name.toLowerCase()));
+  return !files.some((file) => file.language === "html") &&
+    names.has("app.json") &&
+    names.has("package.json") &&
+    ["app.js", "app.jsx", "app.tsx"].some((name) => names.has(name));
+}
+
 /**
  * Builds the document the preview iframe runs.
  *
@@ -365,6 +375,12 @@ function escapeClosingTags(code: string): string {
  * that is what fills the Console tab.
  */
 export function buildPreview(files: LabFile[]): string {
+  if (isReactNativeProject(files)) {
+    return `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>
+      *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f8f6ff;color:#24202d;font:14px/1.6 system-ui,sans-serif;padding:24px}
+      main{width:min(440px,100%);border:1px solid #e3ddf4;border-radius:20px;background:white;padding:26px;box-shadow:0 18px 55px #32226418}span{display:inline-flex;border-radius:99px;background:#f0ecff;color:#5d3be2;padding:5px 10px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}h1{margin:18px 0 8px;font-size:24px;letter-spacing:-.04em}p{color:#716a78}code{display:block;margin-top:14px;border-radius:10px;background:#1c1923;color:#e7deff;padding:13px;font:12px/1.8 ui-monospace,monospace}
+      </style></head><body><main><span>Expo · React Native</span><h1>Your mobile app project is ready</h1><p>Code Lab can edit and export this app. To preview it on a phone, download the project, install dependencies, and open it with Expo Go.</p><code>npm install<br>npx expo start</code><p>Scan the QR code with Expo Go. Changes to <strong>App.js</strong> refresh on your device.</p></main></body></html>`;
+  }
   const html = files.find((item) => item.language === "html")?.content ?? "<!doctype html><html><body><main id=\"app\"></main></body></html>";
   const css = escapeClosingTags(files.filter((item) => item.language === "css").map((item) => item.content).join("\n\n"));
   const js = escapeClosingTags(files.filter((item) => item.language === "js").map((item) => item.content).join("\n\n;\n"));

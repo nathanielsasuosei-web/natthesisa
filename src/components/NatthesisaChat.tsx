@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "./Icon";
 import { greeting, type AgentLink } from "@/lib/natthesisa";
+import { createProjectArchive } from "@/lib/project-archive";
+import { NATTHESISA_PROJECT_TRANSFER_KEY, type NatthesisaProject, type ProjectTarget } from "@/lib/natthesisa-project";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -40,16 +42,25 @@ function uid(): string {
   return `${Date.now().toString(36)}-${counter}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-function chatContext(): { courseId?: string; lessonId?: string; url?: string } {
+function chatContext(): {
+  courseId?: string;
+  courseTitle?: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  url?: string;
+} {
   if (typeof window === "undefined") return {};
   const url = window.location.pathname;
   const parts = url.split("/").filter(Boolean);
-  // /courses/<slug> · /learn/<courseId>/<lessonId>
-  if (parts[0] === "courses" && parts[1]) return { courseId: parts[1], url };
-  if (parts[0] === "learn" && parts[1]) {
-    return { courseId: parts[1], lessonId: parts[2], url };
-  }
-  return { url };
+  const lesson = document.querySelector<HTMLElement>("[data-natthesisa-context]");
+  const pageCourse = parts[0] === "courses" || parts[0] === "learn" ? parts[1] : undefined;
+  return {
+    courseId: lesson?.dataset.courseId || pageCourse,
+    courseTitle: lesson?.dataset.courseTitle || undefined,
+    lessonId: lesson?.dataset.lessonId || (parts[0] === "learn" ? parts[2] : undefined),
+    lessonTitle: lesson?.dataset.lessonTitle || undefined,
+    url,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -177,17 +188,41 @@ function MessageBody({ content }: { content: string }) {
 /* The chat panel — shared by the floating widget and the full page     */
 /* ------------------------------------------------------------------ */
 
+interface BuildResponse {
+  ok: boolean;
+  project?: NatthesisaProject;
+  error?: string;
+}
+
 interface Props {
   variant?: "widget" | "page";
   onClose?: () => void;
+  initialPrompt?: string | null;
+  onInitialPromptConsumed?: () => void;
 }
 
-export default function NatthesisaChat({ variant = "widget", onClose }: Props) {
+const BUILD_OPTIONS: Array<{ target: ProjectTarget; label: string; icon: "browser" | "mobile" | "code" }> = [
+  { target: "website", label: "Website", icon: "browser" },
+  { target: "mobile-app", label: "Mobile app", icon: "mobile" },
+  { target: "code", label: "Code", icon: "code" },
+];
+
+export default function NatthesisaChat({
+  variant = "widget",
+  onClose,
+  initialPrompt,
+  onInitialPromptConsumed,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [quiz, setQuiz] = useState<PendingQuiz | null>(null);
+  const [buildTarget, setBuildTarget] = useState<ProjectTarget | null>(null);
+  const [buildPrompt, setBuildPrompt] = useState("");
+  const [buildStatus, setBuildStatus] = useState<"idle" | "building" | "error">("idle");
+  const [buildError, setBuildError] = useState("");
+  const [generatedProject, setGeneratedProject] = useState<NatthesisaProject | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const seeded = useRef(false);
@@ -209,7 +244,7 @@ export default function NatthesisaChat({ variant = "widget", onClose }: Props) {
     } catch {
       // Corrupt storage: fall through to a fresh greeting.
     }
-    const hello = greeting();
+    const hello = greeting(chatContext());
     setMessages([{ id: uid(), role: "assistant", content: hello.reply, links: hello.links }]);
     setSuggestions(hello.suggestions);
   }, []);
@@ -276,8 +311,64 @@ export default function NatthesisaChat({ variant = "widget", onClose }: Props) {
     [messages, quiz, sending]
   );
 
+  useEffect(() => {
+    if (!initialPrompt) return;
+    setInput(initialPrompt.slice(0, 2000));
+    onInitialPromptConsumed?.();
+    window.requestAnimationFrame(() => inputRef.current?.focus());
+  }, [initialPrompt, onInitialPromptConsumed]);
+
+  async function runProjectBuild() {
+    if (!buildTarget || buildPrompt.trim().length < 8 || buildStatus === "building") return;
+    setBuildStatus("building");
+    setBuildError("");
+    setGeneratedProject(null);
+    try {
+      const response = await fetch("/api/natthesisa/build", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ target: buildTarget, prompt: buildPrompt.trim().slice(0, 1200) }),
+      });
+      const payload = (await response.json()) as BuildResponse;
+      if (!response.ok || !payload.ok || !payload.project) {
+        throw new Error(payload.error || "Natthesisa could not build that project. Please try again.");
+      }
+      setGeneratedProject(payload.project);
+      setBuildStatus("idle");
+    } catch (error) {
+      setBuildStatus("error");
+      setBuildError(error instanceof Error ? error.message : "The project request failed. Please try again.");
+    }
+  }
+
+  function downloadGeneratedProject() {
+    if (!generatedProject) return;
+    try {
+      const archive = createProjectArchive(generatedProject.files);
+      const url = URL.createObjectURL(archive);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `natthesisa-${generatedProject.target}.zip`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch {
+      setBuildError("The project could not be downloaded. Try opening it in Code Lab instead.");
+    }
+  }
+
+  function stageProjectForCodeLab(): boolean {
+    if (!generatedProject) return false;
+    try {
+      window.sessionStorage.setItem(NATTHESISA_PROJECT_TRANSFER_KEY, JSON.stringify(generatedProject));
+      return true;
+    } catch {
+      setBuildError("This browser could not prepare the project handoff. Download the ZIP instead.");
+      return false;
+    }
+  }
+
   function clearChat() {
-    const hello = greeting();
+    const hello = greeting(chatContext());
     setMessages([{ id: uid(), role: "assistant", content: hello.reply, links: hello.links }]);
     setSuggestions(hello.suggestions);
     setQuiz(null);
@@ -342,6 +433,130 @@ export default function NatthesisaChat({ variant = "widget", onClose }: Props) {
           >
             Back to dashboard
           </Link>
+        )}
+      </div>
+
+      {/* Project builder */}
+      <div className="shrink-0 border-b border-[#eeeaf2] bg-white px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="mr-0.5 text-[9px] font-black uppercase tracking-[.12em] text-[#918a97]">Build</span>
+          {BUILD_OPTIONS.map((option) => (
+            <button
+              key={option.target}
+              type="button"
+              disabled={buildStatus === "building"}
+              onClick={() => {
+                const next = buildTarget === option.target ? null : option.target;
+                setBuildTarget(next);
+                setBuildStatus("idle");
+                setBuildError("");
+                setGeneratedProject(null);
+              }}
+              aria-pressed={buildTarget === option.target}
+              className={`inline-flex min-w-0 items-center gap-1 rounded-lg border px-2 py-1.5 text-[10px] font-extrabold transition ${
+                buildTarget === option.target
+                  ? "border-[#6d4aff] bg-[#f0ecff] text-[#5d3be2]"
+                  : "border-[#eeeaf2] text-[#716a77] hover:border-[#cfc4f5] hover:text-[#5d3be2]"
+              } disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <Icon name={option.icon} size={12} />
+              <span className="truncate">{option.label}</span>
+            </button>
+          ))}
+        </div>
+        {buildTarget && (
+          <div className="dashboard-scroll mt-2 max-h-[44vh] overflow-y-auto pr-0.5">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void runProjectBuild();
+              }}
+              className="space-y-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-extrabold text-[#38323f]">
+                  {buildTarget === "website" ? "Describe your website" : buildTarget === "mobile-app" ? "Describe your mobile app" : "Describe the code you need"}
+                </p>
+                <span className="text-[9px] font-semibold text-[#918a97]">
+                  {buildTarget === "mobile-app" ? "Expo + React Native" : buildTarget === "website" ? "HTML + CSS + JavaScript" : "Choose a suitable language"}
+                </span>
+              </div>
+              <textarea
+                value={buildPrompt}
+                onChange={(event) => setBuildPrompt(event.target.value)}
+                rows={2}
+                maxLength={1200}
+                placeholder={
+                  buildTarget === "website"
+                    ? "A modern portfolio for a photographer, with a gallery, contact section and warm colours…"
+                    : buildTarget === "mobile-app"
+                      ? "A habit tracker with daily goals, streaks and a calm purple theme…"
+                      : "A JavaScript function that validates a Ghana phone number, with examples…"
+                }
+                aria-label="Describe what Natthesisa should build"
+                className="w-full resize-y rounded-xl border border-[#e3dfea] bg-[#faf9fc] px-3 py-2 text-[11px] leading-5 text-[#393441] outline-none transition placeholder:text-[#aaa3b0] focus:border-[#8b72f0] focus:bg-white"
+              />
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[9px] text-[#a49dab]">{buildPrompt.length}/1,200 · review generated code before shipping</span>
+                <button
+                  type="submit"
+                  disabled={buildPrompt.trim().length < 8 || buildStatus === "building"}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#6d4aff] px-3 py-2 text-[10px] font-extrabold text-white transition hover:bg-[#5e3de0] disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  {buildStatus === "building" ? <span className="nat-think-dot !size-1.5 !bg-white" /> : <Icon name="spark" size={12} />}
+                  {buildStatus === "building" ? "Building…" : "Build project"}
+                </button>
+              </div>
+            </form>
+
+            {buildError && (
+              <div className="mt-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[10px] leading-4 text-rose-800">
+                {buildError}
+                {buildError.startsWith("Sign in") && (
+                  <Link href="/login?mode=signup" className="ml-1 font-black underline">Sign in</Link>
+                )}
+              </div>
+            )}
+
+            {generatedProject && (
+              <div className="mt-2.5 rounded-xl border border-[#ded7f5] bg-[#faf8ff] p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-[12px] font-black text-[#302a3b]">{generatedProject.title}</h3>
+                  <span className="rounded-full bg-white px-2 py-1 text-[8px] font-black uppercase tracking-wide text-[#5d3be2]">
+                    {generatedProject.engine === "cloud" ? "AI generated" : "Starter scaffold"}
+                  </span>
+                </div>
+                <p className="mt-1 text-[10px] leading-4 text-[#716a77]">{generatedProject.summary}</p>
+                <p className="mt-1.5 truncate font-mono text-[9px] text-[#918a97]">
+                  {generatedProject.files.map((file) => file.name).join(" · ")}
+                </p>
+                {generatedProject.engine === "starter" && (
+                  <p className="mt-1 text-[9px] leading-4 text-[#918a97]">For custom AI-generated projects, configure NATTHESISA_API_KEY on the server. This starter works without one.</p>
+                )}
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  <Link
+                    href="/dashboard/code"
+                    onClick={(event) => {
+                      if (!stageProjectForCodeLab()) {
+                        event.preventDefault();
+                        return;
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#1c1923] px-2.5 py-2 text-[10px] font-bold text-white transition hover:bg-[#302943]"
+                  >
+                    <Icon name="code" size={12} /> Open in Code Lab
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={downloadGeneratedProject}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#ded7f5] bg-white px-2.5 py-2 text-[10px] font-bold text-[#5d3be2] transition hover:bg-[#f2eeff]"
+                  >
+                    <Icon name="download" size={12} /> Download ZIP
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

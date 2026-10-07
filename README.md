@@ -1,8 +1,8 @@
 # codemasterghana — learning platform
 
-A polished full-stack learning-platform MVP for web development, app development and computer science. It includes learner accounts, structured courses and lessons, saved progress, **programs** a student buys once and keeps forever, invoices and a **teacher console**.
+A polished full-stack learning platform for web development, app development and computer science. It includes a public catalogue of free courses and lessons, optional learner accounts for saved progress and certificates, and an **owner/teacher console**. Existing purchase and invoice history remains with learner accounts.
 
-There are two roles and only two: **students** and the **owner** — the teacher. Every course and every lesson sits under a program, and a student opens them by paying for that program — there are no free previews and nothing else to buy. The teacher sets every program price from the console.
+There are two roles and only two: **students** and the **owner** — the teacher. Every published course, lesson, narration and teaching file is free to read, watch or download without signing in or paying. A free account saves progress and earns certificates; the teacher manages the catalogue and student records.
 
 Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
@@ -32,22 +32,33 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Editable learner profile, experience level, track and weekly goal, and a
   **profile picture** a student adds from their account page
 
-### Programs, and buying them
+### Natthesisa AI study assistant
 
-- **One payment per program, kept forever.** Buying a program opens every
-  course and every lesson under it, permanently — no subscriptions, no time
-  limits, nothing else to buy.
-- **The teacher sets the prices** from the console — the price of each
-  program. They are stored in the database, not in code, and a program priced
-  at GH₵0 is free to join with no checkout.
-- **No free previews.** Every lesson opens only to students who own its
-  program (or the teacher). Older course/lesson purchases stay on accounts as
-  history but open nothing.
-- Invoice history per account, and a clearly labelled **demo payment method**
-- Programs, purchases, invoices and usage stored per account in the database,
-  so a learner's access and billing history survive a restart
+- The floating assistant is mounted site-wide; every lesson also includes
+  contextual **Explain**, **Hint** and **Quiz** actions. On a lesson page,
+  Natthesisa receives the course and lesson context. The server validates those
+  IDs against the public course catalogue before adding lesson notes.
+- Students can ask for explanations, quizzes, code reviews and debugging help,
+  or switch to **Build → Website / Mobile app / Code** in the chat.
+- Website projects are multi-file HTML/CSS/JavaScript and open in the sandboxed
+  Code Lab preview. Mobile projects are Expo / React Native starter projects;
+  Code Lab edits and exports them, while Expo Go previews them on a phone.
+  Generated projects can be downloaded as a ZIP.
+- The built-in study brain and starter scaffolds work without an AI key. Set
+  `NATTHESISA_API_KEY`, `NATTHESISA_API_URL` and `NATTHESISA_MODEL` in the
+  server environment to enable custom model-generated answers and projects.
+  Configure these on the server only; do not expose the key to the browser.
+  See `.env.example`.
 
-> Students pay with Mobile Money (MTN MoMo, Telecel Cash, AT Money), cards or bank transfer through Paystack. Until the teacher adds a Paystack secret key, checkout runs in demo mode: the MoMo approval is simulated and no real money moves.
+### Free public catalogue and accounts
+
+- Every published course and lesson is open to everyone, including lesson
+  videos, narrations and teaching files. No account or payment is required to
+  study.
+- A free student account saves lesson progress, learning activity and earned
+  certificates. Signing in does not unlock content that is not already public.
+- Existing program purchases and invoices remain in account history; they do
+  not open or close lessons. The pricing page explains the current free access.
 
 ### Certificates, company pages and the public catalogue
 
@@ -137,22 +148,22 @@ Create the bucket once (Storage → New bucket) before the first upload; without
 it, uploads fail with a message telling you so, and `npm run storage:check`
 tells you the same thing without uploading anything.
 
-Then decide how the browser gets each file. Either way the app is the gate:
-`/api/lesson-files/...` checks the viewer's program ownership, and lesson access
-marks the lesson as started **before** it hands out a URL, so a locked lesson's
-video or PDF cannot be opened by copying the URL.
+Published lesson materials are public, just like the lesson text. The
+`/api/lesson-files/...` route validates that the published lesson and file exist,
+then streams the file or redirects to its Storage URL. A private bucket returns
+a time-limited signed URL; it does not make a published lesson private.
 
 | Bucket | `SUPABASE_BUCKET_PUBLIC` | What the browser receives |
 | --- | --- | --- |
 | Private | unset | A one-hour signed URL, created per view. Expires, so a copied link stops working. |
 | Public (Storage → bucket → Make public) | `1` | The bucket's permanent `/object/public/...` URL, cached by Supabase's CDN. |
 
-Public is what you want when a video is watched more than once: the CDN answers
-the second viewer instead of the origin, and no request is spent minting a URL.
-The trade-off is real — a public URL does not expire, so it keeps working for
-anyone it is forwarded to. Signed URLs are the safer default for paid material;
-`npm run storage:check` reports which mode you are in and refuses to pass if
-`SUPABASE_BUCKET_PUBLIC` is set but the bucket is still private.
+A public bucket lets the CDN serve repeat views without minting a URL. Its
+URLs do not expire and can be forwarded, which is consistent with the public
+lesson catalogue. A private bucket creates a signed Storage URL per request,
+but published lessons remain accessible through the public lesson route.
+`npm run storage:check` reports which mode you are in and verifies that a
+bucket configured as public really is public.
 
 Set `SUPABASE_BUCKET_PUBLIC=1` only *after* clicking Make public in the
 dashboard, or run `npm run storage:check` and let it tell you.
@@ -254,11 +265,11 @@ This is the “what to paste where” map for continuing the build.
 | 8c. Checkouts | `src/lib/payments.ts`, `payments` table | Pending → paid fulfilment, idempotent webhook + return-URL handling |
 | 9. Buying API | `src/app/api/purchase/route.ts` (`/api/pass` is retired) | Join a GH₵0 program directly; priced programs go through checkout |
 | 9a. Checkout API | `src/app/api/checkout/*`, `src/app/api/webhooks/paystack/route.ts`, `src/app/checkout/verify/page.tsx` | Start a MoMo checkout, poll it, confirm demo payments, verify the provider's return, receive the webhook |
-| 10. Access rule | `src/lib/access.ts` | The one place the gate is decided: owner → owns the program (no previews, no passes) |
+| 10. Access rule | `src/lib/access.ts` | Public course and lesson reading; account status governs saved progress, not content access |
 | 10b. Teacher rules | `src/lib/owner-console.ts`, `src/app/api/owner/*` | Metrics, prices and protected student-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
 | 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/blob-store.ts`, `src/lib/app-state.ts`, `src/lib/course-content.ts` | Storage/disk blobs for owner lessons, their metadata in `app_state`, and the merge with the catalog |
-| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked file streaming |
+| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and public lesson-file streaming |
 | 10d. Owner console | `src/app/owner/page.tsx`, `src/app/owner/lessons/page.tsx`, `src/components/OwnerPricingCard.tsx`, `src/components/OwnerLessonManager.tsx` | Metrics, the price editor, the upload form and the published-lesson list |
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/owner/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
@@ -452,8 +463,9 @@ VS Code editor (Monaco) running entirely in the browser:
   loop ends the run instead of the tab. The first run downloads the runtime
   (about 10 MB) from a CDN.
 - Work is saved to `localStorage` (per account in the lab, under `guest` in
-  the public studio) and can be downloaded as one self-contained HTML file or
-  as individual files.
+  the public studio) and can be downloaded as a project ZIP or as individual
+  files. Natthesisa-generated website and Expo/React Native projects transfer
+  straight into the editor.
 
 Student web code runs inside a sandboxed iframe (`sandbox="allow-scripts
 allow-modals"`, no `allow-same-origin`), and Python runs in a worker with no
@@ -820,26 +832,22 @@ Postgres error. Two causes are worth knowing:
   it and completing it again does not count the same lesson twice, so learning
   time and the weekly goal cannot drift upwards. Resetting a student's progress
   from the teacher console clears those credits so the lessons count again.
-- Course content is checked on the server in both lesson pages and the progress API.
-- The access rule lives in one module (`src/lib/access.ts`) and is applied by the
-  lesson page, the course page, the progress API and every file route: owner →
-  free preview → **active pass and a purchase**.
-- Preview lessons are accessible even when the pass has lapsed or the course is
-  not bought; a suspended account is refused everywhere, previews included.
-- A pass bought while one is active extends the current expiry instead of
-  resetting it, and issues an invoice for the period bought.
-- Comp grants (a pass, a course or a lesson) do not issue invoices and do not
-  count as revenue.
+- Course and lesson IDs are checked on the server before their catalogue content is rendered.
+- Published courses, lessons and their files are public; a purchase or sign-in
+  never gates the reader. A free student account can save progress and earn a
+  certificate. A paused account cannot save progress, but can still read public lessons.
+- Older passes, purchases and invoices remain in account history and do not
+  open or close lessons. New learners do not need to pay to study.
 - Only the owner account can publish or delete lessons; every other account
   receives `403` from the upload APIs even if they call them directly.
-- Lesson materials are streamed through an access-checked route
-  (`/api/lesson-files/...`), so a locked lesson's video or PDF cannot be opened
-  by copying the URL.
+- The public `/api/lesson-files/...` route verifies that a published lesson and
+  file exist, then streams or redirects to the file; copying the URL does not
+  create an access restriction.
 - Video edits are metadata: `trimStart`, `trimEnd`, `muted` and the poster image
   are stored next to the file and applied by the player
   (`src/components/TrimmedVideo.tsx`), so a trimmed lesson plays only the kept
-  range. The thumbnail is served through an access-checked route, and pictures
-  are re-exported so an edited image replaces the original file on disk.
+  range. The thumbnail is served through the public lesson-media route, and
+  pictures are re-exported so an edited image replaces the original file on disk.
 - The owner's photo and logo are also served through an access-checked route
   (`/api/branding/photo`, `/api/branding/logo`): signed-in learners can load
   them, anonymous visitors get `401`, and only the owner can replace or remove
