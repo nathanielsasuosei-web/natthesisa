@@ -141,7 +141,22 @@ function failureOf(error: unknown): { failure: StorageFailureKind; hint: string 
 }
 
 /**
- * One metadata read, retried once.
+ * The failures worth a second attempt.
+ *
+ * A bucket that does not exist, or a key Supabase refuses, will answer exactly
+ * the same way 250 ms later — retrying those only makes an outage slower, and
+ * the owner console checks every video in the catalog at once. Transient
+ * failures are the ones a retry is for.
+ */
+const TRANSIENT_FAILURES: StorageFailureKind[] = ["network", "timeout", "rate-limited", "server-error"];
+
+function isTransient(error: unknown): boolean {
+  const kind = (error as { kind?: StorageFailureKind }).kind;
+  return kind !== undefined && TRANSIENT_FAILURES.includes(kind);
+}
+
+/**
+ * One metadata read, retried once when the failure looks transient.
  *
  * The owner page checks many objects at once and Supabase can briefly return a
  * network error or a rate-limit response when a deployment cold-starts.
@@ -152,6 +167,10 @@ async function statBlobWithRetry(key: string): Promise<BlobStat | null> {
   try {
     return await statBlob(key);
   } catch (firstError) {
+    if (!isTransient(firstError)) {
+      logFailureOnce(firstError);
+      throw firstError;
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
     try {
       return await statBlob(key);
