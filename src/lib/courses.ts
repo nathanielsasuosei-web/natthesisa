@@ -4,6 +4,7 @@ import { WEB_FOUNDATIONS_MODULES } from "@/content/web-foundations";
 import { COMPUTER_SCIENCE_ESSENTIALS_MODULES } from "@/content/computer-science-essentials";
 import { JAVASCRIPT_ZERO_TO_BUILDER_MODULES } from "@/content/javascript-zero-to-builder";
 import { REACT_PRODUCTION_APPS_MODULES } from "@/content/react-production-apps";
+import { MOBILE_APPS_REACT_NATIVE_MODULES } from "@/content/mobile-apps-react-native";
 
 export type CourseCategory =
   | "Computer Science"
@@ -241,77 +242,7 @@ const CORE_COURSES: Course[] = [
       "Prepare an app for release",
     ],
     tags: ["React Native", "Expo", "Mobile UX"],
-    modules: [
-      {
-        id: "native-building-blocks",
-        title: "01 · Native building blocks",
-        description: "Move your React knowledge onto a mobile device.",
-        lessons: [
-          lesson(
-            "native-vs-web",
-            "Native apps vs the web",
-            16,
-            "Understand what React Native shares with React and what changes on iOS and Android.",
-            "React Native uses React's component model but renders native views rather than HTML. There is no browser DOM, CSS differs, and platform conventions matter to how an app feels.",
-            "import { Text, View } from \"react-native\";\n\nexport default function App() {\n  return <View><Text>Hello, mobile!</Text></View>;\n}",
-            "List three browser APIs a web app may use that a native app cannot assume exist.",
-            true
-          ),
-          lesson(
-            "layouts-styling-native",
-            "Layouts & styling",
-            25,
-            "Create adaptable mobile layouts with Flexbox, safe areas and platform-aware spacing.",
-            "React Native defaults to a vertical flex direction. Use StyleSheet for named styles, respect safe areas and test dynamic text sizes instead of designing around one simulator.",
-            "const styles = StyleSheet.create({\n  screen: { flex: 1, padding: 20 },\n  row: { flexDirection: \"row\", gap: 12 }\n});",
-            "Build a habit card that remains readable with the device font size increased."
-          ),
-          lesson(
-            "mobile-navigation",
-            "Navigation patterns",
-            28,
-            "Connect screens using navigation that matches platform expectations.",
-            "Stacks model drill-down flows, tabs switch top-level areas and modals isolate focused tasks. Keep route parameters small and load full records from shared state.",
-            "<Stack.Screen name=\"HabitDetail\" component={HabitDetail} />",
-            "Sketch a route map for a habit app with Today, Progress, Settings and Habit Detail screens."
-          ),
-        ],
-      },
-      {
-        id: "mobile-product",
-        title: "02 · Make it a product",
-        description: "Add persistence, device feedback and release quality.",
-        lessons: [
-          lesson(
-            "device-storage",
-            "State & device storage",
-            27,
-            "Keep useful data between sessions without making the interface wait unnecessarily.",
-            "Store small non-sensitive preferences locally, use a secure store for secrets, and treat serialization as an explicit boundary. Show a stable loading screen while restoring initial state.",
-            "await AsyncStorage.setItem(\"habits\", JSON.stringify(habits));",
-            "Persist a list of habits and safely recover if the stored JSON is invalid."
-          ),
-          lesson(
-            "mobile-interactions",
-            "Gestures, feedback & polish",
-            24,
-            "Make taps, transitions and system feedback feel immediate and intentional.",
-            "Touch targets need enough space, destructive actions need confirmation or undo, and haptics should reinforce—not replace—visual information. Keep animation tied to meaning.",
-            "<Pressable hitSlop={8} accessibilityRole=\"button\">\n  <Text>Mark complete</Text>\n</Pressable>",
-            "Audit every control in your app for touch size, label and pressed feedback."
-          ),
-          lesson(
-            "release-mobile-app",
-            "Test & release",
-            32,
-            "Move from a working simulator build to an app other people can install confidently.",
-            "Test real devices, slow networks, offline launches, denied permissions and interrupted flows. Prepare icons, screenshots, privacy details and versioned builds before store review.",
-            "npx expo-doctor\nnpx eas build --platform all",
-            "Create a release checklist and run your core flow on one physical device."
-          ),
-        ],
-      },
-    ],
+    modules: MOBILE_APPS_REACT_NATIVE_MODULES,
   },
   {
     id: "backend-node-apis",
