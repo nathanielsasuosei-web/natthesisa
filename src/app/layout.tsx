@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { site, siteUrl } from "@/config/site";
 import { brandAssets } from "@/config/branding";
+import NatthesisaWidget from "@/components/NatthesisaWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
