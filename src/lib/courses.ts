@@ -1,6 +1,7 @@
 import { lesson } from "./lesson-builder";
 import { PROGRAMS, PROGRAM_COURSES } from "./programs";
 import { WEB_FOUNDATIONS_MODULES } from "@/content/web-foundations";
+import { COMPUTER_SCIENCE_ESSENTIALS_MODULES } from "@/content/computer-science-essentials";
 
 export type CourseCategory =
   | "Computer Science"
@@ -162,77 +163,7 @@ const CORE_COURSES: Course[] = [
       "Explain memory, networks and operating systems",
     ],
     tags: ["Algorithms", "Data", "Systems"],
-    modules: [
-      {
-        id: "computational-thinking",
-        title: "01 · Computational thinking",
-        description: "Learn to describe problems so a computer can solve them.",
-        lessons: [
-          lesson(
-            "what-computers-do",
-            "What computers actually do",
-            14,
-            "Behind every app, a computer repeatedly accepts input, stores data, transforms it and produces output.",
-            "Hardware performs a small vocabulary of operations extremely quickly. Software creates useful abstractions by combining those operations into instructions, functions and systems.",
-            "input → store → process → output\n             ↖ repeat ↙",
-            "Choose a familiar app and list its inputs, stored data, processing steps and outputs.",
-            true
-          ),
-          lesson(
-            "binary-data",
-            "Bits, bytes & data",
-            19,
-            "Text, photos and sound all become patterns of two states before a computer can store them.",
-            "A bit is 0 or 1. Eight bits form a byte. Interpretation gives a bit pattern meaning: the same bits can represent a number, a character or part of a pixel depending on the format.",
-            "13 in decimal = 1101 in binary\n8 + 4 + 0 + 1 = 13",
-            "Convert the decimal numbers 7, 18 and 42 to binary using place values."
-          ),
-          lesson(
-            "logic-algorithms",
-            "Logic & algorithms",
-            24,
-            "Turn an unclear goal into a finite sequence of unambiguous steps.",
-            "An algorithm has defined inputs, ordered operations and an expected output. Conditions choose a path; loops repeat work; functions name and reuse a process.",
-            "function largest(numbers):\n  best = numbers[0]\n  for each number in numbers:\n    if number > best: best = number\n  return best",
-            "Write pseudocode that finds the smallest price in a shopping basket."
-          ),
-        ],
-      },
-      {
-        id: "systems-and-structures",
-        title: "02 · Systems & structures",
-        description: "See how programs organize data and share resources.",
-        lessons: [
-          lesson(
-            "data-structures",
-            "Data structures",
-            25,
-            "The way data is organized changes which operations are easy, fast or expensive.",
-            "Arrays provide ordered indexed access, stacks use last-in-first-out, queues use first-in-first-out, and maps connect unique keys to values. Pick the structure that matches the operations you perform most.",
-            "stack.push(task)\nlatest = stack.pop()\n\nprofileById.set(user.id, user)",
-            "For browser history, a support queue and a phone book, choose a data structure and explain why."
-          ),
-          lesson(
-            "memory-processes",
-            "Memory, programs & processes",
-            22,
-            "Understand what changes when a program on disk becomes a running process.",
-            "The operating system gives each process resources and a protected address space. The stack tracks active function calls; the heap stores dynamically allocated data that can outlive one call.",
-            "program file → operating system loads it → running process\n                                  ↳ memory + CPU time",
-            "Open your system monitor, find three processes and compare their memory use."
-          ),
-          lesson(
-            "networks-internet",
-            "Networks & the internet",
-            23,
-            "Learn how independently owned networks cooperate to move information around the world.",
-            "Packets carry small pieces of data. IP handles addressing and routing, TCP provides ordered delivery, and application protocols such as HTTP define the messages programs exchange.",
-            "application: HTTP\ntransport:   TCP\nnetwork:     IP\nlink:        Wi‑Fi / Ethernet",
-            "Run a traceroute to a public website and note how many network hops appear."
-          ),
-        ],
-      },
-    ],
+    modules: COMPUTER_SCIENCE_ESSENTIALS_MODULES,
   },
   {
     id: "javascript-zero-to-builder",
