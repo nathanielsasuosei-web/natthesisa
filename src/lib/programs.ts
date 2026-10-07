@@ -2,6 +2,7 @@ import type { Course, CourseTone } from "./courses";
 import { lesson, module } from "./lesson-builder";
 import { DATA_STRUCTURES_ALGORITHMS_MODULES } from "@/content/data-structures-algorithms";
 import { DATABASES_AND_SQL_MODULES } from "@/content/databases-and-sql";
+import { SOFTWARE_ENGINEERING_PRACTICES_MODULES } from "@/content/software-engineering-practices";
 
 /**
  * The six programs, and the courses under them.
@@ -178,69 +179,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Set up a pipeline that runs on every push",
     ],
     tags: ["Git", "Testing", "CI"],
-    modules: [
-      module("working-together", "01 · Working like a team", "Git, review and readable code — the parts nobody teaches in a tutorial.", [
-        lesson(
-          "git-branches-and-commits",
-          "Branches, commits and pull requests",
-          24,
-          "Version control is a safety net and a conversation at the same time: small commits explain what changed, and a pull request explains why.",
-          "A branch is a moving label on a commit. Commit in small, complete steps with a message that finishes the sentence 'this change will…'. Then open a pull request so the change can be read before it reaches main.",
-          "git switch -c add-gradebook\ngit add src/gradebook.ts\ngit commit -m \"Add a gradebook that averages scores per student\"\ngit push -u origin add-gradebook\ngh pr create --fill",
-          "Take a change you already made, split it into two commits that each do one thing, and write both messages.",
-          true
-        ),
-        lesson(
-          "code-review",
-          "Code review that helps",
-          22,
-          "Review is about the code, not the person. A good review catches real problems, shares context and leaves the author able to move faster.",
-          "Review for correctness first, then clarity, then style — and say why. Approve small changes quickly; ask questions rather than issuing commands, and always explain the risk you are pointing at.",
-          "> \"This works, but `users.find()` inside the loop makes it O(n²).\n> Could we build a Map keyed by id first? That would also\n> make the intent clearer.\"",
-          "Review a pull request you wrote last month. Leave three comments: one bug, one clarity, one praise."
-        ),
-        lesson(
-          "readable-code",
-          "Naming and structure that survives",
-          22,
-          "Code is read far more often than it is written. Good names and small functions are what make a change safe six months later.",
-          "A name should say what a thing is or does, not what type it is. Keep functions at one level of abstraction, delete dead code instead of commenting it, and let the shape of the data explain the flow.",
-          "// Before\nconst d = (a, b) => a.filter(x => b.includes(x.id));\n\n// After\nfunction pupilsInClass(pupils, enrolledIds) {\n  return pupils.filter((pupil) => enrolledIds.includes(pupil.id));\n}",
-          "Rename the worst three names in a file you own, without changing behaviour, and check the diff reads better."
-        ),
-      ]),
-      module("shipping-safely", "02 · Shipping without breaking", "Tests and pipelines, so a change can be trusted before it reaches a user.", [
-        lesson(
-          "unit-tests",
-          "Tests that earn their keep",
-          26,
-          "A test is a promise about behaviour. The good ones describe real rules, fail for exactly one reason and run in milliseconds.",
-          "Arrange, act, assert. Test the interesting cases: empty input, the boundary, the error path. If a test needs a database, an API and a fake clock, that is usually the design asking to be split.",
-          "test(\"a pass extends from its current expiry\", () => {\n  const pass = makePass({ period: \"weekly\", from: day(0) });\n  const renewed = renew(pass, \"daily\");\n\n  expect(renewed.expiresAt).toEqual(day(8));\n});",
-          "Write three tests for a function you already shipped: a normal case, a boundary and a failure."
-        ),
-        lesson(
-          "ci-pipeline",
-          "A pipeline on every push",
-          22,
-          "Continuous integration is a robot that runs the boring checks for you: install, typecheck, test, build. It turns 'it worked on my machine' into a fact.",
-          "Keep the pipeline fast and honest — the same commands a developer runs locally. Fail loudly, and never merge a red build: a pipeline people ignore is worse than none.",
-          "# .github/workflows/ci.yml\nname: CI\non: [push, pull_request]\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 22, cache: npm }\n      - run: npm ci\n      - run: npm run typecheck\n      - run: npm test",
-          "Add a workflow to one of your repositories that runs typecheck and tests, and make it fail on purpose once to see the red mark."
-        ),
-        lesson(
-          "planning-and-issues",
-          "Issues, scope and shipping small",
-          20,
-          "Engineering is mostly deciding what not to build yet. Small, shippable increments keep quality high and feedback quick.",
-          "Write an issue as the user problem and the smallest acceptable change. Slice work so each slice is releasable. Estimate by comparing to work you have already done, not by guessing hours.",
-          "## Problem\nStudents cannot tell which lesson is a free preview.\n\n## Smallest acceptable change\nShow a \"Free preview\" chip in the course lesson list.\n\n## Not in this slice\nFiltering, badges on cards, analytics.",
-          "Take your current project and cut it into three releases, each of which a real user could use."
-        ),
-      ]),
-    ],
+    modules: SOFTWARE_ENGINEERING_PRACTICES_MODULES,
   },
-
   {
     id: "system-design-architecture",
     cover: "/course-covers/system-design-architecture.jpg",
