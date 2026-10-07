@@ -5,6 +5,7 @@ import { DATABASES_AND_SQL_MODULES } from "@/content/databases-and-sql";
 import { SOFTWARE_ENGINEERING_PRACTICES_MODULES } from "@/content/software-engineering-practices";
 import { SYSTEM_DESIGN_ARCHITECTURE_MODULES } from "@/content/system-design-architecture";
 import { DEVOPS_AND_DELIVERY_MODULES } from "@/content/devops-and-delivery";
+import { VIBE_CODING_SHIP_WITH_AI_MODULES } from "@/content/vibe-coding-ship-with-ai";
 
 /**
  * The six programs, and the courses under them.
@@ -255,69 +256,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Ship and share a real app in a weekend",
     ],
     tags: ["AI", "Prompting", "Shipping"],
-    modules: [
-      module("the-loop", "01 · The vibe coding loop", "How to drive an AI without losing the thread of your own project.", [
-        lesson(
-          "what-vibe-coding-is",
-          "What vibe coding actually is",
-          18,
-          "Vibe coding is writing software by describing what you want and reviewing what comes back. It is fast because the AI types; it works because you decide.",
-          "The loop is: describe one thing, run it, read the diff, keep or reject, then repeat. Small steps keep the code reviewable — a giant prompt produces a giant change nobody can check.",
-          "1. Describe ONE change, with the file and the expected behaviour\n2. Let the AI write it\n3. Run it and look at the result\n4. Read the diff: does it do exactly this, and nothing more?\n5. Commit. Then describe the next thing.",
-          "Write the description of a single small feature you want, as if briefing a developer. Then get the AI to build only that.",
-          true
-        ),
-        lesson(
-          "prompting-for-code",
-          "Prompts that produce working code",
-          24,
-          "A good prompt is a tiny spec: the goal, the constraints, the shape of the data and how you will know it works.",
-          "Name the stack and the file, give the inputs and outputs, state what must not change, and ask for the smallest diff. When the answer is wrong, add the missing constraint instead of rewriting the whole prompt.",
-          "Goal: a route that lists a student's purchases.\nStack: Next.js App Router, TypeScript, no new dependencies.\nInput: the signed-in user.\nOutput: { purchases: [{ kind, refId, amount, at }] }.\nMust not: touch the database schema or add a package.\nDone when: it typechecks and returns [] for a new account.",
-          "Take a prompt you already sent and rewrite it with goal, constraints, data shape and done-when."
-        ),
-        lesson(
-          "reading-ai-code",
-          "Reading code you did not write",
-          26,
-          "The skill that separates a vibe coder from a passenger is reading: find the data, follow the flow, spot the edge case the AI forgot.",
-          "Read the diff, not the chat. Ask where the data comes from, what happens on empty and on error, and what the code assumes about the caller. If you cannot explain a line, that is the line to change.",
-          "// Generated code often skips the boring case:\nconst total = purchases.reduce((sum, p) => sum + p.amount, 0);\n\n// Ask yourself: purchases can be undefined for a new account,\n// and amounts can be strings from JSON. Both are real bugs.\nconst total = (purchases ?? []).reduce((sum, p) => sum + Number(p.amount ?? 0), 0);",
-          "Ask the AI for a function, then write down every assumption it made. Fix the one that would break first."
-        ),
-      ]),
-      module("ship-it", "02 · Ship something small", "From an empty folder to a link you can send someone.", [
-        lesson(
-          "build-a-page-in-an-hour",
-          "Build a working page in an hour",
-          24,
-          "One page, real data, styled and deployed. The point is the loop, not the size of the project.",
-          "Start from a template that already runs, keep state in one place, and let the AI do the styling passes after the behaviour works. Deploy early — a URL changes how you judge your own work.",
-          "// First: make it work\nconst [items, setItems] = useState<string[]>([]);\n\n// Then: make it nicer — a separate prompt, a separate commit\n<div className=\"grid gap-3 sm:grid-cols-2\">\n  {items.map((item) => <Card key={item}>{item}</Card>)}\n</div>",
-          "Build and deploy a one-page app today: an input, a list, and a button that adds to it."
-        ),
-        lesson(
-          "iterate-and-debug",
-          "Iterating and debugging with AI",
-          24,
-          "When something breaks, the AI needs evidence, not adjectives. Paste the error, the input and what you expected.",
-          "Reproduce first, then give the smallest failing case. Ask for one hypothesis at a time, and make it explain the cause before it writes the fix — otherwise you get a patch over a bug.",
-          "It fails on this exact input:\n  join([], \"-\")  ->  expected \"\", got undefined\n\nThe error: TypeError: Cannot read properties of undefined\n\nExplain the cause before changing anything, then give me the smallest fix.",
-          "Take a real bug, write the smallest failing case, and ask for the cause before the fix. Note what the first fix got wrong."
-        ),
-        lesson(
-          "polish-and-publish",
-          "Polish, publish, and keep it alive",
-          22,
-          "Shipping is a checklist, not a feeling: empty states, error messages, a title, a favicon, and a way to see when it breaks.",
-          "Handle the states a demo never shows — loading, empty and error. Write a README with how to run it, add a health check, and tag the commit you deployed so you can go back.",
-          "Loading → skeletons, not a spinner forever\nEmpty   → \"No projects yet. Create your first one.\"\nError   → \"That did not save. Try again.\" + a retry button\nREADME  → what it is, how to run it, how it deploys",
-          "Go through your app and add the empty and error states for every list and form."
-        ),
-      ]),
-    ],
+    modules: VIBE_CODING_SHIP_WITH_AI_MODULES,
   },
-
   {
     id: "ai-apps-agents-and-apis",
     slug: "ai-apps-agents-and-apis",
