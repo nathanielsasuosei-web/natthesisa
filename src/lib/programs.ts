@@ -1,5 +1,6 @@
 import type { Course, CourseTone } from "./courses";
 import { lesson, module } from "./lesson-builder";
+import { DATA_STRUCTURES_ALGORITHMS_MODULES } from "@/content/data-structures-algorithms";
 
 /**
  * The six programs, and the courses under them.
@@ -126,69 +127,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Search, sort and traverse without brute force",
     ],
     tags: ["Algorithms", "Big-O", "Interview prep"],
-    modules: [
-      module("structures", "01 · Structures that fit the job", "The containers you reach for every day, and what they cost.", [
-        lesson(
-          "big-o-not-scary",
-          "Big-O without the fear",
-          20,
-          "Big-O is just a way of saying how work grows when the input doubles. It is the vocabulary for every performance conversation you will ever have.",
-          "Count the steps an algorithm takes as the input grows. A loop over n items is O(n); a loop inside a loop is O(n²); halving the problem each pass is O(log n). Constants and small terms are dropped because they stop mattering at scale.",
-          "// O(n): one pass over the list\nconst total = (nums) => nums.reduce((sum, n) => sum + n, 0);\n\n// O(n²): for each item, check every other item\nconst hasDuplicateSlow = (nums) => {\n  for (let i = 0; i < nums.length; i++)\n    for (let j = i + 1; j < nums.length; j++)\n      if (nums[i] === nums[j]) return true;\n  return false;\n};",
-          "Take two functions you wrote last week and label each one with its Big-O. Write the number of steps for inputs of 10 and 1,000.",
-          true
-        ),
-        lesson(
-          "arrays-and-two-pointers",
-          "Arrays, strings and two pointers",
-          26,
-          "Arrays are contiguous memory with instant indexed reads, which makes them the right home for ordered data — and the right problem for two-pointer tricks.",
-          "Reading `list[i]` costs the same whatever `i` is, but inserting at the front shifts everything. Two pointers walk a sorted array from both ends so a nested loop collapses into a single pass.",
-          "// Does this sorted list contain two numbers that add to target?\nfunction twoSum(sorted, target) {\n  let left = 0, right = sorted.length - 1;\n  while (left < right) {\n    const sum = sorted[left] + sorted[right];\n    if (sum === target) return [sorted[left], sorted[right]];\n    if (sum < target) left++; else right--;\n  }\n  return null;\n}",
-          "Reverse a string in place with two pointers instead of a library call, then say why the loop runs n/2 times."
-        ),
-        lesson(
-          "maps-and-sets",
-          "Maps and sets: looking things up in one step",
-          24,
-          "A hash map turns 'search the list' into 'ask the map'. Most 'slow' code becomes fast the moment the inner loop is replaced with a lookup.",
-          "A hash function turns a key into a position, so insert, find and delete average O(1). Sets are maps without values — perfect for 'have I seen this before?'.",
-          "// From O(n²) to O(n): one pass, remembering what we saw.\nfunction hasDuplicateFast(nums) {\n  const seen = new Set();\n  for (const n of nums) {\n    if (seen.has(n)) return true;\n    seen.add(n);\n  }\n  return false;\n}",
-          "Count how many times each word appears in a paragraph with one pass and one Map. Then explain what changed versus sorting first."
-        ),
-      ]),
-      module("algorithms", "02 · Algorithms that scale", "Sorting, recursion, trees and graphs — the patterns behind real systems.", [
-        lesson(
-          "sorting-and-searching",
-          "Sorting and searching",
-          24,
-          "Sorting is the move that makes everything else cheaper: searching, de-duplicating, merging and grouping all get simpler on ordered data.",
-          "Binary search halves the search space each step, so a million sorted items take about twenty comparisons. Sorting first costs O(n log n) and then each search is O(log n) — a bargain when you search many times.",
-          "function binarySearch(sorted, target) {\n  let low = 0, high = sorted.length - 1;\n  while (low <= high) {\n    const mid = (low + high) >> 1;\n    if (sorted[mid] === target) return mid;\n    if (sorted[mid] < target) low = mid + 1;\n    else high = mid - 1;\n  }\n  return -1;\n}",
-          "Search a sorted list of a million numbers for a missing value and count the comparisons in your head before you run it."
-        ),
-        lesson(
-          "recursion-and-memoization",
-          "Recursion and memoization",
-          26,
-          "Recursion solves a problem by solving a smaller copy of itself. Memoization makes recursive solutions fast by never solving the same smaller problem twice.",
-          "Naive Fibonacci recomputes the same values exponentially many times — O(2ⁿ). Caching each result the first time it is computed drops the whole tree to O(n).",
-          "function fib(n, cache = new Map()) {\n  if (n < 2) return n;\n  if (cache.has(n)) return cache.get(n);\n  const value = fib(n - 1, cache) + fib(n - 2, cache);\n  cache.set(n, value);\n  return value;\n}\n\nfib(80); // instant — without the cache this would never finish",
-          "Write a recursive coin-change counter, then add a cache and measure both versions on the same input."
-        ),
-        lesson(
-          "trees-graphs-traversal",
-          "Trees, graphs and traversal",
-          28,
-          "A tree is a hierarchy (files, comments, decisions). A graph is anything connected to anything (friends, routes, dependencies). Both are searched the same two ways.",
-          "Depth-first search follows one branch to the end, which suits small graphs and recursion. Breadth-first search explores level by level, which is how you find the shortest path in an unweighted graph.",
-          "function bfsShortestPath(graph, start, goal) {\n  const queue = [[start]];\n  const seen = new Set([start]);\n  while (queue.length) {\n    const path = queue.shift();\n    const node = path[path.length - 1];\n    if (node === goal) return path;\n    for (const next of graph[node] ?? []) {\n      if (seen.has(next)) continue;\n      seen.add(next);\n      queue.push([...path, next]);\n    }\n  }\n  return null;\n}",
-          "Model a small map as an object of neighbours and find the shortest route between two stops with BFS."
-        ),
-      ]),
-    ],
+    modules: DATA_STRUCTURES_ALGORITHMS_MODULES,
   },
-
   {
     id: "databases-and-sql",
     cover: "/course-covers/databases-sql.jpg",
