@@ -1,6 +1,7 @@
 import type { Course, CourseTone } from "./courses";
 import { lesson, module } from "./lesson-builder";
 import { DATA_STRUCTURES_ALGORITHMS_MODULES } from "@/content/data-structures-algorithms";
+import { DATABASES_AND_SQL_MODULES } from "@/content/databases-and-sql";
 
 /**
  * The six programs, and the courses under them.
@@ -152,69 +153,8 @@ export const PROGRAM_COURSES: Course[] = [
       "Use indexes and transactions correctly",
     ],
     tags: ["SQL", "PostgreSQL", "Data modelling"],
-    modules: [
-      module("query-basics", "01 · Talking to data", "Tables, keys and the query language built on top of them.", [
-        lesson(
-          "tables-and-keys",
-          "Tables, rows and keys",
-          22,
-          "A database is a set of tables where every row is one thing and every column is one fact about it. Keys are what keep rows from lying about each other.",
-          "A primary key identifies a row forever. A foreign key says 'this value must exist in that table', which lets the database refuse inconsistent data instead of storing it.",
-          "create table students (\n  id     bigint generated always as identity primary key,\n  name   text not null,\n  email  text not null unique\n);\n\ncreate table enrolments (\n  id         bigint generated always as identity primary key,\n  student_id bigint not null references students(id) on delete cascade,\n  course     text not null,\n  grade      integer check (grade between 0 and 100)\n);",
-          "Model a small library: books, members and loans. Every loan must point at a real member and a real book.",
-          true
-        ),
-        lesson(
-          "select-where-order",
-          "SELECT, WHERE, ORDER BY",
-          24,
-          "Most questions you have about data are three clauses: which table, which rows, in what order.",
-          "Select only the columns you need, filter with WHERE, sort with ORDER BY and page with LIMIT. NULL is not equal to anything — it needs `IS NULL`.",
-          "select name, email\n  from students\n where email is not null\n   and name ilike 'a%'\n order by name asc\n limit 20;",
-          "Write a query that returns the five most recently enrolled students and their course."
-        ),
-        lesson(
-          "joins",
-          "Joins: asking across tables",
-          26,
-          "Data lives in separate tables so it is stored once. Joins are how you put the story back together for one question.",
-          "An INNER JOIN keeps rows that match on both sides. A LEFT JOIN keeps every row from the left table even when nothing matches — which is how you find students with no enrolments (the `IS NULL` filter).",
-          "select s.name, c.title, e.grade\n  from enrolments e\n  join students s on s.id = e.student_id\n  join courses  c on c.id = e.course_id\n order by s.name;\n\n-- Everyone who has never enrolled:\nselect s.name\n  from students s\n  left join enrolments e on e.student_id = s.id\n where e.id is null;",
-          "List every course with how many students are enrolled in it, including the courses with none."
-        ),
-      ]),
-      module("making-it-real", "02 · Making it real", "Writes, speed and correctness under concurrency.", [
-        lesson(
-          "insert-update-delete",
-          "Insert, update and delete safely",
-          22,
-          "Writes are where mistakes become permanent, so they should be narrow: touch the rows you mean and nothing else.",
-          "The dangerous part of UPDATE and DELETE is the WHERE clause — forget it and you rewrite the whole table. `RETURNING` shows exactly what changed, so you never have to guess.",
-          "update enrolments\n   set grade = 88\n where student_id = 12 and course_id = 4\nreturning id, grade;\n\ndelete from enrolments\n where grade is null and enrolled_at < now() - interval '1 year';",
-          "Insert a student and their first enrolment in one transaction, then update the grade and print the changed row."
-        ),
-        lesson(
-          "indexes-and-explain",
-          "Indexes and EXPLAIN",
-          26,
-          "An index is a sorted shortcut the database keeps so it does not read the whole table for one lookup. EXPLAIN shows you whether it was used.",
-          "Indexes cost storage and slow down writes, so you add them for the queries you actually run — filters, joins and sorts. `EXPLAIN ANALYZE` is the honest measure: it runs the query and reports the real time.",
-          "create index enrolments_student_idx on enrolments (student_id);\n\nexplain analyze\nselect * from enrolments where student_id = 12;",
-          "Run EXPLAIN ANALYZE before and after adding an index on a column you filter by, and compare the row counts."
-        ),
-        lesson(
-          "transactions-and-constraints",
-          "Transactions and constraints",
-          24,
-          "A transaction makes several statements one all-or-nothing unit, which is what keeps money, stock and enrolments correct when two people act at once.",
-          "BEGIN opens it, COMMIT makes it real, ROLLBACK undoes it. `SELECT ... FOR UPDATE` locks the rows you are about to change so a second request waits instead of double-spending.",
-          "begin;\n\nselect seats from classes where id = 7 for update;\nupdate classes set seats = seats - 1 where id = 7;\n\ninsert into bookings (class_id, student_id) values (7, 42);\n\ncommit;",
-          "Book the last seat of a class from two sessions at the same time. Confirm one succeeds and the other waits, then explain why."
-        ),
-      ]),
-    ],
+    modules: DATABASES_AND_SQL_MODULES,
   },
-
   {
     id: "software-engineering-practices",
     cover: "/course-covers/software-engineering-practices.jpg",
