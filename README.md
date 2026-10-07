@@ -23,11 +23,11 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   browser and downloadable
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
-- **A narrated video on every lesson and every course.** Each lesson opens with
-  a two-minute walkthrough — title card, the core idea, the worked example, the
-  practice task and a pointer to the next lesson — and each course page opens
-  with a welcome video from its instructor. The player has chapter buttons, so a
-  student can jump straight to the part they need
+- **A narrated 2½-minute video on every catalog lesson.** Each lesson opens
+  with a walkthrough — title card, the core idea, the worked example, the
+  practice task and a pointer to the next lesson. The player has chapter buttons,
+  so a student can jump straight to the part they need. Course welcome videos
+  are supported separately by the same generation pipeline.
 - Server-saved lesson completion, course percentages and activity history
 - **Student email** — receipts for every purchase, a congratulations message on
   finishing a course, and a notice when a certificate is issued
@@ -173,32 +173,35 @@ to move ownership to a different account.
 
 ## Lesson and course videos
 
-Every lesson in the catalog has a short narrated video, and every course has a
-welcome video. They are **generated from the course content itself**, not
-uploaded: a script per lesson supplies the narration, and the pictures — title
-card, the core idea, the worked example, the practice task, and a pointer to the
-next lesson — are built from the lesson's own text, code and duration, styled
-with the site's own colours and the course's tone.
+Every lesson in the catalog has a narrated walkthrough targeted at two and a
+half minutes (within the requested two-to-three-minute range). Course welcome
+videos use the same generation pipeline when their narration is available.
+The lesson videos are **generated from the course content itself**: a script per
+lesson supplies the narration, and the pictures — title card, the core idea,
+the worked example, the practice task, and a pointer to the next lesson — are
+built from the lesson's own text, code and duration, styled with the site's own
+colours and the course's tone.
 
-Nothing is hand-animated and nothing is uploaded, which is what makes the
-library maintainable: add a course, add its scripts, run one command, and the
-whole course has videos that match its lessons exactly.
+No hand animation or manual editing is needed: add a course, add its scripts,
+synthesize the narration and run the builder. The generated video files go into
+the configured media storage; the scripts and manifest stay versioned.
 
 ### How one video is made
 
 | Step | What happens |
 | --- | --- |
-| 1. Narration | Four paragraphs per lesson (title, idea, example, challenge) are written in `content/lesson-videos/<course>.json` and spoken into `.data/lesson-videos/audio/<lessonId>.mp3` — one clip per lesson, paragraphs separated by silence |
+| 1. Narration | Four paragraphs per lesson (title, idea, example, challenge) are written in `content/lesson-videos/<course>.json` and synthesized into `.data/lesson-videos/audio/<lessonId>.mp3` by `npm run videos:synthesize` using the local eSpeak-NG English voice (`en-gb`) — no API key or external TTS service |
 | 2. Timing | The pauses in the recording mark where one slide ends and the next begins: `scripts/lesson-videos/lib/timeline.ts` finds them, matches each one to the sentence it follows, and falls back to a proportional split when a pause is too weak to trust |
-| 3. Reading pauses | A deliberate silence is spliced in after the worked example and after the challenge — about ten and six seconds — so there is time to read the code and think about the task. Both cuts land inside an existing pause, so nothing is clipped |
+| 3. Reading pauses | The worked example and challenge get reading pauses, and the remaining pause time is spread across all four paragraph boundaries until the finished lesson is 150 seconds (2½ minutes), giving students time to read each slide |
 | 4. Slides | `lib/design.ts` lays each slide out with real text measurements (ffmpeg draws a line once and the ink is measured), and `lib/code.ts` colours the worked example to match the code panel in the lesson reader |
 | 5. Encode | The five stills are composited over a black base and cross-faded by fading their own alpha, and the narration is spliced with its pauses. One ffmpeg pass, roughly forty seconds per lesson |
 
 The finished video goes into **the same storage as the owner's uploads** —
 Supabase Storage when it is configured, `.data/uploads` on disk otherwise — and
-`src/content/lesson-videos.ts` records what was built. That file is committed, so
-a deploy carries the manifest and the videos are served from whatever storage
-the deployment already uses.
+`src/content/lesson-videos.ts` records what was built. The manifest is committed;
+the generated audio, videos and posters are not. Configure Supabase Storage
+before production generation, because the local `.data` fallback is ignored by
+Git and will not travel with a deployment.
 
 ### Watching one
 
@@ -210,34 +213,38 @@ A signed-out visitor gets a `401`, and a student who does not own the program
 gets a `402` — the same answers the owner's uploaded materials give.
 
 `src/components/CoverVideo.tsx` is the player: play/pause, a scrubber, mute,
-download, and chapter buttons for the five slides, so a two-minute lesson is
-navigable rather than something to sit through.
+download, and chapter buttons for the five slides, so each two-to-three-minute
+lesson is navigable rather than something to sit through.
 
 ### Building them
 
 ```bash
-npm run videos:setup      # fetch a static ffmpeg into node_modules/.cache (once)
-npm run videos:check      # do the scripts cover the catalog? any missing paragraphs?
-npm run videos:list       # what has narration, what has been built
-npm run videos:build      # render everything that has narration
+npm run videos:setup        # fetch static ffmpeg into node_modules/.cache (once)
+npm run videos:synthesize   # create MP3 narration for every lesson, offline
+npm run videos:build -- --all --force  # render every lesson and update the manifest
+npm run videos:check        # verify all lesson videos exist and are 2–3 minutes long
+npm run videos:list         # show which narration and video files are present
 
-npm run videos:build -- --lesson how-the-web-works --force    # one lesson, rebuilt
-npm run videos:build -- --course web-foundations --force      # one course
+npm run videos:synthesize -- --lesson how-the-web-works --force
+npm run videos:build -- --lesson how-the-web-works --force
+npm run videos:build -- --course web-foundations --force
 npm run videos:build -- --slides-only --lesson how-the-web-works   # just the pictures
 ```
 
-`videos:build` is additive: it renders the lessons that have narration and no
-video yet, writes `src/content/lesson-videos.ts` and
+`videos:synthesize` uses the `en-gb` eSpeak-NG voice selected in each lesson's
+narration JSON and writes audio under `.data/lesson-videos/audio/`. It requires
+no API key and can be rerun safely; `--force` replaces existing audio.
+`videos:build` is additive by default: it renders lessons that have narration
+but no video yet, writes `src/content/lesson-videos.ts` and
 `src/content/course-videos.ts`, and leaves everything else alone. Use `--force`
 to re-render, and `KEEP_SLIDES=1` to keep the rendered stills for inspection.
 Each run prints one line per video: length, size and how long the encode took.
 
-To add a course's worth of videos: write `content/lesson-videos/<courseId>.json`
-with one entry per lesson id (four paragraphs each — the lesson's own text is
-the best source), write `content/course-videos/<courseId>.json` for the welcome,
-synthesise the narration into `.data/lesson-videos/audio/`, and build. The
-narration is plain prose read aloud: no markup, no stage directions, and
-paragraph breaks where the slides should change.
+To add a course's worth of lesson videos: write
+`content/lesson-videos/<courseId>.json` with one entry per lesson id (four
+paragraphs each — the lesson's own text is the best source), synthesize the
+narration, and build. The narration is plain prose: no markup or stage
+directions, with paragraph breaks where the slides should change.
 
 ## Run locally
 

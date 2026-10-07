@@ -1,6 +1,6 @@
 {
   "course": "software-engineering-practices",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "git-branches-and-commits": {
       "title": "Welcome to Branches, commits and pull requests. Version control is a safety net and a conversation, and by the end of this clip both halves will make sense.",

@@ -1,6 +1,6 @@
 {
   "course": "databases-and-sql",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "tables-and-keys": {
       "title": "Welcome to Tables, rows and keys, the opening lesson of Databases and SQL. You will learn how a database keeps facts from contradicting each other, and why that is the property everything else depends on.",

@@ -1,6 +1,6 @@
 {
   "course": "devops-and-delivery",
-  "voice": "voice-00",
+  "voice": "en-gb",
   "lessons": {
     "environments-and-config": {
       "title": "Welcome to Environments and config, the opening lesson of DevOps and Delivery. The same code should run everywhere, and only the configuration should differ.",
