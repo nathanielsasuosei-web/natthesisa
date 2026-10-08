@@ -18,6 +18,13 @@ interface Props {
   track?: boolean;
 }
 
+function formatDuration(seconds: number): string {
+  const rounded = Math.round(seconds);
+  const minutes = Math.floor(rounded / 60);
+  const remainingSeconds = rounded % 60;
+  return remainingSeconds ? `${minutes} min ${remainingSeconds} sec` : `${minutes} min`;
+}
+
 /**
  * The video a lesson opens with: the walkthrough, right under the title.
  *
@@ -47,7 +54,9 @@ export default async function LessonVideoGuide({ lesson, courseId, complete, nex
         </p>
         {video && entry && (
           <span className="rounded-full bg-[#f0ecff] px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-[#5e3de0]">
-            {Math.max(1, Math.round(entry.durationSeconds / 60))} min video
+            {entry.durationSeconds >= 120 && entry.durationSeconds <= 180
+              ? "2–3 min video"
+              : `${Math.max(1, Math.round(entry.durationSeconds / 60))} min video`}
           </span>
         )}
       </div>
@@ -55,7 +64,7 @@ export default async function LessonVideoGuide({ lesson, courseId, complete, nex
       {video && entry ? (
         <>
           <h2 className="mt-2 text-lg font-black tracking-[-.03em]">
-            {lesson.title} in {Math.round(entry.durationSeconds)} seconds, start to finish
+            {lesson.title} in {formatDuration(entry.durationSeconds)}, start to finish
           </h2>
           <p className="mt-1.5 text-xs leading-5 text-[#817a87]">
             How this lesson works, the worked example, and the practice task — narrated{course ? ` for ${course.shortTitle}` : ""}.
