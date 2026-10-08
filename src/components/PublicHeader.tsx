@@ -55,7 +55,7 @@ const ANNOUNCEMENTS = [
   },
   {
     badge: "New",
-    text: "Every lesson is free — read, listen and download without an account",
+    text: "Sign in to open the lessons — buy a program once to unlock every course in it",
     href: "/pricing",
   },
 ];

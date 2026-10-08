@@ -15,7 +15,6 @@ export const MOBILE_APPS_REACT_NATIVE_MODULES: CourseModule[] = [
     lesson({
       id: "native-vs-web",
       title: "Native apps vs the web",
-      preview: true,
       summary:
         "React Native lets you keep React's component model while rendering real native views — no HTML, no DOM, no browser. That single substitution changes what your components are, how styling works, which APIs exist, and how an app must behave to feel at home on iOS and Android. This lesson builds the platform model from the ground up: the bridge to native views, what you gain (device APIs, app store distribution, offline-first performance), what you give up (the browser's free services), and the rules that separate portable React code from platform-specific code.",
       sections: [

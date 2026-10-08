@@ -15,7 +15,6 @@ export const SOFTWARE_ENGINEERING_PRACTICES_MODULES: CourseModule[] = [
     lesson({
       id: "git-branches-and-commits",
       title: "Branches, commits and pull requests",
-      preview: true,
       summary:
         "Version control is not a backup mechanism you invoke occasionally — it is the shared memory of a team: a record of what changed, when, by whom and *why*, that lets people work in parallel without destroying each other's work. This lesson covers the object model underneath Git, how to write commits that review well, branching and merge strategies, pull requests as a review unit, conflict resolution as a routine rather than an emergency, and the hygiene habits that keep history useful six months later. The repository's log is the project's primary documentation of its own evolution — treat it that way.",
       sections: [

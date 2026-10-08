@@ -4,6 +4,8 @@ import { answer, greeting, type AgentReply, type ChatContext, type ChatMessage, 
 import { getCurrentUser } from "@/lib/session";
 import { getCourse } from "@/lib/courses";
 import { findContentLesson } from "@/lib/course-content";
+import { courseAccess } from "@/lib/access";
+import type { User } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -97,8 +99,12 @@ function cleanQuiz(value: unknown): QuizState | null {
   return { id: source.id.slice(0, 40), answer: source.answer.slice(0, 4) };
 }
 
-/** Lesson text is loaded from the public catalog only after validating its course and lesson IDs. */
-function verifiedContext(context: ChatContext): ChatContext {
+/**
+ * Lesson text is added only after validating the course and lesson IDs, and
+ * only for a signed-in student who may open that course. Course titles are
+ * public catalogue facts and always pass through.
+ */
+function verifiedContext(context: ChatContext, user: User | null): ChatContext {
   const safe: ChatContext = { url: context.url };
   const course = context.courseId ? getCourse(context.courseId) : undefined;
   if (!course) return safe;
@@ -106,6 +112,7 @@ function verifiedContext(context: ChatContext): ChatContext {
   safe.courseId = course.id;
   safe.courseTitle = course.title;
   if (!context.lessonId) return safe;
+  if (!courseAccess(user, course).allowed) return safe;
 
   const lesson = findContentLesson(course, context.lessonId);
   if (!lesson) return safe;
@@ -133,7 +140,7 @@ Programs & courses:
 - Software Engineering: Practices (Git/testing), System Design, DevOps & Delivery
 - Vibe Coding: Ship with AI (beginner), AI Apps Agents & APIs
 - App Development: Mobile Apps with React Native. Backend: Node.js APIs.
-Published catalog lessons are public to read and listen to. A free account saves progress and earns certificates; certificates carry QR verification at /verify. Find courses at /courses, program details at /pricing, and sign in at /login.
+Course overviews are public. Lessons open only for signed-in students who own the program the course belongs to; progress is saved and certificates are earned in the account; certificates carry QR verification at /verify. Find courses at /courses, program details at /pricing, and sign in at /login.
 
 You are a patient tutor first: explain ideas clearly, ask students to think, and give a hint before a full solution when it helps learning. When the student asks for code, provide complete, readable examples with markdown fences and a short explanation; you can generate code, websites, and React Native mobile-app starters. Do not claim an app has been published or built into an installable binary. Never include real credentials or encourage putting secrets in browser/mobile code. Never invent course names, prices, or platform features. If catalog-verified lesson notes are supplied below, use them as the source of truth for that lesson; do not invent lesson details that are not in the notes. Keep answers concise unless explaining code.`;
 
@@ -244,7 +251,7 @@ async function handle(req: NextRequest) {
   const user = await getCurrentUser().catch(() => null);
   const userName = user?.name?.trim() || undefined;
   const fullContext: ChatContext = {
-    ...verifiedContext(context),
+    ...verifiedContext(context, user),
     ...(userName ? { userName } : {}),
   };
 

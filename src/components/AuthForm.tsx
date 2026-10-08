@@ -8,9 +8,11 @@ type Mode = "signin" | "signup";
 
 interface Props {
   initialMode?: Mode;
+  /** A same-site path to open after signing in, e.g. the lesson that asked for it. */
+  next?: string | null;
 }
 
-export default function AuthForm({ initialMode = "signin" }: Props) {
+export default function AuthForm({ initialMode = "signin", next = null }: Props) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,7 +53,7 @@ export default function AuthForm({ initialMode = "signin" }: Props) {
       }
       // Use a full navigation after changing the httpOnly session cookie so
       // the first protected server render always receives the new session.
-      window.location.replace(data.role === "owner" ? "/owner" : "/dashboard");
+      window.location.replace(next ?? (data.role === "owner" ? "/owner" : "/dashboard"));
     } catch {
       setError("Network error. Please try again.");
     } finally {

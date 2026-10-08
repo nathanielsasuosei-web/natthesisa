@@ -14,7 +14,6 @@ export const AI_APPS_AGENTS_AND_APIS_MODULES: CourseModule[] = [
     lesson({
       id: "calling-a-model-api",
       title: "Calling a model from your server",
-      preview: true,
       summary:
         "Every AI feature in production is still a program: a request with inputs, a timeout, a failure mode, and a cost — wrapped around one call to a model that may not answer the way you hoped. This lesson covers where the call belongs (always behind your server), the request/response shape of a modern chat API, streaming and why it changes perceived latency, timeouts, retries, fallbacks and refusal handling, structured outputs, token accounting, and the caching that makes the economics work. The model is the easy part; the engineering around it is the job.",
       sections: [

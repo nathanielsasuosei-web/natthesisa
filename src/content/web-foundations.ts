@@ -17,7 +17,6 @@ export const WEB_FOUNDATIONS_MODULES: CourseModule[] = [
     lesson({
       id: "how-the-web-works",
       title: "How the web works",
-      preview: true,
       summary:
         "Every website you have ever looked at arrived the same way: your browser asked for it, and somewhere else in the world a machine answered. This lesson follows one request all the way from the moment you press Enter to the moment the page stops moving, naming each step and each protocol responsible for it. Once you can describe that journey, the vocabulary of web development — DNS, HTTP, status codes, the DOM, the critical rendering path — stops being jargon and becomes a map you can use to debug anything.",
       sections: [

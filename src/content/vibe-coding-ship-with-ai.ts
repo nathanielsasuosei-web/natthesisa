@@ -15,7 +15,6 @@ export const VIBE_CODING_SHIP_WITH_AI_MODULES: CourseModule[] = [
     lesson({
       id: "what-vibe-coding-is",
       title: "What vibe coding actually is",
-      preview: true,
       summary:
         "\"Vibe coding\" — building software by describing what you want and steering an AI that writes it — is neither magic nor a fad: it is a shift in where the human work lives, from writing every line to specifying, reviewing, testing and correcting. This lesson defines the practice honestly, separates what AI pair programming is good at from what it reliably gets wrong, sets up the workflow and guardrails, and makes the central argument of this whole course: the less you write yourself, the more it matters that you can read, test and debug. The vibe is a starting condition, not a maintenance strategy.",
       sections: [

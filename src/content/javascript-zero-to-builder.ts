@@ -14,7 +14,6 @@ export const JAVASCRIPT_ZERO_TO_BUILDER_MODULES: CourseModule[] = [
     lesson({
       id: "values-variables",
       title: "Values & variables",
-      preview: true,
       summary:
         "Every program is manipulation of values, and a variable is a name a value can be referred by. This lesson builds JavaScript's value model from the ground up: the eight types, the difference between primitives and objects, what `const` and `let` really declare, how assignment copies (or does not copy) data, type coercion and the equality operators, and the habits that prevent the language's famous surprises. Values and variables are where every bug you will ever debug ultimately lives, so the time spent here pays for itself many times over.",
       sections: [

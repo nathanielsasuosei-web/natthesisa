@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
 import { courseAccess } from "@/lib/access";
+import BuyProgram from "@/components/BuyProgram";
 import { contentLessons, contentMinutes, contentModules, contentPercent, ownerLessonsForCourse } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
 import { requireCurrentUser } from "@/lib/require-user";
@@ -32,8 +33,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const modules = contentModules(course);
   const access = courseAccess(user, course);
   const hasAccess = access.allowed;
+  const paused = access.reason === "suspended";
   const ownerBranding = ownerLessonsForCourse(course.id).length ? brandingSummary(course.instructor.name) : null;
-  // Lessons are public to read. This is the next unread one, paid or not.
+  // The next unread lesson. Lessons open only once the program is owned.
   const nextLesson = lessons.find((lesson) => !completed.includes(lesson.id)) ?? lessons[0];
 
   return (
@@ -47,7 +49,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <div className="relative">
               <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#6d4aff] px-3 py-1 text-[9px] font-black uppercase tracking-[.14em]">{course.category}</span><span className="rounded-full border border-white/10 bg-white/[.06] px-3 py-1 text-[9px] font-bold text-[#b7b0be]">{course.level}</span>{!hasAccess && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#ffcf59] px-3 py-1 text-[9px] font-black text-[#4a3600]">
-                    <Icon name="lock" size={10} /> Account paused
+                    <Icon name="lock" size={10} /> {paused ? "Account paused" : "Locked"}
                   </span>
                 )}</div>
               <h1 className="mt-5 max-w-2xl text-balance text-3xl font-black leading-tight tracking-[-.045em] sm:text-[42px]">{course.title}</h1>
@@ -55,10 +57,13 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-[#aaa4b1]"><span className="inline-flex items-center gap-1.5 text-[#ffca57]"><Icon name="star" size={13} /> {course.rating}</span><span className="inline-flex items-center gap-1.5"><Icon name="users" size={14} /> {course.learners.toLocaleString()} learners</span><span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> {lessons.length} lessons</span><span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {fmtMinutes(contentMinutes(course))}</span></div>
               <div className="mt-7 flex flex-wrap gap-3">
                 {nextLesson && hasAccess && <Link href={`/learn/${course.id}/${nextLesson.id}`} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#7959f1]"><Icon name="play" size={13} />{progress ? "Continue course" : "Start course"}</Link>}
-                {!hasAccess && (
+                {!hasAccess && paused && (
                   <span className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[.07] px-5 py-3 text-xs font-bold text-white">
                     This account is paused. Contact your teacher.
                   </span>
+                )}
+                {!hasAccess && !paused && access.programId && access.programName && (
+                  <BuyProgram programId={access.programId} programName={access.programName} price={access.price} />
                 )}
               </div>
             </div>
@@ -137,11 +142,18 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           <section className="open-surface overflow-hidden"><div className="border-l-2 border-[#ff7448] py-1 pl-4"><span className="grid size-9 place-items-center rounded-xl bg-[#ff7448] text-white"><Icon name="briefcase" size={18} /></span><p className="mt-4 text-[9px] font-black uppercase tracking-[.14em] text-[#d75b35]">Course project</p><h2 className="mt-1.5 text-sm font-extrabold leading-5">{course.project}</h2></div><div className="pt-4 text-[10px] leading-5 text-[#7d7683]">Apply every module in a guided project you can refine, publish and add to your portfolio.</div></section>
           {!hasAccess && (
             <section className="rounded-[22px] bg-[#6d4aff] p-5 text-white">
-              <Icon name="spark" size={22} />
-              <h2 className="mt-3 text-sm font-extrabold">Account paused</h2>
+              <Icon name={paused ? "shield" : "lock"} size={22} />
+              <h2 className="mt-3 text-sm font-extrabold">{paused ? "Account paused" : "Buy to open the lessons"}</h2>
               <p className="mt-1.5 text-[10px] leading-5 text-violet-100">
-                The lessons are public, but a paused account cannot save progress. Contact your teacher to continue.
+                {paused
+                  ? "A paused account cannot open lessons or save progress. Contact your teacher to continue."
+                  : `${access.programName ?? "This program"} opens every course and lesson in it, permanently. Sign in, buy the program once, and the lessons open here.`}
               </p>
+              {!paused && access.programId && access.programName && (
+                <div className="mt-4">
+                  <BuyProgram programId={access.programId} programName={access.programName} price={access.price} compact />
+                </div>
+              )}
             </section>
           )}
         </aside>

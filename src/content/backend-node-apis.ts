@@ -14,7 +14,6 @@ export const BACKEND_NODE_APIS_MODULES: CourseModule[] = [
     lesson({
       id: "server-runtime",
       title: "Node.js & the server runtime",
-      preview: true,
       summary:
         "Node.js runs JavaScript outside the browser, on a runtime built around one single thread and an event loop that makes I/O non-blocking. This lesson builds that model — what Node is, how the event loop handles thousands of connections, why blocking the thread is the cardinal sin, how modules and the file system differ from the browser, and how an HTTP server actually receives and answers a request. Understanding the runtime is what separates code that scales from code that collapses under its first concurrent users.",
       sections: [

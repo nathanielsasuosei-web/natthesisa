@@ -1,8 +1,8 @@
 # codemasterghana — learning platform
 
-A polished full-stack learning platform for web development, app development and computer science. It includes a public catalogue of free courses and lessons, optional learner accounts for saved progress and certificates, and an **owner/teacher console**. Existing purchase and invoice history remains with learner accounts.
+A polished full-stack learning platform for web development, app development and computer science. It includes a public catalogue of course overviews, paid programs that open their courses and lessons, learner accounts for saved progress and certificates, and an **owner/teacher console**. Existing purchase and invoice history remains with learner accounts.
 
-There are two roles and only two: **students** and the **owner** — the teacher. Every published course, lesson, narration and teaching file is free to read, watch or download without signing in or paying. A free account saves progress and earns certificates; the teacher manages the catalogue and student records.
+There are two roles and only two: **students** and the **owner** — the teacher. Nothing in a course is free. A lesson, its narration, video and teaching files open only for a signed-in student who owns the program the course belongs to. Course overview pages stay public. Accounts save progress and earn certificates; the teacher manages the catalogue and student records.
 
 Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
@@ -23,7 +23,7 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   browser and downloadable
 - Full course pages with modules, lessons, access rules and instructor details
 - Focused lesson reader with examples, challenges and next/previous navigation
-- **A narrated walkthrough video on every catalog lesson that has one**, plus the Natthesisa study assistant (`/natthesisa`). Both are public, like the lessons.
+- **A narrated walkthrough video on every catalog lesson that has one**, plus the Natthesisa study assistant (`/natthesisa`). Both open only for signed-in students who own the program, like the lessons.
 - Server-saved lesson completion, course percentages and activity history
 - **Student email** — receipts for every purchase, a congratulations message on
   finishing a course, and a notice when a certificate is issued
@@ -50,15 +50,21 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   Configure these on the server only; do not expose the key to the browser.
   See `.env.example`.
 
-### Free public catalogue and accounts
+### Public catalogue, sign-in and paid programs
 
-- Every published course and lesson is open to everyone, including lesson
-  videos, narrations and teaching files. No account or payment is required to
-  study.
-- A free student account saves lesson progress, learning activity and earned
-  certificates. Signing in does not unlock content that is not already public.
-- Existing program purchases and invoices remain in account history; they do
-  not open or close lessons. The pricing page explains the current free access.
+- Course overview pages (title, description, curriculum list) are public.
+- A lesson, its files, lesson and welcome videos, posters and narration are
+  gated on the server. A visitor must sign in, and the student must own the
+  course's program. Signed-out requests get a sign-in redirect (pages) or 401
+  (routes); signed-in students without the program get 402 or a locked page.
+  The gate lives in `src/lib/access.ts` (`lessonAccess`, `courseAccess`) and
+  `src/lib/course-guard.ts` (the media and file routes).
+- Program prices are set by the teacher (default GH₵300 per program). A
+  program bought through checkout is recorded as an owned program, and
+  owning it opens every course and lesson in it.
+- A paused account cannot open lessons, even if it owns the program.
+- Existing invoices remain in account history. The pricing page shows the
+  current prices.
 
 ### Certificates, company pages and the public catalogue
 
@@ -148,20 +154,23 @@ Create the bucket once (Storage → New bucket) before the first upload; without
 it, uploads fail with a message telling you so, and `npm run storage:check`
 tells you the same thing without uploading anything.
 
-Published lesson materials are public, just like the lesson text. The
-`/api/lesson-files/...` route validates that the published lesson and file exist,
-then streams the file or redirects to its Storage URL. A private bucket returns
-a time-limited signed URL; it does not make a published lesson private.
+Published lesson materials are gated like the lesson text. The
+`/api/lesson-files/...` route checks that the student may open the lesson
+(signed in and owning its program), then streams the file or redirects to its
+Storage URL. **For the paywall to hold, keep the bucket private.** A private
+bucket returns a time-limited signed URL that works only for a student who
+passed the check. A public bucket's permanent URL can be shared and reused by
+anyone who has it, so it bypasses the gate.
 
 | Bucket | `SUPABASE_BUCKET_PUBLIC` | What the browser receives |
 | --- | --- | --- |
 | Private | unset | A one-hour signed URL, created per view. Expires, so a copied link stops working. |
 | Public (Storage → bucket → Make public) | `1` | The bucket's permanent `/object/public/...` URL, cached by Supabase's CDN. |
 
-A public bucket lets the CDN serve repeat views without minting a URL. Its
-URLs do not expire and can be forwarded, which is consistent with the public
-lesson catalogue. A private bucket creates a signed Storage URL per request,
-but published lessons remain accessible through the public lesson route.
+A public bucket lets the CDN serve repeat views without minting a URL, but its
+URLs do not expire and can be forwarded, so it is not suitable for paid
+lessons. A private bucket creates a signed Storage URL per request, and only
+after the route has checked the student's access.
 `npm run storage:check` reports which mode you are in and verifies that a
 bucket configured as public really is public.
 
@@ -337,11 +346,11 @@ This is the “what to paste where” map for continuing the build.
 | 8c. Checkouts | `src/lib/payments.ts`, `payments` table | Pending → paid fulfilment, idempotent webhook + return-URL handling |
 | 9. Buying API | `src/app/api/purchase/route.ts` (`/api/pass` is retired) | Join a GH₵0 program directly; priced programs go through checkout |
 | 9a. Checkout API | `src/app/api/checkout/*`, `src/app/api/webhooks/paystack/route.ts`, `src/app/checkout/verify/page.tsx` | Start a MoMo checkout, poll it, confirm demo payments, verify the provider's return, receive the webhook |
-| 10. Access rule | `src/lib/access.ts` | Public course and lesson reading; account status governs saved progress, not content access |
+| 10. Access rule | `src/lib/access.ts`, `src/lib/course-guard.ts` | Sign-in plus the owned program opens lessons and their media; course overviews are public; a paused account is refused |
 | 10b. Teacher rules | `src/lib/owner-console.ts`, `src/app/api/owner/*` | Metrics, prices and protected student-management actions |
 | 10a. Owner identity | `src/lib/owner.ts`, `getCurrentOwner()` in `src/lib/session.ts` | Who is allowed to publish lessons |
 | 10b. Lesson uploads | `src/lib/lesson-uploads.ts`, `src/lib/blob-store.ts`, `src/lib/app-state.ts`, `src/lib/course-content.ts` | Storage/disk blobs for owner lessons, their metadata in `app_state`, and the merge with the catalog |
-| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and public lesson-file streaming |
+| 10c. Upload API | `src/app/api/owner/lessons/*`, `src/app/api/lesson-files/*` | Owner-only publishing and access-checked lesson-file streaming |
 | 10d. Owner console | `src/app/owner/page.tsx`, `src/app/owner/lessons/page.tsx`, `src/components/OwnerPricingCard.tsx`, `src/components/OwnerLessonManager.tsx` | Metrics, the price editor, the upload form and the published-lesson list |
 | 10e. Owner branding | `src/lib/branding.ts`, `src/app/api/owner/branding/route.ts`, `src/app/api/branding/[asset]/route.ts`, `src/components/OwnerBrandingCard.tsx` | Profile photo and logo shown on published lessons |
 | 10f. Picture / video editors | `src/components/media/ImageEditor.tsx`, `src/components/media/VideoEditor.tsx`, `src/lib/media.ts` | Console editors for cropping pictures and trimming videos |
@@ -905,11 +914,11 @@ Postgres error. Two causes are worth knowing:
   time and the weekly goal cannot drift upwards. Resetting a student's progress
   from the teacher console clears those credits so the lessons count again.
 - Course and lesson IDs are checked on the server before their catalogue content is rendered.
-- Published courses, lessons and their files are public; a purchase or sign-in
-  never gates the reader. A free student account can save progress and earn a
-  certificate. A paused account cannot save progress, but can still read public lessons.
-- Older passes, purchases and invoices remain in account history and do not
-  open or close lessons. New learners do not need to pay to study.
+- Lessons, files, videos and narration are gated: sign-in plus the owned program
+  are required. Course overview pages are public.
+- Students earn certificates and save progress in their account. A paused account
+  cannot open lessons or save progress.
+- Older invoices remain in account history.
 - Only the owner account can publish or delete lessons; every other account
   receives `403` from the upload APIs even if they call them directly.
 - The public `/api/lesson-files/...` route verifies that a published lesson and

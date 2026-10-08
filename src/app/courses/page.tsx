@@ -10,11 +10,13 @@ import { isOwner } from "@/lib/owner";
 import InfoPage, { InfoContactStrip, InfoFaq, InfoList, InfoSection } from "@/components/InfoPage";
 import CourseCard from "@/components/CourseCard";
 import Icon from "@/components/Icon";
+import { programPrice } from "@/lib/plans";
+import { formatMoney } from "@/lib/pass-periods";
 
 export const metadata: Metadata = {
   title: "All courses",
   description:
-    "Every codemasterghana course, in full: web, app and backend development, computer science, software engineering, and building with AI. Every lesson is free to read.",
+    "Every codemasterghana course, in full: web, app and backend development, computer science, software engineering, and building with AI. Sign in and buy a program to open its lessons.",
 };
 
 export const dynamic = "force-dynamic";
@@ -24,7 +26,7 @@ export const dynamic = "force-dynamic";
  *
  * The landing page shows a selection; this page shows everything, grouped by
  * program, with the real description of each course — so the answer to "what
- * would I actually learn?" does not require an account. Every lesson is free.
+ * would I actually learn?" does not require an account. Lessons open after sign-in and purchase.
  */
 export default async function CoursesPage() {
   await ensureContentReady();
@@ -52,7 +54,7 @@ export default async function CoursesPage() {
       <InfoSection title="How the catalogue is organised">
         <p>
           A <strong>program</strong> is a path: a group of courses that belong together and get harder as you go.
-          Every lesson, file and narration is free to open. Nothing is locked behind a payment or an account.
+          Lessons, files and narration open once you sign in and own the program. Each program is paid once.
         </p>
         <InfoList
           items={groups.map(({ program, courses }) => (
@@ -62,7 +64,7 @@ export default async function CoursesPage() {
           ))}
         />
         <p>
-          Open any course and start on the first lesson. No payment and no account.
+          Read any course overview for free. Sign in and buy its program to start the first lesson.
         </p>
       </InfoSection>
 
@@ -76,7 +78,7 @@ export default async function CoursesPage() {
                 </span>
                 <h2 className="text-lg font-black tracking-[-.03em]">{program.name}</h2>
                 <span className="rounded-full bg-[#6d4aff] px-2.5 py-1 text-[10px] font-black text-white">
-                  Free
+                  {formatMoney(programPrice(program.id))}
                 </span>
               </div>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6e6875]">{program.description}</p>
@@ -112,7 +114,7 @@ export default async function CoursesPage() {
           },
           {
             q: "Do I need to pay or sign in?",
-            a: "No. Every lesson, file and narration is open. A free account is only for saving progress and printing a certificate.",
+            a: "Yes, to open a lesson. You sign in, then buy the program once; it opens every course and lesson in it. The course overviews are public so you can see what is inside first.",
           },
           {
             q: "What do I get at the end?",

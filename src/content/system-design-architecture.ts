@@ -14,7 +14,6 @@ export const SYSTEM_DESIGN_ARCHITECTURE_MODULES: CourseModule[] = [
     lesson({
       id: "clients-and-apis",
       title: "Clients, APIs and contracts",
-      preview: true,
       summary:
         "Every distributed system is held together by the contracts between its parts: the client assumes something about the server's responses, the server assumes something about the client's requests, and both assumptions are written down somewhere — in code, in a schema, or only in someone's head. This lesson covers contract design (resources, versioning, pagination, errors), the communication styles available (request/response, events, streaming) and how to choose, consistency expectations clients must hold, and the organisational reality that API design is team design. A good contract lets two teams — or two versions of one team — work without asking each other anything.",
       sections: [
