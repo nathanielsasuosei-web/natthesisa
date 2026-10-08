@@ -308,16 +308,6 @@ export function getCourseMinutes(course: Course): number {
   return getCourseLessons(course).reduce((total, item) => total + item.duration, 0);
 }
 
-/**
- * Whether a lesson is a free preview — open to any signed-in student without
- * a pass or a purchase. The full access rule (pass + purchase) lives in
- * `access.ts`, which needs the account; this stays a fact about the content,
- * so client components can render it without the database.
- */
-export function isPreview(lesson: Lesson): boolean {
-  return lesson.preview === true;
-}
-
 export function coursePercent(course: Course, completedLessonIds: string[] = []): number {
   const total = getCourseLessons(course).length;
   if (!total) return 0;

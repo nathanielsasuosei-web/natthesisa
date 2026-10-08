@@ -76,9 +76,9 @@ export default function PublicFooter() {
         <div className="mt-10 flex flex-col gap-3 border-t border-[#eeeaf1] pt-6 text-[11px] text-[#918a97] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.name}. Built in Accra, Ghana.</p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span>Lessons, files and narration are free</span>
+            <span>Lessons open after sign-in and program purchase</span>
             <span className="hidden sm:inline">·</span>
-            <span>No account required to start</span>
+            <span>Programs are paid once</span>
           </p>
         </div>
       </div>

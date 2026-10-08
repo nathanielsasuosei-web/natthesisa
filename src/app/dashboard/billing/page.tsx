@@ -281,7 +281,7 @@ export default async function BillingPage({
               <Icon name="card" size={20} />
             </span>
             <p className="mt-3 text-xs font-extrabold">No invoices yet</p>
-            <p className="mt-1 text-[10px] text-[#918a97]">Nothing to pay. Lessons are free, so this list stays empty unless an older invoice exists.</p>
+            <p className="mt-1 text-[10px] text-[#918a97]">Lessons open once you own their program. Buy a program on the Programs page and its invoice appears here.</p>
           </div>
         )}
       </section>

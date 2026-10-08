@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { refuseUnlessCourseOpen } from "@/lib/course-guard";
 import { findContentLesson } from "@/lib/course-content";
 import { getCourse } from "@/lib/courses";
 import { lessonVideo } from "@/lib/lesson-videos";
@@ -10,8 +11,9 @@ export const dynamic = "force-dynamic";
 /**
  * Serves the video that belongs to a catalog lesson.
  *
- * The video is part of the public lesson, so anyone may watch it. The route
- * still checks that the lesson exists before handing out the file.
+ * The video is part of the lesson, so only a signed-in student who owns the
+ * lesson's program may watch it. The guard checks that first, then the route
+ * checks that the lesson exists before handing out the file.
  */
 export async function GET(
   req: NextRequest,
@@ -24,6 +26,8 @@ export async function GET(
   const course = getCourse(entry.courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
+  const refused = await refuseUnlessCourseOpen(course);
+  if (refused) return refused;
 
   const download = req.nextUrl.searchParams.get("download") === "1";
   const record = {

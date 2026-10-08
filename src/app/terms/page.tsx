@@ -45,15 +45,15 @@ export default async function TermsPage() {
 
       <InfoSection title="Programs and what they cost">
         <p>
-          The lessons, files and narration are free. You do not need to pay, and you do not need an
-          account, to study. A free account only remembers progress and prints a certificate. Older
-          checkout records, if any, stay on the account as history and do not gate the lessons.
+          Nothing in a course is free. To open a lesson, file, video or narration you must sign in and own
+          the program the course belongs to. Course overview pages are public. Your account also keeps
+          your progress, certificates and receipts.
         </p>
         <InfoList
           items={[
-            <><strong>A program is a path, not a paywall.</strong> Every course and every lesson in it is open to read, listen to and download.</>,
-            <><strong>An account is optional.</strong> Create one if you want progress saved. It is free.</>,
-            <><strong>No payment is required to study.</strong> The site does not ask for card, Mobile Money or bank details in order to open a lesson.</>,
+            <><strong>A program is a path, and you buy it.</strong> One payment opens every course and every lesson in it, permanently.</>,
+            <><strong>An account is required.</strong> Sign in before a lesson opens. Progress and certificates are saved to it.</>,
+            <><strong>Payment is required for each program.</strong> Checkout is through Mobile Money or card. Older records stay on the account as history.</>,
           ]}
         />
       </InfoSection>
@@ -136,7 +136,7 @@ export default async function TermsPage() {
           },
           {
             q: "Do I have to pay to read a lesson?",
-            a: "No. Every course, lesson, file and narration is open. An account is optional and free; it only saves progress and prints a certificate.",
+            a: "Yes, to open a lesson. Sign in and buy the program it belongs to. The course overview pages are public so you can see what is inside first.",
           },
           {
             q: "What happens if I share my account?",
@@ -144,7 +144,7 @@ export default async function TermsPage() {
           },
           {
             q: "Can I get an invoice for my school or employer?",
-            a: "There is nothing to invoice for studying — the lessons are free. If you need a letter confirming enrolment, contact us with the details.",
+            a: "Yes. Program purchases are recorded as invoices on your billing page. If you need a letter confirming enrolment, contact us with the details.",
           },
         ]}
       />

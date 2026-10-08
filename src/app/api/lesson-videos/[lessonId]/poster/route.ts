@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refuseUnlessCourseOpen } from "@/lib/course-guard";
 import { getCourse } from "@/lib/courses";
 import { findContentLesson } from "@/lib/course-content";
 import { lessonVideo } from "@/lib/lesson-videos";
@@ -7,7 +8,7 @@ import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** The frame the player shows before a lesson video starts. Public, like the lesson. */
+/** The frame the player shows before a lesson video starts. Gated like the lesson. */
 export async function GET(_req: Request, context: { params: Promise<{ lessonId: string }> }) {
   const { lessonId } = await context.params;
   const entry = lessonVideo(lessonId);
@@ -16,6 +17,8 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
   const course = getCourse(entry.courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
+  const refused = await refuseUnlessCourseOpen(course);
+  if (refused) return refused;
 
   const record = {
     id: "lesson-video-poster",

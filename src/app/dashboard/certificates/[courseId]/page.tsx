@@ -38,7 +38,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
         <p className="mt-2 text-sm leading-6 text-[#756f7b]">
           {finished
             ? "This account is paused, so a certificate cannot be issued yet. Contact your teacher."
-            : `Finish every lesson in ${course.title} to earn this certificate. The lessons are free to read.`}
+            : `Finish every lesson in ${course.title} to earn this certificate. Lessons open once you own the program.`}
         </p>
         <Link href={`/dashboard/courses/${course.slug}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white">
           {finished ? "Back to the course" : "Continue course"} <Icon name="arrow-right" size={14} />

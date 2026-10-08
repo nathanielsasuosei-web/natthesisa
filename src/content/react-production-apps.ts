@@ -14,7 +14,6 @@ export const REACT_PRODUCTION_APPS_MODULES: CourseModule[] = [
     lesson({
       id: "react-mental-model",
       title: "The React mental model",
-      preview: true,
       summary:
         "React's entire design follows from one idea: your interface is a function of your data, and you describe what the screen should look like rather than how to change it. This lesson builds that model precisely — components as pure functions of props and state, the render-then-commit cycle, the rules that keep rendering predictable, and where side effects are allowed to live. Get this model right and React's API becomes obvious; get it wrong and you will spend years fighting symptoms.",
       sections: [

@@ -7,15 +7,18 @@ import type { User } from "./store";
 /**
  * Who may open a lesson.
  *
- * The catalogue is public. Anyone may read a lesson, listen to it, and open
- * its files. A signed-in student may save progress and earn a certificate
- * without buying a program. The only account that is refused is one the
- * teacher has paused.
+ * Nothing in a course is free. A lesson, its files, its videos and its
+ * narration open only for a signed-in student who has bought the program the
+ * course belongs to (or was granted it by the teacher). The course overview
+ * pages stay public so a visitor can see what is inside before signing in.
+ *
+ * A paused account is refused even when it owns the program. The teacher is
+ * always let in.
  *
  * The teacher console is a separate door and is not opened here.
  */
 
-export type AccessReason = "owner" | "ok" | "purchase-required" | "suspended";
+export type AccessReason = "owner" | "ok" | "sign-in-required" | "purchase-required" | "suspended";
 
 export interface AccessDecision {
   allowed: boolean;
@@ -62,29 +65,39 @@ export function hasPaidForLesson(user: User, courseId: string, lessonId: string)
   return ownsCourse(user, courseId) || ownsLesson(user, lessonId);
 }
 
-function decide(user: User, course: Course): AccessDecision {
+function decide(user: User | null, course: Course): AccessDecision {
   const program = programForCategory(course.category);
   const price = program ? programPrice(program.id) : coursePrice(course.id);
   const programId = program?.id ?? null;
   const programName = program?.name ?? null;
-  if (user.suspended && !isOwner(user)) {
-    return { allowed: false, reason: "suspended", needsPurchase: false, price, programId, programName };
-  }
-  return {
-    allowed: true,
-    reason: isOwner(user) ? "owner" : "ok",
-    needsPurchase: false,
+  const locked = (reason: AccessReason, needsPurchase: boolean): AccessDecision => ({
+    allowed: false,
+    reason,
+    needsPurchase,
     price,
     programId,
     programName,
-  };
+  });
+
+  if (!user) return locked("sign-in-required", false);
+  if (user.suspended && !isOwner(user)) return locked("suspended", false);
+  if (isOwner(user)) {
+    return { allowed: true, reason: "owner", needsPurchase: false, price, programId, programName };
+  }
+  const owned = program ? ownsProgram(user, program.id) : ownsCourse(user, course.id);
+  if (owned) {
+    return { allowed: true, reason: "ok", needsPurchase: false, price, programId, programName };
+  }
+  return locked("purchase-required", true);
 }
 
-export function courseAccess(user: User, course: Course): AccessDecision {
+/** Whether the account may open this course's lessons. `null` means signed out. */
+export function courseAccess(user: User | null, course: Course): AccessDecision {
   return decide(user, course);
 }
 
-export function lessonAccess(user: User, course: Course, _lesson: Lesson): AccessDecision {
+/** Whether the account may open this lesson, its files, video and narration. */
+export function lessonAccess(user: User | null, course: Course, _lesson: Lesson): AccessDecision {
   return decide(user, course);
 }
 
@@ -112,6 +125,8 @@ export function canBuyLesson(user: User, lessonId: string): boolean {
 /** The message a locked lesson shows, in the student's words. */
 export function accessMessage(decision: AccessDecision, courseTitle: string): string {
   switch (decision.reason) {
+    case "sign-in-required":
+      return `Sign in to open “${courseTitle}”.`;
     case "suspended":
       return "Your account is paused. Please contact your teacher for help.";
     case "purchase-required":

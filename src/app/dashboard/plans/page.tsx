@@ -5,13 +5,17 @@ import { ownsProgram } from "@/lib/access";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
 import { contentLessons } from "@/lib/course-content";
+import { programPrice } from "@/lib/plans";
+import { formatMoney } from "@/lib/pass-periods";
+import BuyProgram from "@/components/BuyProgram";
 import Icon from "@/components/Icon";
 
 export const metadata: Metadata = { title: "Programs" };
 
 /**
- * Programs are paths through the catalogue. Lessons are already public;
- * this page only groups the courses so a student can pick a path.
+ * Programs are paths through the catalogue. Buying one program opens every
+ * course and lesson inside it. Nothing is free: a lesson opens only once its
+ * program is owned.
  */
 export default async function ProgramsPage() {
   const user = await requireCurrentUser();
@@ -28,6 +32,7 @@ export default async function ProgramsPage() {
       courseCount: courses.length,
       lessonCount,
       owned: ownsProgram(user, program.id),
+      price: programPrice(program.id),
     };
   });
 
@@ -36,11 +41,11 @@ export default async function ProgramsPage() {
       <header className="text-center">
         <p className="text-xs font-bold text-[#6d4aff]">Programs</p>
         <h1 className="mt-2 text-3xl font-black tracking-[-.045em] sm:text-4xl">
-          {owned.length > 0 ? "Your programs." : "The programs are free."}
+          {owned.length > 0 ? "Your programs." : "Buy a program to open it."}
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#756f7b]">
-          Every course and every lesson is already open. You do not need to buy a program to read,
-          listen, or download files. A free account is only for progress and certificates.
+          One payment opens every course and lesson in a program, permanently. Your progress and
+          certificates are saved to your account.
         </p>
       </header>
 
@@ -57,7 +62,7 @@ export default async function ProgramsPage() {
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-[#f6f3ff] p-4 text-xs text-[#3d3458]">
           <span>
-            <strong>Nothing to buy.</strong> Pick a program below and start on the first lesson.
+            <strong>No program owned yet.</strong> Buy one below to open its courses and lessons.
           </span>
           <Link href="/dashboard/courses" className="inline-flex items-center gap-1 font-black">
             See the courses <Icon name="arrow-right" size={13} />
@@ -68,15 +73,22 @@ export default async function ProgramsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {options.map((program) => (
           <article key={program.id} className="flex flex-col rounded-[22px] border border-[#e8e4ec] bg-white p-6">
-            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#6d4aff]">Free</p>
+            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#6d4aff]">{program.owned ? "Owned" : "Program"}</p>
             <h2 className="mt-2 text-base font-black tracking-[-.02em]">{program.name}</h2>
             <p className="mt-2 flex-1 text-[12px] leading-6 text-[#5d5763]">{program.tagline}</p>
-            <p className="mt-3 text-[11px] font-semibold text-[#817a87]">
+            <p className="mt-3 text-2xl font-black tracking-[-.04em]">{formatMoney(program.price)}</p>
+            <p className="mt-1 text-[11px] font-semibold text-[#817a87]">
               {program.courseCount} course{program.courseCount === 1 ? "" : "s"} · {program.lessonCount} lessons
             </p>
-            <Link href="/dashboard/courses" className="mt-5 rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-xs font-extrabold text-white">
-              Open the courses
-            </Link>
+            {program.owned ? (
+              <Link href="/dashboard/courses" className="mt-5 rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-xs font-extrabold text-white">
+                Open the courses
+              </Link>
+            ) : (
+              <div className="mt-5">
+                <BuyProgram programId={program.id} programName={program.name} price={program.price} />
+              </div>
+            )}
           </article>
         ))}
       </div>

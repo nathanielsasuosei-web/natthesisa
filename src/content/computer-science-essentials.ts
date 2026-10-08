@@ -15,7 +15,6 @@ export const COMPUTER_SCIENCE_ESSENTIALS_MODULES: CourseModule[] = [
     lesson({
       id: "what-computers-do",
       title: "What computers actually do",
-      preview: true,
       summary:
         "Everything a computer does — every app, every game, every video call — reduces to the same small loop: take input, store it, transform it, produce output, and repeat. This lesson explains why that four-step loop is enough to build anything, what hardware and software each contribute to it, and how to look at any piece of software and see the loop underneath. It is the foundation for every other lesson in this course, because you cannot reason about programs until you can see what a program is for.",
       sections: [

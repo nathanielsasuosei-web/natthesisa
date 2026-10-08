@@ -5,6 +5,8 @@ import { avatarHref } from "@/lib/avatars";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
+import { programPrice } from "@/lib/plans";
+import { formatMoney } from "@/lib/pass-periods";
 import { lessonCountsByCourse } from "@/lib/course-content";
 import { contentTotals } from "@/lib/course-content";
 import { siteUrl } from "@/config/site";
@@ -41,7 +43,7 @@ export default async function LandingPage() {
               Explore courses
             </a>
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-[#77717f] lg:flex-col">
-              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Free to read, listen and download</span>
+              <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Sign in to open every lesson</span>
               <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Every lesson is open</span>
               <span className="inline-flex items-center gap-1.5"><span className="grid size-4 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={10} /></span>Learn at your pace</span>
             </div>
@@ -247,23 +249,23 @@ export default async function LandingPage() {
         </section>
 
         <section id="pricing" className="mx-auto max-w-[1120px] px-5 py-24 sm:px-8">
-          <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Six programs, all open</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Every lesson is free.</h2><p className="mt-4 text-sm text-[#77717e]">Read, listen, and open the files. No payment and no account is required to study.</p></div>
+          <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Six programs, one price each</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Buy a program to open it.</h2><p className="mt-4 text-sm text-[#77717e]">Sign in, then buy a program once. It opens every course and lesson inside, permanently.</p></div>
           <div className="open-plan-grid mt-12 grid gap-0 md:grid-cols-2 lg:grid-cols-3">
             {PROGRAMS.map((program) => (
               <article key={program.id} className="open-plan flex flex-col">
                 <h3 className="text-lg font-black">{program.name}</h3>
                 <p className="mt-1 text-sm text-[#7b7481]">{program.tagline}</p>
-                <p className="mt-6"><span className="text-4xl font-black tracking-[-.05em]">Free</span></p>
+                <p className="mt-6"><span className="text-4xl font-black tracking-[-.05em]">{formatMoney(programPrice(program.id))}</span></p>
                 <ul className="mt-7 flex-1 space-y-3 text-sm text-[#625c69]">
-                  {["Every course and lesson inside", "Listen to any lesson", "Files included", "No account required to start"].map((feature) => (
+                  {["Every course and lesson inside", "Listen to any lesson", "Files and videos included", "Sign in to open the lessons"].map((feature) => (
                     <li key={feature} className="flex gap-2.5"><Icon name="check" size={16} className="text-emerald-600" />{feature}</li>
                   ))}
                 </ul>
-                <Link href="/courses" className="mt-8 rounded-xl border border-[#dad5df] bg-[#faf9fb] px-4 py-3 text-center text-sm font-extrabold text-[#302b37] transition hover:-translate-y-0.5 hover:border-[#bdb3dc]">Open the courses</Link>
+                <Link href="/login?mode=signup" className="mt-8 rounded-xl border border-[#dad5df] bg-[#faf9fb] px-4 py-3 text-center text-sm font-extrabold text-[#302b37] transition hover:-translate-y-0.5 hover:border-[#bdb3dc]">Sign in to start</Link>
               </article>
             ))}
           </div>
-          <p className="mt-5 text-center text-[11px] text-[#98919e]">A free account is optional. It only remembers your progress and prints a certificate.</p>
+          <p className="mt-5 text-center text-[11px] text-[#98919e]">Your account keeps your progress and prints your certificate. Each program is paid once, through Mobile Money or card.</p>
         </section>
 
         <section className="border-t border-black/[.06] bg-white py-24">

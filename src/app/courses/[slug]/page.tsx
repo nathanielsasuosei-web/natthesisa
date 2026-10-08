@@ -92,11 +92,11 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
         <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-[#9a939f]">
-              Free to read and listen
+              Sign in to open the lessons
             </p>
             <p className="mt-1 text-2xl font-black tracking-[-.04em] text-[#1b1822]">{lessons.length} lessons</p>
             <p className="mt-1 text-[11px] text-[#8a8390]">
-              Every lesson, file and narration is free. An account is optional, and only remembers your progress.
+              Lessons, files and narration open after you sign in and buy the program. One payment opens every course in it.
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
@@ -109,7 +109,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
           </div>
         </div>
         <p className="border-t border-[#f0edf3] bg-[#fbfafc] px-5 py-3 text-[11px] leading-5 text-[#7d7683] sm:px-6">
-          Every lesson, file and narration is free. No account and no payment is required to study.
+          Sign in to open a lesson. Buying the program opens every course and lesson in it, permanently.
         </p>
       </section>
 
@@ -122,7 +122,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
             <p className="mt-1 text-[10px] text-[#918a97]">{modules.length} modules · {lessons.length} lessons · {fmtMinutes(minutes)}</p>
           </div>
           <p className="text-[10px] font-bold text-[#7d7683]">
-            Open — no sign-in required
+            Sign in to open each lesson
           </p>
         </div>
         {modules.map((module) => (
@@ -146,7 +146,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ s
           </div>
         ))}
         <p className="border-t border-[#f0edf3] bg-[#fbfafc] px-5 py-3.5 text-[11px] leading-5 text-[#7d7683] sm:px-6">
-          {lessons.length} lessons, free to read and listen to, including the {course.project.toLowerCase()} project.
+          {lessons.length} lessons, including the {course.project.toLowerCase()} project. Sign in and buy the program to open them.
           {" "}<Link href={startHref} className="font-bold text-[#5e3de0] underline">Create an account</Link> to track progress and earn the certificate.
         </p>
       </section>

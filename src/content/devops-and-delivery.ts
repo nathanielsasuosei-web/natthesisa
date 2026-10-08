@@ -14,7 +14,6 @@ export const DEVOPS_AND_DELIVERY_MODULES: CourseModule[] = [
     lesson({
       id: "environments-and-config",
       title: "Environments and config",
-      preview: true,
       summary:
         "The same code must run in development, staging and production — and behave *differently* in each (URLs, secrets, feature flags), without three codebases quietly diverging. This lesson covers environment design (what differs and what must not), configuration as injected, validated, secret-aware data, twelve-factor discipline, feature flags as controlled delivery, and the drift that accumulates when environments are snowflakes. The goal is one artefact, parameterised — so staging is a rehearsal of production, not a cousin of it.",
       sections: [

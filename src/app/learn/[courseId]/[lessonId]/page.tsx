@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getCourse } from "@/lib/courses";
 import type { Lesson, LessonSection } from "@/lib/courses";
 import { lessonAccess } from "@/lib/access";
@@ -18,6 +18,7 @@ import LessonNarrator from "@/components/LessonNarrator";
 import LessonVideoGuide from "@/components/LessonVideoGuide";
 import LessonNatthesisa from "@/components/LessonNatthesisa";
 import { lessonVideo } from "@/lib/lesson-videos";
+import LessonLocked from "@/components/LessonLocked";
 
 export async function generateMetadata({ params }: { params: Promise<{ courseId: string; lessonId: string }> }): Promise<Metadata> {
   const { courseId, lessonId } = await params;
@@ -190,15 +191,31 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
   const course = getCourse(courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) notFound();
+
+  // Nothing in a course is free. A visitor must sign in first, and then the
+  // program must be owned before the lesson opens. Sign-in sends them back here.
+  const lessonPath = `/learn/${course.id}/${lesson.id}`;
+  if (!user) redirect(`/login?mode=signin&next=${encodeURIComponent(lessonPath)}`);
+
+  const access = lessonAccess(user, course, lesson);
+  if (!access.allowed) {
+    return (
+      <LessonLocked
+        courseTitle={course.title}
+        courseHref={`/dashboard/courses/${course.slug}`}
+        lessonTitle={lesson.title}
+        lessonSummary={lesson.summary}
+        decision={access}
+      />
+    );
+  }
+
   const lessons = contentLessons(course);
   const modules = contentModules(course);
   const lessonIndex = lessons.findIndex((item) => item.id === lesson.id);
-  // The lesson, its files and the narration are public. A free account only
-  // remembers progress and prints the certificate.
-  const access = user ? lessonAccess(user, course, lesson) : null;
-  const canTrack = Boolean(user && access?.allowed);
-  const courseHref = user ? `/dashboard/courses/${course.slug}` : `/courses/${course.slug}`;
-  const homeHref = user ? "/dashboard" : "/";
+  const canTrack = true;
+  const courseHref = `/dashboard/courses/${course.slug}`;
+  const homeHref = "/dashboard";
 
   const progress = canTrack && user ? getOrCreateProgress(user, course.id) : null;
   if (progress) progress.lastAccessedAt = new Date().toISOString();
@@ -225,13 +242,13 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
           <Logo compact />
           <span className="mx-4 h-5 w-px bg-[#e1dde5]" />
           <Link href={courseHref} className="min-w-0 text-xs font-bold text-[#5c5662] hover:text-[#5f3ee1]"><span className="hidden sm:inline">{course.shortTitle}</span><span className="sm:hidden">Course</span></Link>
-          <div className="ml-auto flex items-center gap-3 sm:gap-5">{canTrack ? <div className="hidden items-center gap-2 sm:flex"><div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#ece9ef]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div><span className="text-[10px] font-black text-[#6d6672]">{percent}%</span></div> : <Link href="/login?mode=signup" className="hidden text-[10px] font-bold text-[#6d4aff] sm:inline">Save your progress</Link>}<Link href={homeHref} className="grid size-9 place-items-center rounded-xl border border-[#e4e0e8] text-[#77717e] transition hover:border-violet-300" aria-label="Close lesson"><Icon name="close" size={17} /></Link></div>
+          <div className="ml-auto flex items-center gap-3 sm:gap-5"><div className="hidden items-center gap-2 sm:flex"><div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#ece9ef]"><div className="h-full rounded-full bg-[#6d4aff]" style={{ width: `${percent}%` }} /></div><span className="text-[10px] font-black text-[#6d6672]">{percent}%</span></div><Link href={homeHref} className="grid size-9 place-items-center rounded-xl border border-[#e4e0e8] text-[#77717e] transition hover:border-violet-300" aria-label="Close lesson"><Icon name="close" size={17} /></Link></div>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-[1600px] lg:grid-cols-[290px_1fr] xl:grid-cols-[290px_1fr_248px]">
         <aside className="dashboard-scroll hidden h-[calc(100vh-66px)] overflow-y-auto border-r border-[#e7e3e9] bg-white lg:sticky lg:top-[66px] lg:block">
-          <div className="border-b border-[#ece9ef] p-5"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Course content</p><h2 className="mt-2 text-sm font-extrabold leading-5">{course.shortTitle}</h2><p className="mt-1 text-[10px] text-[#918a97]">{progress ? `${progress.completedLessonIds.length} of ${lessons.length} lessons complete` : "Free to read and listen"}</p></div>
+          <div className="border-b border-[#ece9ef] p-5"><p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Course content</p><h2 className="mt-2 text-sm font-extrabold leading-5">{course.shortTitle}</h2><p className="mt-1 text-[10px] text-[#918a97]">{`${progress?.completedLessonIds.length ?? 0} of ${lessons.length} lessons complete`}</p></div>
           {modules.map((module) => (
             <div key={module.id}><div className="border-b border-[#eeebf0] bg-[#faf9fb] px-5 py-3"><p className="text-[10px] font-extrabold text-[#5b5561]">{module.title}</p></div>{module.lessons.map((item) => { const itemComplete = progress?.completedLessonIds.includes(item.id) ?? false; const current = item.id === lesson.id; return <Link key={item.id} href={`/learn/${course.id}/${item.id}`} className={`flex items-start gap-3 border-b border-[#f0edf2] px-5 py-3 transition ${current ? "border-l-[3px] border-l-[#6d4aff] bg-[#f4f1ff] pl-[17px]" : "hover:bg-[#faf9fb]"}`}><span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${itemComplete ? "bg-emerald-100 text-emerald-700" : current ? "bg-[#6d4aff] text-white" : "border border-[#ddd8e2] text-[#aaa4b0]"}`}>{itemComplete ? <Icon name="check" size={10} /> : current ? <Icon name="play" size={7} /> : <span className="text-[8px] font-black">{lessons.indexOf(item) + 1}</span>}</span><div><p className={`text-[10px] font-bold leading-4 ${current ? "text-[#5032c2]" : "text-[#67606d]"}`}>{item.title}</p><p className="mt-0.5 flex items-center gap-1 text-[8px] text-[#a19aa7]">{item.duration} min{lessonVideo(item.id) && <><span className="text-[#c8c2d0]">·</span><span className="inline-flex items-center gap-0.5 font-black uppercase tracking-wide text-[#7c63e8]"><Icon name="video" size={8} /> video</span></>}</p></div></Link>; })}</div>
           ))}
@@ -352,15 +369,6 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
                 <Link href={nextHref} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3.5 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#5e3ce8]">{nextLabel} <Icon name="arrow-right" size={16} /></Link>
               )}
             </div>
-            {!user && (
-              <p className="mt-3 text-right text-[11px] font-semibold leading-5 text-[#8d8694]">
-                Nothing here is locked.{" "}
-                <Link href="/login?mode=signup" className="text-[#6d4aff] underline decoration-violet-300 underline-offset-2">
-                  Create a free account
-                </Link>{" "}
-                only if you want progress saved and a certificate.
-              </p>
-            )}
           </article>
         </main>
 

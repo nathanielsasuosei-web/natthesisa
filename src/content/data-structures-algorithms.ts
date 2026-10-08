@@ -15,7 +15,6 @@ export const DATA_STRUCTURES_ALGORITHMS_MODULES: CourseModule[] = [
     lesson({
       id: "big-o-not-scary",
       title: "Big-O without the fear",
-      preview: true,
       summary:
         "Big-O notation is not mathematics for its own sake — it is the vocabulary engineers use to argue about whether code will still work when the data grows. This lesson builds asymptotic analysis from counting actual steps: what the notation means precisely, the standard growth families and their real-world signatures, what constants and lower-order terms mean in practice, common pitfalls in reading and writing it, and how to apply it to loops, nested loops and recursive code. By the end, \"this is O(n²)\" will be a prediction you can test rather than a phrase you have heard.",
       sections: [

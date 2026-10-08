@@ -14,7 +14,6 @@ export const DATABASES_AND_SQL_MODULES: CourseModule[] = [
     lesson({
       id: "tables-and-keys",
       title: "Tables, rows and keys",
-      preview: true,
       summary:
         "A relational database is a collection of tables, and the whole design rests on one idea: each table stores exactly one kind of entity, each row is one instance of it, each column is one fact — and keys are what stop the rows from lying about each other. This lesson builds the relational model from scratch: domains and types, keys in all their forms, foreign keys and referential integrity, constraints as enforced truth, and how to model a small real system (a library) so that illegal states are unrepresentable. The schema is where data correctness lives; everything else is downstream.",
       sections: [
