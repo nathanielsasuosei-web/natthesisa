@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuthWindow } from "./AuthWindow";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
@@ -137,6 +138,7 @@ function AnnouncementBar() {
  * because the panel remounts.
  */
 export default function PublicHeader({ appHref = null, signedIn = false, userName = null, userAvatar = null }: Props) {
+  const { open: openAuth } = useAuthWindow();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCoursesOpen, setMobileCoursesOpen] = useState(false);
   const [coursesOpen, setCoursesOpen] = useState(false);
@@ -261,10 +263,10 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
               </Link>
             ) : (
               <>
-                <Link href="/login" className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:-translate-y-px hover:bg-white sm:block">
+                <Link href="/login" onClick={(event) => { event.preventDefault(); openAuth("signin"); }} className="hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#544e5d] transition hover:-translate-y-px hover:bg-white sm:block">
                   Sign in
                 </Link>
-                <Link href="/login?mode=signup" className="btn-shine rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] hover:shadow-[0_12px_30px_rgba(109,74,255,.35)]">
+                <Link href="/login?mode=signup" onClick={(event) => { event.preventDefault(); openAuth("signup"); }} className="btn-shine rounded-xl bg-[#6d4aff] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(109,74,255,.23)] transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] hover:shadow-[0_12px_30px_rgba(109,74,255,.35)]">
                   Start learning
                 </Link>
               </>
@@ -444,10 +446,10 @@ export default function PublicHeader({ appHref = null, signedIn = false, userNam
                 </>
               ) : (
                 <>
-                  <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-[#ddd9e2] px-4 py-3 text-center text-sm font-bold text-[#4a4450] transition active:scale-[.99]">
+                  <Link href="/login" onClick={(event) => { event.preventDefault(); setMobileOpen(false); openAuth("signin"); }} className="rounded-xl border border-[#ddd9e2] px-4 py-3 text-center text-sm font-bold text-[#4a4450] transition active:scale-[.99]">
                     Sign in
                   </Link>
-                  <Link href="/login?mode=signup" onClick={() => setMobileOpen(false)} className="btn-shine rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-sm font-bold text-white transition active:scale-[.99]">
+                  <Link href="/login?mode=signup" onClick={(event) => { event.preventDefault(); setMobileOpen(false); openAuth("signup"); }} className="btn-shine rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-sm font-bold text-white transition active:scale-[.99]">
                     Start learning
                   </Link>
                 </>
