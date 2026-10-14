@@ -41,7 +41,6 @@ export default function PublicFooter() {
               <li><Link href="/courses" className="transition hover:text-[#5c3be4]">All courses</Link></li>
               <li><Link href="/#programs" className="transition hover:text-[#5c3be4]">Programs</Link></li>
               <li><Link href="/pricing" className="transition hover:text-[#5c3be4]">Pricing &amp; payment</Link></li>
-              <li><Link href="/#how-it-works" className="transition hover:text-[#5c3be4]">How it works</Link></li>
               <li><Link href="/verify" className="transition hover:text-[#5c3be4]">Verify a certificate</Link></li>
             </ul>
           </div>
