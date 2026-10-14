@@ -150,14 +150,6 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
             ) : (
               <>
                 <AuthForm key={state.key} initialMode={state.mode} />
-                {state.mode === "signin" && (
-                  <p className="mt-6 border-t border-[#ece9f0] pt-4 text-center text-[11px] text-[#918a97]">
-                    Are you the teacher?{" "}
-                    <button type="button" onClick={() => setState((current) => (current ? { ...current, mode: "teacher", key: current.key + 1 } : current))} className="font-bold text-[#6543e8] hover:underline">
-                      Teacher sign in
-                    </button>
-                  </p>
-                )}
               </>
             )}
           </div>
