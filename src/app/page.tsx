@@ -143,7 +143,7 @@ export default async function LandingPage() {
         <section id="programs" className="border-y border-black/[.06] bg-white py-24">
           <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
             <div className="max-w-2xl">
-              <span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Three programs</span>
+              <span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Seven programs</span>
               <h2 className="mt-3 text-balance text-3xl font-black tracking-[-.045em] sm:text-5xl">Everything sits under a program you can finish.</h2>
               <p className="mt-4 text-sm leading-6 text-[#77717e]">
                 Each program is a set of complete courses that build on each other — so the path from your first
@@ -161,7 +161,7 @@ export default async function LandingPage() {
                       <img src={program.cover} alt={`${program.name} artwork`} className="h-40 w-full object-cover" />
                     ) : null}
                     <div className="flex flex-1 flex-col p-6">
-                    <span className="grid size-12 place-items-center rounded-2xl bg-[#6d4aff] text-white"><Icon name={program.icon === "cpu" ? "cpu" : program.icon === "briefcase" ? "briefcase" : "spark"} size={22} /></span>
+                    <span className="grid size-12 place-items-center rounded-2xl bg-[#6d4aff] text-white"><Icon name={program.icon} size={22} /></span>
                     <h3 className="mt-5 text-lg font-black tracking-[-.02em]">{program.name}</h3>
                     <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[#6d4aff]">{program.tagline}</p>
                     <p className="mt-3 flex-1 text-sm leading-6 text-[#6e6875]">{program.description}</p>
@@ -248,8 +248,9 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* Pricing section hidden for now. Uncomment to restore.
         <section id="pricing" className="mx-auto max-w-[1120px] px-5 py-24 sm:px-8">
-          <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Six programs, one price each</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Buy a program to open it.</h2><p className="mt-4 text-sm text-[#77717e]">Sign in, then buy a program once. It opens every course and lesson inside, permanently.</p></div>
+          <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Seven programs, one price each</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Buy a program to open it.</h2><p className="mt-4 text-sm text-[#77717e]">Sign in, then buy a program once. It opens every course and lesson inside, permanently.</p></div>
           <div className="open-plan-grid mt-12 grid gap-0 md:grid-cols-2 lg:grid-cols-3">
             {PROGRAMS.map((program) => (
               <article key={program.id} className="open-plan flex flex-col">
@@ -267,6 +268,7 @@ export default async function LandingPage() {
           </div>
           <p className="mt-5 text-center text-[11px] text-[#98919e]">Your account keeps your progress and prints your certificate. Each program is paid once, through Mobile Money or card.</p>
         </section>
+        */}
 
         <section className="border-t border-black/[.06] bg-white py-24">
           <div className="mx-auto grid max-w-[1120px] items-center gap-10 px-5 sm:px-8 lg:grid-cols-2">

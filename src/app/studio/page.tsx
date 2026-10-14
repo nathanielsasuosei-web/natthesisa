@@ -41,7 +41,7 @@ export default async function StudioPage() {
                 The Studio is free — the programs teach you to code
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
-                Six programs, thirteen courses, certificates employers can verify. Pay once per program and everything
+                Seven programs, thirteen courses, certificates employers can verify. Pay once per program and everything
                 inside it is yours.
               </p>
             </div>

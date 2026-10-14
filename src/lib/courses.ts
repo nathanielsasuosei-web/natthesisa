@@ -12,7 +12,8 @@ export type CourseCategory =
   | "Vibe Coding"
   | "Web Development"
   | "App Development"
-  | "Backend";
+  | "Backend"
+  | "Cyber Security";
 export type CourseLevel = "Beginner" | "Intermediate";
 export type CourseTone = "violet" | "orange" | "cyan" | "green" | "pink" | "blue";
 
@@ -290,6 +291,7 @@ export const CATEGORIES: Array<"All" | CourseCategory> = [
   "Web Development",
   "App Development",
   "Backend",
+  "Cyber Security",
 ];
 
 export function getCourse(idOrSlug: string): Course | undefined {

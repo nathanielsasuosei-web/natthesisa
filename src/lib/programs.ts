@@ -9,7 +9,7 @@ import { VIBE_CODING_SHIP_WITH_AI_MODULES } from "@/content/vibe-coding-ship-wit
 import { AI_APPS_AGENTS_AND_APIS_MODULES } from "@/content/ai-apps-agents-and-apis";
 
 /**
- * The six programs, and the courses under them.
+ * The seven programs, and the courses under them.
  *
  * Every course in the catalog belongs to exactly one program (its `category`).
  * The core catalog in `courses.ts` already covers the fundamentals; this file
@@ -22,6 +22,7 @@ import { AI_APPS_AGENTS_AND_APIS_MODULES } from "@/content/ai-apps-agents-and-ap
  *   Web Development      → foundations + JavaScript + React (core)
  *   App Development      → mobile apps with React Native (core)
  *   Backend              → backend development with Node.js (core)
+ *   Cyber Security       → courses to be added
  *
  * A program is what a student pays for: buying it opens every course and
  * every lesson under it, permanently. Nothing is free to sample — the course
@@ -35,7 +36,7 @@ export interface ProgramInfo {
   name: string;
   tagline: string;
   description: string;
-  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server";
+  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server" | "shield";
   tone: CourseTone;
   /**
    * Optional cover artwork, copied from `brandAssets` by hand so this module
@@ -106,6 +107,16 @@ export const PROGRAMS: ProgramInfo[] = [
       "Design secure APIs with Node.js, model application data, add authentication, and test and deploy a service the front end can trust.",
     icon: "server",
     tone: "green",
+  },
+  {
+    id: "cyber-security",
+    category: "Cyber Security",
+    name: "Cyber Security",
+    tagline: "Think like an attacker, build like a defender",
+    description:
+      "How systems get broken and how to keep them safe: networks, authentication, common attacks, secure coding and responding when something goes wrong.",
+    icon: "shield",
+    tone: "blue",
   },
 ];
 
