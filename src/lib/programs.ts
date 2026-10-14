@@ -7,9 +7,12 @@ import { SYSTEM_DESIGN_ARCHITECTURE_MODULES } from "@/content/system-design-arch
 import { DEVOPS_AND_DELIVERY_MODULES } from "@/content/devops-and-delivery";
 import { VIBE_CODING_SHIP_WITH_AI_MODULES } from "@/content/vibe-coding-ship-with-ai";
 import { AI_APPS_AGENTS_AND_APIS_MODULES } from "@/content/ai-apps-agents-and-apis";
+import { CYBER_SECURITY_FOUNDATIONS_MODULES } from "@/content/cyber-security-foundations";
+import { CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES } from "@/content/cyber-security-offense-and-defense";
+import { CYBER_SECURITY_CLOUD_MODULES } from "@/content/cyber-security-cloud";
 
 /**
- * The six programs, and the courses under them.
+ * The seven programs, and the courses under them.
  *
  * Every course in the catalog belongs to exactly one program (its `category`).
  * The core catalog in `courses.ts` already covers the fundamentals; this file
@@ -22,6 +25,7 @@ import { AI_APPS_AGENTS_AND_APIS_MODULES } from "@/content/ai-apps-agents-and-ap
  *   Web Development      → foundations + JavaScript + React (core)
  *   App Development      → mobile apps with React Native (core)
  *   Backend              → backend development with Node.js (core)
+ *   Cyber Security       → courses to be added
  *
  * A program is what a student pays for: buying it opens every course and
  * every lesson under it, permanently. Nothing is free to sample — the course
@@ -35,7 +39,7 @@ export interface ProgramInfo {
   name: string;
   tagline: string;
   description: string;
-  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server";
+  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server" | "shield";
   tone: CourseTone;
   /**
    * Optional cover artwork, copied from `brandAssets` by hand so this module
@@ -106,6 +110,17 @@ export const PROGRAMS: ProgramInfo[] = [
       "Design secure APIs with Node.js, model application data, add authentication, and test and deploy a service the front end can trust.",
     icon: "server",
     tone: "green",
+  },
+  {
+    id: "cyber-security",
+    category: "Cyber Security",
+    cover: "/course-covers/cyber-security.jpg",
+    name: "Cyber Security",
+    tagline: "Think like an attacker, build like a defender",
+    description:
+      "How systems get broken and how to keep them safe: networks, authentication, common attacks, secure coding and responding when something goes wrong.",
+    icon: "shield",
+    tone: "blue",
   },
 ];
 
@@ -282,7 +297,80 @@ export const PROGRAM_COURSES: Course[] = [
     ],
     tags: ["LLMs", "RAG", "Agents"],
     modules: AI_APPS_AGENTS_AND_APIS_MODULES,
-  },];
+  },
+  {
+    id: "cyber-security-foundations",
+    slug: "cyber-security-foundations",
+    title: "Cyber Security Foundations",
+    shortTitle: "Cyber Foundations",
+    description:
+      "How networks carry data, how Linux systems are run and locked down, and how to script the checks: the groundwork for every security role.",
+    category: "Cyber Security",
+    level: "Beginner",
+    tone: "blue",
+    icon: "terminal",
+    instructor: { name: "codemasterghana Team", role: "Course team", initials: "CM" },
+    rating: 0,
+    learners: 0,
+    project: "A lab network with a hardened Linux server and a Python tool that audits it",
+    outcomes: [
+      "Trace a web request through every layer and read packets in Wireshark",
+      "Scan and firewall a host with nmap and nftables",
+      "Harden a Linux server with key-only SSH, permissions and updates",
+      "Write Python tools that parse logs and verify files",
+    ],
+    tags: ["Networking", "Linux", "Python", "Foundations"],
+    modules: CYBER_SECURITY_FOUNDATIONS_MODULES,
+  },
+  {
+    id: "cyber-security-offense-and-defense",
+    slug: "cyber-security-offense-and-defense",
+    title: "Cyber Security: Offense and Defense",
+    shortTitle: "Security",
+    description:
+      "Learn how web applications and systems are attacked, how to test them legally, and how to detect and respond. Every attack is paired with its defence.",
+    category: "Cyber Security",
+    level: "Intermediate",
+    tone: "blue",
+    icon: "layers",
+    instructor: { name: "codemasterghana Team", role: "Course team", initials: "CM" },
+    rating: 0,
+    learners: 0,
+    project: "A penetration test report on a deliberately vulnerable lab app, with the fixes verified",
+    outcomes: [
+      "Find and fix injection, XSS, CSRF and broken access control",
+      "Run a legal, scoped reconnaissance and exploitation workflow",
+      "Write detection rules and triage an alert to containment",
+      "Plan hardening, patching and backups, and run an incident response",
+    ],
+    tags: ["Web security", "Ethical hacking", "Blue team", "OWASP"],
+    modules: CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES,
+  },
+  {
+    id: "cyber-security-cloud",
+    slug: "cyber-security-cloud",
+    title: "Cloud Security",
+    shortTitle: "Cloud Security",
+    description:
+      "Secure identities, networks, data and configuration in the cloud, and learn to detect and contain a compromised cloud account.",
+    category: "Cyber Security",
+    level: "Intermediate",
+    tone: "blue",
+    icon: "server",
+    instructor: { name: "codemasterghana Team", role: "Course team", initials: "CM" },
+    rating: 0,
+    learners: 0,
+    project: "A three-tier cloud design with an audited identity model, encrypted data and a rehearsed response",
+    outcomes: [
+      "Apply least privilege with roles, policies and MFA",
+      "Build private networks and protect workloads and secrets",
+      "Check infrastructure code against a benchmark before it deploys",
+      "Investigate a leaked cloud credential using the audit trail",
+    ],
+    tags: ["AWS", "IAM", "Cloud security", "Infrastructure as code"],
+    modules: CYBER_SECURITY_CLOUD_MODULES,
+  },
+];
 
 /* -------------------------------------------------------------------------- */
 /* Lookups                                                                    */

@@ -230,7 +230,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
 
   return (
     <div
-      className="min-h-screen bg-[#f7f7f4]"
+      className="min-h-screen bg-white"
       data-natthesisa-context="lesson"
       data-course-id={course.id}
       data-course-title={course.title}

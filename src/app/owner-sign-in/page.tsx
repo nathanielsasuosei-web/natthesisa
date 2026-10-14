@@ -50,7 +50,7 @@ export default async function OwnerSignInPage() {
   const setupAvailable = !configured && !(await ownerExists());
 
   return (
-    <main className="grid min-h-screen bg-[#f8f8f5] lg:grid-cols-[.9fr_1.1fr]">
+    <main className="grid min-h-screen bg-white lg:grid-cols-[.9fr_1.1fr]">
       <section className="relative hidden overflow-hidden bg-[#1b1822] p-10 text-white lg:flex lg:flex-col">
         <div className="absolute inset-0 opacity-[.08] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
         <div className="absolute -left-32 -top-40 size-[32rem] rounded-full bg-[#6d4aff]/30 blur-3xl" />

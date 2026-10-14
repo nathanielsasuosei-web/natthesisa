@@ -27,7 +27,7 @@ interface Props {
  */
 export default function InfoPage({ eyebrow, title, intro, updated, appHref = null, signedIn = false, userName = null, userAvatar = null, children }: Props) {
   return (
-    <div className="min-h-screen bg-[#f8f8f5]">
+    <div className="min-h-screen bg-white">
       <PublicHeader appHref={appHref} signedIn={signedIn} userName={userName} userAvatar={userAvatar} />
       <main className="mx-auto max-w-[900px] px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
         <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">{eyebrow}</p>

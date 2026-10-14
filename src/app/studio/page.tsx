@@ -20,7 +20,7 @@ export default async function StudioPage() {
   const appHref = user?.role === "owner" ? "/owner" : "/dashboard";
 
   return (
-    <div className="min-h-screen bg-[#faf9fc]">
+    <div className="min-h-screen bg-white">
       <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name}
         userAvatar={user ? avatarHref(user) : null} />
 
@@ -41,7 +41,7 @@ export default async function StudioPage() {
                 The Studio is free — the programs teach you to code
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
-                Six programs, thirteen courses, certificates employers can verify. Pay once per program and everything
+                Seven programs, thirteen courses, certificates employers can verify. Pay once per program and everything
                 inside it is yours.
               </p>
             </div>

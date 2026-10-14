@@ -22,7 +22,7 @@ export default function LessonLocked({ courseTitle, courseHref, lessonTitle, les
   const canBuy = decision.needsPurchase && Boolean(decision.programId) && Boolean(decision.programName);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f4]">
+    <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-[#e6e2e9] bg-white/90 backdrop-blur-xl">
         <div className="flex h-[66px] items-center px-4 sm:px-6">
           <Logo compact />
