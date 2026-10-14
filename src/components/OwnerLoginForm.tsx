@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AUTH_UNAVAILABLE_MESSAGE } from "@/lib/auth-errors";
 import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
@@ -39,6 +39,11 @@ export default function OwnerLoginForm({ currentUserName, setupAvailable = false
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notOwner, setNotOwner] = useState(false);
+  // Bumped on each new error so the banner shakes again.
+  const [errorKey, setErrorKey] = useState(0);
+  useEffect(() => {
+    if (error) setErrorKey((key) => key + 1);
+  }, [error]);
   // The database-outage banner is the one failure the teacher can act on,
   // so it carries the link to the read-only diagnosis.
   const databaseDown = error === AUTH_UNAVAILABLE_MESSAGE;
@@ -163,11 +168,12 @@ export default function OwnerLoginForm({ currentUserName, setupAvailable = false
         </form>
       )}
 
-      <form onSubmit={signIn} className={`space-y-4 ${setupAvailable ? "hidden" : ""}`}>
+      <form onSubmit={signIn} className={`auth-step space-y-4 ${setupAvailable ? "hidden" : ""}`}>
         <label className="block"><span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Owner email</span><div className="relative"><Icon name="mail" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" className={fieldClass} /></div></label>
         <label className="block"><span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Password</span><div className="relative"><Icon name="lock" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Enter your password" className={`${fieldClass} pr-12`} /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-[10px] font-bold text-[#817a89] hover:bg-[#f3f1f5]">{showPassword ? "Hide" : "Show"}</button></div></label>
-        {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}{databaseDown && <UnavailableHelp />}</div>}
+        {error && <div key={errorKey} role="alert" className="auth-shake rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">{error}{databaseDown && <UnavailableHelp />}</div>}
         <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#dcd8e2] bg-[#1b1822] px-4 py-3.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#2b2733] disabled:opacity-60">{busy ? "Verifying access…" : "Sign in as the teacher"}{!busy && <Icon name="arrow-right" size={16} />}</button>
+        <p className="text-[10px] leading-5 text-[#9a939f]"><Link href="/login?mode=forgot" className="font-bold text-[#6543e8] hover:underline">Forgot the teacher password?</Link> A reset link goes to the owner email.</p>
         <p className="text-[10px] leading-5 text-[#9a939f]">The owner account is created on first start from <span className="font-mono">OWNER_EMAIL</span> and <span className="font-mono">OWNER_PASSWORD</span>. Change that password from the learner account page once you are in.</p>
       </form>
 

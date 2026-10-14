@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { cookies, headers } from "next/headers";
@@ -219,3 +219,52 @@ export const SUSPENDED_ERROR = {
   error: "Your account is paused. Please contact an administrator for help.",
   code: "SUSPENDED",
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/* Password-reset links                                                        */
+/* -------------------------------------------------------------------------- */
+
+export const RESET_MAX_AGE = 60 * 30; // 30 minutes
+
+/**
+ * A fingerprint of the password hash. A reset link carries it, so the link
+ * stops working the moment the password changes: once it has been used (or the
+ * password changed some other way), the stored hash no longer matches and the
+ * link is dead. No token table is needed.
+ */
+function passwordFingerprint(passwordHash: string): string {
+  return createHash("sha256").update(passwordHash).digest("base64url").slice(0, 32);
+}
+
+/** Creates a signed, expiring reset token for one account. Five dot-parts, so it never reads as a session. */
+export function createResetToken(user: { id: string; passwordHash: string }, maxAgeSeconds = RESET_MAX_AGE): string {
+  const expires = Date.now() + maxAgeSeconds * 1000;
+  const payload = `reset.${user.id}.${expires}.${passwordFingerprint(user.passwordHash)}`;
+  return `${payload}.${sign(payload)}`;
+}
+
+export interface ResetPayload {
+  userId: string;
+  expires: number;
+  fingerprint: string;
+}
+
+/** Checks the signature and expiry. The caller still matches the fingerprint to the stored account. */
+export function readResetToken(token: string | undefined | null): ResetPayload | null {
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length !== 5 || parts[0] !== "reset") return null;
+  const [, userId, expiresRaw, fingerprint, signature] = parts;
+  const expires = Number(expiresRaw);
+  if (!userId || !fingerprint || !Number.isFinite(expires) || expires < Date.now()) return null;
+  const expected = sign(`reset.${userId}.${expiresRaw}.${fingerprint}`);
+  const provided = Buffer.from(signature);
+  const wanted = Buffer.from(expected);
+  if (provided.length !== wanted.length || !timingSafeEqual(provided, wanted)) return null;
+  return { userId, expires, fingerprint };
+}
+
+/** True when the token was issued for this account's current password. */
+export function resetTokenMatches(payload: ResetPayload, user: { passwordHash: string }): boolean {
+  return payload.fingerprint === passwordFingerprint(user.passwordHash);
+}
