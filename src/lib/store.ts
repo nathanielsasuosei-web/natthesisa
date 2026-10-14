@@ -71,6 +71,15 @@ export interface Purchase {
   at: string;
   /** The invoice raised for this purchase, for the billing history. */
   invoiceNumber: string | null;
+  /**
+   * What a program purchase paid for: the first half of the program, or the
+   * whole of it (a balance payment and a full payment both end at "full").
+   *
+   * Rows written before part payments existed have no `covers`, and every one
+   * of them was a payment for the whole program — so a missing value is read as
+   * `"full"`, never as `"half"`. See `programLedger` in `access.ts`.
+   */
+  covers?: "half" | "full";
 }
 
 export interface LearningUsage {

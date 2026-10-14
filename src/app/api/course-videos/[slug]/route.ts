@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { refuseUnlessCourseOpen } from "@/lib/course-guard";
+import { refuseUnlessCourseStarted } from "@/lib/course-guard";
 import { getCourse } from "@/lib/courses";
 import { courseVideo } from "@/lib/course-videos";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
@@ -10,15 +10,16 @@ export const dynamic = "force-dynamic";
 /**
  * Serves the teacher's welcome video for a course.
  *
- * The welcome video is shown only inside the signed-in course, so it is gated
- * the same way as the lessons.
+ * The welcome video belongs to the course rather than to one lesson, so it
+ * opens for any signed-in student who has paid something towards the program —
+ * including the first half of it.
  */
 export async function GET(req: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
   const entry = courseVideo(slug);
   const course = entry ? getCourse(entry.courseId) : undefined;
   if (!entry || !course) return NextResponse.json({ error: "This course has no video." }, { status: 404 });
-  const refused = await refuseUnlessCourseOpen(course);
+  const refused = await refuseUnlessCourseStarted(course);
   if (refused) return refused;
 
   const download = req.nextUrl.searchParams.get("download") === "1";

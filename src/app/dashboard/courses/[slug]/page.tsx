@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourse } from "@/lib/courses";
-import { courseAccess } from "@/lib/access";
+import { courseAccess, lessonAccess } from "@/lib/access";
 import BuyProgram from "@/components/BuyProgram";
 import { contentLessons, contentMinutes, contentModules, contentPercent, ownerLessonsForCourse } from "@/lib/course-content";
 import { brandingSummary } from "@/lib/branding";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
+import { formatMoney } from "@/lib/pass-periods";
 import CourseVisual from "@/components/CourseVisual";
 import Icon from "@/components/Icon";
 import ProgressRing from "@/components/ProgressRing";
@@ -31,12 +32,25 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const percent = contentPercent(course, completed);
   const lessons = contentLessons(course);
   const modules = contentModules(course);
-  const access = courseAccess(user, course);
+  // The course's own lesson order is what decides which lessons a half payment
+  // opened — the same order the sidebar, the curriculum and the lesson pages
+  // use (see `courseLessonOrder` in `course-guard.ts`).
+  const lessonOrder = lessons.map((item) => item.id);
+  const access = courseAccess(user, course, lessonOrder);
   const hasAccess = access.allowed;
   const paused = access.reason === "suspended";
+  // A student who has paid half may open the first half of the course: those
+  // lessons are links, the rest show a lock and the balance that opens them.
+  const halfPaid = access.entitlement === "half";
+  const openLessonIds = new Set(lessonOrder.slice(0, access.openLessons));
+  const canOpen = (lessonId: string) => hasAccess || openLessonIds.has(lessonId);
   const ownerBranding = ownerLessonsForCourse(course.id).length ? brandingSummary(course.instructor.name) : null;
-  // The next unread lesson. Lessons open only once the program is owned.
-  const nextLesson = lessons.find((lesson) => !completed.includes(lesson.id)) ?? lessons[0];
+  // The next unread lesson they can actually open: otherwise "Continue" would
+  // walk a half-paid student straight into a locked page.
+  const nextLesson =
+    lessons.find((lesson) => canOpen(lesson.id) && !completed.includes(lesson.id)) ??
+    lessons.find((lesson) => canOpen(lesson.id)) ??
+    lessons[0];
 
   return (
     <div className="space-y-6">
@@ -49,21 +63,27 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <div className="relative">
               <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#6d4aff] px-3 py-1 text-[9px] font-black uppercase tracking-[.14em]">{course.category}</span><span className="rounded-full border border-white/10 bg-white/[.06] px-3 py-1 text-[9px] font-bold text-[#b7b0be]">{course.level}</span>{!hasAccess && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#ffcf59] px-3 py-1 text-[9px] font-black text-[#4a3600]">
-                    <Icon name="lock" size={10} /> {paused ? "Account paused" : "Locked"}
+                    <Icon name="lock" size={10} /> {paused ? "Account paused" : halfPaid ? `Half open · ${access.openLessons} of ${lessons.length} lessons` : "Locked"}
                   </span>
                 )}</div>
               <h1 className="mt-5 max-w-2xl text-balance text-3xl font-black leading-tight tracking-[-.045em] sm:text-[42px]">{course.title}</h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#b4aebc]">{course.description}</p>
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-[#aaa4b1]"><span className="inline-flex items-center gap-1.5 text-[#ffca57]"><Icon name="star" size={13} /> {course.rating}</span><span className="inline-flex items-center gap-1.5"><Icon name="users" size={14} /> {course.learners.toLocaleString()} learners</span><span className="inline-flex items-center gap-1.5"><Icon name="book" size={14} /> {lessons.length} lessons</span><span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} /> {fmtMinutes(contentMinutes(course))}</span></div>
-              <div className="mt-7 flex flex-wrap gap-3">
-                {nextLesson && hasAccess && <Link href={`/learn/${course.id}/${nextLesson.id}`} className="inline-flex items-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#7959f1]"><Icon name="play" size={13} />{progress ? "Continue course" : "Start course"}</Link>}
+              <div className="mt-7 flex flex-col flex-wrap gap-3 sm:flex-row sm:items-center">
+                {nextLesson && (hasAccess || halfPaid) && <Link href={`/learn/${course.id}/${nextLesson.id}`} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-5 py-3 text-xs font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#7959f1]"><Icon name="play" size={13} />{progress ? "Continue course" : "Start course"}</Link>}
                 {!hasAccess && paused && (
                   <span className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[.07] px-5 py-3 text-xs font-bold text-white">
                     This account is paused. Contact your teacher.
                   </span>
                 )}
                 {!hasAccess && !paused && access.programId && access.programName && (
-                  <BuyProgram programId={access.programId} programName={access.programName} price={access.price} />
+                  <BuyProgram
+                    programId={access.programId}
+                    programName={access.programName}
+                    price={access.price}
+                    entitlement={access.entitlement}
+                    balance={access.balance}
+                  />
                 )}
               </div>
             </div>
@@ -90,9 +110,34 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <div className="mt-5 grid border-t border-[#e6e2e9] sm:grid-cols-2">{course.outcomes.map((outcome) => <div key={outcome} className="flex items-start gap-2.5 border-b border-[#e6e2e9] py-4 pr-4 sm:odd:border-r sm:even:pl-4"><span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Icon name="check" size={11} /></span><p className="text-xs font-semibold leading-5 text-[#5b5561]">{outcome}</p></div>)}</div>
           </section>
 
-          {hasAccess && <CourseVideoWelcome course={course} />}
+          {(hasAccess || halfPaid) && <CourseVideoWelcome course={course} />}
 
           <CourseBrief course={course} bare className="[&>section]:rounded-[22px] [&>section]:border [&>section]:border-[#e6e2e9] [&>section]:bg-white [&>section]:p-5 sm:[&>section]:p-6" />
+
+          {halfPaid && access.programId && access.programName && (
+            <section className="overflow-hidden rounded-[22px] border border-[#d8ccff] bg-[#f7f4ff] p-5 sm:p-6">
+              <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[.15em] text-[#5e3de0]">
+                <Icon name="lock" size={12} /> Half payment · {access.openLessons} of {lessons.length} lessons open
+              </p>
+              <h2 className="mt-2 text-base font-black tracking-[-.025em]">
+                You paid half of {access.programName}
+              </h2>
+              <p className="mt-1.5 text-xs leading-5 text-[#5d5763]">
+                The first {access.openLessons} lessons of this course are open, and so is the first half of every other
+                course in the program. Paying the remaining {formatMoney(access.balance)} opens the rest — permanently,
+                with no deadline.
+              </p>
+              <div className="mt-4">
+                <BuyProgram
+                  programId={access.programId}
+                  programName={access.programName}
+                  price={access.price}
+                  entitlement={access.entitlement}
+                  balance={access.balance}
+                />
+              </div>
+            </section>
+          )}
 
           <section className="open-surface overflow-hidden rounded-[22px] border border-[#e6e2e9] bg-white">
             <div className="flex items-center justify-between border-b border-[#ece9ee] p-5 sm:px-6"><div><h2 className="text-base font-black tracking-[-.025em]">Course curriculum</h2><p className="mt-1 text-[10px] text-[#918a97]">{modules.length} modules · {lessons.length} lessons · {fmtMinutes(contentMinutes(course))}</p></div>{progress && <span className="rounded-lg bg-[#f0ecff] px-2.5 py-1.5 text-[10px] font-black text-[#5e3de0]">{completed.length} complete</span>}</div>
@@ -103,9 +148,11 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                   <div>
                     {module.lessons.map((lesson, lessonIndex) => {
                       const isDone = completed.includes(lesson.id);
-                      return (
-                        <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className="flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 transition first:border-0 hover:bg-[#fbfaff] sm:px-6">
-                          <span className={`grid size-8 shrink-0 place-items-center rounded-xl ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-[#f0ecff] text-[#6543e8]"}`}>{isDone ? <Icon name="check" size={15} /> : <Icon name="play" size={11} />}</span>
+                      const open = canOpen(lesson.id);
+                      const rowClass = "flex items-center gap-3 border-t border-[#f1eef2] px-5 py-3.5 first:border-0 sm:px-6";
+                      const body = (
+                        <>
+                          <span className={`grid size-8 shrink-0 place-items-center rounded-xl ${isDone ? "bg-emerald-100 text-emerald-700" : open ? "bg-[#f0ecff] text-[#6543e8]" : "bg-[#f0edf3] text-[#8d8694]"}`}>{isDone ? <Icon name="check" size={15} /> : open ? <Icon name="play" size={11} /> : <Icon name="lock" size={13} />}</span>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-xs font-bold text-[#4a4450]">{lessonIndex + 1}. {lesson.title}</p>
                             <div className="mt-1 flex flex-wrap gap-2 text-[9px] text-[#a19aa7]">
@@ -115,8 +162,17 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                               {lesson.files?.length ? <span className="font-semibold text-[#7d7683]">{lesson.files.length} file{lesson.files.length === 1 ? "" : "s"}</span> : null}
                             </div>
                           </div>
-                          <Icon name="chevron-right" size={14} className="text-[#bbb5c0]" />
+                          <Icon name={open ? "chevron-right" : "lock"} size={14} className="text-[#bbb5c0]" />
+                        </>
+                      );
+                      return open ? (
+                        <Link key={lesson.id} href={`/learn/${course.id}/${lesson.id}`} className={`${rowClass} transition hover:bg-[#fbfaff]`}>
+                          {body}
                         </Link>
+                      ) : (
+                        <div key={lesson.id} className={rowClass} title={`Pay the balance of ${formatMoney(access.balance)} to open this lesson`}>
+                          {body}
+                        </div>
                       );
                     })}
                   </div>
@@ -143,15 +199,24 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           {!hasAccess && (
             <section className="rounded-[22px] bg-[#6d4aff] p-5 text-white">
               <Icon name={paused ? "shield" : "lock"} size={22} />
-              <h2 className="mt-3 text-sm font-extrabold">{paused ? "Account paused" : "Buy to open the lessons"}</h2>
+              <h2 className="mt-3 text-sm font-extrabold">{paused ? "Account paused" : halfPaid ? "Finish paying to open everything" : "Buy to open the lessons"}</h2>
               <p className="mt-1.5 text-[10px] leading-5 text-violet-100">
                 {paused
                   ? "A paused account cannot open lessons or save progress. Contact your teacher to continue."
-                  : `${access.programName ?? "This program"} opens every course and lesson in it, permanently. Sign in, buy the program once, and the lessons open here.`}
+                  : halfPaid
+                    ? `You paid half of ${access.programName}, which opened the first ${access.openLessons} lessons of this course. The remaining ${formatMoney(access.balance)} opens everything, permanently.`
+                    : `${access.programName ?? "This program"} opens every course and lesson in it, permanently. Sign in, buy the program once, and the lessons open here — or pay half now to open the first half of every course.`}
               </p>
               {!paused && access.programId && access.programName && (
                 <div className="mt-4">
-                  <BuyProgram programId={access.programId} programName={access.programName} price={access.price} compact />
+                  <BuyProgram
+                    programId={access.programId}
+                    programName={access.programName}
+                    price={access.price}
+                    entitlement={access.entitlement}
+                    balance={access.balance}
+                    compact
+                  />
                 </div>
               )}
             </section>

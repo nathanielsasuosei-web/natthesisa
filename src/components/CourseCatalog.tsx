@@ -3,13 +3,13 @@
 import { useMemo, useState } from "react";
 import type { Course, CourseCategory } from "@/lib/courses";
 import { CATEGORIES } from "@/lib/courses";
-import CourseCard from "./CourseCard";
+import CourseCard, { type CourseAccessStatus } from "./CourseCard";
 import Icon from "./Icon";
 
 interface Props {
   courses: Course[];
-  /** Course ids the student can open right now (program owned). */
-  unlocked: Record<string, boolean>;
+  /** How much of each course's program the student has paid for. */
+  access: Record<string, CourseAccessStatus>;
   /** The program price that opens each course. */
   prices: Record<string, number>;
   progress: Record<string, number>;
@@ -17,7 +17,7 @@ interface Props {
   lessonMinutes?: Record<string, number>;
 }
 
-export default function CourseCatalog({ courses, unlocked, prices, progress, lessonCounts, lessonMinutes }: Props) {
+export default function CourseCatalog({ courses, access, prices, progress, lessonCounts, lessonMinutes }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"All" | CourseCategory>("All");
   const [level, setLevel] = useState<"All" | Course["level"]>("All");
@@ -39,7 +39,7 @@ export default function CourseCatalog({ courses, unlocked, prices, progress, les
   }, [category, level, query, visible]);
 
   const renderCard = (course: Course) => (
-    <CourseCard key={course.id} course={course} progress={progress[course.id]} locked={!unlocked[course.id]} price={prices[course.id]} lessonCount={lessonCounts?.[course.id]} minutes={lessonMinutes?.[course.id]} />
+    <CourseCard key={course.id} course={course} progress={progress[course.id]} status={access[course.id] ?? "locked"} price={prices[course.id]} lessonCount={lessonCounts?.[course.id]} minutes={lessonMinutes?.[course.id]} />
   );
 
   return (

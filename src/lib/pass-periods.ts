@@ -54,6 +54,56 @@ export const DEFAULT_PRICING: Pricing = {
   program: 300,
 };
 
+/* -------------------------------------------------------------------------- */
+/* Part payments                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A program may be paid for in two parts: half now, half later.
+ *
+ * The first payment opens the first half of every course in the program (see
+ * `halfOpenLessonCount` in `access.ts`); the second opens the rest. The split
+ * lives here as one number so the whole app — the price shown, the amount
+ * charged, the lessons unlocked — can only ever be changed together, and this
+ * module is free of server-only imports so the buy buttons in the browser
+ * compute exactly what the server will charge.
+ *
+ * The wording around the site says "half", so if this number ever changes, the
+ * copy needs changing with it.
+ */
+export const HALF_PAYMENT_PERCENT = 50;
+
+/**
+ * Which part of a program a payment buys.
+ *
+ *   • `"half"` — the first payment: half the price, and the first half of every
+ *     course in the program opens.
+ *   • `"balance"` — the second: whatever is left, and everything opens.
+ *   • `"full"` — the whole price at once (the default when nothing is said),
+ *     which for a student who already paid half means the same as `"balance"`.
+ *
+ * The same three values are stored on a payment row (`payments.covers`) so a
+ * checkout, its webhook and its reconciliation all agree on what was bought.
+ */
+export type ProgramPaymentPart = "half" | "full" | "balance";
+
+/** True for the three values the app understands. */
+export function isProgramPaymentPart(value: unknown): value is ProgramPaymentPart {
+  return value === "half" || value === "full" || value === "balance";
+}
+
+/**
+ * What the first payment costs: half the price, to the nearest cedi, never
+ * less than GH₵1 and never more than the price itself. Rounding can make the
+ * two payments differ by a cedi (GH₵305 → 153 now, 152 later); the student
+ * always ends up paying the price exactly, because the balance is worked out
+ * as the price minus what was actually paid.
+ */
+export function halfAmount(price: number): number {
+  if (!Number.isFinite(price) || price <= 0) return 0;
+  return Math.min(price, Math.max(1, Math.round((price * HALF_PAYMENT_PERCENT) / 100)));
+}
+
 export class PricingError extends Error {
   constructor(message: string) {
     super(message);

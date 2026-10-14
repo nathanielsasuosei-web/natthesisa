@@ -16,10 +16,13 @@ interface Props {
 /**
  * Shown in place of a lesson the signed-in student may not open yet. The
  * lesson body, files, video and narration are never rendered here, so nothing
- * leaks through the markup. The only action is buying the program.
+ * leaks through the markup. The action is buying the program — or, for a
+ * student who has already paid half of it, paying the balance, which is the one
+ * thing standing between them and this lesson.
  */
 export default function LessonLocked({ courseTitle, courseHref, lessonTitle, lessonSummary, decision }: Props) {
   const canBuy = decision.needsPurchase && Boolean(decision.programId) && Boolean(decision.programName);
+  const halfPaid = decision.entitlement === "half";
 
   return (
     <div className="min-h-screen bg-white">
@@ -54,11 +57,34 @@ export default function LessonLocked({ courseTitle, courseHref, lessonTitle, les
             {accessMessage(decision, courseTitle)}
           </p>
 
+          {halfPaid ? (
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-[#e4e0e9] bg-white px-4 py-3">
+                <p className="text-[9px] font-black uppercase tracking-[.13em] text-[#817a87]">Open already</p>
+                <p className="mt-1 text-lg font-black">{decision.openLessons} of {decision.totalLessons}</p>
+                <p className="text-[10px] text-[#918a97]">lessons in this course</p>
+              </div>
+              <div className="rounded-xl border border-[#e4e0e9] bg-white px-4 py-3">
+                <p className="text-[9px] font-black uppercase tracking-[.13em] text-[#817a87]">Balance left</p>
+                <p className="mt-1 text-lg font-black">{formatMoney(decision.balance)}</p>
+                <p className="text-[10px] text-[#918a97]">opens every lesson</p>
+              </div>
+            </div>
+          ) : null}
+
           {canBuy && decision.programId && decision.programName ? (
             <div className="mt-6">
-              <BuyProgram programId={decision.programId} programName={decision.programName} price={decision.price} />
+              <BuyProgram
+                programId={decision.programId}
+                programName={decision.programName}
+                price={decision.price}
+                entitlement={decision.entitlement}
+                balance={decision.balance}
+              />
               <p className="mt-3 text-[11px] leading-5 text-[#8d8694]">
-                One payment of {formatMoney(decision.price)} opens every course and lesson in {decision.programName}, permanently.
+                {halfPaid
+                  ? `The remaining ${formatMoney(decision.balance)} opens this lesson and every other one in ${decision.programName}, permanently.`
+                  : `One payment of ${formatMoney(decision.price)} opens every course and lesson in ${decision.programName}, permanently — or pay half of it now to open the first half of every course.`}
               </p>
             </div>
           ) : null}

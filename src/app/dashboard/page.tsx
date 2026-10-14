@@ -8,7 +8,7 @@ import { completedLessonCount, learningStreak } from "@/lib/store";
 import { requireCurrentUser } from "@/lib/require-user";
 import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "@/components/CourseVisual";
-import CourseCard from "@/components/CourseCard";
+import CourseCard, { type CourseAccessStatus } from "@/components/CourseCard";
 import Icon from "@/components/Icon";
 import ProgressRing from "@/components/ProgressRing";
 import UsageChart from "@/components/UsageChart";
@@ -20,8 +20,18 @@ export default async function DashboardPage() {
   const currentCourse = currentProgress ? getCourse(currentProgress.courseId) : undefined;
   const currentPercent = currentCourse ? contentPercent(currentCourse, currentProgress.completedLessonIds) : 0;
   const currentLessons = currentCourse ? contentLessons(currentCourse) : [];
+  // "Continue" must land on a lesson the student may actually open: after a
+  // half payment the second half of the course is locked, so the search is
+  // narrowed to the open lessons (all of them, once the program is paid for).
+  const currentOrder = currentLessons.map((lesson) => lesson.id);
+  const openLessons = currentCourse
+    ? new Set(currentOrder.slice(0, courseAccess(user, currentCourse, currentOrder).openLessons))
+    : new Set<string>();
+  const openable = currentLessons.filter((lesson) => openLessons.has(lesson.id));
   const nextLesson = currentCourse
-    ? currentLessons.find((lesson) => !currentProgress.completedLessonIds.includes(lesson.id)) ?? currentLessons.at(-1)
+    ? openable.find((lesson) => !currentProgress.completedLessonIds.includes(lesson.id)) ??
+      openable.at(-1) ??
+      currentLessons.at(-1)
     : undefined;
   const lessonsDone = completedLessonCount(user);
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
@@ -82,7 +92,7 @@ export default async function DashboardPage() {
       <section className="open-columns grid gap-0 xl:grid-cols-[1.55fr_.85fr]">
         <div className="open-column">
           <div className="mb-4 flex items-end justify-between"><div><h2 className="text-base font-black tracking-[-.025em]">Recommended for you</h2><p className="mt-1 text-xs text-[#89828f]">Based on your {user.profile.track.toLowerCase()} goal</p></div><Link href="/dashboard/courses" className="text-[11px] font-bold text-[#6543e8]">See all courses →</Link></div>
-          <div className="grid gap-4 md:grid-cols-2">{recommendations.map((course) => { const program = programForCategory(course.category); return <CourseCard key={course.id} course={course} locked={!courseAccess(user, course).allowed} price={program ? programPrice(program.id) : undefined} />; })}</div>
+          <div className="grid gap-4 md:grid-cols-2">{recommendations.map((course) => { const program = programForCategory(course.category); const decision = courseAccess(user, course); const status: CourseAccessStatus = decision.allowed ? "open" : decision.entitlement === "half" ? "half" : "locked"; return <CourseCard key={course.id} course={course} status={status} price={program ? programPrice(program.id) : undefined} />; })}</div>
         </div>
         <div className="open-column">
           <div className="mb-4"><h2 className="text-base font-black tracking-[-.025em]">Recent activity</h2><p className="mt-1 text-xs text-[#89828f]">Your latest milestones</p></div>

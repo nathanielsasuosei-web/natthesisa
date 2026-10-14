@@ -142,6 +142,11 @@ export default function OwnerPaymentsCard({ payments, pending, provider, keyMode
                       <p className="text-[9px] text-[#918a97]">{payment.userEmail}</p>
                     </td>
                     <td className="max-w-[220px] truncate px-4 py-3 text-[10px] font-semibold text-[#5f5965]">
+                      {payment.covers !== "full" && (
+                        <span className="mr-1.5 rounded-full bg-[#f0ecff] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wide text-[#5e3de0]">
+                          {payment.covers}
+                        </span>
+                      )}
                       {payment.description}
                       {payment.phone && (
                         <span className="block text-[9px] font-medium text-[#918a97]">

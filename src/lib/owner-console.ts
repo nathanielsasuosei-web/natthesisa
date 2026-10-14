@@ -2,7 +2,7 @@ import { COURSES, getCourse, getCourseLessons } from "./courses";
 import { contentPercent, ownerLessonSummaries } from "./course-content";
 import { coursePrice, lessonPrice, programPrice, type PassPeriod } from "./plans";
 import { PROGRAMS, programForCategory } from "./programs";
-import { hasActivePass } from "./access";
+import { hasActivePass, programLedger } from "./access";
 import { grantAccess, grantPass, grantProgram } from "./purchases";
 import {
   User,
@@ -43,6 +43,8 @@ export interface StudentRow {
   createdAt: string;
   /** Programs owned — the only access that matters. */
   programsOwned: string[];
+  /** Programs the student has paid half of; the balance is still owed. */
+  programsHalfPaid: string[];
   /** Purchases on record (programs; older course/lesson rows are history). */
   purchases: number;
   coursesStarted: number;
@@ -70,9 +72,12 @@ export function toStudentRow(user: User): StudentRow {
     owner: isOwner(user),
     suspended: user.suspended,
     createdAt: user.createdAt,
-    programsOwned: user.purchases
-      .filter((item) => item.kind === "program")
-      .map((item) => PROGRAMS.find((program) => program.id === item.refId)?.name ?? item.refId),
+    programsOwned: PROGRAMS.filter((program) => programLedger(user, program.id).entitlement === "full").map(
+      (program) => program.name
+    ),
+    programsHalfPaid: PROGRAMS.filter((program) => programLedger(user, program.id).entitlement === "half").map(
+      (program) => program.name
+    ),
     purchases: user.purchases.length,
     coursesStarted: progress.length,
     coursesCompleted: completedCourses,
@@ -96,8 +101,8 @@ export interface OwnerStats {
   certificatesEarned: number;
   totalRevenue: number;
   invoiceCount: number;
-  /** How many students own each program right now. */
-  byProgram: Array<{ programId: string; name: string; price: number; count: number }>;
+  /** How many students own each program right now, and how many paid half. */
+  byProgram: Array<{ programId: string; name: string; price: number; count: number; halfCount: number }>;
   coursePerformance: Array<{
     courseId: string;
     title: string;
@@ -111,7 +116,11 @@ export interface OwnerStats {
 export async function computeOwnerStats(): Promise<OwnerStats> {
   const users = await listUsers();
   const students = users.filter((user) => !isOwner(user));
-  const ownsAnyProgram = (user: User): boolean => user.purchases.some((item) => item.kind === "program");
+  // "Has a program" means a student who can actually open one: paid in full.
+  // A half payment leaves the student working through the first half, and the
+  // owner sees that separately in `byProgram` rather than as an owner.
+  const ownsAnyProgram = (user: User): boolean =>
+    PROGRAMS.some((program) => programLedger(user, program.id).entitlement === "full");
   const coursePerformance = COURSES.map((course) => {
     const records = students.map((user) => user.progress[course.id]).filter((item) => Boolean(item));
     const program = programForCategory(course.category);
@@ -141,9 +150,8 @@ export async function computeOwnerStats(): Promise<OwnerStats> {
       programId: program.id,
       name: program.name,
       price: programPrice(program.id),
-      count: students.filter((user) =>
-        user.purchases.some((item) => item.kind === "program" && item.refId === program.id)
-      ).length,
+      count: students.filter((user) => programLedger(user, program.id).entitlement === "full").length,
+      halfCount: students.filter((user) => programLedger(user, program.id).entitlement === "half").length,
     })),
     coursePerformance,
   };

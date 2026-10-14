@@ -12,6 +12,7 @@ import {
   type MomoNetwork,
 } from "@/lib/momo";
 import Icon from "./Icon";
+import type { CheckoutChoice } from "@/lib/checkout-options";
 
 export interface CheckoutPayload {
   kind: "pass" | "course" | "lesson" | "program";
@@ -24,12 +25,12 @@ export interface CheckoutPayload {
 interface Props {
   title: string;
   subtitle: string;
-  amount: number;
+  /** What can be paid for. One entry means no choice is shown. */
+  choices: CheckoutChoice[];
   payload: CheckoutPayload;
   /** Last MoMo number on the account, pre-filled when there is one. */
   defaultPhone?: string;
   defaultNetwork?: string;
-  successMessage: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -43,25 +44,30 @@ const NETWORK_STYLE: Record<MomoNetwork, { badge: string; ring: string }> = {
 };
 
 /**
- * Paying for a pass, a course or a lesson with Mobile Money.
+ * Paying for a program with Mobile Money.
  *
  * The student picks their network and enters the number to charge. With live
  * payments on, the browser then moves to Paystack's secure page, where the
  * MoMo approval (or card / bank transfer) happens — the PIN is entered on the
  * student's own phone, never here. Without a provider configured, the approval
  * prompt is simulated so the whole flow can be tried end to end.
+ *
+ * When more than one way of paying is offered — half of a program now, or all
+ * of it (see `programChoices`) — the choice sits at the top of the same form,
+ * so the student sees exactly what the amount on the button will be before they
+ * commit to it.
  */
 export default function CheckoutModal({
   title,
   subtitle,
-  amount,
+  choices,
   payload,
   defaultPhone,
   defaultNetwork,
-  successMessage,
   onClose,
   onSuccess,
 }: Props) {
+  const [selected, setSelected] = useState(0);
   const [network, setNetwork] = useState<MomoNetwork | null>(
     defaultNetwork === "MTN" || defaultNetwork === "Telecel" || defaultNetwork === "AirtelTigo"
       ? defaultNetwork
@@ -99,9 +105,14 @@ export default function CheckoutModal({
   }, [phone]);
 
   const phoneCheck = useMemo(() => (phone.trim() ? checkMomoPhone(phone) : null), [phone]);
+  // Clamped: `choices` is a prop, and a caller that re-renders with fewer of
+  // them must not be able to point this at a missing one. A modal with nothing
+  // to sell draws nothing at all.
+  const choice = choices.length ? choices[Math.min(selected, choices.length - 1)] : null;
 
   async function startCheckout() {
     if (busy) return;
+    if (!choice) return;
     const check = checkMomoPhone(phone);
     if (!check.ok) {
       setError(check.error);
@@ -117,7 +128,7 @@ export default function CheckoutModal({
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, phone: check.phone, network }),
+        body: JSON.stringify({ ...payload, covers: choice.covers, phone: check.phone, network }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -168,6 +179,8 @@ export default function CheckoutModal({
     }
   }
 
+  if (!choice) return null;
+
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-[#15121c]/60 p-4 backdrop-blur-sm"
@@ -203,12 +216,40 @@ export default function CheckoutModal({
                     <p className="truncate text-xs font-extrabold">{title}</p>
                     <p className="mt-1 text-[10px] text-[#918a97]">{subtitle}</p>
                   </div>
-                  <p className="shrink-0 text-lg font-black">{formatMoney(amount)}</p>
+                  <p className="shrink-0 text-lg font-black">{formatMoney(choice.amount)}</p>
                 </div>
               </div>
 
               {step === "details" && (
                 <>
+                  {choices.length > 1 && (
+                    <div className="mt-5 grid gap-2" role="radiogroup" aria-label="How much to pay now">
+                      {choices.map((option, index) => {
+                        const active = index === selected;
+                        return (
+                          <button
+                            key={option.label}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            onClick={() => setSelected(index)}
+                            className={`rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 ${
+                              active ? "border-[#6d4aff] ring-2 ring-[#6d4aff]/25" : "border-[#ded9e3]"
+                            }`}
+                          >
+                            <span className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-extrabold text-[#332e39]">{option.label}</span>
+                              <span className="shrink-0 text-sm font-black text-[#4f4956]">
+                                {formatMoney(option.amount)}
+                              </span>
+                            </span>
+                            <span className="mt-1 block text-[10px] leading-4 text-[#817a87]">{option.note}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   <p className="mt-5 text-[10px] font-black uppercase tracking-wider text-[#817a87]">
                     Pay with Mobile Money
                   </p>
@@ -282,7 +323,7 @@ export default function CheckoutModal({
                     disabled={busy}
                     className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] disabled:opacity-60"
                   >
-                    {busy ? "Starting checkout…" : `Pay ${formatMoney(amount)} with MoMo`}
+                    {busy ? "Starting checkout…" : `Pay ${formatMoney(choice.amount)} with MoMo`}
                     {!busy && <Icon name="arrow-right" size={16} />}
                   </button>
                   {live && (
@@ -300,7 +341,7 @@ export default function CheckoutModal({
                   </span>
                   <p className="mt-4 text-sm font-extrabold">Opening the secure payment page…</p>
                   <p className="mx-auto mt-2 max-w-xs text-[11px] leading-5 text-[#918a97]">
-                    Approve the {formatMoney(amount)} charge{phoneCheck?.phone ? ` on ${formatPhone(phoneCheck.phone)}` : ""} with
+                    Approve the {formatMoney(choice.amount)} charge{phoneCheck?.phone ? ` on ${formatPhone(phoneCheck.phone)}` : ""} with
                     your MoMo PIN. You will come straight back here afterwards.
                   </p>
                 </div>
@@ -318,7 +359,7 @@ export default function CheckoutModal({
               </span>
               <p className="mt-4 text-sm font-extrabold">Check your phone</p>
               <p className="mx-auto mt-2 max-w-xs text-[11px] leading-5 text-[#756f7b]">
-                An approval prompt for <strong>{formatMoney(amount)}</strong> was sent to{" "}
+                An approval prompt for <strong>{formatMoney(choice.amount)}</strong> was sent to{" "}
                 <strong>{phoneCheck?.phone ? formatPhone(phoneCheck.phone) : phone}</strong>
                 {network ? ` (${MOMO_NETWORK_LABEL[network]})` : ""}. Enter your MoMo PIN on your phone to approve.
               </p>
@@ -353,7 +394,7 @@ export default function CheckoutModal({
               <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-emerald-700">
                 <Icon name="check" size={26} />
               </span>
-              <p className="mx-auto mt-4 max-w-xs text-sm font-bold leading-6 text-[#413a4a]">{successMessage}</p>
+              <p className="mx-auto mt-4 max-w-xs text-sm font-bold leading-6 text-[#413a4a]">{choice.done}</p>
               {reference && (
                 <p className="mt-2 font-mono text-[10px] text-[#918a97]">Ref {reference}</p>
               )}

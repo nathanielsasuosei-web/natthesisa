@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (price > 0) {
     return NextResponse.json(
       {
-        error: "Pay for this program with Mobile Money or a card at checkout.",
+        error: "Pay for this program with Mobile Money or a card at checkout — in full, or half now.",
         code: "CHECKOUT_REQUIRED",
         checkout: { kind: "program", programId },
       },

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { refuseUnlessCourseOpen } from "@/lib/course-guard";
+import { refuseUnlessLessonOpen } from "@/lib/course-guard";
 import { findUploadedLessonCourse } from "@/lib/course-content";
 import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 
@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 /**
  * Serves materials attached to an owner-published lesson.
  * Lesson files are gated the same way as the lesson text: the student must be
- * signed in and own the lesson's program (see `refuseUnlessCourseOpen`).
+ * signed in and own the lesson's program — or have paid half, and the lesson
+ * is one of the open first half (see `refuseUnlessLessonOpen`).
  */
 export async function GET(
   req: NextRequest,
@@ -21,7 +22,7 @@ export async function GET(
 
   const located = findUploadedLessonCourse(lessonId);
   if (!located) return NextResponse.json({ error: "This lesson is no longer part of a course." }, { status: 404 });
-  const refused = await refuseUnlessCourseOpen(located.course);
+  const refused = await refuseUnlessLessonOpen(located.course, lessonId);
   if (refused) return refused;
 
   const lesson = located.record;
