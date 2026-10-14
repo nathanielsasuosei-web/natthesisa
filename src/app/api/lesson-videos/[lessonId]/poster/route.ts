@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { refuseUnlessCourseOpen } from "@/lib/course-guard";
+import { refuseUnlessLessonOpen } from "@/lib/course-guard";
 import { getCourse } from "@/lib/courses";
 import { findContentLesson } from "@/lib/course-content";
 import { lessonVideo } from "@/lib/lesson-videos";
@@ -17,7 +17,7 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
   const course = getCourse(entry.courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
-  const refused = await refuseUnlessCourseOpen(course);
+  const refused = await refuseUnlessLessonOpen(course, lessonId);
   if (refused) return refused;
 
   const record = {

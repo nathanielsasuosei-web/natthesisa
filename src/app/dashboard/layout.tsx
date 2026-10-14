@@ -4,17 +4,24 @@ import { getCurrentUser } from "@/lib/session";
 import { isOwner } from "@/lib/owner";
 import { avatarHref } from "@/lib/avatars";
 import SidebarNav from "@/components/SidebarNav";
+import { programLedger } from "@/lib/access";
+import { PROGRAMS } from "@/lib/programs";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
+  // A program can be paid in two parts, so the count comes from the ledger and
+  // not from the number of purchase rows: half paid is not owned, and the
+  // sidebar says so.
+  const entitlements = PROGRAMS.map((program) => programLedger(user, program.id).entitlement);
   const navProps = {
     userName: user.name,
     userEmail: user.email,
     userAvatar: avatarHref(user),
-    programsOwned: user.purchases.filter((item) => item.kind === "program").length,
+    programsOwned: entitlements.filter((item) => item === "full").length,
+    programsHalfPaid: entitlements.filter((item) => item === "half").length,
     weeklyMinutes,
     weeklyGoal: user.profile.weeklyGoal,
     isOwner: isOwner(user),

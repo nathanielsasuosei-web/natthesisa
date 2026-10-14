@@ -157,13 +157,21 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, programs = [
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex flex-col items-start gap-1.5">
-                      {user.programsOwned.length > 0 ? (
-                        user.programsOwned.map((name) => (
-                          <span key={name} className="rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">
-                            {name}
-                          </span>
-                        ))
-                      ) : (
+                      {user.programsOwned.map((name) => (
+                        <span key={name} className="rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">
+                          {name}
+                        </span>
+                      ))}
+                      {user.programsHalfPaid.map((name) => (
+                        <span
+                          key={name}
+                          title="Paid half of this program — the first half of its courses is open, the balance is still owed"
+                          className="rounded-full bg-amber-100 px-2 py-1 text-[8px] font-black uppercase text-amber-800"
+                        >
+                          {name} · half
+                        </span>
+                      ))}
+                      {user.programsOwned.length === 0 && user.programsHalfPaid.length === 0 && (
                         <span className="rounded-full bg-[#f2f0f4] px-2 py-1 text-[8px] font-black uppercase text-[#8a8390]">
                           No program
                         </span>

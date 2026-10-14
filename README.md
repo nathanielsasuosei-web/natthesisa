@@ -62,6 +62,11 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Program prices are set by the teacher (default GH₵300 per program). A
   program bought through checkout is recorded as an owned program, and
   owning it opens every course and lesson in it.
+- A program may also be paid in two parts. Paying half opens the first half
+  of every course in the program — rounded up, so 3 of 6 lessons or 4 of 7 —
+  and the balance opens the rest, permanently. Neither half expires, and the
+  two payments are separate rows in the register, so the account history
+  shows exactly what was paid for what.
 - A paused account cannot open lessons, even if it owns the program.
 - Existing invoices remain in account history. The pricing page shows the
   current prices.
@@ -361,7 +366,7 @@ This is the “what to paste where” map for continuing the build.
 | 11c. Public shell | `src/components/PublicHeader.tsx`, `src/components/PublicFooter.tsx` | One navigation for every public page, including the mobile menu |
 | 11d. Contact inbox | `src/lib/messages.ts`, `src/lib/message-topics.ts`, `src/app/api/contact/route.ts`, `src/components/ContactForm.tsx`, `src/app/owner/messages/page.tsx`, `src/components/OwnerMessages.tsx` | The contact form, where messages are stored, and the teacher's inbox |
 | 11e. Certificates | `src/lib/certificates.ts`, `src/app/dashboard/certificates/*`, `src/app/verify/*`, `src/app/api/owner/certificates/route.ts`, `src/components/CertificateActions.tsx`, `src/components/OwnerCertificates.tsx` | Issuing, printing, the public verification page, and the teacher's register with withdrawal |
-| 12. Student UI | `src/app/dashboard/*`, `src/components/ProgramOptions.tsx`, `src/components/BuyProgram.tsx`, `src/components/CheckoutModal.tsx`, `src/components/VerifyPayment.tsx` | Overview, library, progress, programs, billing, account, the MoMo checkout and the payment verification page |
+| 12. Student UI | `src/app/dashboard/*`, `src/components/BuyProgram.tsx`, `src/components/CheckoutModal.tsx`, `src/components/VerifyPayment.tsx` | Overview, library, progress, programs, billing, account, the MoMo checkout and the payment verification page |
 | 12b. Code studio | `src/app/studio/page.tsx`, `src/app/dashboard/code/page.tsx`, `src/components/CodeLab.tsx`, `src/lib/lab.ts`, `src/lib/python.ts` | The in-browser VS Code: editor, preview, console, terminal, problems, Python runner |
 | 12c. Media studio | `src/app/owner/studio/page.tsx`, `src/components/OwnerMediaStudio.tsx` | Standalone picture and video editing for the teacher |
 | 13. Lesson UI | `src/app/learn/[courseId]/[lessonId]/page.tsx` | Immersive lesson experience |
@@ -847,7 +852,12 @@ students honestly whether MoMo is live yet.
    (`src/components/CheckoutModal.tsx`).
 2. `POST /api/checkout` prices the item from the teacher's console prices and
    writes a `pending` row to the `payments` table, keyed by a `CMG-…`
-   reference — *before* any provider is called.
+   reference — *before* any provider is called. A program payment carries a
+   `covers` field — `half` (half the price, first half of the program open)
+   or `balance`/`full` (the rest, or everything in one go) — and every later
+   step is ruled by that field rather than by the amount, so a price change
+   between checkout and approval can never widen or narrow what a payment
+   opens.
 3. Live: Paystack returns an `authorization_url` and the browser goes there to
    pay. Demo: the UI simulates the approval prompt instead.
 4. Paystack returns the browser to `/api/checkout/callback`, which verifies
@@ -858,7 +868,11 @@ students honestly whether MoMo is live yet.
    whose HMAC-SHA512 signature is verified before anything is read from it.
 6. Both paths call `fulfillPayment()` in `src/lib/payments.ts`, which grants
    the pass / course / lesson, raises the invoice (carrying the `CMG-…`
-   reference) and emails the receipt.
+   reference) and emails the receipt. A program payment that arrives for more
+   than was still owed — an older checkout approved *after* a newer one
+   already paid part of the program — is capped at what was owed, and the
+   excess is refunded: recorded in the student's activity history and logged
+   loudly for the teacher if Paystack refuses the refund.
 
 Fulfilment is **idempotent**: the `payments` row flips `pending` → `paid`
 once, and every later report of the same reference (or the same provider

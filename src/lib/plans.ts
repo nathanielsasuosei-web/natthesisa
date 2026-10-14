@@ -17,7 +17,7 @@ import {
  */
 
 export * from "./pass-periods";
-export { fmtMoney as formatMoney } from "./format";
+export { fmtMoney, fmtMoney as formatMoney } from "./format";
 
 const PRICING_KEY = "pricing";
 

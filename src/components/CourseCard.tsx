@@ -6,10 +6,17 @@ import { fmtMinutes } from "@/lib/format";
 import CourseVisual from "./CourseVisual";
 import Icon from "./Icon";
 
+/** How much of the course's program the student has paid for. */
+export type CourseAccessStatus = "open" | "half" | "locked";
+
 interface Props {
   course: Course;
   progress?: number;
-  locked?: boolean;
+  /**
+   * `open` — the whole program is paid for; `half` — the first part is paid and
+   * the first half of every course in it is open; `locked` — nothing paid yet.
+   */
+  status?: CourseAccessStatus;
   hrefBase?: "public" | "dashboard";
   /** Lesson count including lessons published by the owner. */
   lessonCount?: number;
@@ -19,7 +26,9 @@ interface Props {
   price?: number;
 }
 
-export default function CourseCard({ course, progress, locked = false, hrefBase = "dashboard", lessonCount, minutes, price }: Props) {
+export default function CourseCard({ course, progress, status = "open", hrefBase = "dashboard", lessonCount, minutes, price }: Props) {
+  const locked = status === "locked";
+  const half = status === "half";
   const lessons = getCourseLessons(course);
   // A public card must land on the course it describes. It used to point at
   // /login, which meant "View course" took a visitor to a sign-in form.
@@ -51,6 +60,10 @@ export default function CourseCard({ course, progress, locked = false, hrefBase 
           {locked ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-[#f0edf9] px-2.5 py-1 text-[10px] font-bold text-[#625c70]">
               <Icon name="lock" size={11} /> {price !== undefined ? formatMoney(price) : "Locked"}
+            </span>
+          ) : half ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#fdf3d7] px-2.5 py-1 text-[10px] font-bold text-[#8a6d00]">
+              <Icon name="lock" size={11} /> Half open
             </span>
           ) : progress === 100 ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">

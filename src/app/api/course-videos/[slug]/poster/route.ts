@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { refuseUnlessCourseOpen } from "@/lib/course-guard";
+import { refuseUnlessCourseStarted } from "@/lib/course-guard";
 import { getCourse } from "@/lib/courses";
 import { courseVideo } from "@/lib/course-videos";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
@@ -13,7 +13,7 @@ export async function GET(_req: Request, context: { params: Promise<{ slug: stri
   const entry = courseVideo(slug);
   const course = entry ? getCourse(entry.courseId) : undefined;
   if (!entry || !course) return NextResponse.json({ error: "This course has no video." }, { status: 404 });
-  const refused = await refuseUnlessCourseOpen(course);
+  const refused = await refuseUnlessCourseStarted(course);
   if (refused) return refused;
 
   const record = {

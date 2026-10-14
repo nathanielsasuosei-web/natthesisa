@@ -6,6 +6,7 @@ import { requireCurrentUser } from "@/lib/require-user";
 import { courseAccess } from "@/lib/access";
 import { programPrice } from "@/lib/plans";
 import CourseCatalog from "@/components/CourseCatalog";
+import type { CourseAccessStatus } from "@/components/CourseCard";
 
 export const metadata: Metadata = { title: "Courses" };
 
@@ -17,10 +18,17 @@ export default async function CoursesPage() {
       return [item.courseId, course ? contentPercent(course, item.completedLessonIds) : 0];
     })
   );
-  // A card is unlocked when the student owns the program the course belongs
-  // to. A locked card shows that program's price — the one payment that opens
-  // it — and every lesson inside stays locked until then.
-  const unlocked = Object.fromEntries(COURSES.map((course) => [course.id, courseAccess(user, course).allowed]));
+  // Three states, not two. A course is `open` when the student owns the program
+  // it belongs to, `half` when they have paid the first half of it (the first
+  // half of the course's lessons are open), and `locked` when nothing is paid.
+  // A locked card shows the program's price — the one payment that opens it.
+  const access = Object.fromEntries(
+    COURSES.map((course) => {
+      const decision = courseAccess(user, course);
+      const status = decision.allowed ? "open" : decision.entitlement === "half" ? "half" : "locked";
+      return [course.id, status];
+    })
+  ) as Record<string, CourseAccessStatus>;
   const prices = Object.fromEntries(
     COURSES.map((course) => {
       const program = programForCategory(course.category);
@@ -33,7 +41,7 @@ export default async function CoursesPage() {
         <div><p className="text-xs font-bold text-[#8a8390]">Course library</p><h1 className="mt-1 text-2xl font-black tracking-[-.04em] sm:text-3xl">What will you build next?</h1><p className="mt-1.5 max-w-2xl text-sm text-[#756f7b]">Follow a complete path or learn the exact skill your next project needs.</p></div>
         <div className="border-l-2 border-[#6d4aff] pl-3 text-xs font-bold text-[#6d6673]">{COURSES.length} paths<br /><span className="font-medium text-[#9a939f]">Updated regularly</span></div>
       </header>
-      <CourseCatalog courses={COURSES} unlocked={unlocked} prices={prices} progress={progress} lessonCounts={lessonCountsByCourse()} lessonMinutes={lessonMinutesByCourse()} />
+      <CourseCatalog courses={COURSES} access={access} prices={prices} progress={progress} lessonCounts={lessonCountsByCourse()} lessonMinutes={lessonMinutesByCourse()} />
     </div>
   );
 }
