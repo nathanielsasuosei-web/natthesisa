@@ -22,7 +22,7 @@ export default async function ProgressPage() {
   const weeklyMinutes = user.usage.history.reduce((sum, day) => sum + day.count, 0);
   const activeDays = user.usage.history.filter((day) => day.count > 0).length;
   const totalLessons = completedLessonCount(user);
-  const categoryProgress = ["Web Development", "App Development", "Computer Science", "Backend"].map((category) => {
+  const categoryProgress = ["Web Development", "App Development", "Computer Science", "Backend", "Cyber Security"].map((category) => {
     const courses = COURSES.filter((course) => course.category === category);
     const total = courses.reduce((sum, course) => sum + contentLessons(course).length, 0);
     const done = courses.reduce((sum, course) => sum + (user.progress[course.id]?.completedLessonIds.length ?? 0), 0);

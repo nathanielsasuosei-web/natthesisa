@@ -73,9 +73,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="w-full max-w-[430px] border-y border-[#ded9e3] py-8">
           <AuthForm initialMode={initialMode} next={next} />
           <p className="mt-6 text-center text-[10px] text-[#918a97]">
-            Owner or teacher?{" "}
             <Link href="/owner-sign-in" className="font-bold text-[#6543e8]">
-              Sign in here
+              codemaster
             </Link>
           </p>
 

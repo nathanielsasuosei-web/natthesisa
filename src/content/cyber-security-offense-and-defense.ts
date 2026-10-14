@@ -1,4 +1,6 @@
 import { lesson, module } from "@/lib/lesson-builder";
+import { CS_ETHICAL_HACKING_MODULE } from "@/content/cyber-security/ethical-hacking";
+import { CS_DEFENSIVE_SECURITY_MODULE } from "@/content/cyber-security/defensive-security";
 import type { CourseModule } from "@/lib/courses";
 
 /**
@@ -10,7 +12,7 @@ import type { CourseModule } from "@/lib/courses";
  * not a footnote.
  */
 
-export const CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES: CourseModule[] = [
+const WEB_SECURITY_MODULES: CourseModule[] = [
   module("web-security", "01 · Web security", "The attacks behind most real breaches, and the code that stops them.", [
     lesson({
       id: "injection-attacks",
@@ -49,6 +51,46 @@ export const CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES: CourseModule[] = [
           kind: "warning",
           body:
             "- **Escaping quotes by hand.** Every hand-rolled escaper has been bypassed. Use parameters.\n- **Validating on the client only.** The attacker does not use your form; they use `curl`.\n- **Blocking the word `SELECT`.** Attackers write `SeLeCt`, or use encodings. Deny-lists lose; parameters win.\n- **Thinking an ORM makes you safe.** Most ORMs have a raw-query escape hatch, and that is where injection returns.",
+        },
+        {
+          heading: "Why parameterised queries work",
+          kind: "definition",
+          body:
+            "A database processes a statement in stages: it parses the text into a tree of operations, plans how to run it, then executes it. Concatenation lets attacker-supplied characters change the parse tree in stage one. A **prepared statement** separates the stages: the text, with placeholders, is parsed once; the values are sent separately and bound to the placeholders as typed data. A value bound to a placeholder can contain any characters, including quotes and semicolons, and it is still only a value.\n\nThree limits matter in practice. Placeholders cannot stand in for identifiers such as table or column names, or for keywords such as the direction of an ORDER BY. Those must come from a fixed allow-list in code, never from user input. Values used with LIKE still need their wildcard characters (% and _) escaped if the search should be literal. And a stored procedure is only as safe as its body: one that builds dynamic SQL from its arguments reintroduces the whole problem inside the database.",
+        },
+        {
+          heading: "Detecting injection before and after release",
+          kind: "paragraph",
+          body:
+            "Injection is found most reliably by testing every input that reaches a query, with a stream of inputs that include a single quote, a double quote, a semicolon, a comment marker and a long string. Any response that changes shape, returns a database error message or takes noticeably longer is worth investigating. In production, watch for spikes in database error rates, for SQL keywords in application logs, and for 500 responses clustered on one endpoint. Web application firewalls add a useful signature layer but are easy to evade and must not be the only control. Defenders can run the same tools as attackers, such as sqlmap and Burp, against their own staging systems on a schedule, and treat every new finding as a regression to explain.",
+        },
+        {
+          heading: "Tools for this lesson",
+          kind: "table",
+          rows: [
+            ["Tool", "What it is for", "Where to get it"],
+            ["OWASP Juice Shop", "Deliberately vulnerable web application with a scoreboard", "github.com/juice-shop/juice-shop (Docker image bkimminich/juice-shop)"],
+            ["DVWA", "Damn Vulnerable Web Application, with adjustable security levels", "github.com/digininja/DVWA"],
+            ["Burp Suite Community Edition", "Intercepting and modifying HTTP requests", "portswigger.net (Community Edition download)"],
+            ["sqlmap", "Automated SQL injection testing against authorised lab targets", "sqlmap.org"],
+            ["Semgrep", "Static analysis rules that flag injection patterns in source code", "semgrep.dev (pip install semgrep)"],
+            ["Python sqlite3", "A small database for building the vulnerable and fixed versions yourself", "Standard library"],
+          ],
+        },
+        {
+          heading: "Practicals",
+          kind: "exercise",
+          body:
+            "Run every target on your own machine, bound to localhost. Never point these tools at a site you are not authorised to test.",
+          items: [
+            "Run Juice Shop with `docker run -d -p 3000:3000 bkimminich/juice-shop` and open `http://localhost:3000`. Find the scoreboard and list three challenges in the injection category.",
+            "Reproduce the login injection from the worked example against the Juice Shop login form. Record the request body and the response that shows the account you entered.",
+            "Route your browser through Burp Suite Community, intercept the login request, and replay it with a modified email field. Note the difference in response length and status.",
+            "Build a 20-line Python program with an SQLite users table. Write the concatenated query, exploit it with the payload from the lesson, then replace it with a parameterised query and show that the same payload now fails.",
+            "Run `semgrep scan --config auto` over the vulnerable version. Confirm that it flags the concatenated query, then run it over the fixed version and explain its result.",
+            "Write a test that submits ten injection payloads to the fixed endpoint and asserts that none returns another user's record.",
+            "In one paragraph, explain why the command-injection fix does not depend on escaping quotes, and name the call that avoids the shell.",
+          ],
         },
       ],
       challenge:
@@ -104,6 +146,46 @@ export const CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES: CourseModule[] = [
           body:
             "- **Filtering `<script>` and calling it done.** Event handlers (`onerror`, `onload`) and `javascript:` URLs do not need the tag.\n- **Forgetting `HttpOnly`.** Without it, any XSS can read the session cookie directly.\n- **`unsafe-inline` in CSP.** It switches CSP off for scripts. Use nonces or hashes.\n- **Assuming an API is immune to CSRF because it returns JSON.** If it accepts form-encoded POSTs with cookie auth, it is not.",
         },
+        {
+          heading: "Context decides the encoding",
+          kind: "definition",
+          body:
+            "Output encoding is not one operation. Text placed in an HTML body needs `<`, `>` and `&` converted to entities. Text placed in an HTML attribute needs quotes encoded too. Text placed inside a JavaScript string needs JavaScript escaping, and a URL needs percent-encoding. A value that is safe in one of these contexts can be dangerous in another: a `javascript:` address is harmless as text but executes when it becomes the target of a link.\n\nThe DOM APIs make the choice visible. Assigning to `textContent` treats the value as text. Assigning to `innerHTML` parses it as markup and runs any script it contains. When a feature genuinely needs rich text, such as a formatted comment, pass the markup through a sanitiser such as DOMPurify with a strict allow-list of tags and attributes, and keep the sanitised output as the only thing the page renders.",
+        },
+        {
+          heading: "Detecting XSS and CSRF in production",
+          kind: "paragraph",
+          body:
+            "A Content Security Policy can report as well as block. Set a `report-to` or `report-uri` directive pointing at an endpoint you control, and every violation becomes a record: the blocked resource, the page, and often the script that tried to run. A sudden spike in violations for inline scripts is a strong signal of an injection that is being tested or exploited. For CSRF, log state-changing requests that arrive without the expected token or with a foreign Origin header, and alert when the rate of rejections rises. Both signals are cheap to collect, and both are more useful than a scanner's one-time report.",
+        },
+        {
+          heading: "Tools for this lesson",
+          kind: "table",
+          rows: [
+            ["Tool", "What it is for", "Where to get it"],
+            ["Browser developer tools", "Inspecting the DOM, cookies, headers and network requests", "Built into Chrome, Edge and Firefox"],
+            ["Burp Suite Community Edition", "Replaying cross-site requests and reading response headers", "portswigger.net"],
+            ["OWASP ZAP", "Scanning a lab application for missing headers and reflected input", "zaproxy.org"],
+            ["Google CSP Evaluator", "Checking a Content Security Policy for weaknesses", "csp-evaluator.withgoogle.com"],
+            ["helmet (Node.js)", "Setting secure HTTP headers, including a starting Content Security Policy", "npmjs.com/package/helmet"],
+            ["Python http.server", "Serving a cross-site test page for CSRF experiments", "Standard library"],
+          ],
+        },
+        {
+          heading: "Practicals",
+          kind: "exercise",
+          body:
+            "Use Juice Shop and a small lab application that you write yourself. Keep the test page on a different port so that the requests are genuinely cross-site.",
+          items: [
+            "In Juice Shop, enter the payload from the Juice Shop DOM XSS challenge into the search box, and confirm that the alert runs. Then use DevTools to find the element that received the input, and say whether it was written with text or with markup.",
+            "Run `curl -I http://localhost:3000` and list which of Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options and Referrer-Policy are missing.",
+            "Write a small Express application with helmet enabled. Render a user comment through the template engine, view the page source, and confirm that a payload appears as escaped text.",
+            "Set a session cookie with HttpOnly, Secure and SameSite=Lax in your lab application. Serve a page on another port containing an auto-submitting form that posts to a state-changing endpoint. Show in the Network tab that the browser omits the cookie.",
+            "Change the cookie to SameSite=None; Secure and repeat the test. Record the difference and explain why a CSRF token is still the stronger defence for forms.",
+            "Paste your Content-Security-Policy into the Google CSP Evaluator and fix the highest-severity finding. Retest.",
+            "Write 150 words explaining the difference between XSS and CSRF, naming one defence for each.",
+          ],
+        },
       ],
       challenge:
         "In Juice Shop, find a stored XSS and a reflected XSS. Then add a Content-Security-Policy header (via a reverse proxy or browser extension) and show that the same payload no longer executes.",
@@ -158,6 +240,46 @@ export const CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES: CourseModule[] = [
           body:
             "- **Checking roles in the UI only.** Hiding the Delete button is not authorisation. The API must refuse.\n- **Sequential IDs plus no ownership check.** Use UUIDs *and* check ownership; UUIDs alone are obscurity, not security.\n- **SMS as the only second factor.** SIM-swap fraud is common in Ghana. Prefer authenticator apps or passkeys.\n- **Long-lived JWTs with no refresh.** A stolen token is valid until it expires; make that minutes, not months.",
         },
+        {
+          heading: "A threat model for authentication",
+          kind: "definition",
+          body:
+            "Authentication attacks fall into recognisable families, and each has a different signature. **Brute force** tries many passwords against one account. **Password spraying** tries one or two common passwords against many accounts, staying under per-account thresholds. **Credential stuffing** replays username and password pairs leaked from other breaches, which works because people reuse passwords. **Account enumeration** reveals which accounts exist, through different error messages or response times on login and password reset. **Session fixation** keeps a session identifier the attacker already knows after the victim signs in.\n\nThe corresponding controls are: uniform responses for login and reset; rate limits per account and per source, with progressive delays; breach-password screening at sign-up and change; MFA on every human identity; a fresh session identifier at every sign-in; and invalidation of sessions on sign-out and on password change.",
+        },
+        {
+          heading: "Detecting account attacks",
+          kind: "paragraph",
+          body:
+            "Authentication logs contain strong signals if they are read in aggregate. Many failures across many accounts from one source suggests spraying. Successful logins from a new country or a new device immediately after a run of failures suggests a compromised password. A flood of password-reset emails to one mailbox suggests someone is probing recovery. Sudden bursts of MFA prompts that the user did not start, which attackers use to exhaust or confuse a user into approving a request, should be alerted on and reported to the user. Feed these events into the same detection pipeline described in the defensive security module, and tune the thresholds on real traffic before relying on them.",
+        },
+        {
+          heading: "Tools for this lesson",
+          kind: "table",
+          rows: [
+            ["Tool", "What it is for", "Where to get it"],
+            ["Python PyJWT and bcrypt", "Decoding tokens and hashing passwords in lab code", "pip install pyjwt bcrypt"],
+            ["jwt.io (use with care)", "Reference for JWT structure; decode locally where possible, since pasting real tokens into a website discloses them", "jwt.io"],
+            ["hashcat", "Testing whether an HMAC secret in a lab token is weak (JWT mode 16500)", "hashcat.net"],
+            ["ffuf", "Fuzzing and rate-limit testing against authorised lab endpoints", "github.com/ffuf/ffuf"],
+            ["Juice Shop", "Authentication and access-control challenges on a safe target", "github.com/juice-shop/juice-shop"],
+            ["A two-user lab application", "Testing IDOR and ownership checks against your own code", "Written in the practical"],
+          ],
+        },
+        {
+          heading: "Practicals",
+          kind: "exercise",
+          body:
+            "Use your own lab application and Juice Shop. Do not paste real tokens or passwords into any website.",
+          items: [
+            "Decode a JWT from a Juice Shop login locally with Python: split on the dots, base64url-decode the first two parts, and print the header and payload. Record the `alg` and `exp` values.",
+            "Hash the same password with bcrypt at cost 12 and with SHA-256. Use `timeit` to time one hundred thousand SHA-256 hashes against one bcrypt hash, and explain the difference in a sentence.",
+            "Build a lab endpoint `/api/invoices/<id>` that returns an invoice without checking ownership. Create two users and invoices for each. As user A, read an invoice belonging to user B and record the response.",
+            "Fix the endpoint by adding the owner to the query, return 404 for invoices that do not belong to the caller, and rerun the test until user A is refused.",
+            "Write a script that submits fifty failed logins for one account. Observe how your lab application responds, then add a rate limit (for example with flask-limiter or express-rate-limit) and show the 429 response.",
+            "Find one authentication-related challenge in Juice Shop and write up the weakness, the proof and the fix in the five-part finding format from the ethical hacking module.",
+            "Write a list of the cookie and session settings your lab application uses now, and the reason for each.",
+          ],
+        },
       ],
       challenge:
         "Pick any app you have built or have permission to test. For every endpoint, make a table: who should be allowed, then try it as a different user, as a logged-out user, and with another user's ID. Fix every row that fails.",
@@ -176,4 +298,11 @@ export const CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES: CourseModule[] = [
     }),
   ]),
 
+];
+
+/** The complete Security course: web security (this file), ethical hacking and defensive security. */
+export const CYBER_SECURITY_OFFENSE_AND_DEFENSE_MODULES: CourseModule[] = [
+  ...WEB_SECURITY_MODULES,
+  CS_ETHICAL_HACKING_MODULE,
+  CS_DEFENSIVE_SECURITY_MODULE,
 ];
