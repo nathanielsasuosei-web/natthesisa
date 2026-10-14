@@ -39,7 +39,6 @@ export default function PublicFooter() {
             <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8a8390]">Learn</p>
             <ul className="mt-4 space-y-2.5 text-xs text-[#5e5864]">
               <li><Link href="/courses" className="transition hover:text-[#5c3be4]">All courses</Link></li>
-              <li><Link href="/#programs" className="transition hover:text-[#5c3be4]">Programs</Link></li>
               <li><Link href="/pricing" className="transition hover:text-[#5c3be4]">Pricing &amp; payment</Link></li>
               <li><Link href="/verify" className="transition hover:text-[#5c3be4]">Verify a certificate</Link></li>
             </ul>

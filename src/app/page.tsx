@@ -140,55 +140,6 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section id="programs" className="border-y border-black/[.06] bg-white py-24">
-          <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-            <div className="max-w-2xl">
-              <span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Seven programs</span>
-              <h2 className="mt-3 text-balance text-3xl font-black tracking-[-.045em] sm:text-5xl">Everything sits under a program you can finish.</h2>
-              <p className="mt-4 text-sm leading-6 text-[#77717e]">
-                Each program is a set of complete courses that build on each other — so the path from your first
-                lesson to a portfolio project is already drawn.
-              </p>
-            </div>
-            <div className="mt-12 grid gap-6 lg:grid-cols-3">
-              {PROGRAMS.map((program) => {
-                const courses = COURSES.filter((course) => course.category === program.category);
-                const lessons = courses.reduce((sum, course) => sum + lessonCounts[course.id], 0);
-                return (
-                  <article key={program.id} className="flex flex-col overflow-hidden rounded-[24px] border border-[#e8e4ec] bg-[#fbfafc]">
-                    {program.cover ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={program.cover} alt={`${program.name} artwork`} className="h-40 w-full object-cover" />
-                    ) : null}
-                    <div className="flex flex-1 flex-col p-6">
-                    <span className="grid size-12 place-items-center rounded-2xl bg-[#6d4aff] text-white"><Icon name={program.icon} size={22} /></span>
-                    <h3 className="mt-5 text-lg font-black tracking-[-.02em]">{program.name}</h3>
-                    <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[#6d4aff]">{program.tagline}</p>
-                    <p className="mt-3 flex-1 text-sm leading-6 text-[#6e6875]">{program.description}</p>
-                    <p className="mt-5 text-[11px] font-bold text-[#8a8390]">{courses.length} courses · {lessons} lessons</p>
-                    <ul className="mt-3 space-y-2 text-xs text-[#5e5864]">
-                      {courses.map((course) => (
-                        <li key={course.id} className="flex items-center gap-2"><Icon name="check" size={13} className="text-emerald-600" />{course.title}</li>
-                      ))}
-                    </ul>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[24px] bg-[#19171f] p-6 text-white">
-              <div>
-                <h3 className="text-base font-black tracking-[-.02em]">Write the code while you learn it</h3>
-                <p className="mt-1 max-w-xl text-sm leading-6 text-[#aaa4b1]">
-                  Every student gets the Code lab — an editor and live preview in the browser, plus a console for
-                  JavaScript. And the teacher edits pictures and video in the Studio.
-                </p>
-              </div>
-              <Link href="/login?mode=signup" className="rounded-xl bg-[#6d4aff] px-5 py-3 text-sm font-extrabold text-white transition hover:-translate-y-0.5">Open the Code lab</Link>
-            </div>
-          </div>
-        </section>
-
         {/* Pricing section hidden for now. Uncomment to restore.
         <section id="pricing" className="mx-auto max-w-[1120px] px-5 py-24 sm:px-8">
           <div className="text-center"><span className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6d4aff]">Seven programs, one price each</span><h2 className="mt-3 text-3xl font-black tracking-[-.045em] sm:text-5xl">Buy a program to open it.</h2><p className="mt-4 text-sm text-[#77717e]">Sign in, then buy a program once. It opens every course and lesson inside, permanently.</p></div>
