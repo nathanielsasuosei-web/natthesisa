@@ -114,7 +114,7 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
     `[codemasterghana][email] dry run (no RESEND_API_KEY or SMTP_HOST set)\n` +
       `  to:      ${message.to}\n` +
       `  subject: ${message.subject}\n` +
-      (message.text ? `  preview: ${message.text.slice(0, 200)}` : "")
+      (message.text ? `  preview: ${message.text.slice(0, 600)}` : "")
   );
   return { ok: true, dryRun: true };
 }
@@ -359,4 +359,26 @@ export function notifyCertificateIssued(opts: {
       text: `Hi ${toName}, your certificate for ${courseTitle} has been issued. Code: ${code}. Verify: ${verifyUrl}. Download: ${siteUrl(`/dashboard/certificates/${courseId}`)}`,
     })
   );
+}
+
+/** The password-reset link. Sent only when an account exists; the link itself expires in 30 minutes. */
+export function notifyPasswordReset(opts: { to: string; name?: string; link: string }): Promise<EmailResult> {
+  return safely("password reset", () => {
+    const greeting = opts.name ? `Hi ${escapeHtml(opts.name.split(" ")[0])},` : "Hi,";
+    const html = shell(
+      "Reset your password",
+      "🔐",
+      `${paragraph(`${greeting} we received a request to reset the password for your ${BRAND_NAME} account.`)}
+       ${paragraph("Choose a new password with the button below. The link works once and expires in 30 minutes.")}
+       ${button(opts.link, "Choose a new password")}
+       ${paragraph(`If you did not ask for this, you can ignore this email. Your password stays the same.`)}`
+    );
+    return sendEmail({
+      to: opts.to,
+      toName: opts.name,
+      subject: "Reset your codemasterghana password",
+      html,
+      text: `${greeting}\n\nReset your password with this link (it works once and expires in 30 minutes):\n${opts.link}\n\nIf you did not ask for this, ignore this email.`,
+    });
+  });
 }

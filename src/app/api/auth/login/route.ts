@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sessionCookie, recordSignIn } from "@/lib/session";
 import { AUTH_UNAVAILABLE_CODE, AUTH_UNAVAILABLE_MESSAGE } from "@/lib/auth-errors";
+import { clearAttempts, noteAttempt, retryAfterSeconds } from "@/lib/attempt-limit";
 import {
   AccountExistsError,
   createUser,
@@ -15,40 +16,6 @@ import { passwordProblem } from "@/lib/passwords";
 import { ensureReady } from "@/lib/bootstrap";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * Sign-in attempts are throttled per email + address so a real account cannot
- * be brute-forced through the form. The counter lives in memory, which is
- * enough for a single instance; move it to Redis if you run many.
- */
-const g = globalThis as unknown as { __codaraAttempts?: Map<string, { count: number; resetAt: number }> };
-
-const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
-const ATTEMPT_LIMIT = 8;
-
-function attempts(): Map<string, { count: number; resetAt: number }> {
-  if (!g.__codaraAttempts) g.__codaraAttempts = new Map();
-  return g.__codaraAttempts;
-}
-
-function tooManyAttempts(key: string): boolean {
-  const record = attempts().get(key);
-  if (!record) return false;
-  if (Date.now() > record.resetAt) {
-    attempts().delete(key);
-    return false;
-  }
-  return record.count >= ATTEMPT_LIMIT;
-}
-
-function noteFailedAttempt(key: string): void {
-  const record = attempts().get(key);
-  if (!record || Date.now() > record.resetAt) {
-    attempts().set(key, { count: 1, resetAt: Date.now() + ATTEMPT_WINDOW_MS });
-    return;
-  }
-  record.count += 1;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -79,11 +46,9 @@ async function handleLogin(req: NextRequest) {
   }
 
   const attemptsKey = `${email}|${req.headers.get("x-forwarded-for") ?? "local"}`;
-  if (tooManyAttempts(attemptsKey)) {
-    return NextResponse.json(
-      { error: "Too many attempts. Wait a few minutes and try again." },
-      { status: 429 }
-    );
+  const waitSeconds = retryAfterSeconds(attemptsKey);
+  if (waitSeconds > 0) {
+    return tooManyAttempts(waitSeconds);
   }
 
   if (mode === "signup") {
@@ -123,21 +88,23 @@ async function handleLogin(req: NextRequest) {
     // Sign-up already reports when an email is taken, so naming this case here
     // reveals nothing new — and it turns a dead end into a next step, which is
     // what a learner who typed an email from an older database needs.
-    noteFailedAttempt(attemptsKey);
+    noteAttempt(attemptsKey);
     return NextResponse.json(
       { error: "No account exists for that email yet.", code: "NO_ACCOUNT" },
       { status: 401 }
     );
   }
   if (!verifyPassword(user, password)) {
-    noteFailedAttempt(attemptsKey);
+    noteAttempt(attemptsKey);
+    const locked = retryAfterSeconds(attemptsKey);
+    if (locked > 0) return tooManyAttempts(locked);
     return NextResponse.json(
       { error: "That password does not match this account.", code: "BAD_PASSWORD" },
       { status: 401 }
     );
   }
 
-  attempts().delete(attemptsKey);
+  clearAttempts(attemptsKey);
 
   // Transparently upgrade a password hash that used older settings.
   if (passwordNeedsRehash(user, password)) {
@@ -148,6 +115,18 @@ async function handleLogin(req: NextRequest) {
 
   await recordSignIn(user);
   return await signInResponse(user, 200, "Signed in");
+}
+
+/** A 429 the form can count down from: the JSON says how long, and so does the header. */
+function tooManyAttempts(retryAfter: number) {
+  return NextResponse.json(
+    {
+      error: "Too many attempts. Wait a few minutes and try again.",
+      code: "RATE_LIMITED",
+      retryAfter,
+    },
+    { status: 429, headers: { "Retry-After": String(retryAfter), "Cache-Control": "no-store" } }
+  );
 }
 
 async function signInResponse(user: { id: string; role: string }, status: number, message: string) {

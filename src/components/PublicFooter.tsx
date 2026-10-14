@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TeacherWindowLink from "./TeacherWindowLink";
 import { site } from "@/config/site";
 import { COURSES } from "@/lib/courses";
 import Logo from "./Logo";
@@ -38,9 +39,7 @@ export default function PublicFooter() {
             <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8a8390]">Learn</p>
             <ul className="mt-4 space-y-2.5 text-xs text-[#5e5864]">
               <li><Link href="/courses" className="transition hover:text-[#5c3be4]">All courses</Link></li>
-              <li><Link href="/#programs" className="transition hover:text-[#5c3be4]">Programs</Link></li>
               <li><Link href="/pricing" className="transition hover:text-[#5c3be4]">Pricing &amp; payment</Link></li>
-              <li><Link href="/#how-it-works" className="transition hover:text-[#5c3be4]">How it works</Link></li>
               <li><Link href="/verify" className="transition hover:text-[#5c3be4]">Verify a certificate</Link></li>
             </ul>
           </div>
@@ -63,7 +62,7 @@ export default function PublicFooter() {
               <li><Link href="/contact" className="transition hover:text-[#5c3be4]">Contact</Link></li>
               <li><Link href="/terms" className="transition hover:text-[#5c3be4]">Terms &amp; conditions</Link></li>
               <li><Link href="/privacy" className="transition hover:text-[#5c3be4]">Privacy policy</Link></li>
-              <li><Link href="/owner-sign-in" className="transition hover:text-[#5c3be4]">Teacher sign in</Link></li>
+              <li><TeacherWindowLink className="transition hover:text-[#5c3be4]">CODEMASTER</TeacherWindowLink></li>
             </ul>
             <p className="mt-4 text-[11px] text-[#7d7683]">
               <a href={`mailto:${site.supportEmail}`} className="inline-flex items-center gap-1.5 font-bold text-[#5e3de0] transition hover:underline">

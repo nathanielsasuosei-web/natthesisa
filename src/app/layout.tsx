@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { site, siteUrl } from "@/config/site";
 import { brandAssets } from "@/config/branding";
 import NatthesisaWidget from "@/components/NatthesisaWidget";
+import { AuthWindowProvider } from "@/components/AuthWindow";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        {children}
+        <AuthWindowProvider>{children}</AuthWindowProvider>
         <NatthesisaWidget />
       </body>
     </html>

@@ -793,6 +793,15 @@ Sign-in is implemented in this repository rather than delegated to a provider:
   decided it, once per process. Browsers that block third-party cookies outright
   cannot hold any cookie inside a frame: the sign-in page detects the frame and
   offers to open the app in its own tab, where the cookie is first-party.
+- **Forgot password** (`/login?mode=forgot`, and a link on the teacher sign-in):
+  the request is answered the same way whether or not the email has an account,
+  and rate-limited per email and address. The emailed link (`/reset-password?token=…`)
+  is a signed, 30-minute token that is bound to the account's current password hash,
+  so it works once: changing the password retires it. No token table is needed.
+  Without `RESEND_API_KEY` or `SMTP_HOST` the link is printed to the server console
+  (dry run), which is how to test the flow locally.
+- Sign-in responses over the limit carry `Retry-After` and a `retryAfter` count, and the
+  form shows a live countdown instead of a dead end.
 - Changing a password requires the current one and re-applies the strength
   rules. Suspended accounts are rejected before any password is checked.
 

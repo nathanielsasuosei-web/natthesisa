@@ -34,7 +34,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const next = safeNextPath(params.next);
   const user = await signedInUser();
   if (user) redirect(next ?? (user.role === "owner" ? "/owner" : "/dashboard"));
-  const initialMode = params.mode === "signup" ? "signup" : "signin";
+  const initialMode = params.mode === "signup" ? "signup" : params.mode === "forgot" ? "forgot" : "signin";
   await ensureContentReady();
   const totals = contentTotals();
   const careerPaths = PROGRAMS.length;
