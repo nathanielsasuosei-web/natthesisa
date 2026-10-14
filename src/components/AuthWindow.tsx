@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import AuthForm from "./AuthForm";
 import Icon from "./Icon";
+import OwnerLoginForm from "./OwnerLoginForm";
 
 /**
  * The sign-in window: the sign-in form opened over the page you are on.
@@ -13,7 +14,8 @@ import Icon from "./Icon";
  * /login page. Links to /login still work without JavaScript.
  */
 
-export type AuthWindowMode = "signin" | "signup";
+/** "teacher" opens the teacher sign-in (the single owner account) in the same window. */
+export type AuthWindowMode = "signin" | "signup" | "teacher";
 
 interface AuthWindowApi {
   open: (mode?: AuthWindowMode) => void;
@@ -33,7 +35,8 @@ const AuthWindowContext = createContext<AuthWindowApi | null>(null);
 
 /** Outside the provider, fall back to the full sign-in page instead of doing nothing. */
 const fallback: AuthWindowApi = {
-  open: (mode = "signin") => window.location.assign(mode === "signup" ? "/login?mode=signup" : "/login"),
+  open: (mode = "signin") =>
+    window.location.assign(mode === "teacher" ? "/owner-sign-in" : mode === "signup" ? "/login?mode=signup" : "/login"),
   close: () => undefined,
 };
 
@@ -86,6 +89,25 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
     };
   }, [isOpen, close]);
 
+  // The teacher form needs to know whether first-run setup is still open.
+  const teacherMode = state?.mode === "teacher";
+  const [teacherSetup, setTeacherSetup] = useState(false);
+  useEffect(() => {
+    if (!teacherMode) return;
+    let active = true;
+    fetch("/api/auth/owner-setup", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { available?: boolean }) => {
+        if (active) setTeacherSetup(Boolean(data.available));
+      })
+      .catch(() => {
+        if (active) setTeacherSetup(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [teacherMode]);
+
   const api = useMemo<AuthWindowApi>(() => ({ open, close }), [open, close]);
   const closing = state?.phase === "closing";
 
@@ -103,7 +125,7 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
             ref={dialog}
             role="dialog"
             aria-modal="true"
-            aria-label={state.mode === "signup" ? "Create your account" : "Sign in"}
+            aria-label={state.mode === "teacher" ? "Teacher sign in" : state.mode === "signup" ? "Create your account" : "Sign in"}
             tabIndex={-1}
             className={`relative max-h-[92vh] w-full max-w-[440px] overflow-y-auto rounded-[24px] border border-white/60 bg-white p-7 shadow-[0_30px_80px_rgba(18,15,24,.35)] outline-none sm:p-9 ${closing ? "auth-window-out" : "auth-window-in"}`}
           >
@@ -115,7 +137,29 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
             >
               <Icon name="close" size={16} />
             </button>
-            <AuthForm key={state.key} initialMode={state.mode} />
+            {state.mode === "teacher" ? (
+              <>
+                <OwnerLoginForm setupAvailable={teacherSetup} />
+                <p className="mt-6 text-center text-[11px] text-[#918a97]">
+                  Student?{" "}
+                  <button type="button" onClick={() => setState((current) => (current ? { ...current, mode: "signin", key: current.key + 1 } : current))} className="font-bold text-[#6543e8] hover:underline">
+                    Go to student sign in
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+                <AuthForm key={state.key} initialMode={state.mode} />
+                {state.mode === "signin" && (
+                  <p className="mt-6 border-t border-[#ece9f0] pt-4 text-center text-[11px] text-[#918a97]">
+                    Are you the teacher?{" "}
+                    <button type="button" onClick={() => setState((current) => (current ? { ...current, mode: "teacher", key: current.key + 1 } : current))} className="font-bold text-[#6543e8] hover:underline">
+                      Teacher sign in
+                    </button>
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
