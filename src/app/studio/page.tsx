@@ -20,7 +20,7 @@ export default async function StudioPage() {
   const appHref = user?.role === "owner" ? "/owner" : "/dashboard";
 
   return (
-    <div className="min-h-screen bg-[#faf9fc]">
+    <div className="min-h-screen bg-white">
       <PublicHeader appHref={user ? appHref : null} signedIn={Boolean(user)} userName={user?.name}
         userAvatar={user ? avatarHref(user) : null} />
 

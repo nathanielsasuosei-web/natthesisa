@@ -21,7 +21,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f4] lg:flex">
+    <div className="min-h-screen bg-white lg:flex">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[252px] overflow-hidden bg-[#1b1822] p-5 print:hidden lg:block">
         <div aria-hidden className="absolute -left-32 -top-36 size-80 rounded-full bg-[#6d4aff]/20 blur-3xl" />
         <div className="relative h-full"><SidebarNav {...navProps} /></div>

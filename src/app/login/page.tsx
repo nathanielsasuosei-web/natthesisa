@@ -67,7 +67,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="relative text-xs text-[#686170]">© {new Date().getFullYear()} codemasterghana</p>
       </section>
 
-      <section className="relative flex min-h-screen items-center justify-center bg-[#faf9f7] px-5 py-10 sm:px-8">
+      <section className="relative flex min-h-screen items-center justify-center bg-white px-5 py-10 sm:px-8">
         <div className="absolute left-5 top-5 lg:hidden"><Logo /></div>
         <Link href="/" className="absolute right-6 top-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#77717e] transition hover:text-[#5e3ce8]"><Icon name="arrow-left" size={14} /> Back to home</Link>
         <div className="w-full max-w-[430px] border-y border-[#ded9e3] py-8">

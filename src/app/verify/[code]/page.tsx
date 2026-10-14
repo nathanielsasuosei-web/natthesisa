@@ -32,7 +32,7 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
   const appHref = user ? (isOwner(user) ? "/owner" : "/dashboard") : null;
 
   return (
-    <div className="min-h-screen bg-[#f7f7f4]">
+    <div className="min-h-screen bg-white">
       <PublicHeader appHref={appHref} signedIn={Boolean(user)} userName={user?.name}
         userAvatar={user ? avatarHref(user) : null} />
       <main className="px-5 py-10 sm:py-14">
