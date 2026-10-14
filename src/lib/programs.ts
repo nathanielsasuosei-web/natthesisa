@@ -114,6 +114,7 @@ export const PROGRAMS: ProgramInfo[] = [
   {
     id: "cyber-security",
     category: "Cyber Security",
+    cover: "/course-covers/cyber-security.jpg",
     name: "Cyber Security",
     tagline: "Think like an attacker, build like a defender",
     description:

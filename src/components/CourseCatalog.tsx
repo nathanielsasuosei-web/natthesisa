@@ -30,6 +30,18 @@ export default function CourseCatalog({ courses, unlocked, prices, progress, les
     });
   }, [courses, query, category, level]);
 
+  /** With no filter applied, the catalogue is grouped by category, in CATEGORIES order. */
+  const sections = useMemo(() => {
+    if (category !== "All" || level !== "All" || query.trim()) return null;
+    return CATEGORIES.filter((item): item is CourseCategory => item !== "All")
+      .map((name) => ({ category: name, courses: visible.filter((course) => course.category === name) }))
+      .filter((section) => section.courses.length > 0);
+  }, [category, level, query, visible]);
+
+  const renderCard = (course: Course) => (
+    <CourseCard key={course.id} course={course} progress={progress[course.id]} locked={!unlocked[course.id]} price={prices[course.id]} lessonCount={lessonCounts?.[course.id]} minutes={lessonMinutes?.[course.id]} />
+  );
+
   return (
     <div>
       <div className="flex flex-col gap-3 border-y border-[#dfdbe3] py-4 sm:flex-row sm:items-center">
@@ -41,9 +53,21 @@ export default function CourseCatalog({ courses, unlocked, prices, progress, les
       <div className="mt-5 flex items-center justify-between"><p className="text-xs font-semibold text-[#817a87]">Showing <strong className="text-[#332e39]">{visible.length}</strong> course{visible.length === 1 ? "" : "s"}</p>{(query || category !== "All" || level !== "All") && <button onClick={() => { setQuery(""); setCategory("All"); setLevel("All"); }} className="text-[11px] font-bold text-[#6543e8]">Clear filters</button>}</div>
 
       {visible.length ? (
-        <div className="mt-5 grid gap-x-7 gap-y-9 md:grid-cols-2">
-          {visible.map((course) => <CourseCard key={course.id} course={course} progress={progress[course.id]} locked={!unlocked[course.id]} price={prices[course.id]} lessonCount={lessonCounts?.[course.id]} minutes={lessonMinutes?.[course.id]} />)}
-        </div>
+        sections ? (
+          <div className="mt-5 grid gap-y-10">
+            {sections.map((section) => (
+              <section key={section.category}>
+                <div className="mb-4 flex items-center justify-between border-b border-[#e6e2ea] pb-2">
+                  <h3 className="text-sm font-extrabold text-[#332e39]">{section.category}</h3>
+                  <span className="text-xs font-semibold text-[#9a939f]">{section.courses.length} course{section.courses.length === 1 ? "" : "s"}</span>
+                </div>
+                <div className="grid gap-x-7 gap-y-9 md:grid-cols-2">{section.courses.map(renderCard)}</div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-5 grid gap-x-7 gap-y-9 md:grid-cols-2">{visible.map(renderCard)}</div>
+        )
       ) : (
         <div className="mt-5 flex flex-col items-center border-y border-dashed border-[#d9d4de] px-6 py-16 text-center"><span className="grid size-12 place-items-center rounded-2xl bg-[#f0edf4] text-[#817a87]"><Icon name="search" size={22} /></span><h3 className="mt-4 text-sm font-extrabold">No courses found</h3><p className="mt-1 text-xs text-[#918a97]">Try another keyword or clear your filters.</p></div>
       )}
