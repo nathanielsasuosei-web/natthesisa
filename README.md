@@ -1,6 +1,6 @@
 # codemasterghana — learning platform
 
-A polished full-stack learning platform for web development, app development and computer science. It includes a public catalogue of course overviews, paid programs that open their courses and lessons, learner accounts for saved progress and certificates, and an **owner/teacher console**. Existing purchase and invoice history remains with learner accounts.
+A polished full-stack learning platform for web, app and backend development, computer science, software engineering, cyber security, data, design, cloud, AI and IT essentials. It includes a public catalogue of course overviews, paid programs that open their courses and lessons, learner accounts for saved progress and certificates, and an **owner/teacher console**. Existing purchase and invoice history remains with learner accounts.
 
 There are two roles and only two: **students** and the **owner** — the teacher. Nothing in a course is free. A lesson, its narration, video and teaching files open only for a signed-in student who owns the program the course belongs to. Course overview pages stay public. Accounts save progress and earn certificates; the teacher manages the catalogue and student records.
 
@@ -14,8 +14,10 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Real accounts: scrypt-hashed passwords, signed session cookies, and signup /
   sign-in / sign-out / password-change flows backed by PostgreSQL
 - Searchable/filterable course library
-- **Thirteen courses across six programs** — Computer Science, Software
-  Engineering, Vibe Coding, Web Development, App Development and Backend
+- **Twenty-eight courses across twelve programs** — Computer Science, Software
+  Engineering, Web Development, Vibe Coding, App Development, Backend, Cyber
+  Security, Data Science, Design, IT Essentials, Cloud & DevOps and AI & Machine
+  Learning
 - **CodeMaster Studio** (`/studio`, free for everyone) and **the Code lab**
   (`/dashboard/code`, per student): the real VS Code editor (Monaco) with an
   explorer, search, live preview, console, terminal, problems list and status
@@ -336,7 +338,7 @@ This is the “what to paste where” map for continuing the build.
 | Step | File or folder | Purpose |
 | --- | --- | --- |
 | 1. Brand | `src/config/site.ts` | Name, tagline, support email and currency |
-| 2. Programs and prices | `src/lib/programs.ts` (the six programs) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Program catalog, default and per-program prices (`pass-periods.ts` keeps the retired pass shapes for stored data) |
+| 2. Programs and prices | `src/lib/programs.ts` (the twelve programs) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Program catalog, default and per-program prices (`pass-periods.ts` keeps the retired pass shapes for stored data) |
 | 3. Course content | `src/lib/courses.ts` | Courses, modules, lessons, examples and challenges |
 | 4. User data | `src/lib/store.ts` | Accounts, progress, usage and invoices, read and written through Postgres |
 | 5. Sessions | `src/lib/session.ts` | Signed session cookies and role checks |
@@ -414,10 +416,13 @@ places:
 | Program metadata | `PROGRAMS` in `src/lib/programs.ts` | Name, tagline, description, icon and tone for each program |
 
 Each course's `category` is its program: **Computer Science**, **Software
-Engineering**, **Vibe Coding**, plus **Web Development**, **App Development** and
-**Backend** for the core paths. The catalog page, the landing page's program
-cards, the search filters, the owner console's price lists and the lesson
-counters all read from that one array.
+Engineering**, **Web Development**, **Vibe Coding**, **App Development** and
+**Backend** for the core paths, plus **Cyber Security**, **Data Science**,
+**Design**, **IT Essentials**, **Cloud & DevOps** and **AI & Machine Learning**
+for the program courses. The catalog page, the landing page's program cards, the
+search filters, the owner console's price lists and the lesson counters all read
+from that one array. A course whose category has no program in `PROGRAMS` is
+treated as locked, so a new category needs a matching program entry.
 
 ## Certificates and verification
 
@@ -606,6 +611,17 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts` (core
 ```
 
 Course cards, catalog filtering, progress calculation, teacher analytics and access checks all read from this one catalog automatically. Lessons the owner publishes from `/owner/lessons` are merged on top of this catalog at request time (see `src/lib/course-content.ts`), so nothing here needs to be edited to add new material.
+
+Five things a new course needs beyond the object itself:
+
+| Step | Where | Why |
+| --- | --- | --- |
+| The content modules | `src/content/<slug>.ts` | `export const <SLUG>_MODULES: CourseModule[]`, written with `module()` and `lesson()`, then imported by `courses.ts` / `programs.ts` |
+| A program for its category | `PROGRAMS` in `src/lib/programs.ts` | A category with no program leaves the course locked — add the program (id, category, name, tagline, description, icon, tone) in the same edit |
+| A cover image | `public/course-covers/<slug>.jpg` | ~16:9 JPEG, dark navy-purple with cyan-teal glow, no baked-in text. The course page falls back to the program cover, then to a generated visual |
+| A course brief | `BRIEFS` in `src/lib/course-info.ts` | The long-form overview, audience, prerequisites, tools, build and after sections the course page shows. Without it the page falls back to one-line stubs |
+| The mirrors | `COURSE_CARDS` in `src/lib/natthesisa.ts`, `PROGRAM_LINKS` and `POPULAR_COURSES` in `src/components/PublicHeader.tsx` | The study assistant and the header menu are client- or copy-sized and hardcode their own lists on purpose; they do not read the catalog at runtime |
+
 
 ## Database
 

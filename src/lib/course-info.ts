@@ -424,6 +424,440 @@ const BRIEFS: Record<string, CourseBrief> = {
       "AI engineering is the fastest-growing job title in the market, and RAG, evals and cost control are what interviewers ask about.",
     ],
   },
+  "ethical-hacking": {
+    overview: [
+      "A penetration test is a professional service with a contract, a scope and a report, not a folder of screenshots. This course teaches the work in that order: getting written authorisation first, mapping what an outsider can see, then exploiting only what is in scope and writing it up so the client can actually fix it.",
+      "You will meet the weakness classes behind most real breaches — injection, broken authentication and session handling, broken access control, exposed storage and unpatched components — against a lab target rather than somebody's live website. Each technique is paired with the control that defeats it, so you learn the attack and the defence in the same lesson.",
+      "The course ends with the deliverable clients pay for: findings ordered by risk, evidence a technical reader can reproduce, business impact a manager understands, and a retest that proves the fix worked. Law, consent and ethics are the first lesson, not a closing disclaimer.",
+    ],
+    audience: [
+      "You already understand networks, operating systems and the shell, and want to test systems rather than only defend them.",
+      "You are IT staff or a developer asked to find your own organisation's weaknesses before somebody else does.",
+      "You are aiming at junior penetration testing, security analyst or consulting work in Ghana or remotely.",
+    ],
+    prerequisites: [
+      "Comfortable in a Linux shell and with IP addressing and DNS — Cyber Security Foundations or Computer Networking covers the ground.",
+      "A machine that can run a virtual lab: 8 GB of RAM is comfortable, 4 GB works with care.",
+      "A written-authorisation habit: every exercise targets a lab you own, never a system you do not have permission to touch.",
+    ],
+    tools: [
+      "Kali Linux in a virtual machine, or the same security tools on your own Linux install",
+      "A deliberately vulnerable practice target such as DVWA or Metasploitable",
+      "Nmap, Burp Suite Community Edition and Wireshark",
+      "A penetration-test report template",
+      "Git for keeping notes and evidence organised",
+    ],
+    build: [
+      "An attack surface map of a target built from public sources only",
+      "A scanning and enumeration report with the services found and what each one exposes",
+      "A documented exploitation chain against an authorised lab target",
+      "A client-ready penetration test report with risk ratings and fixes",
+      "A retest checklist that confirms each fix held",
+    ],
+    after: [
+      "Cloud Security covers the cloud misconfigurations that dominate modern breach reports.",
+      "Computer Networks & Architecture explains the protocol behaviour underneath every technique here.",
+      "Junior penetration testing and security analyst roles exist in Ghanaian banks, fintechs and consultancies, and remote contract testing is a growing market.",
+    ],
+  },
+
+  "cloud-computing-devops": {
+    overview: [
+      "The cloud is other people's computers with an API, and somebody still has to be responsible for what runs on them. This course starts at the responsibility line — what the provider secures and what you secure — then teaches the practices that keep software running there: containers, infrastructure defined in code, tested pipelines, monitoring that notices a regression, and a deploy you can undo.",
+      "You will package a service into an image that behaves the same on your laptop and on a server, describe the infrastructure that hosts it in version control, and ship changes through a pipeline with tests and a canary step. Failure is treated as normal: the exercises include a rollback and an incident where a dashboard, not a user, finds the problem first.",
+      "The project leaves you with a service a team could genuinely operate: reproducible, monitored, affordable and documented.",
+    ],
+    audience: [
+      "You can build and run an application locally and want to run it on real infrastructure responsibly.",
+      "You work in a small team where there is no dedicated operations person.",
+      "You are moving toward DevOps, platform or site reliability work.",
+    ],
+    prerequisites: [
+      "Comfortable on the command line, with Git, and with at least one backend language or Node.js.",
+      "Basic networking: what a port, a DNS record and an HTTP request are.",
+      "A cloud account with a small budget or free-tier allowance, and a machine that can run containers.",
+    ],
+    tools: [
+      "A cloud provider account — AWS appears in the examples, and the concepts transfer",
+      "Docker and Docker Compose",
+      "Terraform for infrastructure as code",
+      "A CI/CD pipeline on your Git host",
+      "Metrics and a dashboard you actually look at",
+      "A managed database and object storage",
+    ],
+    build: [
+      "A container image of your own service, built reproducibly",
+      "Infrastructure described in code and applied from nothing",
+      "A pipeline that tests and deploys on a commit",
+      "A canary release, a rollback and a written runbook",
+      "Dashboards and alerts that caught a deliberately introduced regression",
+    ],
+    after: [
+      "DevOps & Delivery is the software-engineering view of the same pipeline ideas.",
+      "Cloud Security covers identity, network boundaries and misconfiguration in the cloud.",
+      "Cloud and platform skills are among the most requested in Ghanaian fintech, banking and remote hiring, and they pair well with system design on a CV.",
+    ],
+  },
+
+  "data-science-analytics": {
+    overview: [
+      "Most data work is not modelling. It is deciding what question to ask, getting the data, and finding out why it is wrong. This course teaches that loop in the order it happens: frame a decision, pull and clean an export, describe the distribution honestly, then hand over a finding somebody can act on.",
+      "You will work with spreadsheets, SQL and a notebook, on data that resembles the data you meet at work — duplicates, missing values, inconsistent names, dates entered as text and numbers that cannot be true. Charts and summary statistics are treated as arguments: chosen to communicate a point, not to decorate a page.",
+      "It finishes with a one-page analytical note and the decision it changed, which is what an employer is buying when they hire an analyst.",
+    ],
+    audience: [
+      "You are good with numbers and want the practical workflow that turns data into decisions.",
+      "You already produce reports by hand in operations, sales, finance, health or education.",
+      "You are moving toward a junior analyst role and want evidence on your CV before applying.",
+    ],
+    prerequisites: [
+      "Comfortable with spreadsheets and with basic percentages and averages.",
+      "No programming experience needed to start — the notebook lessons assume none.",
+      "About five to six hours a week for two weeks.",
+    ],
+    tools: [
+      "A spreadsheet application — Excel or Google Sheets",
+      "A SQL database you can query, and the practice dataset the lessons use",
+      "A notebook environment: Jupyter or Google Colab, both free",
+      "A genuinely messy export to clean, because the mess is part of the course",
+    ],
+    build: [
+      "A framed question with a measurable decision attached",
+      "A cleaned dataset with every cleaning step documented",
+      "A summary of central tendency and spread that survives a second look",
+      "Charts chosen for a specific audience and purpose",
+      "A one-page analytical note and the decision it supports",
+    ],
+    after: [
+      "Databases & SQL goes deeper into the query language you used for aggregation.",
+      "AI & Machine Learning is the next step if you want prediction rather than description.",
+      "Analyst work in Ghanaian fintech, telecoms, retail and NGOs starts with exactly the deliverables this course produces.",
+    ],
+  },
+
+  "human-computer-interaction": {
+    overview: [
+      "People do not read interfaces; they scan, guess and get interrupted. This course treats that as the specification, and designs for the conditions most users actually have: a mid-range phone, bright sunlight, one hand and data that costs money.",
+      "You will learn the heuristics that predict usability problems before any testing, the interaction design process from task analysis to the cheapest possible prototype, accessibility as engineering rather than a courtesy, and mobile-first, low-bandwidth design. Testing with five people finds most of what is wrong, and you will run that test yourself rather than reading about it.",
+      "The project is one real form or flow, redesigned and tested, with before-and-after numbers you can defend in a meeting.",
+    ],
+    audience: [
+      "You design or build products and want evidence instead of opinion about what works.",
+      "You are a developer who ends up making interface decisions by default.",
+      "You work on a product whose users have different devices and data conditions than you do.",
+    ],
+    prerequisites: [
+      "No design or coding experience required.",
+      "Access to an interface you are allowed to change or redesign — your own product, or a public service form.",
+      "Five people willing to spend twenty minutes being tested; colleagues and family are fine.",
+    ],
+    tools: [
+      "A prototyping tool: Figma's free tier is what the examples use, and paper works for the first pass",
+      "A mid-range phone, ideally the kind your users own",
+      "A screen reader and a contrast checker for the accessibility lesson",
+      "A notebook for test notes and timings",
+    ],
+    build: [
+      "A task analysis and a scenario for one real flow",
+      "Low-fidelity wireframes of at least two alternatives",
+      "A tested prototype with five recorded sessions",
+      "A redesigned flow with before-and-after task success and time",
+      "An accessibility pass: contrast, labels, focus order and text alternatives",
+    ],
+    after: [
+      "Web Designing covers the visual and client-facing side of website work.",
+      "Graphic Design sharpens the layout and type decisions every interface depends on.",
+      "Usability and accessibility skills are scarce in Ghana's market, and government, banking and NGO digital projects ask for them by name.",
+    ],
+  },
+
+  "graphic-design": {
+    overview: [
+      "Design that looks amateur usually fails one of four measurable things: not enough contrast to guide the eye, no repetition to make a set feel related, nothing aligned, and spacing that ignores proximity. This course teaches those principles as working tools, then the craft on top: type, colour with measured contrast, and files that survive a printer.",
+      "You will work on real briefs — a flyer, a business card, a poster — and learn the technical half that decides whether the work survives production: RGB versus CMYK, pixels versus vector, resolution, bleed, safe margins and export settings.",
+      "It ends with a screen and print pack for one actual business, a brand sheet and a sane approach to pricing, because most designers in Ghana earn freelance from exactly this kind of job.",
+    ],
+    audience: [
+      "You have an eye for design and want the principles and production knowledge behind it.",
+      "You already make graphics in a template tool and want work that holds up commercially.",
+      "You run a small business or side hustle and want to produce your own materials properly.",
+    ],
+    prerequisites: [
+      "A computer that can run a design application; a mouse is much easier than a trackpad.",
+      "No drawing skill required — this is composition and technique, not illustration.",
+      "About four to five hours a week for two weeks.",
+    ],
+    tools: [
+      "A vector or layout application — Inkscape and Affinity are capable, affordable alternatives to Illustrator",
+      "A set of properly licensed typefaces",
+      "A colour picker that checks contrast",
+      "A print shop or printer you can ask real questions about formats",
+    ],
+    build: [
+      "A flyer that reads at three metres and on a phone screen",
+      "A business card with bleed and a safe margin",
+      "A poster built on a deliberate hierarchy",
+      "A brand sheet: palette, type, spacing and usage rules",
+      "Print-ready and screen-ready exports of the same campaign",
+    ],
+    after: [
+      "Web Designing applies the same visual system thinking to websites.",
+      "Human-Computer Interaction covers the interface side of visual decisions.",
+      "Freelance design for small businesses, churches, schools and events is the most accessible paid work in this field in Ghana.",
+    ],
+  },
+
+  "web-designing": {
+    overview: [
+      "A website is a business outcome, not a picture. This course designs from the client's objective — more enquiries, fewer phone calls, more orders — through a brief, a structure and wireframes, and only then to visual design.",
+      "You will build a design system for screens rather than a single mockup: layout and grid, a type scale, colour with contrast that passes, states for every interactive element, and responsive behaviour that starts at the smallest phone. Real content goes in early, because layouts break on real content and almost never on placeholder text.",
+      "The last module is delivery: a handover a developer can build from without guessing, a launch that is measured, and the client and pricing conversations that turn one website into repeat work.",
+    ],
+    audience: [
+      "You want to design websites professionally rather than assemble templates.",
+      "You build sites as a developer and want to make the design decisions deliberately.",
+      "You already do graphic design and want to move into screen work.",
+    ],
+    prerequisites: [
+      "No coding required — this course is about design decisions and handover, not markup.",
+      "A prototyping or design tool; Figma's free tier is used in the examples.",
+      "One real business or organisation to design for. An invented client makes the project much weaker.",
+    ],
+    tools: [
+      "Figma or a comparable design tool",
+      "A phone and a computer, so the design is judged at both sizes",
+      "Real content: the client's text, logo and photographs, however imperfect",
+      "A contrast checker and a short accessibility checklist",
+    ],
+    build: [
+      "A written brief with a measurable objective",
+      "A site map and wireframes for five pages",
+      "A visual system: grid, type scale, colour and component states",
+      "A responsive prototype built on real content",
+      "A handover document, plus launch and measurement notes",
+    ],
+    after: [
+      "Web Development Foundations teaches you to build what you have designed.",
+      "Human-Computer Interaction adds usability testing that improves the next version.",
+      "Website design is steady freelance and in-house work in Ghana, and the handover skill is what separates a designer from somebody who makes pictures.",
+    ],
+  },
+
+  "computer-networking": {
+    overview: [
+      "A network is a set of agreements between machines, plus the equipment that carries them. This course starts with what a network actually is, then how anything gets found: IP addresses issued by DHCP, MAC addresses on the local link, and DNS turning names into numbers.",
+      "You will follow data as packets with headers, ports and protocols, then do the work that comes up on a Monday morning anywhere in Ghana — assembling a small network from a modem, a router, a switch and access points, planning Wi-Fi coverage, and troubleshooting in the order that finds faults fastest rather than the order that feels busiest.",
+      "It is written for the person who keeps an office, a school or a shop connected, and for the beginner who wants networking foundations before going deeper.",
+    ],
+    audience: [
+      "You are the person colleagues call when the internet stops working.",
+      "You are starting in IT support, or studying networks and want the practical half first.",
+      "You want a foundation before the engineering depth of network architecture.",
+    ],
+    prerequisites: [
+      "Comfortable using a computer and a browser; no command-line experience assumed.",
+      "Access to a router you are allowed to configure — a home or office network is ideal.",
+      "About four hours a week for two weeks.",
+    ],
+    tools: [
+      "A modem, a router and, if available, a switch and an access point to practise on",
+      "A computer with a command line: ipconfig on Windows, ip or ifconfig on macOS and Linux",
+      "Ping, traceroute and nslookup, all built into the operating system",
+      "A notebook for drawing the network and recording addresses",
+    ],
+    build: [
+      "A labelled diagram of a real network, including every device and address",
+      "An addressing plan with static reservations for the equipment that needs them",
+      "A Wi-Fi plan covering channel choice, placement and a guest network",
+      "A troubleshooting sheet ordered by likelihood",
+      "A documented small network somebody else can maintain",
+    ],
+    after: [
+      "Computer Networks & Architecture goes into routing, switching, subnetting and design.",
+      "Cyber Security Foundations shows how the same protocols are attacked and defended.",
+      "IT support is the most common entry-level technology job in Ghana, and a documented troubleshooting habit is what gets you promoted out of it.",
+    ],
+  },
+
+  "computer-networks-architecture": {
+    overview: [
+      "Layering is the decision that let the internet grow: each layer offers a service upward and uses the layers below without needing to know how they work. This course takes that abstraction apart — the layered architecture, how protocols are designed, and what a router and a switch actually do with a packet or a frame.",
+      "Then it becomes design work. Subnetting is taught as arithmetic you can do under pressure; segmentation and VLANs as a policy decision rather than a formula; redundancy as a plan for what happens when a piece fails; and performance as measurement — throughput, latency, jitter and loss — so arguments about a slow network end with evidence.",
+      "The project is a design document for a two-floor organisation: address plan, segmentation, redundancy and a capacity estimate with the assumptions written down.",
+    ],
+    audience: [
+      "You already know what an IP address and a router are and want the engineering underneath.",
+      "You are moving from IT support into network administration or design.",
+      "You are preparing for certification or interviews that require real understanding rather than memorised commands.",
+    ],
+    prerequisites: [
+      "Comfortable with IP addressing, DNS, ping and traceroute — Computer Networking covers that ground.",
+      "Patience with binary and basic arithmetic; the subnetting lesson builds it from scratch.",
+      "About five hours a week for two weeks.",
+    ],
+    tools: [
+      "Wireshark, so you see the layers instead of reading about them",
+      "A simulator or lab: Packet Tracer, GNS3 or a virtual machine running routing software",
+      "A diagramming tool — draw.io is enough",
+      "Command-line tools on any operating system",
+    ],
+    build: [
+      "An annotated packet capture showing encapsulation through the layers",
+      "A subnet plan for a site with several departments, with the arithmetic shown",
+      "A segmentation policy using VLANs and access rules",
+      "A redundancy plan stating what fails over and how long it takes",
+      "A capacity estimate and a performance baseline for the design",
+    ],
+    after: [
+      "Cyber Security: Offense and Defense and Cloud Security both build on network behaviour.",
+      "System Design & Architecture applies the same reasoning to application services.",
+      "Network administration and design roles in banks, ISPs and large institutions reward exactly this document-driven approach.",
+    ],
+  },
+
+  "computer-basics-bcc": {
+    overview: [
+      "This course assumes nothing. It names the parts of a desktop and a laptop and explains what each one does, shows how to start, use and shut down a machine safely, and covers the skills that cause the most early frustration: files, folders, the mouse, and finding a document again tomorrow.",
+      "From there it covers the internet and email in the vocabulary a beginner actually needs — Wi-Fi versus mobile data, what a browser and a search engine are, how to tell a safe page from a trap, and how to write an email somebody answers. It also covers the habits that protect your work: strong passwords, a backup you have tested, and updates that are not postponed forever.",
+      "Everything is taught on the machine you have, with printed checklists you can keep beside the computer, because the goal is confidence rather than vocabulary.",
+    ],
+    audience: [
+      "You have never used a computer, or use one for a few tasks and want to stop guessing.",
+      "You are starting an office, teaching or shop job that expects computer literacy.",
+      "You are teaching a family member or a class and want a sensible order to teach it in.",
+    ],
+    prerequisites: [
+      "Access to a computer — Windows appears in the examples and the ideas transfer to any machine.",
+      "No previous experience whatsoever.",
+      "About two to three hours a week for two weeks; the lessons are short on purpose.",
+    ],
+    tools: [
+      "A desktop or laptop computer",
+      "A notebook or printed checklist for each lesson",
+      "An email account you can practise with safely",
+      "A USB flash drive for practising files, copies and backups",
+    ],
+    build: [
+      "A workstation you set up and can explain, cable by cable",
+      "A folder system for your own documents, with names you will still understand in a year",
+      "A practised routine for saving, copying and finding files",
+      "A tested backup: a copy you have actually restored from",
+      "A printed checklist for whoever uses the computer next",
+    ],
+    after: [
+      "Microsoft Office is the natural next step for documents, spreadsheets and presentations.",
+      "Computer Networking explains what happens after you connect to Wi-Fi.",
+      "Basic computer literacy is asked for in almost every office, teaching and administrative job in Ghana, and it is the fastest way to stop being afraid of the machine.",
+    ],
+  },
+
+  "microsoft-office": {
+    overview: [
+      "Word, Excel, PowerPoint and shared files are where most office work in Ghana actually happens, and most people use a fraction of them badly. This course teaches them as professional tools: documents that maintain themselves, spreadsheets that stay correct, presentations that work in the room, and files nobody overwrites.",
+      "In Word you will build a long document on styles, headings and an automatic table of contents. In Excel you will rebuild a spreadsheet that reconciles, with real formulas, validation and a pivot summary instead of hand-typed totals. In PowerPoint you will structure an argument and deliver it. The final lesson covers shared work: versions, comments, permissions and a folder structure a team can follow.",
+      "The project is a reusable template pack plus a rebuilt spreadsheet and a delivered presentation, so you leave with assets rather than notes.",
+    ],
+    audience: [
+      "You use Office daily and suspect several things are being done the long way.",
+      "You produce reports, budgets or presentations that other people depend on.",
+      "You are preparing for administrative, finance, teaching or management work.",
+    ],
+    prerequisites: [
+      "A computer with Word, Excel and PowerPoint — Microsoft 365 or Office 2016 and later; LibreOffice works if that is what you have",
+      "Basic file handling: saving, opening and copying documents",
+      "About four hours a week for two weeks",
+    ],
+    tools: [
+      "Word, Excel and PowerPoint",
+      "One real spreadsheet or report from your own work to improve",
+      "A cloud drive or shared folder for the collaboration lesson",
+      "A printer or PDF export for checking what a document actually looks like",
+    ],
+    build: [
+      "A reusable Word template with styles and an automatic table of contents",
+      "A rebuilt spreadsheet that reconciles, with validation and a pivot summary",
+      "A presentation structured around one argument, rehearsed",
+      "A shared folder system with naming rules and permissions",
+      "A checklist for sending files that other people can open",
+    ],
+    after: [
+      "Data Science & Analytics takes the spreadsheet skills into real analysis and SQL.",
+      "Computer Basics covers the machine itself if any of the fundamentals still feel shaky.",
+      "Office fluency is the most commonly listed requirement in Ghanaian job adverts, and the template pack you build here follows you into every role afterwards.",
+    ],
+  },
+
+  "programming-languages": {
+    overview: [
+      "Most developers are fluent in one language and trapped by it. This course is about the landscape: how languages differ in paradigm, typing and execution model; what actually happens between a source file and a running program; and how to read unfamiliar code and pick up the next language in weeks rather than years.",
+      "You will compare imperative, object-oriented and functional approaches to the same small problem, follow compilation and interpretation from tokens to instructions, and read a language you have never used with a method instead of panic. Typing — static and dynamic, strong and weak — is covered as a design trade-off you can reason about, not a war to pick a side in.",
+      "The project is deliberately uncomfortable: a small working service in a language you did not know at the start, reviewed by somebody who uses that language professionally.",
+    ],
+    audience: [
+      "You are comfortable in one language and want to work in others without starting from zero.",
+      "You are preparing for interviews that ask why a language behaves the way it does.",
+      "You teach or mentor and want to explain the fundamental differences accurately.",
+    ],
+    prerequisites: [
+      "Real experience in at least one language: variables, functions, loops, collections and error handling.",
+      "Comfortable reading documentation and working on the command line.",
+      "About five to six hours a week for two weeks, including the unfamiliar-language project.",
+    ],
+    tools: [
+      "A code editor with support for several languages",
+      "At least two runtimes installed — for example Python and Node.js, plus a compiled language such as Go or Java",
+      "A playground or REPL for quick experiments",
+      "A reviewer who knows your target language",
+    ],
+    build: [
+      "A written comparison of three paradigms solving the same problem",
+      "A traced example from source code to execution",
+      "A reading log of an unfamiliar codebase, with the questions you had and the answers you found",
+      "A study plan for your next language, listing the six things you always learn first",
+      "A small working service in the new language, reviewed",
+    ],
+    after: [
+      "Data Structures & Algorithms makes you effective in whichever language you choose.",
+      "System Design & Architecture is about the systems those languages build.",
+      "Breadth across languages is what makes you portable — for remote work, for platform teams, and for the moment a project's language changes.",
+    ],
+  },
+
+  "artificial-intelligence-machine-learning": {
+    overview: [
+      "Artificial intelligence is the field; machine learning is the technique that dominates it today; and neither is magic, consciousness or a search engine. This course explains what these systems actually do, what they are good at and where they fail, in language you can use in a meeting.",
+      "You will follow the machine-learning workflow from framing a problem as a measurable prediction, through data, training, evaluation and monitoring; open the box far enough to reason about neurons, layers and what generative models are doing; and work through the harms that are specific to machine learning — bias against people the data under-represents, confident wrong answers, privacy, and the cost of acting on predictions about people.",
+      "The project has two halves: a grounded assistant that cites its sources and refuses correctly, and a responsible-deployment review of a model that makes decisions about people.",
+    ],
+    audience: [
+      "You build software and want to know when AI is the right tool and when it is not.",
+      "You manage or commission products and need to judge the claims made about AI.",
+      "You are preparing for AI engineering, data or product work and want the concepts before the frameworks.",
+    ],
+    prerequisites: [
+      "Comfortable with basic algebra and with reading a chart or a table.",
+      "Some programming or spreadsheet experience helps for the exercises; no mathematics beyond secondary school is assumed.",
+      "About five hours a week for two weeks.",
+    ],
+    tools: [
+      "A notebook environment — Google Colab's free tier is enough",
+      "A small dataset with a decision attached to it",
+      "A model API key for the grounded-assistant exercise",
+      "A glossary you write yourself, because the vocabulary is half the barrier in this field",
+    ],
+    build: [
+      "A problem framed as a measurable prediction, with a baseline to beat",
+      "A simple model trained, evaluated and honestly reported on",
+      "An annotated explanation of how a neural network reaches its output",
+      "A grounded assistant that cites sources and refuses when it should",
+      "A responsible-deployment review naming the risks and the mitigation for each",
+    ],
+    after: [
+      "AI Apps, Agents & APIs turns the concepts into production features on a model API.",
+      "Data Science & Analytics supplies the data handling the workflow depends on.",
+      "Demand for people who can judge an AI system — its data, its evaluation and its risks — is growing faster than demand for people who can only call an API.",
+    ],
+  },
 };
 
 /** The brief for a course, or a sensible fallback for owner-published content. */

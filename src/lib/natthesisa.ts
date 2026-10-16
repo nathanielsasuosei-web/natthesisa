@@ -90,6 +90,21 @@ const COURSE_CARDS: CourseCard[] = [
   { id: "devops-and-delivery", title: "DevOps & Delivery", level: "Intermediate", program: "Software Engineering", blurb: "CI/CD, environments, monitoring and safe deploys — running what you shipped." },
   { id: "vibe-coding-ship-with-ai", title: "Vibe Coding: Ship with AI", level: "Beginner", program: "Vibe Coding", blurb: "Describe an app, build it with AI in your first hour, and learn to read and fix what it writes." },
   { id: "ai-apps-agents-and-apis", title: "AI Apps, Agents & APIs", level: "Intermediate", program: "Vibe Coding", blurb: "Prompts, tools, agents and retrieval — wiring an AI assistant into your own data." },
+  { id: "cyber-security-foundations", title: "Cyber Security Foundations", level: "Beginner", program: "Cyber Security", blurb: "How the internet moves data, firewalls and scanning, the Linux shell, permissions and Python for security work." },
+  { id: "cyber-security-offense-and-defense", title: "Cyber Security: Offense and Defense", level: "Intermediate", program: "Cyber Security", blurb: "Think like an attacker within the law, then build the defences: hardening, monitoring and incident response." },
+  { id: "cyber-security-cloud", title: "Cloud Security", level: "Intermediate", program: "Cyber Security", blurb: "Identity, network boundaries and storage in the cloud — the misconfigurations behind most modern breaches." },
+  { id: "ethical-hacking", title: "Ethical Hacking", level: "Intermediate", program: "Cyber Security", blurb: "Authorised reconnaissance, scanning and exploitation, ending in the report a client can act on." },
+  { id: "cloud-computing-devops", title: "Cloud Computing & DevOps", level: "Intermediate", program: "Cloud & DevOps", blurb: "Containers, infrastructure as code, pipelines, monitoring and a deploy you can undo." },
+  { id: "data-science-analytics", title: "Data Science & Analytics", level: "Beginner", program: "Data Science", blurb: "Frame a question, clean real data, describe it honestly and hand over a finding somebody can act on." },
+  { id: "human-computer-interaction", title: "Human-Computer Interaction", level: "Beginner", program: "Design", blurb: "Usability heuristics, accessibility and mobile-first design, tested with five real people." },
+  { id: "graphic-design", title: "Graphic Design", level: "Beginner", program: "Design", blurb: "Contrast, repetition, alignment and proximity, then type, colour and print-ready files." },
+  { id: "web-designing", title: "Web Designing", level: "Beginner", program: "Design", blurb: "Brief, structure and wireframes through to a visual system and a handover a developer can build." },
+  { id: "computer-networking", title: "Computer Networking", level: "Beginner", program: "IT Essentials", blurb: "Addresses, names, packets and ports — then build, secure and troubleshoot a real small network." },
+  { id: "computer-networks-architecture", title: "Computer Networks & Architecture", level: "Intermediate", program: "IT Essentials", blurb: "Layered protocols, routing and switching internals, subnetting, redundancy and measured performance." },
+  { id: "computer-basics-bcc", title: "Computer Basics / BCC (Basic Computer Course)", level: "Beginner", program: "IT Essentials", blurb: "Parts and ports, files and folders, the internet and email, and the habits that keep your work safe." },
+  { id: "microsoft-office", title: "Microsoft Office", level: "Beginner", program: "IT Essentials", blurb: "Word, Excel, PowerPoint and shared files as professional tools — templates, spreadsheets that reconcile, decks that work." },
+  { id: "programming-languages", title: "Programming Languages", level: "Intermediate", program: "Computer Science", blurb: "Paradigms, typing and execution models — read unfamiliar code and learn the next language in weeks." },
+  { id: "artificial-intelligence-machine-learning", title: "Artificial Intelligence & Machine Learning (AI/ML)", level: "Intermediate", program: "AI & Machine Learning", blurb: "What these systems really do, the ML workflow, generative AI, and deploying AI responsibly." },
 ];
 
 function courseLinks(section = "courses"): AgentLink[] {
@@ -227,12 +242,107 @@ const CONCEPTS: Concept[] = [
     followUp: ["Explain REST APIs", "Explain Big-O", "Show CS courses"],
   },
   {
-    keys: ["ai", "artificial intelligence", "machine learning", "llm", "prompt", "agent", "vibe cod"],
+    keys: ["machine learning", "artificial intelligence", "neural", "deep learning", "generative ai", "supervised learning", "training data", "responsible ai"],
+    title: "AI & machine learning",
+    body: "**Artificial intelligence is the field; machine learning is the technique that dominates it today — and neither is magic.**\n\n- **Machine learning** finds patterns in examples instead of following written rules. It is good at prediction, bad at explaining itself, and useless without data that resembles the real world\n- The workflow: frame a measurable prediction, collect and split data, train, evaluate on data the model has never seen, monitor after release\n- **Neural networks** stack simple weighted sums with non-linear activations; depth lets later layers build on earlier representations. Training adjusts the weights to reduce error\n- **Generative AI** predicts the next token well enough to write, draw and code — confidently, including when it is wrong\n- The harms are specific: bias against people the data under-represents, confident wrong answers without sources, privacy, and the cost of acting on predictions about people\n\n```\nproblem → data → train → evaluate → deploy → monitor\n```\n\nAn AI system that works is not yet an AI system that is acceptable.",
+    followUp: ["Show AI courses", "Explain neural networks", "Explain bias in AI"],
+  },
+  {
+    keys: ["ai", "llm", "prompt", "agent", "vibe cod", "vibe coding", "chatgpt", "copilot"],
     title: "AI & vibe coding",
     body: "**Vibe coding = describing software to an AI and learning to read, review and fix what it writes.**\n\n- Be specific: goal, constraints, what \"done\" looks like\n- Review every line the AI produces — *you* ship it, *you* own it\n- When it breaks: paste the exact error, describe what you expected\n- The Vibe Coding program takes you from a first page in an hour to an AI assistant wired into your own data",
     followUp: ["Show Vibe Coding course", "Explain prompts", "Give me study tips"],
   },
+  {
+    keys: ["ethical hacking", "penetration test", "pentest", "vulnerab", "exploit", "owasp", "cyber security", "cybersecurity", "malware", "phishing"],
+    title: "Cyber security & ethical hacking",
+    body: "**Security work is tested, documented and authorised — or it is a crime.**\n\n- Written permission first: scope, time window, systems you may touch, and who to call if something breaks\n- Reconnaissance before exploitation: what an outsider can already see in DNS, certificates and public storage\n- The weakness classes behind most breaches: injection, broken authentication, broken access control, exposed data, unpatched components\n- Every finding needs evidence, a risk rating, and the control that fixes it — plus a retest that proves the fix held\n\n```\nRecon → scan → exploit (in scope) → report → fix → retest\n```\n\nNever point a tool at a system you do not own or have written permission to test.",
+    followUp: ["Show cyber security courses", "Explain firewalls", "Explain phishing"],
+  },
+  {
+    keys: ["data science", "analytics", "data analyst", "data analysis", "dataset", "distribution", "statistic", "dashboard", "kpi"],
+    title: "Data & analytics",
+    body: "**Analytics is a loop, not a tool:** frame a question precise enough to answer, get the data, clean it, describe it, then hand over a finding somebody can act on.\n\n- Most of the work is cleaning: duplicates, missing values, dates stored as text, numbers that cannot be true\n- Describe a distribution with spread, not just the average — the mean hides the shape\n- Charts are arguments: one message per chart, labelled axes, no decoration\n- End with a decision, not a dashboard nobody opens\n\n```\nquestion → data → clean → describe → decision → measure\n```",
+    followUp: ["Show data courses", "Explain SQL joins", "Explain averages"],
+  },
+  {
+    keys: ["cloud", "devops", "docker", "container", "kubernetes", "terraform", "infrastructure as code", "aws", "ci/cd"],
+    title: "Cloud & DevOps",
+    body: "**The cloud is other people's computers with an API — and somebody is still responsible for what runs on them.**\n\n- Shared responsibility: the provider secures the platform; you secure your accounts, data and configuration\n- Containers package the application with its dependencies, so the same image runs everywhere\n- Infrastructure defined in code is reviewable, repeatable and reversible\n- A pipeline tests before it deploys; a deploy you cannot undo is not a deploy you can trust\n- Watch it after releasing: metrics, logs and alerts that notice a regression before a user does",
+    followUp: ["Show cloud courses", "Explain containers", "Explain CI/CD"],
+  },
+  {
+    keys: ["graphic design", "typography", "logo", "figma", "wireframe", "branding", "colour palette", "color palette", "visual hierarchy", "ux"],
+    title: "Design principles",
+    body: "**Design that looks amateur usually fails four measurable things:**\n\n- **Contrast** — make different things look different; one clear focal point per surface\n- **Repetition** — repeat type, colour and spacing so a set of pieces feels related\n- **Alignment** — line things up on a grid; nothing floats by accident\n- **Proximity** — related items sit together; distance means \"unrelated\"\n\nThen the craft on top: a type scale, a palette with checked contrast, and exports that survive a printer (CMYK, 300 dpi, bleed) or a phone screen (RGB, sRGB, sensible file size).",
+    followUp: ["Show design courses", "Explain colour contrast", "Explain wireframes"],
+  },
+  {
+    keys: ["computer basics", "basic computer", "bcc", "excel", "spreadsheet", "powerpoint", "word document", "files and folder", "file and folder", "email"],
+    title: "Computer basics & office work",
+    body: "**The office skills that decide how the day goes:**\n\n- Files and folders: name things so future-you can find them, and keep one copy that is the original\n- Word: styles for headings and body text, an automatic table of contents, and a PDF when you send it out\n- Excel: real formulas (SUMIFS, lookups, IF), data validation, and a pivot summary instead of hand-typed totals. If numbers sort wrongly or refuse to sum, they are text — fix the type first\n- PowerPoint: one idea per slide, big type, few words, rehearsed out loud\n- Back up, and test the backup by restoring something from it\n\n```\nCtrl+S · Ctrl+Z · Ctrl+F · Ctrl+C / Ctrl+V · Ctrl+Shift+V (paste without formatting)\n```",
+    followUp: ["Show IT Essentials courses", "Explain VLOOKUP", "Explain backup"],
+  },
+  {
+    keys: ["router", "wi-fi", "wifi", "subnet", "vlan", "network switch", "troubleshoot", "dhcp"],
+    title: "Building a small network",
+    body: "**Most office network problems are found by working in order, not by guessing.**\n\n- Is the link up? Cable, port, Wi-Fi association — check the obvious before the clever\n- Does it have an address? DHCP should hand one out; a 169.254.x.x address means it did not\n- Can it reach the gateway? `ping` the router's IP, then something outside, then a name\n- Does DNS resolve? If an IP works and a name does not, the problem is DNS, not the internet\n- Plan Wi-Fi instead of hoping: channel, placement, 5 GHz for speed, 2.4 GHz for range, a guest network\n\n```\nip route | grep default      # default via 192.168.1.1 dev wlan0\nping -c 2 192.168.1.1        # the gateway\nnslookup example.com        # DNS\n```",
+    followUp: ["Show networking courses", "Explain DNS", "Explain subnetting"],
+  },
+  {
+    keys: ["programming language", "new language", "paradigm", "compiler", "interpreter", "type system", "learn go", "learn rust"],
+    title: "Programming languages",
+    body: "**Languages are not interchangeable syntaxes: each makes a different set of things easy.**\n\n- **Paradigms** — imperative, object-oriented and functional styles solve the same problem differently; most modern languages mix all three\n- **Typing** — static or dynamic, strong or weak. Types are a design trade-off: earlier errors and better tooling versus less ceremony\n- **Execution** — compiled, interpreted or a virtual machine in between. That choice decides speed, portability and start-up time\n- **Learning the next language** — the six things you learn first: syntax, types, collections, error handling, concurrency, and the package ecosystem\n\nRead unfamiliar code aloud, in order, and write down every question you cannot answer — that list is your study plan.",
+    followUp: ["Show programming courses", "Explain compilers", "Explain paradigms"],
+  },
 ];
+
+/**
+ * Where a concept's "learn this next" links point. Titles not listed here fall
+ * through to the switch inside the explain reply below.
+ */
+const CONCEPT_LINKS: Record<string, AgentLink[]> = {
+  "Networks": [
+    { label: "Computer Networking", href: "/courses/computer-networking" },
+    { label: "Networks & Architecture", href: "/courses/computer-networks-architecture" },
+  ],
+  "Cyber security & ethical hacking": [
+    { label: "Cyber Security Foundations", href: "/courses/cyber-security-foundations" },
+    { label: "Ethical Hacking", href: "/courses/ethical-hacking" },
+  ],
+  "Data & analytics": [
+    { label: "Data Science & Analytics", href: "/courses/data-science-analytics" },
+    { label: "Databases & SQL", href: "/courses/databases-and-sql" },
+  ],
+  "Cloud & DevOps": [
+    { label: "Cloud Computing & DevOps", href: "/courses/cloud-computing-devops" },
+    { label: "DevOps & Delivery", href: "/courses/devops-and-delivery" },
+  ],
+  "Design principles": [
+    { label: "Graphic Design", href: "/courses/graphic-design" },
+    { label: "Web Designing", href: "/courses/web-designing" },
+  ],
+  "Computer basics & office work": [
+    { label: "Computer Basics (BCC)", href: "/courses/computer-basics-bcc" },
+    { label: "Microsoft Office", href: "/courses/microsoft-office" },
+  ],
+  "Building a small network": [
+    { label: "Computer Networking", href: "/courses/computer-networking" },
+    { label: "All courses", href: "/courses" },
+  ],
+  "AI & machine learning": [
+    { label: "AI & ML course", href: "/courses/artificial-intelligence-machine-learning" },
+    { label: "AI Apps & APIs", href: "/courses/ai-apps-agents-and-apis" },
+  ],
+  "Python": [
+    { label: "Programming Languages", href: "/courses/programming-languages" },
+    { label: "Computer Science Essentials", href: "/courses/computer-science-essentials" },
+  ],
+  "Programming languages": [
+    { label: "Programming Languages", href: "/courses/programming-languages" },
+    { label: "Data Structures & Algorithms", href: "/courses/data-structures-algorithms" },
+  ],
+};
 
 function findConcept(text: string): Concept | null {
   const scored = CONCEPTS.map((concept) => {
@@ -475,7 +585,87 @@ function recommendReply(text: string, context?: ChatContext): AgentReply | null 
       ],
     };
   }
-  if (/\bai\b/.test(text) || has(text, "vibe", "agent", "prompt", "artificial intelligence", "machine learning")) {
+  if (has(text, "machine learning", "neural", "deep learning", "generative ai", "train a model", "ml model", "responsible ai")) {
+    return {
+      reply: "For **AI & machine learning**, learn what these systems actually do before the frameworks:\n\n1. **Artificial Intelligence & Machine Learning (AI/ML)** — the machine-learning workflow, neural networks, generative AI and the ethics of deploying it\n2. **Data Science & Analytics** — the data handling every model depends on\n3. **AI Apps, Agents & APIs** — then put a model behind a real product\n\nInterviews ask about data, evaluation and risk far more than they ask about libraries.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "AI & ML course", href: "/courses/artificial-intelligence-machine-learning" },
+        { label: "Data Science course", href: "/courses/data-science-analytics" },
+      ],
+    };
+  }
+  if (has(text, "security", "hacking", "hacker", "penetration", "pentest", "cyber", "infosec", "malware", "vulnerab")) {
+    return {
+      reply: "For **cyber security**, the order matters:\n\n1. **Cyber Security Foundations** — how data moves, firewalls and scanning, the Linux shell, permissions, Python for security work\n2. **Ethical Hacking** — authorised reconnaissance, exploitation and the report a client acts on\n3. **Cyber Security: Offense and Defense** and **Cloud Security** — hardening, monitoring and incident response\n\nNever test a system you do not have written permission to test. That line is the whole profession.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Cyber Security Foundations", href: "/courses/cyber-security-foundations" },
+        { label: "Ethical Hacking", href: "/courses/ethical-hacking" },
+      ],
+    };
+  }
+  if (has(text, "networking", "network", "router", "switch", "wi-fi", "wifi", "subnet", "dns", "tcp", "it support", "helpdesk", "computer repair", "technician")) {
+    return {
+      reply: "For **networks and IT support**:\n\n1. **Computer Networking** — addresses, names, packets and ports, then build and troubleshoot a real small network\n2. **Computer Networks & Architecture** — layered design, routing and switching internals, subnetting, redundancy and measured performance\n3. **Computer Basics / BCC** if the fundamentals are new, and **Microsoft Office** for the office skills that go with the job\n\nIT support is the most common entry-level technology job in Ghana — document everything and it becomes a career.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Computer Networking", href: "/courses/computer-networking" },
+        { label: "Networks & Architecture", href: "/courses/computer-networks-architecture" },
+      ],
+    };
+  }
+  if (has(text, "cloud", "devops", "docker", "kubernetes", "terraform", "aws", "azure", "ci/cd", "ci cd", "pipeline", "deploy")) {
+    return {
+      reply: "For **cloud and DevOps**:\n\n1. **Cloud Computing & DevOps** — containers, infrastructure as code, pipelines, monitoring and a deploy you can undo\n2. **DevOps & Delivery** — the software-engineering view of the same pipeline\n3. **Cloud Security** — identity, network boundaries and misconfiguration once you are running there\n\nRun something real in the cloud, however small. The bill teaches faster than the slides do.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Cloud & DevOps course", href: "/courses/cloud-computing-devops" },
+        { label: "DevOps & Delivery", href: "/courses/devops-and-delivery" },
+      ],
+    };
+  }
+  if (has(text, "data science", "data analyst", "analytics", "data analysis", "excel", "spreadsheet", "dashboard", "statistic")) {
+    return {
+      reply: "For **data and analytics**:\n\n1. **Data Science & Analytics** — frame the question, clean real data, describe it honestly, hand over a decision somebody can act on\n2. **Databases & SQL** — the query language every analyst is asked for\n3. **Artificial Intelligence & Machine Learning (AI/ML)** — if you want prediction rather than description\n\nMost analyst work is cleaning and framing, not modelling. Start where the work actually is.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Data Science course", href: "/courses/data-science-analytics" },
+        { label: "Databases & SQL", href: "/courses/databases-and-sql" },
+      ],
+    };
+  }
+  if (has(text, "design", "designer", " ui", "ux", "figma", "graphic", "typography", "logo", "wireframe", "usability")) {
+    return {
+      reply: "For **design**, pick by what you want to make:\n\n1. **Graphic Design** — contrast, repetition, alignment and proximity, then type, colour and print-ready files\n2. **Web Designing** — brief, wireframes, a visual system and a handover a developer can build from\n3. **Human-Computer Interaction** — usability, accessibility and testing with five real people\n\nAll three assume no drawing skill: this is composition and technique.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Graphic Design", href: "/courses/graphic-design" },
+        { label: "Web Designing", href: "/courses/web-designing" },
+      ],
+    };
+  }
+  if (has(text, "computer basics", "basic computer", "bcc", "microsoft office", "microsoft word", "powerpoint", "office work", "administrative", "never used a computer")) {
+    return {
+      reply: "For **computer basics and office skills**:\n\n1. **Computer Basics / BCC** — parts and ports, files and folders, the internet and email, plus backups and passwords\n2. **Microsoft Office** — Word, Excel and PowerPoint as professional tools, with shared files nobody overwrites\n3. **Data Science & Analytics** next, if spreadsheets are already where you work\n\nBoth courses assume nothing about your background and end with printed checklists you keep.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Computer Basics (BCC)", href: "/courses/computer-basics-bcc" },
+        { label: "Microsoft Office", href: "/courses/microsoft-office" },
+      ],
+    };
+  }
+  if (has(text, "programming language", "new language", "paradigm", "compiler", "learn python", "learn go", "learn java", "typescript", "syntax")) {
+    return {
+      reply: "For **programming languages**:\n\n1. **Programming Languages** — paradigms, typing and execution models, plus a method for reading code you have never seen\n2. **Data Structures & Algorithms** — the problem-solving core that transfers between languages\n3. **System Design & Architecture** — what those languages build at scale\n\nThe fifth language is much cheaper than the first. This course is how you get there deliberately.",
+      suggestions: ["Show all courses", "How much does it cost?", "What should I learn first?"],
+      links: [
+        { label: "Programming Languages", href: "/courses/programming-languages" },
+        { label: "All courses", href: "/courses" },
+      ],
+    };
+  }
+  if (/\bai\b/.test(text) || has(text, "vibe", "agent", "prompt", "artificial intelligence")) {
     return {
       reply: "For **building with AI**, start here:\n\n1. **Vibe Coding: Ship with AI** — a real app in your first hour, while learning to review AI-written code\n2. **AI Apps, Agents & APIs** — prompts, tools, agents and retrieval on your own data\n\nVibe coding isn't skipping the learning — it's learning to *direct* and *verify*.",
       suggestions: ["Explain vibe coding", "Show all courses", "How much does it cost?"],
@@ -680,7 +870,8 @@ export function answer(
       reply: concept.body,
       suggestions: concept.followUp,
       links:
-        concept.title === "React" || concept.title === "useEffect"
+        CONCEPT_LINKS[concept.title] ??
+        (concept.title === "React" || concept.title === "useEffect"
           ? [{ label: "React course", href: "/courses/react-production-apps" }]
           : concept.title === "Backend & REST APIs" || concept.title === "Authentication"
             ? [{ label: "Backend course", href: "/courses/backend-node-apis" }]
@@ -692,7 +883,7 @@ export function answer(
                   ? [{ label: "Vibe Coding course", href: "/courses/vibe-coding-ship-with-ai" }]
                   : ["HTML", "CSS", "Responsive design"].includes(concept.title)
                     ? [{ label: "Web Foundations", href: "/courses/web-foundations" }]
-                    : [{ label: "JavaScript course", href: "/courses/javascript-zero-to-builder" }],
+                    : [{ label: "JavaScript course", href: "/courses/javascript-zero-to-builder" }]),
     };
   }
 

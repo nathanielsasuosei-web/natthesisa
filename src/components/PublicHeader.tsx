@@ -29,6 +29,15 @@ const PROGRAM_LINKS: Array<{ id: string; name: string; tagline: string; icon: Ic
   { id: "computer-science", name: "Computer Science", tagline: "Understand the machine, not just the syntax", icon: "cpu" },
   { id: "software-engineering", name: "Software Engineering", tagline: "Build with other people, ship without fear", icon: "briefcase" },
   { id: "vibe-coding", name: "Vibe Coding", tagline: "Describe it, build it, understand it", icon: "spark" },
+  { id: "web-development", name: "Web Development", tagline: "Pages, interfaces and the code behind them", icon: "browser" },
+  { id: "app-development", name: "App Development", tagline: "Mobile apps people keep on their phones", icon: "mobile" },
+  { id: "backend", name: "Backend", tagline: "APIs, data and the servers in between", icon: "server" },
+  { id: "cyber-security", name: "Cyber Security", tagline: "Defend it, test it, and know the law", icon: "shield" },
+  { id: "data-science", name: "Data Science", tagline: "Turn a spreadsheet into a decision", icon: "chart" },
+  { id: "design", name: "Design", tagline: "Graphic, web and interface design that works", icon: "pencil" },
+  { id: "it-essentials", name: "IT Essentials", tagline: "Networks, office skills and starting from zero", icon: "terminal" },
+  { id: "cloud-devops", name: "Cloud & DevOps", tagline: "Containers, pipelines and deploys you can undo", icon: "layers" },
+  { id: "ai-machine-learning", name: "AI & Machine Learning", tagline: "What these systems really do — and their risks", icon: "spark" },
 ];
 
 /** Popular courses, for the Courses menu. Slugs must match the public `/courses/<slug>` pages. */
@@ -37,6 +46,12 @@ const POPULAR_COURSES: Array<{ slug: string; title: string; level: string }> = [
   { slug: "javascript-zero-to-builder", title: "JavaScript", level: "Beginner" },
   { slug: "vibe-coding-ship-with-ai", title: "Vibe Coding", level: "Beginner" },
   { slug: "data-structures-algorithms", title: "DSA", level: "Intermediate" },
+  { slug: "computer-basics-bcc", title: "Computer Basics", level: "Beginner" },
+  { slug: "microsoft-office", title: "Microsoft Office", level: "Beginner" },
+  { slug: "data-science-analytics", title: "Data Science", level: "Beginner" },
+  { slug: "ethical-hacking", title: "Ethical Hacking", level: "Intermediate" },
+  { slug: "graphic-design", title: "Graphic Design", level: "Beginner" },
+  { slug: "artificial-intelligence-machine-learning", title: "AI & ML", level: "Intermediate" },
 ];
 
 const NAV_LINKS = [
@@ -48,6 +63,11 @@ const NAV_LINKS = [
 ];
 
 const ANNOUNCEMENTS = [
+  {
+    badge: "New",
+    text: "Twelve programs now — Data Science, Design, IT Essentials, Cloud & DevOps and AI/ML have joined the catalogue",
+    href: "/courses",
+  },
   {
     badge: "New",
     text: "Vibe Coding is live — build real apps with AI from your first hour",
