@@ -13,7 +13,12 @@ export type CourseCategory =
   | "Web Development"
   | "App Development"
   | "Backend"
-  | "Cyber Security";
+  | "Cyber Security"
+  | "Cloud & DevOps"
+  | "Data Science"
+  | "Design"
+  | "IT Essentials"
+  | "AI & Machine Learning";
 export type CourseLevel = "Beginner" | "Intermediate";
 export type CourseTone = "violet" | "orange" | "cyan" | "green" | "pink" | "blue";
 
@@ -272,7 +277,7 @@ const CORE_COURSES: Course[] = [
   },];
 
 /**
- * The catalog: the six core courses, then the program courses.
+ * The catalog: the core courses, then the program courses.
  *
  * Every course sits under one program (its category), and each program can
  * have several courses — see `PROGRAMS` in `programs.ts`.
@@ -292,6 +297,11 @@ export const CATEGORIES: Array<"All" | CourseCategory> = [
   "App Development",
   "Backend",
   "Cyber Security",
+  "Cloud & DevOps",
+  "Data Science",
+  "Design",
+  "IT Essentials",
+  "AI & Machine Learning",
 ];
 
 export function getCourse(idOrSlug: string): Course | undefined {
