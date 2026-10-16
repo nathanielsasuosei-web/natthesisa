@@ -19,6 +19,7 @@ import LessonProse from "@/components/LessonProse";
 import LessonNarrator from "@/components/LessonNarrator";
 import LessonVideoGuide from "@/components/LessonVideoGuide";
 import LessonNatthesisa from "@/components/LessonNatthesisa";
+import LessonTools from "@/components/LessonTools";
 import { lessonVideo } from "@/lib/lesson-videos";
 import LessonLocked from "@/components/LessonLocked";
 
@@ -367,6 +368,18 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
               </div>
             </section>
 
+            <LessonTools
+              courseId={course.id}
+              lessonId={lesson.id}
+              lessonTitle={lesson.title}
+              summary={lesson.summary}
+              headings={lesson.sections.map((section) => section.heading)}
+              challenge={lesson.challenge}
+              samples={lesson.sections
+                .filter((section) => section.code)
+                .map((section) => ({ language: section.language ?? "code", label: section.codeLabel, code: section.code as string }))}
+            />
+
             {ownerBranding && (
               <section className="mt-10 flex flex-wrap items-center gap-4 border-y border-[#e6e2e9] py-5">
                 <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#e4e0e8] bg-[#f7f6f8]">
@@ -424,6 +437,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseI
               {lesson.exercises?.length ? (
                 <li><a href="#lesson-exercises" className="flex gap-2.5 rounded-lg px-2 py-1.5 transition hover:bg-[#f4f1ff]"><span className="mt-[1px] font-mono text-[9px] font-black text-[#b3acbb]">§</span><span className="text-[10.5px] font-bold leading-4 text-[#67606d]">Exercises</span></a></li>
               ) : null}
+              <li><a href="#lesson-tools" className="flex gap-2.5 rounded-lg px-2 py-1.5 transition hover:bg-[#f4f1ff]"><span className="mt-[1px] font-mono text-[9px] font-black text-[#b3acbb]">§</span><span className="text-[10.5px] font-bold leading-4 text-[#67606d]">Practical tools</span></a></li>
             </ol>
             <div className="mt-6 border-t border-[#ece9ef] pt-4">
               <p className="text-[9px] font-black uppercase tracking-[.15em] text-[#918a97]">Reading time</p>
