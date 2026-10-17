@@ -29,6 +29,7 @@ npm-debug.log*
 /promos/audio/
 /promos/scenes/
 /promos/*.mp4
+!/promos/codemasterghana-brag-9x16.mp4
 /promos/*.wav
 /promos/scene_*.mp4
 /promos/joined.mp4
