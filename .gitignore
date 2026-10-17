@@ -24,3 +24,17 @@ npm-debug.log*
 
 # Authoring scratch for long lessons. Not part of the app.
 /.arena/
+
+# Promo video renders and intermediate assets (built by promos/build_video.py)
+/promos/audio/
+/promos/scenes/
+/promos/*.mp4
+/promos/*.wav
+/promos/scene_*.mp4
+/promos/joined.mp4
+/promos/cap_*.txt
+/promos/wm.txt
+/promos/concat.txt
+
+# local ffmpeg venv used to render promos
+/.venv-ffmpeg/
