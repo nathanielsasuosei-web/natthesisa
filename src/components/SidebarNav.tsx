@@ -24,10 +24,8 @@ interface Props {
   userEmail: string;
   /** The account's picture, or null/omitted for initials. */
   userAvatar?: string | null;
-  /** How many programs the student has paid for in full. */
+  /** How many programs the student owns. */
   programsOwned: number;
-  /** How many programs the student has paid half of — the balance is still owed. */
-  programsHalfPaid?: number;
   weeklyMinutes: number;
   weeklyGoal: number;
   /** The teacher's own account gets a link to the console. */
@@ -40,7 +38,6 @@ export default function SidebarNav({
   userEmail,
   userAvatar = null,
   programsOwned,
-  programsHalfPaid = 0,
   weeklyMinutes,
   weeklyGoal,
   isOwner,
@@ -113,11 +110,7 @@ export default function SidebarNav({
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/[.09] bg-white/[.04] px-3 py-2 text-[11px] font-bold text-[#c3bccc] transition hover:border-[#ff8f9b]/40 hover:bg-[#ff8f9b]/10 hover:text-[#ffb3bc]"
           />
           <div className="mt-2.5 inline-flex rounded-full bg-[#27232f] px-2.5 py-1 text-[9px] font-bold text-[#a9a2b0]">
-            {programsOwned > 0
-              ? `${programsOwned} program${programsOwned === 1 ? "" : "s"} owned`
-              : programsHalfPaid > 0
-                ? `${programsHalfPaid} program${programsHalfPaid === 1 ? "" : "s"} half paid`
-                : "No programs yet"}
+            {programsOwned > 0 ? `${programsOwned} program${programsOwned === 1 ? "" : "s"} owned` : "No programs yet"}
           </div>
         </div>
       </div>

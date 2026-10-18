@@ -2,17 +2,7 @@ import { randomBytes } from "node:crypto";
 import { ensureSchema, query, queryOne } from "./db";
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
-import {
-  coursePrice,
-  fmtMoney,
-  isPassPeriod,
-  isProgramPaymentPart,
-  lessonPrice,
-  passPrice,
-  programPrice,
-  type PassPeriod,
-  type ProgramPaymentPart,
-} from "./plans";
+import { coursePrice, isPassPeriod, lessonPrice, passPrice, programPrice, type PassPeriod } from "./plans";
 import {
   PurchaseError,
   buyCourse,
@@ -31,7 +21,7 @@ import {
   verifyTransaction,
 } from "./paystack";
 import { getProgram } from "./programs";
-import { hasActivePass, ownsCourse, ownsLesson, ownsProgram, programLedger } from "./access";
+import { hasActivePass, ownsCourse, ownsLesson, ownsProgram } from "./access";
 
 /**
  * Checkouts and payment fulfilment.
@@ -65,12 +55,6 @@ export interface Payment {
   courseId: string | null;
   lessonId: string | null;
   programId: string | null;
-  /**
-   * How much of a program this checkout pays for — the first half, the balance
-   * after it, or the whole thing at once. Rows written before part payments
-   * existed carry no value and are read as `"full"`.
-   */
-  covers: ProgramPaymentPart;
   amount: number;
   currency: string;
   description: string;
@@ -95,7 +79,6 @@ interface PaymentRow {
   course_id: string | null;
   lesson_id: string | null;
   program_id: string | null;
-  covers: string | null;
   amount: number;
   currency: string;
   description: string;
@@ -124,10 +107,6 @@ function fromRow(row: PaymentRow): Payment {
     courseId: row.course_id,
     lessonId: row.lesson_id,
     programId: row.program_id,
-    // A `covers` this app does not know (a hand-edited row) is read as a
-    // payment for the whole program: granting less than was paid for would be
-    // the worse mistake.
-    covers: isProgramPaymentPart(row.covers) ? row.covers : "full",
     // `Number(...)`: a `payments` table whose `amount` column is `numeric`
     // (rather than this app's `integer`) hands the value back as a string —
     // `"300.00"` — and a string amount leaks into invoices, receipts and the
@@ -268,8 +247,6 @@ export interface CheckoutInput {
   courseId?: string;
   lessonId?: string;
   programId?: string;
-  /** How much of the program to pay for now. Defaults to the whole thing. */
-  covers?: string;
   phone?: string;
   network?: string;
 }
@@ -280,7 +257,6 @@ export interface CheckoutQuote {
   courseId: string | null;
   lessonId: string | null;
   programId: string | null;
-  covers: ProgramPaymentPart;
   amount: number;
   description: string;
 }
@@ -289,16 +265,6 @@ export interface CheckoutQuote {
  * Prices what the student asked for and checks it can still be bought.
  * Throws `CheckoutError` (or `PurchaseError` for already-owned content) when
  * the request makes no sense — before any row is written or provider called.
- *
- * A program can be bought in two parts, and the server — never the browser —
- * decides what each part costs:
- *
- *   • `"half"` is half of today's price. It is only sold to a student who has
- *     not started paying yet; one who has is told to pay the balance instead,
- *     because a second "half" is a second charge for the same access.
- *   • `"balance"` and `"full"` both come to today's price minus everything
- *     already paid. For a student who never paid anything that is the whole
- *     price; for one who paid half it is exactly what is left.
  */
 export function quoteCheckout(user: User, input: CheckoutInput): CheckoutQuote {
   const kind = input.kind;
@@ -306,51 +272,17 @@ export function quoteCheckout(user: User, input: CheckoutInput): CheckoutQuote {
     const programId = input.programId?.trim() ?? "";
     const program = programId ? getProgram(programId) : null;
     if (!program) throw new CheckoutError("That program does not exist.", "NOT_FOUND", 404);
-    const covers: ProgramPaymentPart = isProgramPaymentPart(input.covers) ? input.covers : "full";
-    const ledger = programLedger(user, programId);
-    if (ledger.entitlement === "full") {
+    if (ownsProgram(user, programId)) {
       throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
     }
-
-    if (covers === "half") {
-      if (ledger.entitlement === "half") {
-        throw new CheckoutError(
-          `You have already paid the first half of the ${program.name} program. Pay the remaining ${fmtMoney(ledger.balance)} to open the rest.`,
-          "INSTALMENT_STARTED",
-          409
-        );
-      }
-      if (ledger.firstPayment <= 0) {
-        throw new CheckoutError("This program costs nothing — no checkout needed.", "FREE_ITEM");
-      }
-      return {
-        kind,
-        period: null,
-        courseId: null,
-        lessonId: null,
-        programId,
-        covers,
-        amount: ledger.firstPayment,
-        description: `${program.name} — first half of the program`,
-      };
-    }
-
-    // `balance` and `full` are the same amount: what is still owed.
-    if (ledger.balance <= 0) {
-      throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
-    }
-    const settlesBalance = ledger.entitlement === "half" || covers === "balance";
     return {
       kind,
       period: null,
       courseId: null,
       lessonId: null,
       programId,
-      covers: settlesBalance ? "balance" : "full",
-      amount: ledger.balance,
-      description: settlesBalance
-        ? `${program.name} — balance payment`
-        : `${program.name} — program purchase`,
+      amount: programPrice(programId),
+      description: `${program.name} — program purchase`,
     };
   }
   // Passes, courses and lessons are retired as things to buy: the program is
@@ -390,24 +322,18 @@ export interface CreatedCheckout {
  */
 async function findOpenCheckout(
   userId: string,
-  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId" | "programId" | "covers">
+  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId" | "programId">
 ): Promise<Payment | null> {
   await ensureSchema();
   const row = await queryOne<PaymentRow>(
     // `user_id::text`: see `listPaymentsForUser` — a legacy `uuid` column must
     // not be allowed to take the whole checkout down with a type error.
-    //
-    // `covers` is part of the identity of the item, not decoration: a student
-    // who paid half and is now paying the balance is buying something different
-    // from the half checkout that may still be sitting open, and reusing that
-    // row would charge them for the same half twice.
     `select * from payments
       where user_id::text = $1 and kind = $2
         and coalesce(period, '') = $3
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
         and coalesce(program_id, '') = $6
-        and coalesce(covers, 'full') = $7
         and status = 'pending'
       order by created_at desc limit 1`,
     [
@@ -417,7 +343,6 @@ async function findOpenCheckout(
       quote.courseId ?? "",
       quote.lessonId ?? "",
       quote.programId ?? "",
-      quote.covers,
     ]
   );
   return row ? fromRow(row) : null;
@@ -471,9 +396,9 @@ export async function createCheckout(
     try {
       await query(
         `insert into payments
-           (reference, user_id, kind, period, course_id, lesson_id, program_id, covers, amount, currency,
+           (reference, user_id, kind, period, course_id, lesson_id, program_id, amount, currency,
             description, status, provider, phone, network)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'GHS',$10,'pending',$11,$12,$13)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'GHS',$9,'pending',$10,$11,$12)`,
         [
           reference,
           user.id,
@@ -482,7 +407,6 @@ export async function createCheckout(
           quote.courseId,
           quote.lessonId,
           quote.programId,
-          quote.covers,
           quote.amount,
           quote.description,
           provider,
@@ -496,9 +420,7 @@ export async function createCheckout(
       reference = newReference();
     }
   }
-  console.info(
-    `[codemasterghana] checkout created ${reference} (${quote.kind}, ${quote.covers}, GH₵${quote.amount}, ${provider})`
-  );
+  console.info(`[codemasterghana] checkout created ${reference} (${quote.kind}, GH₵${quote.amount}, ${provider})`);
 
   if (!live) {
     const payment = (await getPayment(reference))!;
@@ -523,7 +445,6 @@ export async function createCheckout(
         courseId: quote.courseId ?? "",
         lessonId: quote.lessonId ?? "",
         programId: quote.programId ?? "",
-        covers: quote.covers,
         phone: phone ?? "",
         network: network ?? "",
       },
@@ -627,8 +548,7 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
         and coalesce(program_id, '') = $6
-        and coalesce(covers, 'full') = $7
-        and status = 'paid' and reference <> $8
+        and status = 'paid' and reference <> $7
       order by paid_at desc nulls last limit 1`,
     [
       payment.userId,
@@ -637,7 +557,6 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
       payment.courseId ?? "",
       payment.lessonId ?? "",
       payment.programId ?? "",
-      payment.covers,
       payment.reference,
     ]
   );
@@ -651,43 +570,12 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
  * rows, so nothing is hidden either way.
  */
 async function refundDoubleCharge(payment: Payment, user: User): Promise<void> {
-  await refund(payment, user, `Duplicate payment ${payment.reference} refunded automatically`, undefined);
-}
-
-/**
- * Returns the part of a payment that was more than the student still owed.
- *
- * This is what a stale checkout looks like when it is paid late: a student
- * starts a "pay in full" checkout, leaves it, pays half through a newer one,
- * and the older page is approved afterwards. The access is theirs (the money
- * arrived), but the extra cedis were never owed — so they go back, and the
- * invoice and the purchase row carry what the program actually cost.
- */
-async function refundExcess(payment: Payment, user: User, excess: number): Promise<void> {
-  await refund(
-    payment,
-    user,
-    `Overpayment ${payment.reference} refunded automatically — GH₵${excess} above what was owed`,
-    excess
-  );
-}
-
-/** One refund path, whole or partial. Demo money moves nowhere; it is recorded. */
-async function refund(payment: Payment, user: User, note: string, amountGhs: number | undefined): Promise<void> {
-  if (payment.provider !== "paystack") {
-    // Demo payments never moved real money, but the account's history should
-    // still say what happened to the row.
-    logActivity(user, note, "billing");
-    await saveUser(user);
-    return;
-  }
+  if (payment.provider !== "paystack") return;
   try {
-    await refundTransaction(payment.reference, amountGhs);
-    logActivity(user, note, "billing");
+    await refundTransaction(payment.reference);
+    logActivity(user, `Duplicate payment ${payment.reference} refunded automatically`, "billing");
     await saveUser(user);
-    console.info(
-      `[codemasterghana] refunded ${payment.reference} (GH₵${amountGhs ?? payment.amount} of GH₵${payment.amount})`
-    );
+    console.info(`[codemasterghana] refunded double charge ${payment.reference} (GH₵${payment.amount})`);
   } catch (error) {
     console.error(
       `[codemasterghana] automatic refund FAILED for ${payment.reference} — refund it from the Paystack dashboard`,
@@ -795,33 +683,17 @@ export async function fulfillPayment(
 
   try {
     if (payment.kind === "program" && payment.programId) {
-      // `covers` is what the student actually asked for at checkout, and it is
-      // the row — not the amount — that decides what opens: a half payment
-      // opens the first half of every course, a balance or full payment opens
-      // the rest. Nothing about it is inferred from the money, so a price
-      // change between checkout and approval cannot turn a half payment into a
-      // full one (or the reverse).
-      //
-      // What was still owed is read before the purchase is written, because it
-      // is the ceiling: a payment bigger than that is a stale checkout approved
-      // late, and the difference is returned rather than kept.
-      const owed = programLedger(user, payment.programId).balance;
-      const purchase = await buyProgram(user, payment.programId, credit, payment.covers);
-      const excess = Math.max(0, payment.amount - owed);
-      purchase.amount = payment.amount - excess;
-      applyPaidAmount(user, purchase.invoiceNumber, purchase.amount);
+      const purchase = await buyProgram(user, payment.programId, credit);
+      purchase.amount = payment.amount;
+      applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
       await saveUser(user);
       const program = getProgram(payment.programId);
-      const programName = program?.name ?? "Program";
-      const ledger = programLedger(user, payment.programId);
       await notifyProgramPurchased({
         to: user.email,
         toName: user.name,
-        program: programName,
-        amount: purchase.amount,
+        program: program?.name ?? "Program",
+        amount: payment.amount,
         invoiceNumber: purchase.invoiceNumber,
-        half: payment.covers === "half",
-        balance: ledger.entitlement === "half" ? ledger.balance : 0,
       });
       const paid = await markPaymentPaid(reference, {
         channel: attribution.channel ?? null,
@@ -829,12 +701,6 @@ export async function fulfillPayment(
         providerEventId: attribution.providerEventId ?? null,
         paidAt: attribution.paidAt ?? null,
       });
-      if (excess > 0) {
-        console.warn(
-          `[codemasterghana] payment ${reference} was GH₵${payment.amount}, GH₵${excess} more than the GH₵${owed} owed — refunding the excess`
-        );
-        await refundExcess(payment, user, excess);
-      }
       return {
         payment: paid,
         alreadyPaid: false,
@@ -935,24 +801,14 @@ export async function fulfillPayment(
       // from the register — a wrong refund hands the item out for free.
       const current = await getPayment(reference);
       const twin = current?.status === "paid" ? null : await findPaidTwin(payment);
-      // A second, narrower proof of a double charge, which the twin search
-      // cannot see: this payment is for a program the account already owns and
-      // paying it would take the student past the program's price. That is what
-      // a late "half" approval looks like after the balance (or the whole
-      // price) has already been paid, and what a balance payment looks like if
-      // the teacher dropped the price to what the student had already paid.
-      // Either way the money is over the price, so it goes back.
-      const ledger =
-        payment.kind === "program" && payment.programId ? programLedger(user, payment.programId) : null;
-      const overpaid = Boolean(ledger && ledger.entitlement === "full" && ledger.paid + payment.amount > ledger.price);
       const paid = await markPaymentPaid(reference, {
         channel: attribution.channel ?? null,
         providerEventId: attribution.providerEventId ?? null,
         paidAt: attribution.paidAt ?? null,
       });
-      if (twin || overpaid) {
+      if (twin) {
         console.warn(
-          `[codemasterghana] payment ${reference} is a double charge (${twin ? `twin ${twin.reference}` : `GH₵${payment.amount} over an already-paid program`}) — refunding`
+          `[codemasterghana] payment ${reference} is a double charge (twin ${twin.reference}) — refunding`
         );
         await refundDoubleCharge(payment, user);
       } else {

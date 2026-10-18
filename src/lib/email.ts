@@ -223,58 +223,34 @@ export function notifyContentPurchased(opts: {
   );
 }
 
-/**
- * A program receipt.
- *
- * Two letterheads share this function, because a program can be bought in two
- * payments: a half payment opens the first half of every course and says so,
- * along with what is left to pay; the balance (or a full payment) opens
- * everything. A receipt that promised the whole program after half of the
- * money would be wrong in the way that costs the teacher a phone call.
- */
+/** A program receipt: every course and lesson under it is now open. */
 export function notifyProgramPurchased(opts: {
   to: string;
   toName: string;
   program: string;
   amount: number;
   invoiceNumber: string | null;
-  /** True when this receipt is for the first half of the program. */
-  half?: boolean;
-  /** What is still owed after a half payment, for the letterhead. */
-  balance?: number;
 }): Promise<EmailResult> {
-  const { to, toName, program, amount, invoiceNumber, half = false, balance = 0 } = opts;
+  const { to, toName, program, amount, invoiceNumber } = opts;
   const money = `${site.currency.symbol}${amount.toLocaleString("en-US")}`;
-  const due = `${site.currency.symbol}${Math.max(0, balance).toLocaleString("en-US")}`;
-  const heading = half ? "Half of your program is open" : "Your program is open";
-  const body = half
-    ? paragraph(
-        `Thank you — the first half of the <strong>${escapeHtml(program)}</strong> program is open: the first half of every course in it, starting with lesson one. The remaining lessons open the moment you pay the balance of <strong>${due}</strong> — any time, no deadline.`
-      )
-    : paragraph(
-        `Thank you — the <strong>${escapeHtml(program)}</strong> program is yours now. Every course and every lesson under it is open, permanently.`
-      );
-  const html = shell(heading, "🎓",
+  const html = shell("Your program is open", "🎓",
     paragraph(`Hi ${escapeHtml(toName)},`) +
-    body +
+    paragraph(`Thank you — the <strong>${escapeHtml(program)}</strong> program is yours now. Every course and every lesson under it is open, permanently.`) +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 2px">${detailRows([
       ["Program", program],
-      [half ? "First payment" : "Amount paid", money],
-      ...(half ? [["Balance due", due] as [string, string]] : []),
+      ["Amount paid", money],
       ["Invoice", invoiceNumber ?? "—"],
       ["Date", new Date().toUTCString().slice(0, 16)],
     ])}</table>` +
-    button(siteUrl("/dashboard/courses"), half ? "Start the first lessons" : "Start learning")
+    button(siteUrl("/dashboard/courses"), "Start learning")
   );
   return safely("program receipt", () =>
     sendEmail({
       to,
       toName,
-      subject: half ? `Receipt — first half of ${program}` : `Receipt — ${program}`,
+      subject: `Receipt — ${program}`,
       html,
-      text: half
-        ? `Hi ${toName}, your first payment of ${money} for the ${program} program is confirmed${invoiceNumber ? ` (invoice ${invoiceNumber})` : ""}. The first half of every course is open; the rest opens when you pay the balance of ${due}. Start here: ${siteUrl("/dashboard/courses")}`
-        : `Hi ${toName}, the ${program} program (${money}${invoiceNumber ? `, invoice ${invoiceNumber}` : ""}) is yours now. Start learning: ${siteUrl("/dashboard/courses")}`,
+      text: `Hi ${toName}, the ${program} program (${money}${invoiceNumber ? `, invoice ${invoiceNumber}` : ""}) is yours now. Start learning: ${siteUrl("/dashboard/courses")}`,
     })
   );
 }

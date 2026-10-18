@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireCurrentUser } from "@/lib/require-user";
-import { programLedger } from "@/lib/access";
+import { ownsProgram } from "@/lib/access";
 import { COURSES } from "@/lib/courses";
 import { PROGRAMS } from "@/lib/programs";
 import { contentLessons } from "@/lib/course-content";
@@ -15,19 +15,15 @@ export const metadata: Metadata = { title: "Programs" };
 /**
  * Programs are paths through the catalogue. Buying one program opens every
  * course and lesson inside it. Nothing is free: a lesson opens only once its
- * program is paid for — or, after the first half of the price, once the first
- * half of the program's lessons are open.
+ * program is owned.
  */
 export default async function ProgramsPage() {
   const user = await requireCurrentUser();
-  const ledgers = new Map(PROGRAMS.map((program) => [program.id, programLedger(user, program.id)]));
-  const owned = PROGRAMS.filter((program) => ledgers.get(program.id)?.entitlement === "full");
-  const halfPaid = PROGRAMS.filter((program) => ledgers.get(program.id)?.entitlement === "half");
+  const owned = PROGRAMS.filter((program) => ownsProgram(user, program.id));
 
   const options = PROGRAMS.map((program) => {
     const courses = COURSES.filter((course) => course.category === program.category);
     const lessonCount = courses.reduce((sum, course) => sum + contentLessons(course).length, 0);
-    const ledger = ledgers.get(program.id)!;
     return {
       id: program.id,
       name: program.name,
@@ -35,12 +31,8 @@ export default async function ProgramsPage() {
       description: program.description,
       courseCount: courses.length,
       lessonCount,
-      owned: ledger.entitlement === "full",
-      entitlement: ledger.entitlement,
-      paid: ledger.paid,
-      balance: ledger.balance,
-      halfPrice: ledger.firstPayment,
-      price: ledger.price,
+      owned: ownsProgram(user, program.id),
+      price: programPrice(program.id),
     };
   });
 
@@ -52,9 +44,8 @@ export default async function ProgramsPage() {
           {owned.length > 0 ? "Your programs." : "Buy a program to open it."}
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#756f7b]">
-          One payment opens every course and lesson in a program, permanently — or pay half now and the first half of
-          every course opens, with the balance payable whenever you like. Your progress and certificates are saved to
-          your account.
+          One payment opens every course and lesson in a program, permanently. Your progress and certificates are
+          saved to your account.
         </p>
       </header>
 
@@ -71,30 +62,10 @@ export default async function ProgramsPage() {
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-[#f6f3ff] p-4 text-xs text-[#3d3458]">
           <span>
-            <strong>No program owned yet.</strong> Buy one below to open its courses and lessons — in full, or half now.
+            <strong>No program owned yet.</strong> Buy one below to open its courses and lessons.
           </span>
           <Link href="/dashboard/courses" className="inline-flex items-center gap-1 font-black">
             See the courses <Icon name="arrow-right" size={13} />
-          </Link>
-        </div>
-      )}
-
-      {halfPaid.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
-          <span>
-            <strong>
-              You have paid half of {halfPaid.length} program{halfPaid.length === 1 ? "" : "s"}:
-            </strong>{" "}
-            {halfPaid
-              .map((program) => {
-                const ledger = ledgers.get(program.id)!;
-                return `${program.name} (${formatMoney(ledger.balance)} left)`;
-              })
-              .join(", ")}
-            . The first half of each course is open; paying the balance opens the rest.
-          </span>
-          <Link href="/dashboard/courses" className="inline-flex items-center gap-1 font-black">
-            Keep learning <Icon name="arrow-right" size={13} />
           </Link>
         </div>
       )}
@@ -109,29 +80,13 @@ export default async function ProgramsPage() {
             <p className="mt-1 text-[11px] font-semibold text-[#817a87]">
               {program.courseCount} course{program.courseCount === 1 ? "" : "s"} · {program.lessonCount} lessons
             </p>
-            {program.entitlement === "none" && (
-              <p className="mt-1.5 text-[11px] font-semibold text-[#6d4aff]">
-                or {formatMoney(program.halfPrice)} now — the first half of every course opens
-              </p>
-            )}
-            {program.entitlement === "half" && (
-              <p className="mt-1.5 text-[11px] font-semibold text-amber-700">
-                Half paid · {formatMoney(program.paid)} paid, {formatMoney(program.balance)} to go
-              </p>
-            )}
             {program.owned ? (
               <Link href="/dashboard/courses" className="mt-5 rounded-xl bg-[#6d4aff] px-4 py-3 text-center text-xs font-extrabold text-white">
                 Open the courses
               </Link>
             ) : (
               <div className="mt-5">
-                <BuyProgram
-                  programId={program.id}
-                  programName={program.name}
-                  price={program.price}
-                  entitlement={program.entitlement}
-                  balance={program.balance}
-                />
+                <BuyProgram programId={program.id} programName={program.name} price={program.price} />
               </div>
             )}
           </article>

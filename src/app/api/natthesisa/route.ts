@@ -3,8 +3,8 @@ import { unstable_rethrow } from "next/navigation";
 import { answer, greeting, type AgentReply, type ChatContext, type ChatMessage, type QuizState } from "@/lib/natthesisa";
 import { getCurrentUser } from "@/lib/session";
 import { getCourse } from "@/lib/courses";
-import { contentLessons, findContentLesson } from "@/lib/course-content";
-import { lessonAccess } from "@/lib/access";
+import { findContentLesson } from "@/lib/course-content";
+import { courseAccess } from "@/lib/access";
 import type { User } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -101,9 +101,9 @@ function cleanQuiz(value: unknown): QuizState | null {
 
 /**
  * Lesson text is added only after validating the course and lesson IDs, and
- * only for a signed-in student who may open that lesson — the whole program, or
- * the first half of it after a half payment, exactly as the lesson page itself
- * decides it. Course titles are public catalogue facts and always pass through.
+ * only for a signed-in student who owns the course's program — the same check
+ * as the lesson page itself. Course titles are public catalogue facts and
+ * always pass through.
  */
 function verifiedContext(context: ChatContext, user: User | null): ChatContext {
   const safe: ChatContext = { url: context.url };
@@ -113,10 +113,10 @@ function verifiedContext(context: ChatContext, user: User | null): ChatContext {
   safe.courseId = course.id;
   safe.courseTitle = course.title;
   if (!context.lessonId) return safe;
+  if (!courseAccess(user, course).allowed) return safe;
 
   const lesson = findContentLesson(course, context.lessonId);
   if (!lesson) return safe;
-  if (!lessonAccess(user, course, lesson, contentLessons(course).map((item) => item.id)).allowed) return safe;
   safe.lessonId = lesson.id;
   safe.lessonTitle = lesson.title;
   safe.lessonSummary = lesson.summary.slice(0, 1200);
@@ -141,7 +141,7 @@ Programs & courses:
 - Software Engineering: Practices (Git/testing), System Design, DevOps & Delivery
 - Vibe Coding: Ship with AI (beginner), AI Apps Agents & APIs
 - App Development: Mobile Apps with React Native. Backend: Node.js APIs. Cyber Security: Cyber Security Foundations (networking, Linux, Python for security); Cyber Security: Offense and Defense (web security, ethical hacking, defensive security); Cloud Security (cloud identity and access, workloads and data, posture and response).
-Course overviews are public. Lessons open only for signed-in students who have paid for the program the course belongs to — and a program may be paid in two parts, where the first half opens the first half of every course in it and the balance opens the rest; progress is saved and certificates are earned in the account; certificates carry QR verification at /verify. Find courses at /courses, program details at /pricing, and sign in at /login.
+Course overviews are public. Lessons open only for signed-in students who own the program the course belongs to; progress is saved and certificates are earned in the account; certificates carry QR verification at /verify. Find courses at /courses, program details at /pricing, and sign in at /login.
 
 You are a patient tutor first: explain ideas clearly, ask students to think, and give a hint before a full solution when it helps learning. When the student asks for code, provide complete, readable examples with markdown fences and a short explanation; you can generate code, websites, and React Native mobile-app starters. Do not claim an app has been published or built into an installable binary. Never include real credentials or encourage putting secrets in browser/mobile code. Never invent course names, prices, or platform features. If catalog-verified lesson notes are supplied below, use them as the source of truth for that lesson; do not invent lesson details that are not in the notes. Keep answers concise unless explaining code.`;
 

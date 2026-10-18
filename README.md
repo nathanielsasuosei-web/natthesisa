@@ -68,11 +68,6 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Program prices are set by the teacher (default GH₵300 per program). A
   program bought through checkout is recorded as an owned program, and
   owning it opens every course and lesson in it.
-- A program may also be paid in two parts. Paying half opens the first half
-  of every course in the program — rounded up, so 3 of 6 lessons or 4 of 7 —
-  and the balance opens the rest, permanently. Neither half expires, and the
-  two payments are separate rows in the register, so the account history
-  shows exactly what was paid for what.
 - A paused account cannot open lessons, even if it owns the program.
 - Existing invoices remain in account history. The pricing page shows the
   current prices.
@@ -915,12 +910,7 @@ students honestly whether MoMo is live yet.
    (`src/components/CheckoutModal.tsx`).
 2. `POST /api/checkout` prices the item from the teacher's console prices and
    writes a `pending` row to the `payments` table, keyed by a `CMG-…`
-   reference — *before* any provider is called. A program payment carries a
-   `covers` field — `half` (half the price, first half of the program open)
-   or `balance`/`full` (the rest, or everything in one go) — and every later
-   step is ruled by that field rather than by the amount, so a price change
-   between checkout and approval can never widen or narrow what a payment
-   opens.
+   reference — *before* any provider is called.
 3. Live: Paystack returns an `authorization_url` and the browser goes there to
    pay. Demo: the UI simulates the approval prompt instead.
 4. Paystack returns the browser to `/api/checkout/callback`, which verifies
@@ -931,11 +921,7 @@ students honestly whether MoMo is live yet.
    whose HMAC-SHA512 signature is verified before anything is read from it.
 6. Both paths call `fulfillPayment()` in `src/lib/payments.ts`, which grants
    the pass / course / lesson, raises the invoice (carrying the `CMG-…`
-   reference) and emails the receipt. A program payment that arrives for more
-   than was still owed — an older checkout approved *after* a newer one
-   already paid part of the program — is capped at what was owed, and the
-   excess is refunded: recorded in the student's activity history and logged
-   loudly for the teacher if Paystack refuses the refund.
+   reference) and emails the receipt.
 
 Fulfilment is **idempotent**: the `payments` row flips `pending` → `paid`
 once, and every later report of the same reference (or the same provider

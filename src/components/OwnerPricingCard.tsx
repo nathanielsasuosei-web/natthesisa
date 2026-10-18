@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatMoney, halfAmount } from "@/lib/pass-periods";
+import { formatMoney } from "@/lib/pass-periods";
 import Icon from "./Icon";
 
 interface PriceRow {
@@ -23,10 +23,6 @@ interface Props {
  * price of each program. A program priced at GH₵0 is free to join, with no
  * checkout. Prices take effect on the next page render — nothing is hardcoded
  * anywhere else.
- *
- * Each row also shows what a half payment comes to, because that is the other
- * number a student can be charged: half of the price now opens the first half
- * of every course in the program, and the balance opens the rest.
  */
 export default function OwnerPricingCard({ programs }: Props) {
   const router = useRouter();
@@ -70,10 +66,6 @@ export default function OwnerPricingCard({ programs }: Props) {
           <p className="mt-1 text-[10px] text-[#918a97]">
             What each program costs. Change anything, any time — GH₵0 means free to join.
           </p>
-          <p className="mt-1 text-[10px] text-[#918a97]">
-            Students may also pay half now (the figure under each price), which opens the first half of every course; the
-            balance opens the rest.
-          </p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#f0ecff] px-2.5 py-1.5 text-[9px] font-black text-[#5e3de0]">
           <Icon name="card" size={12} /> Live prices
@@ -85,15 +77,7 @@ export default function OwnerPricingCard({ programs }: Props) {
           <div key={row.id} className="flex items-center gap-3 py-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-extrabold text-[#332e39]">{row.title}</p>
-              <p className="mt-0.5 truncate text-[10px] text-[#9a939f]">
-                {row.courseTitle}
-                {row.price > 0 && (
-                  <span className="ml-1 font-semibold text-[#6d4aff]">
-                    · half now {formatMoney(halfAmount(row.price))}, balance{" "}
-                    {formatMoney(Math.max(0, row.price - halfAmount(row.price)))}
-                  </span>
-                )}
-              </p>
+              <p className="mt-0.5 truncate text-[10px] text-[#9a939f]">{row.courseTitle}</p>
             </div>
             <span className="text-[10px] font-bold text-[#817a87]">{formatMoney(row.price)}</span>
             <span className="flex items-center gap-1.5">

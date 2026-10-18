@@ -51,7 +51,6 @@ create table if not exists payments (
      course_id         text,
      lesson_id         text,
      program_id        text,
-     covers            text check (covers in ('half', 'full', 'balance')),
      amount            integer not null check (amount >= 0),
      currency          text not null default 'GHS',
      description       text not null,
@@ -192,12 +191,6 @@ alter table payments add column if not exists program_id text;
 alter table payments drop constraint if exists payments_kind_check;
 
 alter table payments add constraint payments_kind_check check (kind in ('pass', 'course', 'lesson', 'program')) not valid;
-
-alter table payments add column if not exists covers text;
-
-alter table payments drop constraint if exists payments_covers_check;
-
-alter table payments add constraint payments_covers_check check (covers is null or covers in ('half', 'full', 'balance')) not valid;
 
 alter table payments add column if not exists amount integer;
 

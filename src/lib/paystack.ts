@@ -195,19 +195,11 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
 }
 
 /**
- * Returns a payment to the customer, all of it or part of it. Best-effort:
- * callers log failures loudly for the teacher, who refunds from the Paystack
- * dashboard instead.
- *
- * The partial form is used when a payment was larger than what the student
- * still owed — a stale checkout paid after the price was already met — so the
- * excess goes back without taking back access that was paid for.
+ * Returns a payment to the customer. Best-effort: callers log failures loudly
+ * for the teacher, who refunds from the Paystack dashboard instead.
  */
-export async function refundTransaction(reference: string, amountGhs?: number): Promise<void> {
-  const body: Record<string, unknown> = { transaction: reference };
-  // Paystack takes the refund amount in the currency's smallest unit (pesewas).
-  if (amountGhs !== undefined) body.amount = Math.round(amountGhs * 100);
-  await api<unknown>("/refund", { method: "POST", body });
+export async function refundTransaction(reference: string): Promise<void> {
+  await api<unknown>("/refund", { method: "POST", body: { transaction: reference } });
 }
 
 /**

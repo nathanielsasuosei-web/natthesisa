@@ -88,11 +88,6 @@ export const SCHEMA_STATEMENTS: string[] = [
   // provider's own event id for the same reason. Only `program` rows are
   // created now; the pass / course / lesson kinds stay valid so payments
   // already in flight can still fulfil.
-  //
-  // `covers` says how much of a program this checkout pays for: `half` (the
-  // first payment, which opens the first half of every course), `balance` (the
-  // second, which opens the rest) or `full` (paid in one go). Rows written
-  // before part payments existed leave it null, and a null is read as `full`.
   `create table if not exists payments (
      reference         text primary key,
      user_id           text not null references users(id) on delete cascade,
@@ -101,7 +96,6 @@ export const SCHEMA_STATEMENTS: string[] = [
      course_id         text,
      lesson_id         text,
      program_id        text,
-     covers            text check (covers in ('half', 'full', 'balance')),
      amount            integer not null check (amount >= 0),
      currency          text not null default 'GHS',
      description       text not null,
@@ -266,13 +260,6 @@ export const MIGRATION_STATEMENTS: string[] = [
   // hand-made table already holds — the check still guards every new row.
   `alter table payments drop constraint if exists payments_kind_check`,
   `alter table payments add constraint payments_kind_check check (kind in ('pass', 'course', 'lesson', 'program')) not valid`,
-  // Part payments: which checkout a row is. A table from an older build has no
-  // such column, so it is added here (nullable — every row already in it was a
-  // payment for the whole item) and then guarded the same idempotent way as
-  // `kind` above.
-  `alter table payments add column if not exists covers text`,
-  `alter table payments drop constraint if exists payments_covers_check`,
-  `alter table payments add constraint payments_covers_check check (covers is null or covers in ('half', 'full', 'balance')) not valid`,
   `alter table payments add column if not exists amount integer`,
   `alter table payments add column if not exists currency text`,
   `alter table payments add column if not exists description text`,

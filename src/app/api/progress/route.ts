@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCourse } from "@/lib/courses";
-import { contentLessons, contentPercent, findContentLesson } from "@/lib/course-content";
+import { contentPercent, findContentLesson } from "@/lib/course-content";
 import { accessMessage, lessonAccess } from "@/lib/access";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { getOrCreateProgress, recordLessonProgress, saveUser } from "@/lib/store";
@@ -18,9 +18,7 @@ export async function POST(req: NextRequest) {
   const course = getCourse(courseId);
   const lesson = course ? findContentLesson(course, lessonId) : undefined;
   if (!course || !lesson) return NextResponse.json({ error: "Course or lesson not found." }, { status: 404 });
-  // The course's order decides whether a half payment opened this lesson, so it
-  // is resolved here and not left to the catalog-only fallback.
-  const access = lessonAccess(user, course, lesson, contentLessons(course).map((item) => item.id));
+  const access = lessonAccess(user, course, lesson);
   if (!access.allowed) {
     return NextResponse.json(
       { error: accessMessage(access, course.shortTitle), code: "ACCESS_REQUIRED", reason: access.reason },
