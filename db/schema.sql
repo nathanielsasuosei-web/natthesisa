@@ -12,6 +12,7 @@ create table if not exists app_state (
 
 create table if not exists users (
      id                text primary key,
+     student_id        text,
      email             text not null,
      name              text not null,
      password_hash     text not null,
@@ -50,6 +51,7 @@ create table if not exists payments (
      course_id         text,
      lesson_id         text,
      program_id        text,
+     covers            text check (covers in ('half', 'full', 'balance')),
      amount            integer not null check (amount >= 0),
      currency          text not null default 'GHS',
      description       text not null,
@@ -113,6 +115,14 @@ alter table users add column if not exists email text;
 alter table users add column if not exists name text;
 
 alter table users add column if not exists password_hash text;
+
+alter table users add column if not exists student_id text;
+
+create sequence if not exists student_id_seq start 1001;
+
+update users set student_id = 'CMG-' || to_char(coalesce(created_at, now()), 'YYYY') || '-' || lpad(nextval('student_id_seq')::text, 5, '0') where student_id is null;
+
+create unique index if not exists users_student_id_key on users (student_id);
 
 update users set subscription = jsonb_build_object('period', 'monthly', 'price', 0, 'startedAt', to_jsonb(now()), 'expiresAt', to_jsonb(now())) where subscription is null or subscription = '{}'::jsonb;
 
@@ -182,6 +192,12 @@ alter table payments add column if not exists program_id text;
 alter table payments drop constraint if exists payments_kind_check;
 
 alter table payments add constraint payments_kind_check check (kind in ('pass', 'course', 'lesson', 'program')) not valid;
+
+alter table payments add column if not exists covers text;
+
+alter table payments drop constraint if exists payments_covers_check;
+
+alter table payments add constraint payments_covers_check check (covers is null or covers in ('half', 'full', 'balance')) not valid;
 
 alter table payments add column if not exists amount integer;
 

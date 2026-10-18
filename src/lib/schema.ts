@@ -41,6 +41,7 @@ export const SCHEMA_STATEMENTS: string[] = [
 
   `create table if not exists users (
      id                text primary key,
+     student_id        text,
      email             text not null,
      name              text not null,
      password_hash     text not null,
@@ -179,6 +180,17 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table users add column if not exists email text`,
   `alter table users add column if not exists name text`,
   `alter table users add column if not exists password_hash text`,
+
+  // Every registered student carries a public student number (`CMG-2026-00042`)
+  // shown on their page and dashboard. Numbers come from a sequence, so they
+  // are unique and issue in join order even under concurrent sign-ups. The
+  // column is added nullable and backfilled below (older rows are numbered by
+  // their join year), then locked unique — the database, not the app, is what
+  // refuses a duplicate number.
+  `alter table users add column if not exists student_id text`,
+  `create sequence if not exists student_id_seq start 1001`,
+  `update users set student_id = 'CMG-' || to_char(coalesce(created_at, now()), 'YYYY') || '-' || lpad(nextval('student_id_seq')::text, 5, '0') where student_id is null`,
+  `create unique index if not exists users_student_id_key on users (student_id)`,
 
   // Backfill the jsonb columns the canonical schema declares NOT NULL with
   // the exact shapes `createAccount()` writes (an empty '{}' is not enough:
@@ -498,6 +510,7 @@ end $$`,
 /** Rows in `users` as the database sees them. */
 export interface UserRow {
   id: string;
+  student_id: string | null;
   email: string;
   name: string;
   password_hash: string;

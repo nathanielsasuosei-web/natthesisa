@@ -27,6 +27,8 @@ interface WindowState {
   phase: "open" | "closing";
   /** Bumped on every open so the form starts fresh each time. */
   key: number;
+  /** Where to land after signing in — the page the student opened this from. */
+  next: string | null;
 }
 
 const EXIT_MS = 260;
@@ -51,7 +53,15 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
 
   const open = useCallback((mode: AuthWindowMode = "signin") => {
     returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setState((current) => ({ mode, phase: "open", key: (current?.key ?? 0) + 1 }));
+    // Sign-in is a full page change (password or a provider round-trip), so the
+    // student comes back to the page this window was opened from.
+    const path = `${window.location.pathname}${window.location.search}`;
+    setState((current) => ({
+      mode,
+      phase: "open",
+      key: (current?.key ?? 0) + 1,
+      next: path.startsWith("/") ? path : null,
+    }));
   }, []);
 
   const close = useCallback(() => {
@@ -149,7 +159,7 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
               </>
             ) : (
               <>
-                <AuthForm key={state.key} initialMode={state.mode} />
+                <AuthForm key={state.key} initialMode={state.mode} next={state.next} />
               </>
             )}
           </div>

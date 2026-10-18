@@ -9,6 +9,7 @@ import { contentTotals } from "@/lib/course-content";
 import { PROGRAMS } from "@/lib/programs";
 import { ensureContentReady } from "@/lib/bootstrap";
 import { safeNextPath } from "@/lib/safe-next";
+import { oauthErrorMessage } from "@/lib/oauth";
 
 // The page reads the session cookie, so it can never be prerendered. Saying so
 // keeps the build from attempting a static pass (and logging a failure) first.
@@ -28,10 +29,12 @@ async function signedInUser() {
   }
 }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ mode?: string; next?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ mode?: string; next?: string; oauth?: string }> }) {
   const params = await searchParams;
   // A lesson sends the visitor here with `next`, so they land back on it.
   const next = safeNextPath(params.next);
+  // A social sign-in that came back without an account explains itself here.
+  const socialError = oauthErrorMessage(params.oauth);
   const user = await signedInUser();
   if (user) redirect(next ?? (user.role === "owner" ? "/owner" : "/dashboard"));
   const initialMode = params.mode === "signup" ? "signup" : params.mode === "forgot" ? "forgot" : "signin";
@@ -71,7 +74,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="absolute left-5 top-5 lg:hidden"><Logo /></div>
         <Link href="/" className="absolute right-6 top-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#77717e] transition hover:text-[#5e3ce8]"><Icon name="arrow-left" size={14} /> Back to home</Link>
         <div className="w-full max-w-[430px] border-y border-[#ded9e3] py-8">
-          <AuthForm initialMode={initialMode} next={next} />
+          <AuthForm initialMode={initialMode} next={next} socialError={socialError} />
           <p className="mt-6 text-center text-[10px] text-[#918a97]">
             <Link href="/owner-sign-in" className="font-bold text-[#6543e8]">
               codemaster

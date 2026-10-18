@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { COUNTRIES } from "@/lib/countries";
 import type { LearnerProfile } from "@/lib/store";
 import ProfilePhotoCard from "./ProfilePhotoCard";
 import Icon from "./Icon";
@@ -10,6 +11,10 @@ interface Props {
   name: string;
   email: string;
   profile: LearnerProfile;
+  /** The public student number shown on the student's page and dashboard. */
+  studentId: string;
+  /** True for accounts created through Google / Facebook / Apple: they have no site password yet. */
+  passwordless?: boolean;
   /** The account's picture (`/api/account/avatar…`), or null for initials. */
   avatarSrc?: string | null;
   avatarSize?: number | null;
@@ -20,6 +25,8 @@ export default function AccountForm({
   name: initialName,
   email,
   profile: initialProfile,
+  studentId,
+  passwordless = false,
   avatarSrc = null,
   avatarSize = null,
   avatarName = null,
@@ -27,6 +34,8 @@ export default function AccountForm({
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [headline, setHeadline] = useState(initialProfile.headline);
+  const [country, setCountry] = useState(initialProfile.country ?? "");
+  const [city, setCity] = useState(initialProfile.city ?? "");
   const [track, setTrack] = useState(initialProfile.track);
   const [experience, setExperience] = useState(initialProfile.experience);
   const [weeklyGoal, setWeeklyGoal] = useState(initialProfile.weeklyGoal);
@@ -51,14 +60,21 @@ export default function AccountForm({
       const response = await fetch("/api/account", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        // An account with no password yet has no current password to check:
+        // this request simply sets the first one.
+        body: JSON.stringify(passwordless ? { newPassword } : { currentPassword, newPassword }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setPasswordMessage({ type: "error", text: data.error ?? "Your password could not be changed." });
         return;
       }
-      setPasswordMessage({ type: "ok", text: "Password changed. Use it the next time you sign in." });
+      setPasswordMessage({
+        type: "ok",
+        text: passwordless
+          ? "Password set. You can now sign in with your email too."
+          : "Password changed. Use it the next time you sign in.",
+      });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -78,7 +94,7 @@ export default function AccountForm({
       const response = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, headline, track, experience, weeklyGoal }),
+        body: JSON.stringify({ name, headline, country, city, track, experience, weeklyGoal }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -106,7 +122,17 @@ export default function AccountForm({
         <div className="grid gap-5 py-6 sm:grid-cols-2">
           <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Full name</span><input value={name} onChange={(event) => setName(event.target.value)} className={inputClass} /></label>
           <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Email address</span><div className="relative"><input value={email} readOnly className={`${inputClass} bg-[#f7f6f8] pr-16 text-[#817a87]`} /><span className="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-[8px] font-black uppercase tracking-wider text-[#aaa4b0]">Verified</span></div></label>
+          <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Country</span><select value={country} onChange={(event) => setCountry(event.target.value)} className={inputClass}><option value="">Not set</option>{COUNTRIES.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+          <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">City / town</span><input value={city} onChange={(event) => setCity(event.target.value)} maxLength={80} placeholder="e.g. Accra" className={inputClass} /></label>
           <label className="block sm:col-span-2"><span className="text-[10px] font-bold text-[#5f5965]">Learning headline</span><input value={headline} onChange={(event) => setHeadline(event.target.value)} maxLength={120} placeholder="What are you working toward?" className={inputClass} /><span className="mt-1 block text-right text-[8px] text-[#aaa4b0]">{headline.length}/120</span></label>
+          <div className="sm:col-span-2">
+            <span className="text-[10px] font-bold text-[#5f5965]">Student ID</span>
+            <div className="relative">
+              <input value={studentId} readOnly className={`${inputClass} bg-[#f7f6f8] font-mono tracking-[.08em] text-[#4d4753]`} />
+              <span className="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-[8px] font-black uppercase tracking-wider text-[#aaa4b0]">Issued at registration</span>
+            </div>
+            <span className="mt-1 block text-[8px] leading-4 text-[#aaa4b0]">Your permanent learner number — it appears on your dashboard and is what the teacher identifies your work by.</span>
+          </div>
         </div>
       </section>
 
@@ -124,16 +150,16 @@ export default function AccountForm({
       </form>
 
       <section className="open-surface">
-        <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">Password</h2><p className="mt-1 text-[10px] text-[#918a97]">Your password is hashed with scrypt before it is stored. Changing it signs nobody else out — the new password is required at your next sign-in.</p></div>
-        <div className="grid gap-5 py-6 sm:grid-cols-3">
-          <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Current password</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" className={inputClass} /></label>
+        <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">{passwordless ? "Set a password" : "Password"}</h2><p className="mt-1 text-[10px] text-[#918a97]">{passwordless ? "You signed in with Google, Facebook or Apple. Setting a password also lets you sign in with your email — your account and student ID stay the same." : "Your password is hashed with scrypt before it is stored. Changing it signs nobody else out — the new password is required at your next sign-in."}</p></div>
+        <div className={`grid gap-5 py-6 ${passwordless ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+          {!passwordless && <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Current password</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" className={inputClass} /></label>}
           <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">New password</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" placeholder="At least 8 characters" className={inputClass} /></label>
           <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Repeat new password</span><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" className={inputClass} /></label>
         </div>
         {passwordMessage && <div className={`mb-4 rounded-xl border px-4 py-3 text-xs font-semibold ${passwordMessage.type === "ok" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>{passwordMessage.text}</div>}
         <div className="flex justify-end pb-1">
-          <button type="button" onClick={changePassword} disabled={passwordBusy || !currentPassword || !newPassword} className="inline-flex items-center gap-2 rounded-xl border border-[#ddd9e2] bg-white px-5 py-3 text-xs font-extrabold text-[#5e5864] transition hover:border-violet-300 disabled:opacity-50">
-            <Icon name="lock" size={14} /> {passwordBusy ? "Updating…" : "Change password"}
+          <button type="button" onClick={changePassword} disabled={passwordBusy || (passwordless ? !newPassword : !currentPassword || !newPassword)} className="inline-flex items-center gap-2 rounded-xl border border-[#ddd9e2] bg-white px-5 py-3 text-xs font-extrabold text-[#5e5864] transition hover:border-violet-300 disabled:opacity-50">
+            <Icon name="lock" size={14} /> {passwordBusy ? "Updating…" : passwordless ? "Set password" : "Change password"}
           </button>
         </div>
       </section>

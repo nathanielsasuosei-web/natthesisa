@@ -35,7 +35,9 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, programs = [
   const users = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return initialUsers.filter((user) => {
-      const queryMatch = !needle || `${user.name} ${user.email}`.toLowerCase().includes(needle);
+      const queryMatch =
+        !needle ||
+        `${user.name} ${user.email} ${user.studentId} ${user.location}`.toLowerCase().includes(needle);
       const filterMatch =
         filter === "all" ||
         (filter === "active" && !user.suspended) ||
@@ -151,7 +153,8 @@ export default function OwnerStudentsTable({ initialUsers, ownerId, programs = [
                           {user.owner && <span className="rounded-full bg-[#ffcf59] px-1.5 py-0.5 text-[7px] font-black uppercase text-[#4a3600]">Teacher</span>}
                         </p>
                         <p className="mt-0.5 max-w-44 truncate text-[9px] text-[#918a97]">{user.email}</p>
-                        <p className="mt-0.5 text-[8px] text-[#b0aab5]">Joined {fmtDate(user.createdAt)}</p>
+                        <p className="mt-0.5 font-mono text-[8px] font-bold tracking-[.06em] text-[#7a5af0]">{user.studentId}</p>
+                        <p className="mt-0.5 text-[8px] text-[#b0aab5]">{user.location ? `${user.location} · ` : ""}Joined {fmtDate(user.createdAt)}</p>
                       </div>
                     </div>
                   </td>

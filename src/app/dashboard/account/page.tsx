@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireCurrentUser } from "@/lib/require-user";
 import { getProgram } from "@/lib/programs";
 import { isOwner } from "@/lib/owner";
+import { isPasswordless } from "@/lib/passwords";
 import { fmtBytes, fmtDate, initials } from "@/lib/format";
 import { avatarHref } from "@/lib/avatars";
 import AccountForm from "@/components/AccountForm";
@@ -16,6 +17,7 @@ export default async function AccountPage() {
   const owned = user.purchases.filter((purchase) => purchase.kind === "program");
   const owner = isOwner(user);
   const avatarSrc = avatarHref(user);
+  const location = [user.profile.city, user.profile.country].filter(Boolean).join(", ");
   return (
     <div className="space-y-10">
       <header><p className="text-xs font-bold text-[#8a8390]">Settings</p><h1 className="mt-1 text-2xl font-black tracking-[-.04em] sm:text-3xl">My account</h1><p className="mt-1.5 text-sm text-[#756f7b]">Manage your profile and shape your learning experience.</p></header>
@@ -24,15 +26,21 @@ export default async function AccountPage() {
           name={user.name}
           email={user.email}
           profile={user.profile}
+          studentId={user.studentId}
+          passwordless={isPasswordless(user)}
           avatarSrc={avatarSrc}
           avatarSize={user.avatar?.size ?? null}
           avatarName={user.avatar?.name ?? null}
         />
         <aside className="space-y-5 xl:order-last">
-          <section className="open-surface py-6 text-center"><span className="mx-auto grid size-16 place-items-center overflow-hidden rounded-[22px] bg-[#1b1822] text-lg font-black text-[#c3b6ff]">{user.avatar ? <AvatarImage name={user.name} src={avatarSrc} /> : initials(user.name)}</span><h2 className="mt-3 text-sm font-extrabold">{user.name}</h2><p className="mt-1 text-[10px] text-[#918a97]">{user.profile.headline}</p><div className="mt-4 flex justify-center gap-2"><span className="rounded-full bg-[#f0ecff] px-2.5 py-1 text-[9px] font-bold text-[#5e3de0]">{user.profile.track}</span>{owner && <span className="rounded-full bg-[#1b1822] px-2.5 py-1 text-[9px] font-bold text-white">Teacher</span>}</div></section>
+          <section className="open-surface py-6 text-center"><span className="mx-auto grid size-16 place-items-center overflow-hidden rounded-[22px] bg-[#1b1822] text-lg font-black text-[#c3b6ff]">{user.avatar ? <AvatarImage name={user.name} src={avatarSrc} /> : initials(user.name)}</span><h2 className="mt-3 text-sm font-extrabold">{user.name}</h2><p className="mt-1 text-[10px] text-[#918a97]">{user.profile.headline}</p><div className="mt-4 flex flex-wrap justify-center gap-2"><span className="rounded-full bg-[#f0ecff] px-2.5 py-1 text-[9px] font-bold text-[#5e3de0]">{user.profile.track}</span>{owner && <span className="rounded-full bg-[#1b1822] px-2.5 py-1 text-[9px] font-bold text-white">Teacher</span>}</div></section>
+          <section className="open-surface overflow-hidden py-0">
+            <div className="flex items-center justify-between border-b border-[#ece9ef] bg-gradient-to-r from-[#f4f0ff] to-white px-5 py-4"><div><p className="text-[9px] font-black uppercase tracking-[.14em] text-[#7a5af0]">Student ID</p><p className="mt-1 font-mono text-base font-black tracking-[.08em] text-[#241f2c]">{user.studentId}</p></div><span className="grid size-10 place-items-center rounded-xl bg-white text-[#6d4aff] shadow-sm"><Icon name="certificate" size={19} /></span></div>
+            <div className="px-5 py-4"><p className="text-[9px] leading-4 text-[#8d8794]">Your permanent learner number at codemasterghana. Share it with your teacher when they ask for it — it identifies your work, certificates and payments.</p>{location && <p className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-[#5e5865]"><Icon name="globe" size={12} className="text-[#8f8898]" />{location}</p>}</div>
+          </section>
           <section className="open-surface py-5"><div className="flex items-center justify-between"><span className="grid size-9 place-items-center rounded-xl bg-[#f0ecff] text-[#6d4aff]"><Icon name="spark" size={17} /></span><span className="rounded-full bg-[#f0ecff] px-2 py-1 text-[8px] font-black uppercase text-[#5e3de0]">{owned.length} owned</span></div><h2 className="mt-4 text-sm font-extrabold">My programs</h2><p className="mt-1 text-[10px] text-[#918a97]">{owned.length ? owned.map((purchase) => getProgram(purchase.refId)?.name ?? purchase.refId).join(", ") : "No program yet. Buy one to open its courses and lessons."}</p><Link href="/dashboard/courses" className="mt-4 block rounded-xl border border-[#e2dee6] py-2.5 text-center text-[10px] font-bold text-[#5e5864]">Browse courses</Link></section>
-          <section className="open-surface py-5"><h2 className="text-xs font-extrabold">Security</h2><div className="mt-4 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><Icon name="shield" size={17} /></span><div><p className="text-[10px] font-bold">Password protected</p><p className="mt-0.5 text-[9px] text-[#918a97]">Hashed with scrypt · signed session</p></div></div><p className="mt-4 text-[9px] leading-4 text-[#9a939f]">Change your password in the Password section of the form on this page.</p></section>
-          <p className="px-1 text-[9px] leading-4 text-[#9a939f]">Account created {fmtDate(user.createdAt)} · Student ID {user.id.slice(0, 8)}{user.avatar ? ` · Picture ${fmtBytes(user.avatar.size)}` : ""}</p>
+          <section className="open-surface py-5"><h2 className="text-xs font-extrabold">Security</h2><div className="mt-4 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><Icon name="shield" size={17} /></span><div><p className="text-[10px] font-bold">{isPasswordless(user) ? "Signed in with a provider" : "Password protected"}</p><p className="mt-0.5 text-[9px] text-[#918a97]">Hashed with scrypt · signed session</p></div></div><p className="mt-4 text-[9px] leading-4 text-[#9a939f]">{isPasswordless(user) ? "Set a password in the Password section of the form on this page to also sign in with your email." : "Change your password in the Password section of the form on this page."}</p></section>
+          <p className="px-1 text-[9px] leading-4 text-[#9a939f]">Account created {fmtDate(user.createdAt)}{user.avatar ? ` · Picture ${fmtBytes(user.avatar.size)}` : ""}</p>
         </aside>
       </div>
     </div>
