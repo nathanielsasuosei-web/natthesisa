@@ -20,11 +20,11 @@ const P = 1;
 const KEY_LENGTH = 64;
 
 /**
- * What is stored instead of a hash for accounts created through Google,
- * Facebook or Apple. It is not a scrypt string, so `verifyPasswordHash()`
+ * What is stored instead of a hash for legacy accounts that have no password.
+ * It is not a scrypt string, so \`verifyPasswordHash()\`
  * rejects every password against it — password sign-in stays closed until the
  * student sets a password from their account page. The account pages use
- * `isPasswordless()` to offer exactly that instead of "change password".
+ * \`isPasswordless()\` to offer exactly that instead of "change password".
  */
 export const PASSWORDLESS_MARKER = "!passwordless";
 

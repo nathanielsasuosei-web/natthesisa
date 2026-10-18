@@ -418,11 +418,7 @@ export async function nextStudentId(): Promise<string> {
 interface CreateUserOptions {
   name: string;
   email: string;
-  /**
-   * The password to store, or `null` for accounts created through Google /
-   * Facebook / Apple — those have no site password yet (the stored marker
-   * never verifies), and the student can set one later from their account page.
-   */
+  /** The password to store, or `null` for accounts with no password yet. */
   password: string | null;
   role?: User["role"];
   owner?: boolean;
@@ -493,29 +489,6 @@ export async function createUser(
     city: location.city,
   });
   logActivity(user, "Account created — no access pass yet", "account");
-  await saveUser(user);
-  return user;
-}
-
-/**
- * Sign-up used by the Google / Facebook / Apple buttons: same account, same
- * student number, but no site password — the provider is the way in until the
- * student sets one from their account page.
- */
-export async function createSocialUser(
-  name: string,
-  email: string,
-  provider: string,
-  location: { country?: string; city?: string } = {}
-): Promise<User> {
-  const user = await createAccount({
-    name,
-    email,
-    password: null,
-    country: location.country,
-    city: location.city,
-  });
-  logActivity(user, `Account created — signed up with ${provider}`, "account");
   await saveUser(user);
   return user;
 }
