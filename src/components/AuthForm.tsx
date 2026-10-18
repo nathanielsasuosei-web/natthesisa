@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
+import { COUNTRIES } from "@/lib/countries";
 import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
 import PasswordStrength from "./PasswordStrength";
+import SocialAuthButtons from "./SocialAuthButtons";
 
 type Mode = "signin" | "signup" | "forgot";
 type TabMode = Exclude<Mode, "forgot">;
@@ -12,6 +14,8 @@ interface Props {
   initialMode?: Mode;
   /** A same-site path to open after signing in, e.g. the lesson that asked for it. */
   next?: string | null;
+  /** An explanation of a social sign-in that came back short, e.g. `?oauth=denied`. */
+  socialError?: string | null;
 }
 
 const fieldClass =
@@ -25,11 +29,13 @@ function clock(seconds: number): string {
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-export default function AuthForm({ initialMode = "signin", next = null }: Props) {
+export default function AuthForm({ initialMode = "signin", next = null, socialError = null }: Props) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [capsOn, setCapsOn] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -87,6 +93,14 @@ export default function AuthForm({ initialMode = "signin", next = null }: Props)
       fail("Please enter your full name.");
       return;
     }
+    if (mode === "signup" && !country) {
+      fail("Choose your country.");
+      return;
+    }
+    if (mode === "signup" && city.trim().length < 2) {
+      fail("Enter your city or town.");
+      return;
+    }
     if (!email.trim() || !password) {
       fail("Enter your email and password.");
       return;
@@ -98,7 +112,7 @@ export default function AuthForm({ initialMode = "signin", next = null }: Props)
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, name, email, password }),
+        body: JSON.stringify({ mode, name, email, password, country, city }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -254,8 +268,28 @@ export default function AuthForm({ initialMode = "signin", next = null }: Props)
             <div className="relative"><Icon name="mail" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" className={fieldClass} /></div>
           </label>
 
+          {mode === "signup" && (
+            <div className="auth-field grid grid-cols-2 gap-3" style={stagger(2)}>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-bold text-[#4d4753]">Country</span>
+                <div className="relative">
+                  <Icon name="globe" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" />
+                  <select value={country} onChange={(event) => setCountry(event.target.value)} autoComplete="country-name" className={`${fieldClass} appearance-none pr-8`}>
+                    <option value="">Select country</option>
+                    {COUNTRIES.map((name) => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                  <Icon name="chevron-down" size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9b94a2]" />
+                </div>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-bold text-[#4d4753]">City / town</span>
+                <div className="relative"><Icon name="home" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9b94a2]" /><input value={city} onChange={(event) => setCity(event.target.value)} autoComplete="address-level2" placeholder="e.g. Accra" className={fieldClass} /></div>
+              </label>
+            </div>
+          )}
+
           {mode !== "forgot" && (
-            <label className="auth-field block" style={stagger(mode === "signup" ? 2 : 1)}>
+            <label className="auth-field block" style={stagger(mode === "signup" ? 3 : 1)}>
               <span className="mb-1.5 flex items-center justify-between text-xs font-bold text-[#4d4753]">
                 <span>Password</span>
                 {mode === "signin" ? (
@@ -284,8 +318,11 @@ export default function AuthForm({ initialMode = "signin", next = null }: Props)
             </label>
           )}
 
-          {mode === "signup" && <p className="auth-field text-[11px] leading-5 text-[#89828f]" style={stagger(3)}>By creating an account, you agree to codemasterghana&apos;s Terms and Privacy Policy.</p>}
+          {mode === "signup" && <p className="auth-field text-[11px] leading-5 text-[#89828f]" style={stagger(4)}>By creating an account, you agree to codemasterghana&apos;s Terms and Privacy Policy.</p>}
 
+          {socialError && (
+            <div className="auth-step rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">{socialError}</div>
+          )}
           {notice && (
             <div className="auth-step rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">
               {notice}{" "}
@@ -318,6 +355,17 @@ export default function AuthForm({ initialMode = "signin", next = null }: Props)
             {!busy && !success && !locked && <Icon name="arrow-right" size={16} />}
           </button>
         </form>
+
+        {mode !== "forgot" && (
+          <div className="auth-step mt-6">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-[#e7e3eb]" />
+              <span className="text-[10px] font-bold uppercase tracking-[.12em] text-[#9a939f]">or continue with</span>
+              <span className="h-px flex-1 bg-[#e7e3eb]" />
+            </div>
+            <SocialAuthButtons next={next} mode={mode === "signup" ? "signup" : "signin"} style={stagger(5)} />
+          </div>
+        )}
       </div>
 
       <EmbedNotice />

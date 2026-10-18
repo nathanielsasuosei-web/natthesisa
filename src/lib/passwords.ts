@@ -19,6 +19,19 @@ const R = 8;
 const P = 1;
 const KEY_LENGTH = 64;
 
+/**
+ * What is stored instead of a hash for accounts created through Google,
+ * Facebook or Apple. It is not a scrypt string, so `verifyPasswordHash()`
+ * rejects every password against it — password sign-in stays closed until the
+ * student sets a password from their account page. The account pages use
+ * `isPasswordless()` to offer exactly that instead of "change password".
+ */
+export const PASSWORDLESS_MARKER = "!passwordless";
+
+export function isPasswordless(user: { passwordHash: string }): boolean {
+  return user.passwordHash === PASSWORDLESS_MARKER;
+}
+
 export function hashPassword(password: string): string {
   const salt = randomBytes(16);
   const hash = scryptSync(password.normalize("NFKC"), salt, KEY_LENGTH, { N, r: R, p: P });

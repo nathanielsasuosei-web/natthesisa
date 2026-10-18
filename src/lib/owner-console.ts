@@ -36,8 +36,12 @@ export class OwnerConsoleError extends Error {
 
 export interface StudentRow {
   id: string;
+  /** The public student number, e.g. `CMG-2026-00042`. */
+  studentId: string;
   name: string;
   email: string;
+  /** Where the student said they are based — city first, then country. */
+  location: string;
   owner: boolean;
   suspended: boolean;
   createdAt: string;
@@ -67,8 +71,10 @@ export function toStudentRow(user: User): StudentRow {
   }).length;
   return {
     id: user.id,
+    studentId: user.studentId,
     name: user.name,
     email: user.email,
+    location: [user.profile.city, user.profile.country].filter(Boolean).join(", "),
     owner: isOwner(user),
     suspended: user.suspended,
     createdAt: user.createdAt,

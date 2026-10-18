@@ -40,6 +40,10 @@ async function handleLogin(req: NextRequest) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
   const name = typeof body.name === "string" ? body.name.trim() : "";
+  // Where the student is joining from — kept on their profile and shown to
+  // the teacher beside their student number.
+  const country = typeof body.country === "string" ? body.country.trim().slice(0, 60) : "";
+  const city = typeof body.city === "string" ? body.city.trim().slice(0, 80) : "";
 
   if (!emailPattern.test(email) || email.length > 160) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
@@ -55,6 +59,12 @@ async function handleLogin(req: NextRequest) {
     if (name.length < 2) {
       return NextResponse.json({ error: "Enter your full name." }, { status: 400 });
     }
+    if (!country) {
+      return NextResponse.json({ error: "Choose your country." }, { status: 400 });
+    }
+    if (city.length < 2) {
+      return NextResponse.json({ error: "Enter your city or town." }, { status: 400 });
+    }
     const problem = passwordProblem(password);
     if (problem) return NextResponse.json({ error: problem }, { status: 400 });
     if (await findUserByEmail(email)) {
@@ -63,7 +73,7 @@ async function handleLogin(req: NextRequest) {
 
     let user;
     try {
-      user = await createUser(name, email, password);
+      user = await createUser(name, email, password, { country, city });
     } catch (error) {
       if (error instanceof AccountExistsError) {
         return NextResponse.json({ error: error.message }, { status: 409 });

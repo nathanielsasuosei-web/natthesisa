@@ -44,7 +44,10 @@ export default async function DashboardPage() {
         <div>
           <p className="text-xs font-bold text-[#8a8390]">Your learning dashboard</p>
           <h1 className="mt-1 text-2xl font-black tracking-[-.04em] text-[#1c1922] sm:text-3xl">Welcome back, {user.name.split(" ")[0]} <span aria-hidden>👋</span></h1>
-          <p className="mt-1.5 text-sm text-[#756f7b]">A little progress today becomes a serious skill tomorrow.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e2d9ff] bg-[#f4f0ff] px-3 py-1.5 text-[10px] font-black tracking-[.06em] text-[#5e3de0]"><Icon name="certificate" size={12} /> Student ID <span className="font-mono tracking-[.08em] text-[#241f2c]">{user.studentId}</span></span>
+            <p className="text-sm text-[#756f7b]">A little progress today becomes a serious skill tomorrow.</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button aria-label="Notifications" className="grid size-10 place-items-center rounded-xl border border-[#e4e0e8] bg-white text-[#77707e] transition hover:border-violet-300"><Icon name="bell" size={18} /></button>

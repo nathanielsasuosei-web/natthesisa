@@ -53,6 +53,21 @@ function sign(payload: string): string {
   return createHmac("sha256", secret()).update(payload).digest("base64url");
 }
 
+/**
+ * Signs an opaque value with the same key as sessions and reset links.
+ * Used by the social sign-in flow to bind its state cookie to this deployment,
+ * so a state value that did not come from here is rejected at the callback.
+ */
+export function signValue(value: string): string {
+  return sign(value);
+}
+
+export function verifySignedValue(value: string, signature: string): boolean {
+  const expected = Buffer.from(sign(value));
+  const provided = Buffer.from(signature);
+  return provided.length === expected.length && timingSafeEqual(provided, expected);
+}
+
 export function createSessionToken(userId: string, maxAgeSeconds = SESSION_MAX_AGE): string {
   const expires = Date.now() + maxAgeSeconds * 1000;
   const payload = `${userId}.${expires}`;

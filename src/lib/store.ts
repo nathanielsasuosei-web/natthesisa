@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { PERIOD_DAYS, PassPeriod } from "./plans";
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
-import { hashPassword, verifyPasswordHash } from "./passwords";
+import { PASSWORDLESS_MARKER, hashPassword, verifyPasswordHash } from "./passwords";
 import { ensureSchema, query, queryOne } from "./db";
 import type { UserRow } from "./schema";
 import { isAvatarRecord } from "./avatars";
@@ -128,10 +128,22 @@ export interface LearnerProfile {
   track: "Web developer" | "App developer" | "Computer science" | "Full-stack developer";
   experience: "Just starting" | "Some experience" | "Building professionally";
   weeklyGoal: number;
+  /**
+   * Where the student is based. Asked at sign-up (and on the account page),
+   * so the teacher knows where their learners are — empty until they answer.
+   */
+  country: string;
+  city: string;
 }
 
 export interface User {
   id: string;
+  /**
+   * The public student number, e.g. `CMG-2026-00042` — issued from a database
+   * sequence at registration and shown on the student's page and dashboard.
+   * Uniqueness is enforced by the database (`users_student_id_key`).
+   */
+  studentId: string;
   name: string;
   email: string;
   passwordHash: string;
@@ -217,6 +229,8 @@ function defaultProfile(overrides: Partial<LearnerProfile> = {}): LearnerProfile
     track: "Full-stack developer",
     experience: "Just starting",
     weeklyGoal: 180,
+    country: "",
+    city: "",
   };
   // `{ ...defaults, track: undefined }` would blank the default, so only
   // defined values are applied.
@@ -224,6 +238,8 @@ function defaultProfile(overrides: Partial<LearnerProfile> = {}): LearnerProfile
   if (overrides.track !== undefined) profile.track = overrides.track;
   if (overrides.experience !== undefined) profile.experience = overrides.experience;
   if (overrides.weeklyGoal !== undefined) profile.weeklyGoal = overrides.weeklyGoal;
+  if (overrides.country !== undefined) profile.country = overrides.country;
+  if (overrides.city !== undefined) profile.city = overrides.city;
   return profile;
 }
 
@@ -251,6 +267,9 @@ function iso(value: Date | string): string {
 function fromRow(row: UserRow): User {
   return {
     id: row.id,
+    // The schema migration numbers every row, so this is always present —
+    // the fallback only keeps a hand-migrated database displayable.
+    studentId: row.student_id ?? `CMG-${iso(row.created_at).slice(0, 4)}-${row.id.slice(0, 5).toUpperCase()}`,
     name: row.name,
     email: row.email,
     passwordHash: row.password_hash,
@@ -273,7 +292,7 @@ function fromRow(row: UserRow): User {
 }
 
 const COLUMNS =
-  "id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, certificates, invoices, activity_log, payment_method, profile, avatar, created_at";
+  "id, student_id, email, name, password_hash, role, owner, suspended, subscription, usage, lifetime_minutes, progress, purchases, certificates, invoices, activity_log, payment_method, profile, avatar, created_at";
 
 function json(value: unknown): string {
   return JSON.stringify(value ?? null);
@@ -322,10 +341,10 @@ export async function saveUser(user: User): Promise<void> {
   await ensureSchema();
   await query(
     `insert into users (
-       id, email, name, password_hash, role, owner, suspended,
+       id, student_id, email, name, password_hash, role, owner, suspended,
        subscription, usage, lifetime_minutes, progress, purchases, certificates,
        invoices, activity_log, payment_method, profile, avatar, created_at, updated_at
-     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, now())
+     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20, now())
      on conflict (id) do update set
        email = excluded.email,
        name = excluded.name,
@@ -347,6 +366,7 @@ export async function saveUser(user: User): Promise<void> {
        updated_at = now()`,
     [
       user.id,
+      user.studentId,
       user.email.trim().toLowerCase(),
       user.name,
       user.passwordHash,
@@ -381,16 +401,38 @@ export class AccountExistsError extends Error {
   }
 }
 
+/**
+ * The next public student number: `CMG-<join year>-<5 digits>`.
+ *
+ * The digits come from the `student_id_seq` sequence (the same trick the
+ * invoice numbers use), so two sign-ups racing each other can never be issued
+ * the same number, and the year makes the number readable as "joined in 2026".
+ */
+export async function nextStudentId(): Promise<string> {
+  await ensureSchema();
+  const row = await queryOne<{ value: string }>("select nextval('student_id_seq')::text as value");
+  const year = new Date().getUTCFullYear();
+  return `CMG-${year}-${(row?.value ?? "0").padStart(5, "0")}`;
+}
+
 interface CreateUserOptions {
   name: string;
   email: string;
-  password: string;
+  /**
+   * The password to store, or `null` for accounts created through Google /
+   * Facebook / Apple — those have no site password yet (the stored marker
+   * never verifies), and the student can set one later from their account page.
+   */
+  password: string | null;
   role?: User["role"];
   owner?: boolean;
   /** An initial access pass, used for the owner account. */
   passPeriod?: PassPeriod;
   track?: LearnerProfile["track"];
   weeklyGoal?: number;
+  /** Where the student is based, from the sign-up form. */
+  country?: string;
+  city?: string;
 }
 
 export async function createAccount(options: CreateUserOptions): Promise<User> {
@@ -398,9 +440,10 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
   const now = new Date().toISOString();
   const user: User = {
     id: uid(),
+    studentId: await nextStudentId(),
     name: options.name.trim().slice(0, 60),
     email: options.email.trim().toLowerCase().slice(0, 160),
-    passwordHash: hashPassword(options.password),
+    passwordHash: options.password === null ? PASSWORDLESS_MARKER : hashPassword(options.password),
     createdAt: now,
     role: options.role ?? "student",
     owner: options.owner ?? false,
@@ -414,7 +457,12 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
     invoices: [],
     activityLog: [],
     paymentMethod: { brand: "Visa", last4: "4242", provider: "demo" },
-    profile: defaultProfile({ track: options.track, weeklyGoal: options.weeklyGoal }),
+    profile: defaultProfile({
+      track: options.track,
+      weeklyGoal: options.weeklyGoal,
+      country: options.country,
+      city: options.city,
+    }),
     avatar: null,
   };
 
@@ -431,9 +479,43 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
 }
 
 /** Sign-up used by the public form. */
-export async function createUser(name: string, email: string, password: string): Promise<User> {
-  const user = await createAccount({ name, email, password });
+export async function createUser(
+  name: string,
+  email: string,
+  password: string,
+  location: { country?: string; city?: string } = {}
+): Promise<User> {
+  const user = await createAccount({
+    name,
+    email,
+    password,
+    country: location.country,
+    city: location.city,
+  });
   logActivity(user, "Account created — no access pass yet", "account");
+  await saveUser(user);
+  return user;
+}
+
+/**
+ * Sign-up used by the Google / Facebook / Apple buttons: same account, same
+ * student number, but no site password — the provider is the way in until the
+ * student sets one from their account page.
+ */
+export async function createSocialUser(
+  name: string,
+  email: string,
+  provider: string,
+  location: { country?: string; city?: string } = {}
+): Promise<User> {
+  const user = await createAccount({
+    name,
+    email,
+    password: null,
+    country: location.country,
+    city: location.city,
+  });
+  logActivity(user, `Account created — signed up with ${provider}`, "account");
   await saveUser(user);
   return user;
 }
