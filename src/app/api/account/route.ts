@@ -54,10 +54,9 @@ export async function PATCH(req: NextRequest) {
  * new one must pass the same strength checks as sign-up, and the change is
  * written to the database before we answer.
  *
- * Accounts created through Google / Facebook / Apple have no password yet —
- * for them this same endpoint *sets* the first one (there is no current
- * password to check), which is what turns a social-only account into one that
- * can also sign in with email.
+ * Legacy accounts with no password yet are handled by this same endpoint:
+ * for them it *sets* the first one (there is no current password to check),
+ * which is what lets them sign in with email.
  */
 export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
@@ -80,7 +79,7 @@ export async function PUT(req: NextRequest) {
   if (problem) return NextResponse.json({ error: problem }, { status: 400 });
 
   setPassword(user, newPassword);
-  logActivity(user, firstPassword ? "Password set — email sign-in now works too" : "Password changed", "account");
+  logActivity(user, firstPassword ? "Password set — email sign-in now works" : "Password changed", "account");
   await saveUser(user);
   return NextResponse.json({ ok: true });
 }

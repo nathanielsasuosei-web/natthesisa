@@ -53,8 +53,8 @@ export function AuthWindowProvider({ children }: { children: ReactNode }) {
 
   const open = useCallback((mode: AuthWindowMode = "signin") => {
     returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    // Sign-in is a full page change (password or a provider round-trip), so the
-    // student comes back to the page this window was opened from.
+    // Sign-in is a full page change, so the student comes back to the page
+    // this window was opened from.
     const path = `${window.location.pathname}${window.location.search}`;
     setState((current) => ({
       mode,

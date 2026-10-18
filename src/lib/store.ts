@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { PERIOD_DAYS, PassPeriod } from "./plans";
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
-import { PASSWORDLESS_MARKER, hashPassword, verifyPasswordHash } from "./passwords";
+import { hashPassword, verifyPasswordHash } from "./passwords";
 import { ensureSchema, query, queryOne } from "./db";
 import type { UserRow } from "./schema";
 import { isAvatarRecord } from "./avatars";
@@ -418,12 +418,8 @@ export async function nextStudentId(): Promise<string> {
 interface CreateUserOptions {
   name: string;
   email: string;
-  /**
-   * The password to store, or `null` for accounts created through Google /
-   * Facebook / Apple — those have no site password yet (the stored marker
-   * never verifies), and the student can set one later from their account page.
-   */
-  password: string | null;
+  /** The password to hash and store for the new account. */
+  password: string;
   role?: User["role"];
   owner?: boolean;
   /** An initial access pass, used for the owner account. */
@@ -443,7 +439,7 @@ export async function createAccount(options: CreateUserOptions): Promise<User> {
     studentId: await nextStudentId(),
     name: options.name.trim().slice(0, 60),
     email: options.email.trim().toLowerCase().slice(0, 160),
-    passwordHash: options.password === null ? PASSWORDLESS_MARKER : hashPassword(options.password),
+    passwordHash: hashPassword(options.password),
     createdAt: now,
     role: options.role ?? "student",
     owner: options.owner ?? false,
@@ -493,29 +489,6 @@ export async function createUser(
     city: location.city,
   });
   logActivity(user, "Account created — no access pass yet", "account");
-  await saveUser(user);
-  return user;
-}
-
-/**
- * Sign-up used by the Google / Facebook / Apple buttons: same account, same
- * student number, but no site password — the provider is the way in until the
- * student sets one from their account page.
- */
-export async function createSocialUser(
-  name: string,
-  email: string,
-  provider: string,
-  location: { country?: string; city?: string } = {}
-): Promise<User> {
-  const user = await createAccount({
-    name,
-    email,
-    password: null,
-    country: location.country,
-    city: location.city,
-  });
-  logActivity(user, `Account created — signed up with ${provider}`, "account");
   await saveUser(user);
   return user;
 }

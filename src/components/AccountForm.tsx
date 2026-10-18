@@ -13,7 +13,7 @@ interface Props {
   profile: LearnerProfile;
   /** The public student number shown on the student's page and dashboard. */
   studentId: string;
-  /** True for accounts created through Google / Facebook / Apple: they have no site password yet. */
+  /** True for accounts with no site password yet: the section sets the first one instead of changing it. */
   passwordless?: boolean;
   /** The account's picture (`/api/account/avatar…`), or null for initials. */
   avatarSrc?: string | null;
@@ -150,7 +150,7 @@ export default function AccountForm({
       </form>
 
       <section className="open-surface">
-        <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">{passwordless ? "Set a password" : "Password"}</h2><p className="mt-1 text-[10px] text-[#918a97]">{passwordless ? "You signed in with Google, Facebook or Apple. Setting a password also lets you sign in with your email — your account and student ID stay the same." : "Your password is hashed with scrypt before it is stored. Changing it signs nobody else out — the new password is required at your next sign-in."}</p></div>
+        <div className="border-b border-[#ece9ef] py-4"><h2 className="text-sm font-extrabold">{passwordless ? "Set a password" : "Password"}</h2><p className="mt-1 text-[10px] text-[#918a97]">{passwordless ? "Your account does not have a password yet. Setting one lets you sign in with your email — your account and student ID stay the same." : "Your password is hashed with scrypt before it is stored. Changing it signs nobody else out — the new password is required at your next sign-in."}</p></div>
         <div className={`grid gap-5 py-6 ${passwordless ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
           {!passwordless && <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">Current password</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" className={inputClass} /></label>}
           <label className="block"><span className="text-[10px] font-bold text-[#5f5965]">New password</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" placeholder="At least 8 characters" className={inputClass} /></label>

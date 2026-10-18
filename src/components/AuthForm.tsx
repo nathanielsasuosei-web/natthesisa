@@ -5,7 +5,6 @@ import { COUNTRIES } from "@/lib/countries";
 import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
 import PasswordStrength from "./PasswordStrength";
-import SocialAuthButtons from "./SocialAuthButtons";
 
 type Mode = "signin" | "signup" | "forgot";
 type TabMode = Exclude<Mode, "forgot">;
@@ -14,8 +13,6 @@ interface Props {
   initialMode?: Mode;
   /** A same-site path to open after signing in, e.g. the lesson that asked for it. */
   next?: string | null;
-  /** An explanation of a social sign-in that came back short, e.g. `?oauth=denied`. */
-  socialError?: string | null;
 }
 
 const fieldClass =
@@ -29,7 +26,7 @@ function clock(seconds: number): string {
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-export default function AuthForm({ initialMode = "signin", next = null, socialError = null }: Props) {
+export default function AuthForm({ initialMode = "signin", next = null }: Props) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -320,9 +317,6 @@ export default function AuthForm({ initialMode = "signin", next = null, socialEr
 
           {mode === "signup" && <p className="auth-field text-[11px] leading-5 text-[#89828f]" style={stagger(4)}>By creating an account, you agree to codemasterghana&apos;s Terms and Privacy Policy.</p>}
 
-          {socialError && (
-            <div className="auth-step rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">{socialError}</div>
-          )}
           {notice && (
             <div className="auth-step rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">
               {notice}{" "}
@@ -355,17 +349,6 @@ export default function AuthForm({ initialMode = "signin", next = null, socialEr
             {!busy && !success && !locked && <Icon name="arrow-right" size={16} />}
           </button>
         </form>
-
-        {mode !== "forgot" && (
-          <div className="auth-step mt-6">
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-[#e7e3eb]" />
-              <span className="text-[10px] font-bold uppercase tracking-[.12em] text-[#9a939f]">or continue with</span>
-              <span className="h-px flex-1 bg-[#e7e3eb]" />
-            </div>
-            <SocialAuthButtons next={next} mode={mode === "signup" ? "signup" : "signin"} style={stagger(5)} />
-          </div>
-        )}
       </div>
 
       <EmbedNotice />

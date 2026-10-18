@@ -12,8 +12,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 
 - Responsive marketing website with curriculum, testimonials and pricing
 - Real accounts: scrypt-hashed passwords, signed session cookies, and signup /
-  sign-in / sign-out / password-change flows backed by PostgreSQL — plus
-  **Continue with Google / Facebook / Apple**, and a permanent **student ID**
+  sign-in / sign-out / password-change flows backed by PostgreSQL, and a
+  permanent **student ID**
   (`CMG-2026-00042`-style) issued at registration and shown on the dashboard
   and account page
 - Searchable/filterable course library
@@ -325,14 +325,6 @@ is written to PostgreSQL before the request answers.
   e.g. `CMG-2026-00042`, drawn from a database sequence so every learner keeps
   a permanent, unique number. It is shown on their dashboard, on their account
   page, and beside their name in the teacher's student list.
-- **Social sign-in** is available alongside passwords: *Continue with Google /
-  Facebook / Apple* creates the account on first use (same student ID, the
-  verified email is the identity) and signs straight in on later visits. A
-  social account has no site password until the student sets one on their
-  account page; the same account is used whichever way they sign in. Each
-  provider needs credentials in the environment (see `.env.example` and
-  *Authentication* below) — unset providers explain themselves on the button
-  instead of failing halfway.
 - **The owner** is the teacher — the single account that can publish lessons,
   set prices and manage students. Set `OWNER_EMAIL` and `OWNER_PASSWORD` and it
   is created on the first request; if you would rather not keep credentials in
@@ -842,36 +834,6 @@ Sign-in is implemented in this repository rather than delegated to a provider:
   form shows a live countdown instead of a dead end.
 - Changing a password requires the current one and re-applies the strength
   rules. Suspended accounts are rejected before any password is checked.
-
-### Social login (Google / Facebook / Apple)
-
-The *Continue with Google / Facebook / Apple* buttons run a plain OAuth 2.0
-flow implemented in `src/lib/oauth.ts` and the routes under
-`/api/auth/oauth/` — no third-party auth SDK:
-
-- `/api/auth/oauth/<provider>` signs a short-lived `state` (plus a PKCE
-  verifier for Google and Apple) into a cookie and sends the student to the
-  provider; the provider sends them back to
-  `/api/auth/oauth/<provider>/callback`, which checks `state` against the
-  cookie, trades the code for tokens, and verifies the profile it reads
-  (Apple's `id_token` is checked against Apple's published keys, with issuer,
-  audience and expiry).
-- The verified email is the account identity: an existing student (password or
-  social) is signed in to their same account and student ID; a new email gets a
-  new account on the spot. A social account stores no password — the
-  *Set a password* section on the account page adds one so email sign-in works
-  too (the forgot-password flow does the same).
-- Each provider is configured independently via its environment variables
-  (Google: `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`; Facebook:
-  `FACEBOOK_APP_ID`/`FACEBOOK_APP_SECRET`; Apple: `APPLE_CLIENT_ID`,
-  `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`). Register
-  `<origin>/api/auth/oauth/<provider>/callback` in each provider's console —
-  the origin the browser uses is the one the app sends, so a mismatch is the
-  classic `redirect_uri_mismatch`. Unset providers answer with a clear
-  "not set up yet" notice on the sign-in page.
-- Apple answers the callback with a cross-site form POST (the only way it will
-  share a name on first consent), which is why the state cookie is
-  `SameSite=None; Secure` outside plain-localhost development.
 
 Swapping in Auth.js, Clerk or Supabase Auth later is still localized: keep
 `getCurrentUser()` / `getCurrentOwner()` in `src/lib/session.ts` as the boundary,
