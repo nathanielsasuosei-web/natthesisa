@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireCurrentUser } from "@/lib/require-user";
 import { getCourse } from "@/lib/courses";
-import { getProgram, PROGRAMS } from "@/lib/programs";
-import { programLedger } from "@/lib/access";
+import { getProgram } from "@/lib/programs";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import { listPaymentsForUser } from "@/lib/payments";
 import { formatPhone } from "@/lib/momo";
 import Icon from "@/components/Icon";
-import BuyProgram from "@/components/BuyProgram";
 
 export const metadata: Metadata = { title: "Billing" };
 
@@ -30,12 +28,7 @@ export default async function BillingPage({
   const method = user.paymentMethod;
   const paidWithMomo =
     method.provider === "paystack" && (method.channel === "mobile_money" || Boolean(method.phone));
-  // Programs are paid for in one or two parts, so "owned" is not the same as
-  // "has a purchase row": the ledger says which of them are paid for in full
-  // and which are half paid, with a balance still to come.
-  const programStates = PROGRAMS.map((program) => ({ program, ledger: programLedger(user, program.id) }));
-  const ownedPrograms = programStates.filter((row) => row.ledger.entitlement === "full");
-  const halfPrograms = programStates.filter((row) => row.ledger.entitlement === "half");
+  const ownedPrograms = user.purchases.filter((purchase) => purchase.kind === "program");
   const spent = user.invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
 
   const purchases = [...user.purchases].sort((a, b) => b.at.localeCompare(a.at));
@@ -113,9 +106,7 @@ export default async function BillingPage({
                   <h2 className="text-xl font-black tracking-[-.035em]">
                     {ownedPrograms.length > 0
                       ? `${ownedPrograms.length} program${ownedPrograms.length === 1 ? "" : "s"} owned`
-                      : halfPrograms.length > 0
-                        ? `${halfPrograms.length} program${halfPrograms.length === 1 ? "" : "s"} started`
-                        : "No programs yet"}
+                      : "No programs yet"}
                   </h2>
                   {ownedPrograms.length > 0 && (
                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-emerald-700">Yours forever</span>
@@ -123,8 +114,8 @@ export default async function BillingPage({
                 </div>
                 <p className="mt-2 text-xs text-[#77717e]">
                   {ownedPrograms.length > 0
-                    ? ownedPrograms.map((row) => row.program.name).join(" · ")
-                    : "No program is paid for in full yet."}
+                    ? ownedPrograms.map((item) => getProgram(item.refId)?.name ?? item.refId).join(" · ")
+                    : "Buy a program once to open every course and lesson inside it."}
                 </p>
               </div>
               <Link href="/dashboard/courses" className="inline-flex items-center gap-1.5 rounded-xl bg-[#6d4aff] px-4 py-2.5 text-[10px] font-extrabold text-white">
@@ -148,35 +139,6 @@ export default async function BillingPage({
             <p className="mt-5 text-[10px] leading-5 text-[#817a87]">
               Lessons stay open without a subscription. Older invoices, if you have any, are listed below as history.
             </p>
-
-            {halfPrograms.length > 0 && (
-              <div className="mt-5 rounded-2xl border border-[#d8ccff] bg-[#f7f4ff] p-4">
-                <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[.13em] text-[#5e3de0]">
-                  <Icon name="lock" size={12} /> Half paid — one payment left
-                </p>
-                <div className="mt-3 grid gap-3">
-                  {halfPrograms.map(({ program, ledger }) => (
-                    <div key={program.id} className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-extrabold text-[#332e39]">{program.name}</p>
-                        <p className="mt-0.5 text-[10px] text-[#6f6880]">
-                          {fmtMoney(ledger.paid)} paid · the first half of every course is open ·{" "}
-                          {fmtMoney(ledger.balance)} opens the rest
-                        </p>
-                      </div>
-                      <BuyProgram
-                        programId={program.id}
-                        programName={program.name}
-                        price={ledger.price}
-                        entitlement={ledger.entitlement}
-                        balance={ledger.balance}
-                        compact
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           <div className="border-t border-[#ece9ef] p-5 lg:border-l lg:border-t-0 lg:pl-7">
             <p className="text-[9px] font-black uppercase tracking-[.13em] text-[#817a87]">Payment method</p>
@@ -260,7 +222,6 @@ export default async function BillingPage({
                     <p className="mt-0.5 text-[9px] text-[#918a97]">
                       {fmtDate(purchase.at)}
                       {purchase.kind !== "program" ? " · kept as history — lessons are already open" : ""}
-                      {purchase.covers === "half" ? " · first half — the rest opens with the balance" : ""}
                     </p>
                   </div>
                   <p className="shrink-0 text-[11px] font-extrabold">{purchase.amount > 0 ? fmtMoney(purchase.amount) : "Granted"}</p>

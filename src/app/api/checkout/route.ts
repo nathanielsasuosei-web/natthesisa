@@ -7,7 +7,6 @@ import {
   quoteCheckout,
 } from "@/lib/payments";
 import { PurchaseError } from "@/lib/purchases";
-import { isProgramPaymentPart } from "@/lib/plans";
 import { checkMomoPhone, isMomoNetwork } from "@/lib/momo";
 import { isPaystackConfigured } from "@/lib/paystack";
 
@@ -15,13 +14,7 @@ import { isPaystackConfigured } from "@/lib/paystack";
  * Starts a checkout — the one door money enters through.
  *
  *   POST /api/checkout
- *   { kind: "program", programId, covers, phone, network }
- *
- * `covers` says how much of the program is being paid for now — `"half"` (the
- * first payment: the first half of every course opens), `"balance"` (the
- * second: everything opens) or `"full"` (the default; the whole price at once).
- * The server prices it; the browser only says which one it wants, so a made-up
- * amount in the request cannot buy a program cheaply.
+ *   { kind: "program", programId, phone, network }
  *
  * Programs are the only checkout: passes, courses and lessons are retired
  * and the quote refuses them, while payments already in flight still fulfil.
@@ -77,10 +70,6 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
   const courseId = typeof body.courseId === "string" ? body.courseId : undefined;
   const lessonId = typeof body.lessonId === "string" ? body.lessonId : undefined;
   const programId = typeof body.programId === "string" ? body.programId : undefined;
-  // An unknown value is ignored rather than refused: a client that sends
-  // something this build has never heard of still gets the full price, which
-  // is the one answer that can never under-charge.
-  const covers = isProgramPaymentPart(body.covers) ? body.covers : undefined;
 
   // The MoMo number is how we address the approval prompt (and the receipt).
   // It is validated here and stored on the payment row either way.
@@ -95,12 +84,12 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
       : (phoneCheck?.network ?? undefined);
 
   // Quote first so "already owned" answers before any row is written.
-  quoteCheckout(user, { kind, period, courseId, lessonId, programId, covers });
+  quoteCheckout(user, { kind, period, courseId, lessonId, programId });
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") || req.nextUrl.origin;
   const checkout = await createCheckout(
     user,
-    { kind, period, courseId, lessonId, programId, covers, phone: phoneCheck?.phone ?? undefined, network },
+    { kind, period, courseId, lessonId, programId, phone: phoneCheck?.phone ?? undefined, network },
     { callbackBaseUrl: base }
   );
   return NextResponse.json(
@@ -108,7 +97,6 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
       ok: true,
       demo: checkout.demo,
       reference: checkout.payment.reference,
-      covers: checkout.payment.covers,
       amount: checkout.payment.amount,
       currency: checkout.payment.currency,
       description: checkout.payment.description,

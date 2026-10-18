@@ -1,16 +1,7 @@
 import { getCourse } from "./courses";
 import { findContentLesson } from "./course-content";
 import { getProgram, PROGRAMS } from "./programs";
-import {
-  PassPeriod,
-  coursePrice,
-  fmtMoney,
-  halfAmount,
-  lessonPrice,
-  passPrice,
-  pricing,
-  programPrice,
-} from "./plans";
+import { PassPeriod, coursePrice, lessonPrice, passPrice, pricing, programPrice } from "./plans";
 import {
   User,
   addInvoice,
@@ -19,9 +10,8 @@ import {
   uid,
   type Purchase,
 } from "./store";
-import type { ProgramPaymentPart } from "./pass-periods";
 import { ensureSchema } from "./db";
-import { hasActivePass, ownsCourse, ownsLesson, ownsProgram, programLedger } from "./access";
+import { hasActivePass, ownsCourse, ownsLesson, ownsProgram } from "./access";
 
 /**
  * Payments.
@@ -192,90 +182,28 @@ export async function buyLesson(user: User, courseId: string, lessonId: string, 
  * Sells a whole program: every course and every lesson under it, permanently.
  * This is the only thing students buy. A student who already owns the program
  * is never charged twice — the checkout refuses before any money moves.
- *
- * `payment` says which part of the program this money buys, and it decides both
- * what is charged and what opens:
- *
- *   • `"half"` — the first payment. Half the price, and the first half of every
- *     course opens. A student who has already made it is not charged again:
- *     the second attempt at the same half is refused as `ALREADY_OWNED`, which
- *     is what tells the payments layer to refund a duplicate.
- *   • `"balance"` — the second payment. Whatever is left of today's price,
- *     after everything already paid, and the whole program opens.
- *   • `"full"` — paid in one go, or the balance of something started earlier.
- *     Same arithmetic as `"balance"`: the price minus nothing, or minus the
- *     half already paid.
- *
- * The amount is computed here rather than taken from the caller so the price
- * the student was quoted and the price they are charged cannot drift apart.
  */
 export async function buyProgram(
   user: User,
   programId: string,
-  attribution?: PaymentAttribution,
-  payment: ProgramPaymentPart = "full"
+  attribution?: PaymentAttribution
 ): Promise<Purchase> {
   const program = getProgram(programId);
   if (!program) throw new PurchaseError("That program does not exist.", "NOT_FOUND", 404);
-
-  const ledger = programLedger(user, programId);
-  if (ledger.entitlement === "full") {
+  if (ownsProgram(user, programId)) {
     throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
   }
-  if (payment === "half") {
-    if (ledger.entitlement === "half") {
-      throw new PurchaseError(
-        `You have already paid the first half of the ${program.name} program — pay the remaining ${fmtMoney(ledger.balance)} to open the rest.`,
-        "ALREADY_OWNED",
-        409
-      );
-    }
-    const amount = ledger.firstPayment;
-    rememberPaymentMethod(user, attribution);
-    const invoice = await addInvoice(
-      user,
-      amount,
-      `${program.name} — first half of the program`,
-      attribution?.reference
-    );
-    const purchase = record(user, {
-      kind: "program",
-      refId: programId,
-      courseId: null,
-      amount,
-      invoiceNumber: invoice?.number ?? null,
-      covers: "half",
-    });
-    logActivity(
-      user,
-      `Paid half of the program “${program.name}” — the first half of every course is open`,
-      "billing"
-    );
-    return purchase;
-  }
-
-  const amount = Math.max(0, ledger.price - ledger.paid);
+  const price = programPrice(programId);
   rememberPaymentMethod(user, attribution);
-  const description =
-    payment === "balance"
-      ? `${program.name} — balance payment`
-      : `${program.name} — program purchase`;
-  const invoice = await addInvoice(user, amount, description, attribution?.reference);
+  const invoice = await addInvoice(user, price, `${program.name} — program purchase`, attribution?.reference);
   const purchase = record(user, {
     kind: "program",
     refId: programId,
     courseId: null,
-    amount,
+    amount: price,
     invoiceNumber: invoice?.number ?? null,
-    covers: "full",
   });
-  logActivity(
-    user,
-    payment === "balance"
-      ? `Paid the balance on “${program.name}” — the whole program is open`
-      : `Bought the program “${program.name}”`,
-    "billing"
-  );
+  logActivity(user, `Bought the program “${program.name}”`, "billing");
   return purchase;
 }
 
@@ -288,14 +216,7 @@ export async function grantProgram(owner: User, student: User, programId: string
   const program = getProgram(programId);
   if (!program) throw new PurchaseError("That program does not exist.", "NOT_FOUND", 404);
   if (!ownsProgram(student, programId)) {
-    record(student, {
-      kind: "program",
-      refId: programId,
-      courseId: null,
-      amount: 0,
-      invoiceNumber: null,
-      covers: "full",
-    });
+    record(student, { kind: "program", refId: programId, courseId: null, amount: 0, invoiceNumber: null });
   }
   logActivity(student, `Your teacher opened the program “${program.name}”`, "billing");
   logActivity(owner, `Opened “${program.name}” for ${student.name}`, "owner");

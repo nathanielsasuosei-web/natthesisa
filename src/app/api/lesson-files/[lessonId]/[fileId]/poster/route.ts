@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { refuseUnlessLessonOpen } from "@/lib/course-guard";
+import { refuseUnlessCourseOpen } from "@/lib/course-guard";
 import { findUploadedLessonCourse } from "@/lib/course-content";
 import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
 
@@ -14,7 +14,7 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
 
   const located = findUploadedLessonCourse(lessonId);
   if (!located) return NextResponse.json({ error: "This lesson is no longer part of a course." }, { status: 404 });
-  const refused = await refuseUnlessLessonOpen(located.course, lessonId);
+  const refused = await refuseUnlessCourseOpen(located.course);
   if (refused) return refused;
 
   const file = record.files.find((candidate) => candidate.id === fileId);
