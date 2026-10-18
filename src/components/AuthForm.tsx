@@ -5,7 +5,6 @@ import { COUNTRIES } from "@/lib/countries";
 import EmbedNotice from "./EmbedNotice";
 import Icon from "./Icon";
 import PasswordStrength from "./PasswordStrength";
-import SocialAuthButtons from "./SocialAuthButtons";
 
 type Mode = "signin" | "signup" | "forgot";
 type TabMode = Exclude<Mode, "forgot">;
@@ -356,16 +355,6 @@ export default function AuthForm({ initialMode = "signin", next = null, socialEr
           </button>
         </form>
 
-        {mode !== "forgot" && (
-          <div className="auth-step mt-6">
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-[#e7e3eb]" />
-              <span className="text-[10px] font-bold uppercase tracking-[.12em] text-[#9a939f]">or continue with</span>
-              <span className="h-px flex-1 bg-[#e7e3eb]" />
-            </div>
-            <SocialAuthButtons next={next} mode={mode === "signup" ? "signup" : "signin"} style={stagger(5)} />
-          </div>
-        )}
       </div>
 
       <EmbedNotice />
