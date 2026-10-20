@@ -17,10 +17,10 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   (`CMG-2026-00042`-style) issued at registration and shown on the dashboard
   and account page
 - Searchable/filterable course library
-- **Twenty-eight courses across twelve programs** — Computer Science, Software
+- **Twenty-nine courses across thirteen programs** — Computer Science, Software
   Engineering, Web Development, Vibe Coding, App Development, Backend, Cyber
-  Security, Data Science, Design, IT Essentials, Cloud & DevOps and AI & Machine
-  Learning
+  Security, Data Science, Design, IT Essentials, Cloud & DevOps, AI & Machine
+  Learning and Game Development
 - **CodeMaster Studio** (`/studio`, free for everyone) and **the Code lab**
   (`/dashboard/code`, per student): the real VS Code editor (Monaco) with an
   explorer, search, live preview, console, terminal, problems list and status
@@ -354,7 +354,7 @@ This is the “what to paste where” map for continuing the build.
 | Step | File or folder | Purpose |
 | --- | --- | --- |
 | 1. Brand | `src/config/site.ts` | Name, tagline, support email and currency |
-| 2. Programs and prices | `src/lib/programs.ts` (the twelve programs) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Program catalog, default and per-program prices (`pass-periods.ts` keeps the retired pass shapes for stored data) |
+| 2. Programs and prices | `src/lib/programs.ts` (the thirteen programs) and `src/lib/plans.ts` (owner-set prices, stored in `app_state`) | Program catalog, default and per-program prices (`pass-periods.ts` keeps the retired pass shapes for stored data) |
 | 3. Course content | `src/lib/courses.ts` | Courses, modules, lessons, examples and challenges |
 | 4. User data | `src/lib/store.ts` | Accounts, progress, usage and invoices, read and written through Postgres |
 | 5. Sessions | `src/lib/session.ts` | Signed session cookies and role checks |
@@ -434,8 +434,8 @@ places:
 Each course's `category` is its program: **Computer Science**, **Software
 Engineering**, **Web Development**, **Vibe Coding**, **App Development** and
 **Backend** for the core paths, plus **Cyber Security**, **Data Science**,
-**Design**, **IT Essentials**, **Cloud & DevOps** and **AI & Machine Learning**
-for the program courses. The catalog page, the landing page's program cards, the
+**Design**, **IT Essentials**, **Cloud & DevOps**, **AI & Machine Learning** and
+**Game Development** for the program courses. The catalog page, the landing page's program cards, the
 search filters, the owner console's price lists and the lesson counters all read
 from that one array. A course whose category has no program in `PROGRAMS` is
 treated as locked, so a new category needs a matching program entry.
@@ -606,7 +606,7 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts` (core
   category: "Computer Science",
   level: "Beginner",
   tone: "green",
-  icon: "nodes", // browser | braces | react | mobile | nodes | server | cpu | layers | terminal | briefcase | spark
+  icon: "nodes", // browser | braces | react | mobile | nodes | server | cpu | layers | terminal | briefcase | spark | gamepad
   instructor: { name: "Instructor Name", role: "Python Engineer", initials: "IN" },
   rating: 4.9,
   learners: 0,
@@ -628,7 +628,7 @@ Paste a new course object into the `COURSES` array in `src/lib/courses.ts` (core
 
 Course cards, catalog filtering, progress calculation, teacher analytics and access checks all read from this one catalog automatically. Lessons the owner publishes from `/owner/lessons` are merged on top of this catalog at request time (see `src/lib/course-content.ts`), so nothing here needs to be edited to add new material.
 
-Five things a new course needs beyond the object itself:
+Six things a new course needs beyond the object itself:
 
 | Step | Where | Why |
 | --- | --- | --- |
@@ -637,6 +637,7 @@ Five things a new course needs beyond the object itself:
 | A cover image | `public/course-covers/<slug>.jpg` | ~16:9 JPEG, dark navy-purple with cyan-teal glow, no baked-in text. The course page falls back to the program cover, then to a generated visual |
 | A course brief | `BRIEFS` in `src/lib/course-info.ts` | The long-form overview, audience, prerequisites, tools, build and after sections the course page shows. Without it the page falls back to one-line stubs |
 | The mirrors | `COURSE_CARDS` in `src/lib/natthesisa.ts`, `PROGRAM_LINKS` and `POPULAR_COURSES` in `src/components/PublicHeader.tsx` | The study assistant and the header menu are client- or copy-sized and hardcode their own lists on purpose; they do not read the catalog at runtime |
+| The lesson labs | `COURSE_DEFAULTS` in `src/lib/lesson-tools.ts` | The labs a lesson offers when no keyword rule fires. The keyword rules read each lesson's id, title, summary and headings, so avoid words such as "pipeline", "release" or "authored" there unless you want the cron or security lab to appear; check a new course with `planLessonTools` |
 
 
 ## Database

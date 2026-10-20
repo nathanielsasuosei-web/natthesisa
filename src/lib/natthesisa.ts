@@ -105,6 +105,7 @@ const COURSE_CARDS: CourseCard[] = [
   { id: "microsoft-office", title: "Microsoft Office", level: "Beginner", program: "IT Essentials", blurb: "Word, Excel, PowerPoint and shared files as professional tools — templates, spreadsheets that reconcile, decks that work." },
   { id: "programming-languages", title: "Programming Languages", level: "Intermediate", program: "Computer Science", blurb: "Paradigms, typing and execution models — read unfamiliar code and learn the next language in weeks." },
   { id: "artificial-intelligence-machine-learning", title: "Artificial Intelligence & Machine Learning (AI/ML)", level: "Intermediate", program: "AI & Machine Learning", blurb: "What these systems really do, the ML workflow, generative AI, and deploying AI responsibly." },
+  { id: "game-development", title: "Game Development: 2D, 3D, 4D, 5D and 4K–8K+", level: "Intermediate", program: "Game Development", blurb: "The game loop, 2D and 3D worlds, a fourth and fifth dimension, and the arithmetic of 4K, 8K and beyond, with every example running in your browser." },
 ];
 
 function courseLinks(section = "courses"): AgentLink[] {
@@ -295,6 +296,12 @@ const CONCEPTS: Concept[] = [
     body: "**Languages are not interchangeable syntaxes: each makes a different set of things easy.**\n\n- **Paradigms** — imperative, object-oriented and functional styles solve the same problem differently; most modern languages mix all three\n- **Typing** — static or dynamic, strong or weak. Types are a design trade-off: earlier errors and better tooling versus less ceremony\n- **Execution** — compiled, interpreted or a virtual machine in between. That choice decides speed, portability and start-up time\n- **Learning the next language** — the six things you learn first: syntax, types, collections, error handling, concurrency, and the package ecosystem\n\nRead unfamiliar code aloud, in order, and write down every question you cannot answer — that list is your study plan.",
     followUp: ["Show programming courses", "Explain compilers", "Explain paradigms"],
   },
+  {
+    keys: ["game development", "game dev", "gamedev", "game engine", "game loop", "delta time", "fixed timestep", "timestep", "frame rate", "framerate", "frame budget", "tilemap", "tile map", "sprite", "hitbox", "godot", "unreal engine", "unity engine", "tesseract", "hypercube", "fourth dimension", "4d", "5d", "n dimensional", "dynamic resolution", "upscal", "dlss", "foveated", "pixels per degree", "4k", "8k", "16k", "shader", "quaternion", "z fighting", "draw call", "fps"],
+    title: "Game development",
+    body: "**A game is a loop with a budget.** Sixty times a second it reads input, advances the world and draws it, and the whole turn has to fit in 16.7 ms.\n\n- Write movement in units per second and multiply by `dt`; step physics at a fixed rate with an accumulator, so the result is the same at 30, 60 or 144 fps\n- **2D:** tile maps for levels, boxes for collisions (resolve one axis at a time), and a camera that is just `world − camera`\n- **3D:** vectors and matrices; a vertex goes model → world → view → clip → screen, and perspective is a division by depth\n- **4D, 5D and beyond:** a dimension is another axis of state. A tesseract has 16 corners and 6 rotation planes, and time itself can be stored, replayed and branched\n- **4K, 8K and beyond:** 4K is 4× the pixels of 1080p and 8K is 16×. Check pixels per degree before paying for them, and render fewer pixels and upscale rather than shading every one\n\n```\nframe budget = 1000 ÷ fps      60 fps = 16.7 ms · 120 fps = 8.3 ms\n```",
+    followUp: ["Show the game development course", "Explain the fixed timestep", "Explain 4K and 8K resolution", "Explain the fourth dimension"],
+  },
 ];
 
 /**
@@ -341,6 +348,10 @@ const CONCEPT_LINKS: Record<string, AgentLink[]> = {
   "Programming languages": [
     { label: "Programming Languages", href: "/courses/programming-languages" },
     { label: "Data Structures & Algorithms", href: "/courses/data-structures-algorithms" },
+  ],
+  "Game development": [
+    { label: "Game Development course", href: "/courses/game-development" },
+    { label: "JavaScript course", href: "/courses/javascript-zero-to-builder" },
   ],
 };
 
@@ -565,6 +576,16 @@ function recommendReply(text: string, context?: ChatContext): AgentReply | null 
     };
   }
 
+  if (/\b(games?|gaming|gamedev|godot|unreal|unity)\b/.test(text)) {
+    return {
+      reply: "For **game development**, build up from the loop:\n\n1. **Game Development: 2D, 3D, 4D, 5D and 4K–8K+** — the fixed-timestep loop, 2D tile maps and collisions, 3D vectors and projection, a fourth and fifth dimension of space and time, then the arithmetic of 4K and 8K and the dynamic resolution that lets it run on a phone\n2. **JavaScript: Zero to Builder** first, if variables, loops and functions still feel new\n\nEvery example runs in your browser, so you can start on any phone or laptop.",
+      suggestions: ["Explain the game loop", "Explain 4K and 8K resolution", "Show the game development course"],
+      links: [
+        { label: "Game Development course", href: "/courses/game-development" },
+        { label: "JavaScript course", href: "/courses/javascript-zero-to-builder" },
+      ],
+    };
+  }
   if (has(text, "mobile", "app ", "android", "ios")) {
     return {
       reply: "For **mobile apps**, the path is:\n\n1. **JavaScript: Zero to Builder** — the language everything is built on\n2. **Build Production Apps with React** — components and state transfer directly\n3. **Mobile Apps with React Native** — your habit-tracker capstone\n\nReact Native uses React's model but renders native views — no browser DOM.",

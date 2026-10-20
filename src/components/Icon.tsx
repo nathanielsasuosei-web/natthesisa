@@ -8,7 +8,7 @@ export type IconName =
   | "chevron-down" | "spark" | "shield" | "globe" | "terminal" | "close" | "menu"
   | "settings" | "bell" | "mail" | "layers" | "certificate" | "briefcase" | "pause"
   | "upload" | "file" | "video" | "plus" | "crown" | "pencil"
-  | "volume" | "volume-off";
+  | "volume" | "volume-off" | "gamepad";
 
 const PATHS: Record<IconName, string> = {
   "arrow-right": "M5 12h14M13 6l6 6-6 6",
@@ -62,6 +62,7 @@ const PATHS: Record<IconName, string> = {
   plus: "M12 5v14M5 12h14",
   crown: "m3 8 4 9h10l4-9-5.5 4L12 5 8.5 12 3 8Zm4 12h10",
   pencil: "m14 6 4 4L8 20l-5 1 1-5L14 6Z",
+  gamepad: "M6.5 8h11a4.5 4.5 0 0 1 4.4 5.4l-.9 4.2a2.4 2.4 0 0 1-4 1.3L15 16.5H9l-3 2.4a2.4 2.4 0 0 1-4-1.3l-.9-4.2A4.5 4.5 0 0 1 6.5 8ZM7 11v4M5 13h4M16 12h.01M18.5 14h.01",
 };
 
 interface Props extends SVGProps<SVGSVGElement> {

@@ -858,6 +858,42 @@ const BRIEFS: Record<string, CourseBrief> = {
       "Demand for people who can judge an AI system — its data, its evaluation and its risks — is growing faster than demand for people who can only call an API.",
     ],
   },
+
+  "game-development": {
+    overview: [
+      "A game is the most demanding software most people ever run: a simulation, a renderer and a human being, all inside a budget of 16.7 milliseconds per frame. This course teaches the ideas underneath every game, in the order that makes them easiest to learn: the loop and time, flat 2D worlds, 3D from vectors and matrices, then a fourth and a fifth dimension, and finally the pixels.",
+      "You will write the fixed-timestep loop that every engine hides from you, a tile-map game with collisions that cannot be tunnelled, and a 3D cube from nothing but numbers. You will rotate a tesseract in six planes, slice it the way real 4D games do, rewind time, and build a multiverse of branching timelines. Then you will do the arithmetic that decides what 4K, 8K and 16K really cost in time, memory and bandwidth, and where the human eye stops being able to tell the difference.",
+      "Every example runs in the lesson workbench in your browser, with no engine, library or download to install, which suits a mid-range phone on a metered connection. The project is one small game built across the dimensions, with a render-scale control and a performance report.",
+    ],
+    audience: [
+      "You know a little JavaScript and want to understand how games really work before you choose an engine.",
+      "You want to make games for the phones your players actually own, not the machine on your desk.",
+      "You are curious about 4D and 5D games, or about what 4K and 8K really cost, and want the mathematics behind them.",
+    ],
+    prerequisites: [
+      "Comfortable with variables, functions, loops and arrays in JavaScript; the JavaScript: Zero to Builder course is plenty.",
+      "School algebra and a little trigonometry (sine, cosine and Pythagoras). Vectors and matrices are taught from scratch.",
+      "About six to eight hours a week for three weeks, including the project.",
+    ],
+    tools: [
+      "A modern browser and the lesson workbench: the web playground and the JavaScript console",
+      "A code editor, if you want to keep your own copy of the project",
+      "One weak device to test on, such as an older Android phone, if you can borrow one",
+      "A free game engine such as Godot, only if you want to rebuild the project in one at the end",
+    ],
+    build: [
+      "A fixed-timestep loop that gives identical results at 30, 60 and 144 frames per second",
+      "A tile-map game with collisions, a smooth camera and a parallax layer",
+      "A software-rendered 3D scene with perspective, lighting and a frame-time counter",
+      "A tesseract spinning in six planes with a slice view, plus a rewind or branching-timeline mechanic",
+      "A render-scale control with dynamic resolution, and a report of percentile frame times and pixels per degree",
+    ],
+    after: [
+      "Data Structures & Algorithms sharpens the search and the data structures used in the later lessons.",
+      "Mobile Apps with React Native shows another route to a phone, if your game becomes an app.",
+      "Ghana already has a game scene: Accra's Leti Arts has published mobile games from African folklore since 2009, and a game that runs well on an ordinary phone is the one most players can actually play.",
+    ],
+  },
 };
 
 /** The brief for a course, or a sensible fallback for owner-published content. */

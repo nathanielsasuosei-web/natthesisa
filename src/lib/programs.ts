@@ -22,9 +22,10 @@ import { COMPUTER_BASICS_BCC_MODULES } from "@/content/computer-basics-bcc";
 import { MICROSOFT_OFFICE_MODULES } from "@/content/microsoft-office";
 import { PROGRAMMING_LANGUAGES_MODULES } from "@/content/programming-languages";
 import { AI_ML_MODULES } from "@/content/artificial-intelligence-machine-learning";
+import { GAME_DEVELOPMENT_MODULES } from "@/content/game-development";
 
 /**
- * The twelve programs, and the courses under them.
+ * The thirteen programs, and the courses under them.
  *
  * Every course in the catalog belongs to exactly one program (its `category`).
  * The core catalog in `courses.ts` already covers the fundamentals; this file
@@ -44,6 +45,7 @@ import { AI_ML_MODULES } from "@/content/artificial-intelligence-machine-learnin
  *                            computer networks & architecture + Microsoft Office
  *   Cloud & DevOps         → cloud computing & DevOps
  *   AI & Machine Learning  → artificial intelligence & machine learning (AI/ML)
+ *   Game Development       → game development: 2D, 3D, 4D, 5D and 4K–8K+
  *
  * A program is what a student pays for: buying it opens every course and
  * every lesson under it, permanently. Nothing is free to sample — the course
@@ -57,7 +59,7 @@ export interface ProgramInfo {
   name: string;
   tagline: string;
   description: string;
-  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server" | "shield" | "layers" | "terminal";
+  icon: "cpu" | "briefcase" | "spark" | "browser" | "mobile" | "server" | "shield" | "layers" | "terminal" | "gamepad";
   tone: CourseTone;
   /**
    * Optional cover artwork, copied from `brandAssets` by hand so this module
@@ -189,6 +191,16 @@ export const PROGRAMS: ProgramInfo[] = [
       "Machine learning from the workflow up — framing, data, evaluation, neural networks and generative AI — plus the ethics and guardrails that decide whether a model should be deployed at all.",
     icon: "spark",
     tone: "violet",
+  },
+  {
+    id: "game-development",
+    category: "Game Development",
+    name: "Game Development",
+    tagline: "From the game loop to 4D worlds and 8K screens",
+    description:
+      "How games work from the loop up: 2D and 3D worlds, a fourth dimension of space and of time, branching timelines and any number of axes, and the arithmetic of 4K, 8K and beyond, with the dynamic resolution and upscaling that make it run on the device in your player's hand.",
+    icon: "gamepad",
+    tone: "pink",
   },
 ];
 
@@ -749,6 +761,32 @@ export const PROGRAM_COURSES: Course[] = [
     ],
     tags: ["Machine learning", "Neural networks", "Generative AI", "Responsible AI"],
     modules: AI_ML_MODULES,
+  },
+  {
+    id: "game-development",
+    cover: "/course-covers/game-development.jpg",
+    slug: "game-development",
+    title: "Game Development: 2D, 3D, 4D, 5D and 4K–8K+",
+    shortTitle: "Game Development",
+    description:
+      "Build games from the loop up: 2D tile maps, 3D cameras and light, a fourth dimension of space and of time, branching timelines and n dimensions, then the arithmetic of 4K, 8K and beyond with dynamic resolution and upscaling.",
+    category: "Game Development",
+    level: "Intermediate",
+    tone: "pink",
+    icon: "gamepad",
+    instructor: { name: "codemasterghana Team", role: "Course team", initials: "CM" },
+    rating: 0,
+    learners: 0,
+    project: "Dimensions: one small game built across the course, with a 2D level, a 3D scene and a 4D toy, plus a render-scale control and a performance report measured from 720p up to 8K",
+    outcomes: [
+      "Build a fixed-timestep game loop that behaves the same at 30, 60 and 144 frames per second",
+      "Make 2D worlds from tile maps, with collisions that cannot be tunnelled and a smooth camera",
+      "Render 3D from vectors, matrices and a perspective projection, then light it and choose an engine",
+      "Rotate, project and slice a tesseract, rewind time, and branch timelines in five or more dimensions",
+      "Budget pixels, memory and bandwidth for 4K, 8K and beyond, and ship dynamic resolution and quality tiers",
+    ],
+    tags: ["Game loop", "2D & 3D", "4D & 5D", "4K–8K rendering"],
+    modules: GAME_DEVELOPMENT_MODULES,
   },
 ];
 

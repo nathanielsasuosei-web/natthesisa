@@ -38,6 +38,7 @@ const PROGRAM_LINKS: Array<{ id: string; name: string; tagline: string; icon: Ic
   { id: "it-essentials", name: "IT Essentials", tagline: "Networks, office skills and starting from zero", icon: "terminal" },
   { id: "cloud-devops", name: "Cloud & DevOps", tagline: "Containers, pipelines and deploys you can undo", icon: "layers" },
   { id: "ai-machine-learning", name: "AI & Machine Learning", tagline: "What these systems really do — and their risks", icon: "spark" },
+  { id: "game-development", name: "Game Development", tagline: "From the game loop to 4D worlds and 8K screens", icon: "gamepad" },
 ];
 
 /** Popular courses, for the Courses menu. Slugs must match the public `/courses/<slug>` pages. */
@@ -52,6 +53,7 @@ const POPULAR_COURSES: Array<{ slug: string; title: string; level: string }> = [
   { slug: "ethical-hacking", title: "Ethical Hacking", level: "Intermediate" },
   { slug: "graphic-design", title: "Graphic Design", level: "Beginner" },
   { slug: "artificial-intelligence-machine-learning", title: "AI & ML", level: "Intermediate" },
+  { slug: "game-development", title: "Game Development", level: "Intermediate" },
 ];
 
 const NAV_LINKS = [
@@ -65,7 +67,12 @@ const NAV_LINKS = [
 const ANNOUNCEMENTS = [
   {
     badge: "New",
-    text: "Twelve programs now — Data Science, Design, IT Essentials, Cloud & DevOps and AI/ML have joined the catalogue",
+    text: "Game Development is live — 2D, 3D, 4D and 5D worlds, from the game loop to 4K and 8K screens",
+    href: "/courses#program-game-development",
+  },
+  {
+    badge: "New",
+    text: "Thirteen programs now — Game Development, Data Science, Design, IT Essentials, Cloud & DevOps and AI/ML have joined the catalogue",
     href: "/courses",
   },
   {
