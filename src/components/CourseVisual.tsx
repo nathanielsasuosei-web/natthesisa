@@ -22,6 +22,7 @@ const ICONS: Record<Course["icon"], IconName> = {
   cpu: "cpu",
   briefcase: "briefcase",
   spark: "spark",
+  gamepad: "gamepad",
 };
 
 interface Props {

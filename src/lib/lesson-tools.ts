@@ -120,6 +120,7 @@ const COURSE_DEFAULTS: Record<string, LessonToolId[]> = {
   "microsoft-office": ["data-lab", "notes-lab", "regex-lab"],
   "programming-languages": ["js-console", "python-lab", "json-tool"],
   "artificial-intelligence-machine-learning": ["prompt-lab", "python-lab", "data-lab"],
+  "game-development": ["web-playground", "js-console", "data-lab"],
 };
 
 const FALLBACK_TOOLS: LessonToolId[] = ["js-console", "json-tool"];

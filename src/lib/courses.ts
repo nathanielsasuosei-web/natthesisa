@@ -18,7 +18,8 @@ export type CourseCategory =
   | "Data Science"
   | "Design"
   | "IT Essentials"
-  | "AI & Machine Learning";
+  | "AI & Machine Learning"
+  | "Game Development";
 export type CourseLevel = "Beginner" | "Intermediate";
 export type CourseTone = "violet" | "orange" | "cyan" | "green" | "pink" | "blue";
 
@@ -105,7 +106,7 @@ export interface Course {
   category: CourseCategory;
   level: CourseLevel;
   tone: CourseTone;
-  icon: "browser" | "braces" | "react" | "mobile" | "nodes" | "server" | "layers" | "terminal" | "cpu" | "briefcase" | "spark";
+  icon: "browser" | "braces" | "react" | "mobile" | "nodes" | "server" | "layers" | "terminal" | "cpu" | "briefcase" | "spark" | "gamepad";
   instructor: { name: string; role: string; initials: string };
   rating: number;
   learners: number;
@@ -302,6 +303,7 @@ export const CATEGORIES: Array<"All" | CourseCategory> = [
   "Design",
   "IT Essentials",
   "AI & Machine Learning",
+  "Game Development",
 ];
 
 export function getCourse(idOrSlug: string): Course | undefined {
