@@ -7,6 +7,7 @@ import {
   quoteCheckout,
 } from "@/lib/payments";
 import { PurchaseError } from "@/lib/purchases";
+import { PromoError } from "@/lib/promotions";
 import { checkMomoPhone, isMomoNetwork } from "@/lib/momo";
 import { isPaystackConfigured } from "@/lib/paystack";
 
@@ -14,7 +15,7 @@ import { isPaystackConfigured } from "@/lib/paystack";
  * Starts a checkout — the one door money enters through.
  *
  *   POST /api/checkout
- *   { kind: "program", programId, phone, network }
+ *   { kind: "program", programId, phone, network, promoCode }
  *
  * Programs are the only checkout: passes, courses and lessons are retired
  * and the quote refuses them, while payments already in flight still fulfil.
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
   try {
     return await startCheckout(req);
   } catch (error) {
-    if (error instanceof PurchaseError || error instanceof CheckoutError) {
+    if (error instanceof PurchaseError || error instanceof CheckoutError || error instanceof PromoError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
     }
     // Anything reaching here is a bug or a database the app has not met
@@ -70,6 +71,7 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
   const courseId = typeof body.courseId === "string" ? body.courseId : undefined;
   const lessonId = typeof body.lessonId === "string" ? body.lessonId : undefined;
   const programId = typeof body.programId === "string" ? body.programId : undefined;
+  const promoCode = typeof body.promoCode === "string" ? body.promoCode : undefined;
 
   // The MoMo number is how we address the approval prompt (and the receipt).
   // It is validated here and stored on the payment row either way.
@@ -83,13 +85,23 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
       ? body.network
       : (phoneCheck?.network ?? undefined);
 
-  // Quote first so "already owned" answers before any row is written.
-  quoteCheckout(user, { kind, period, courseId, lessonId, programId });
+  // Quote first so "already owned" and "that promo code has ended" answer
+  // before any row is written or any money is asked for.
+  const quote = await quoteCheckout(user, { kind, period, courseId, lessonId, programId, promoCode });
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") || req.nextUrl.origin;
   const checkout = await createCheckout(
     user,
-    { kind, period, courseId, lessonId, programId, phone: phoneCheck?.phone ?? undefined, network },
+    {
+      kind,
+      period,
+      courseId,
+      lessonId,
+      programId,
+      promoCode: quote.promo?.code,
+      phone: phoneCheck?.phone ?? undefined,
+      network,
+    },
     { callbackBaseUrl: base }
   );
   return NextResponse.json(
@@ -101,6 +113,15 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
       currency: checkout.payment.currency,
       description: checkout.payment.description,
       authorizationUrl: checkout.authorizationUrl,
+      // The bonus the payment will unlock, so the modal can say it plainly.
+      promo: quote.promo
+        ? {
+            code: quote.promo.code,
+            programId: quote.promo.rewardProgramId,
+            programName: quote.promo.rewardProgramName,
+            value: quote.promo.rewardProgramPrice,
+          }
+        : null,
     },
     { headers: NO_STORE }
   );

@@ -109,6 +109,7 @@ export const SCHEMA_STATEMENTS: string[] = [
      channel           text,
      invoice_number    text,
      provider_event_id text,
+     promo_code        text,
      paid_at           timestamptz,
      created_at        timestamptz not null default now(),
      updated_at        timestamptz not null default now()
@@ -117,6 +118,44 @@ export const SCHEMA_STATEMENTS: string[] = [
   // table made by hand (or by an older build) may exist without our columns,
   // and `create table if not exists` skips it silently — so the columns are
   // healed first and the indexes are built only afterwards.
+
+  // Promo codes: the teacher's offer — "buy a program while this code is live
+  // and the program I named comes free". The window is the teacher's to set;
+  // `active` is their on/off switch; `max_redemptions` 0 means no limit.
+  `create table if not exists promo_codes (
+     id                text primary key,
+     code              text not null,
+     reward_program_id text not null,
+     description       text not null default '',
+     starts_at         timestamptz not null,
+     ends_at           timestamptz not null,
+     max_redemptions   integer not null default 0 check (max_redemptions >= 0),
+     active            boolean not null default true,
+     created_at        timestamptz not null default now(),
+     updated_at        timestamptz not null default now()
+   )`,
+  // Codes are case-insensitive: `FREE300` and `free300` are the same offer.
+  `create unique index if not exists promo_codes_code_key on promo_codes (code)`,
+  `create index if not exists promo_codes_window_idx on promo_codes (starts_at, ends_at)`,
+
+  // One row per claim. `promo_id` and `user_id` are plain text with no foreign
+  // key on purpose: deleting a code must never delete what happened, and
+  // removing a student must not silently free their code for a second claim.
+  // The unique pair is what makes a claim once-per-student, even when the
+  // webhook and the return URL fulfil the same payment at the same time.
+  `create table if not exists promo_redemptions (
+     id                text primary key,
+     promo_id          text not null,
+     code              text not null,
+     user_id           text not null,
+     payment_reference text not null,
+     program_id        text not null,
+     value             integer not null default 0,
+     created_at        timestamptz not null default now()
+   )`,
+  `create unique index if not exists promo_redemptions_once_key on promo_redemptions (promo_id, user_id)`,
+  `create unique index if not exists promo_redemptions_payment_key on promo_redemptions (payment_reference)`,
+  `create index if not exists promo_redemptions_user_idx on promo_redemptions (user_id, created_at desc)`,
 ];
 
 /**
@@ -271,6 +310,10 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table payments add column if not exists channel text`,
   `alter table payments add column if not exists invoice_number text`,
   `alter table payments add column if not exists provider_event_id text`,
+  // The promo code a student used at checkout, if any. Kept on the payment
+  // (rather than only on the redemption) so a live checkout that has not
+  // landed yet still remembers what it promised.
+  `alter table payments add column if not exists promo_code text`,
   `alter table payments add column if not exists paid_at timestamptz`,
   `alter table payments add column if not exists created_at timestamptz`,
   `alter table payments add column if not exists updated_at timestamptz`,
@@ -473,7 +516,7 @@ begin
        and column_name not in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
                                'program_id', 'amount', 'currency', 'description', 'status', 'provider',
                                'phone', 'network', 'authorization_url', 'channel', 'invoice_number',
-                               'provider_event_id', 'paid_at', 'created_at', 'updated_at')
+                               'provider_event_id', 'promo_code', 'paid_at', 'created_at', 'updated_at')
        and column_name not in (
          select attribute.attname
            from pg_index index_definition

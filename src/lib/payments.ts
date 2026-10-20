@@ -22,6 +22,7 @@ import {
 } from "./paystack";
 import { getProgram } from "./programs";
 import { hasActivePass, ownsCourse, ownsLesson, ownsProgram } from "./access";
+import { redeemPromotion, resolvePromotion, type PromotionQuote } from "./promotions";
 
 /**
  * Checkouts and payment fulfilment.
@@ -66,6 +67,8 @@ export interface Payment {
   channel: string | null;
   invoiceNumber: string | null;
   providerEventId: string | null;
+  /** The promo code used at checkout, if any — see `promotions.ts`. */
+  promoCode: string | null;
   paidAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -90,6 +93,7 @@ interface PaymentRow {
   channel: string | null;
   invoice_number: string | null;
   provider_event_id: string | null;
+  promo_code: string | null;
   paid_at: Date | string | null;
   created_at: Date | string;
   updated_at: Date | string;
@@ -123,6 +127,7 @@ function fromRow(row: PaymentRow): Payment {
     channel: row.channel,
     invoiceNumber: row.invoice_number,
     providerEventId: row.provider_event_id,
+    promoCode: row.promo_code ?? null,
     paidAt: row.paid_at ? iso(row.paid_at) : null,
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
@@ -249,6 +254,12 @@ export interface CheckoutInput {
   programId?: string;
   phone?: string;
   network?: string;
+  /**
+   * A promo code the student typed at checkout. Validated here and stored on
+   * the payment row; the free program is granted when the money lands (see
+   * `redeemPromotion` in `promotions.ts`).
+   */
+  promoCode?: string;
 }
 
 export interface CheckoutQuote {
@@ -259,14 +270,19 @@ export interface CheckoutQuote {
   programId: string | null;
   amount: number;
   description: string;
+  /** The checked promo code, or null when the student did not use one. */
+  promo: PromotionQuote | null;
 }
 
 /**
  * Prices what the student asked for and checks it can still be bought.
  * Throws `CheckoutError` (or `PurchaseError` for already-owned content) when
  * the request makes no sense — before any row is written or provider called.
+ *
+ * A promo code is checked here too, in the same breath: an expired, paused or
+ * already-used code must stop the checkout before the student pays, not after.
  */
-export function quoteCheckout(user: User, input: CheckoutInput): CheckoutQuote {
+export async function quoteCheckout(user: User, input: CheckoutInput): Promise<CheckoutQuote> {
   const kind = input.kind;
   if (kind === "program") {
     const programId = input.programId?.trim() ?? "";
@@ -275,6 +291,9 @@ export function quoteCheckout(user: User, input: CheckoutInput): CheckoutQuote {
     if (ownsProgram(user, programId)) {
       throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
     }
+    const promo = input.promoCode?.trim()
+      ? await resolvePromotion(input.promoCode, user, programId)
+      : null;
     return {
       kind,
       period: null,
@@ -283,6 +302,7 @@ export function quoteCheckout(user: User, input: CheckoutInput): CheckoutQuote {
       programId,
       amount: programPrice(programId),
       description: `${program.name} — program purchase`,
+      promo,
     };
   }
   // Passes, courses and lessons are retired as things to buy: the program is
@@ -322,18 +342,22 @@ export interface CreatedCheckout {
  */
 async function findOpenCheckout(
   userId: string,
-  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId" | "programId">
+  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId" | "programId" | "promo">
 ): Promise<Payment | null> {
   await ensureSchema();
   const row = await queryOne<PaymentRow>(
     // `user_id::text`: see `listPaymentsForUser` — a legacy `uuid` column must
     // not be allowed to take the whole checkout down with a type error.
+    // The promo code is part of "the same item": a student who goes back and
+    // adds a code gets a fresh checkout that carries it, rather than a reused
+    // row that would silently drop it.
     `select * from payments
       where user_id::text = $1 and kind = $2
         and coalesce(period, '') = $3
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
         and coalesce(program_id, '') = $6
+        and coalesce(promo_code, '') = $7
         and status = 'pending'
       order by created_at desc limit 1`,
     [
@@ -343,6 +367,7 @@ async function findOpenCheckout(
       quote.courseId ?? "",
       quote.lessonId ?? "",
       quote.programId ?? "",
+      quote.promo?.code ?? "",
     ]
   );
   return row ? fromRow(row) : null;
@@ -353,7 +378,7 @@ export async function createCheckout(
   input: CheckoutInput,
   opts: { callbackBaseUrl: string }
 ): Promise<CreatedCheckout> {
-  const quote = quoteCheckout(user, input);
+  const quote = await quoteCheckout(user, input);
   if (quote.amount <= 0) {
     throw new CheckoutError("This costs nothing — no checkout needed.", "FREE_ITEM");
   }
@@ -386,6 +411,29 @@ export async function createCheckout(
     await markPaymentAbandoned(open.reference);
   }
 
+  // A checkout is open for each item at most once. This also closes an earlier
+  // attempt that carried no promo code (or a different one): the student has
+  // gone back and changed the offer, and the old row must not stay payable.
+  await query(
+    `update payments set status = 'abandoned', updated_at = now()
+      where user_id::text = $1 and kind = $2
+        and coalesce(period, '') = $3
+        and coalesce(course_id, '') = $4
+        and coalesce(lesson_id, '') = $5
+        and coalesce(program_id, '') = $6
+        and status = 'pending'
+        and coalesce(promo_code, '') <> $7`,
+    [
+      user.id,
+      quote.kind,
+      quote.period ?? "",
+      quote.courseId ?? "",
+      quote.lessonId ?? "",
+      quote.programId ?? "",
+      quote.promo?.code ?? "",
+    ]
+  );
+
   const phone = input.phone?.trim() || null;
   const network = input.network?.trim() || null;
 
@@ -397,8 +445,8 @@ export async function createCheckout(
       await query(
         `insert into payments
            (reference, user_id, kind, period, course_id, lesson_id, program_id, amount, currency,
-            description, status, provider, phone, network)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,'GHS',$9,'pending',$10,$11,$12)`,
+            description, status, provider, phone, network, promo_code)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'GHS',$9,'pending',$10,$11,$12,$13)`,
         [
           reference,
           user.id,
@@ -412,6 +460,7 @@ export async function createCheckout(
           provider,
           phone,
           network,
+          quote.promo?.code ?? null,
         ]
       );
       break;
@@ -445,6 +494,7 @@ export async function createCheckout(
         courseId: quote.courseId ?? "",
         lessonId: quote.lessonId ?? "",
         programId: quote.programId ?? "",
+        promoCode: quote.promo?.code ?? "",
         phone: phone ?? "",
         network: network ?? "",
       },
@@ -686,6 +736,26 @@ export async function fulfillPayment(
       const purchase = await buyProgram(user, payment.programId, credit);
       purchase.amount = payment.amount;
       applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
+
+      // The promo the student used was checked when this checkout was
+      // created. Granting here — after the money is confirmed, in the same
+      // save as the purchase — means the free program appears on the account
+      // the moment the payment does. A failure to record the claim must
+      // never fail the payment the student already made.
+      let bonusProgram: string | null = null;
+      try {
+        const reward = await redeemPromotion(user, {
+          reference: payment.reference,
+          promoCode: payment.promoCode,
+        });
+        bonusProgram = reward?.programName ?? null;
+      } catch (error) {
+        console.error(
+          `[codemasterghana] promo ${payment.promoCode ?? "(none)"} on ${payment.reference} could not be granted`,
+          error
+        );
+      }
+
       await saveUser(user);
       const program = getProgram(payment.programId);
       await notifyProgramPurchased({
@@ -694,6 +764,7 @@ export async function fulfillPayment(
         program: program?.name ?? "Program",
         amount: payment.amount,
         invoiceNumber: purchase.invoiceNumber,
+        bonusProgram,
       });
       const paid = await markPaymentPaid(reference, {
         channel: attribution.channel ?? null,
@@ -801,6 +872,22 @@ export async function fulfillPayment(
       // from the register — a wrong refund hands the item out for free.
       const current = await getPayment(reference);
       const twin = current?.status === "paid" ? null : await findPaidTwin(payment);
+
+      // A previous attempt may have granted the paid program but stopped
+      // before saving the promo reward. Re-running the (idempotent) claim
+      // repairs the account; it can never grant the free program twice.
+      if (payment.kind === "program" && payment.promoCode) {
+        try {
+          const reward = await redeemPromotion(user, {
+            reference: payment.reference,
+            promoCode: payment.promoCode,
+          });
+          if (reward) await saveUser(user);
+        } catch (error) {
+          console.error(`[codemasterghana] promo repair failed for ${reference}`, error);
+        }
+      }
+
       const paid = await markPaymentPaid(reference, {
         channel: attribution.channel ?? null,
         providerEventId: attribution.providerEventId ?? null,

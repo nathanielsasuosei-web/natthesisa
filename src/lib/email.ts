@@ -223,25 +223,37 @@ export function notifyContentPurchased(opts: {
   );
 }
 
-/** A program receipt: every course and lesson under it is now open. */
+/**
+ * A program receipt: every course and lesson under it is now open.
+ *
+ * `bonusProgram` is set when the student used a promo code — the free program
+ * is named in the same receipt, so the offer they were promised at checkout is
+ * confirmed in writing.
+ */
 export function notifyProgramPurchased(opts: {
   to: string;
   toName: string;
   program: string;
   amount: number;
   invoiceNumber: string | null;
+  bonusProgram?: string | null;
 }): Promise<EmailResult> {
-  const { to, toName, program, amount, invoiceNumber } = opts;
+  const { to, toName, program, amount, invoiceNumber, bonusProgram } = opts;
   const money = `${site.currency.symbol}${amount.toLocaleString("en-US")}`;
+  const rows: Array<[string, string]> = [
+    ["Program", program],
+    ["Amount paid", money],
+    ["Invoice", invoiceNumber ?? "—"],
+    ["Date", new Date().toUTCString().slice(0, 16)],
+  ];
+  if (bonusProgram) rows.push(["Promo bonus — free", bonusProgram]);
   const html = shell("Your program is open", "🎓",
     paragraph(`Hi ${escapeHtml(toName)},`) +
     paragraph(`Thank you — the <strong>${escapeHtml(program)}</strong> program is yours now. Every course and every lesson under it is open, permanently.`) +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 2px">${detailRows([
-      ["Program", program],
-      ["Amount paid", money],
-      ["Invoice", invoiceNumber ?? "—"],
-      ["Date", new Date().toUTCString().slice(0, 16)],
-    ])}</table>` +
+    (bonusProgram
+      ? paragraph(`Your promo code also opened the <strong>${escapeHtml(bonusProgram)}</strong> program, free of charge.`)
+      : "") +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 2px">${detailRows(rows)}</table>` +
     button(siteUrl("/dashboard/courses"), "Start learning")
   );
   return safely("program receipt", () =>
@@ -250,7 +262,7 @@ export function notifyProgramPurchased(opts: {
       toName,
       subject: `Receipt — ${program}`,
       html,
-      text: `Hi ${toName}, the ${program} program (${money}${invoiceNumber ? `, invoice ${invoiceNumber}` : ""}) is yours now. Start learning: ${siteUrl("/dashboard/courses")}`,
+      text: `Hi ${toName}, the ${program} program (${money}${invoiceNumber ? `, invoice ${invoiceNumber}` : ""}) is yours now.${bonusProgram ? ` Your promo code also opened the ${bonusProgram} program free.` : ""} Start learning: ${siteUrl("/dashboard/courses")}`,
     })
   );
 }

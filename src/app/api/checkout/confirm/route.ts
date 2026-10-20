@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SUSPENDED_ERROR, getCurrentUser, isSuspended } from "@/lib/session";
 import { CheckoutError, confirmDemoPayment } from "@/lib/payments";
+import { promoRedemptionForPayment } from "@/lib/promotions";
 
 /**
  * Completes a DEMO payment — the "I approved on my phone" button.
@@ -20,12 +21,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const fulfilment = await confirmDemoPayment(reference, user.id);
+    // The free program a promo code promised, now that the payment is done.
+    const promo = await promoRedemptionForPayment(reference).catch(() => null);
     return NextResponse.json({
       ok: true,
       alreadyPaid: fulfilment.alreadyPaid,
       reference: fulfilment.payment.reference,
       invoiceNumber: fulfilment.invoiceNumber,
       passActive: fulfilment.passActive,
+      promo,
     });
   } catch (error) {
     if (error instanceof CheckoutError) {
