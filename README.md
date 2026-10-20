@@ -30,6 +30,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
 - Focused lesson reader with examples, challenges and next/previous navigation
 - **A narrated walkthrough video on every catalog lesson that has one**, plus the Natthesisa study assistant (`/natthesisa`). Both open only for signed-in students who own the program, like the lessons.
 - Server-saved lesson completion, course percentages and activity history
+- **Promo codes at checkout** — a student enters a code while buying a
+  program and receives the teacher's chosen program free, in the same payment
 - **Student email** — receipts for every purchase, a congratulations message on
   finishing a course, and a notice when a certificate is issued
 - Dashboard with weekly goal, streak, time learned and recommendations
@@ -91,6 +93,8 @@ Built with **Next.js 16, React 19, TypeScript and Tailwind CSS 4**.
   students own each program
 - Every student's programs, purchases, progress and lifetime minutes
 - **Prices** — the price of each program, editable at any time
+- **Promo codes** (`/owner/promotions`) — create a code, choose the program it
+  gives away free, and set exactly when the offer starts and ends
 - **The Studio** (`/owner/studio`) — picture and video editing with no lesson
   attached: crop, resize, rotate, flip and colour-adjust a picture, trim and
   mute a video, capture a thumbnail and export the edited clip
@@ -930,6 +934,37 @@ email twice. While live payments are on, the old direct endpoints
 (`POST /api/pass`, `POST /api/purchase`) refuse priced items with
 `402 CHECKOUT_REQUIRED`, and the demo confirm endpoint refuses everything, so
 there is no way to mint an entitlement without verified money.
+
+### Promo codes
+
+The teacher can run an offer: **buy any program with this code and the program I
+named comes free**. Codes live at `/owner/promotions` in the teacher console.
+
+- **The window is the teacher's.** A code has a start and an end; outside that
+  window checkout refuses it with the date ("That code ended on 31 Oct 2026,
+  20:00."). A code can also be paused without deleting it, and can be capped
+  at a number of claims (`0` means no limit).
+- **The reward is a whole program**, chosen from the catalogue. Programs are
+  the only thing that opens lessons (see `access.ts`), so granting a program is
+  what a "free course" means here. A GH₵300 program given away is recorded as a
+  GH₵0 purchase — it opens every course and lesson inside it, and never appears
+  in revenue.
+- **A student can use a code once.** `promo_redemptions` carries a unique
+  `(promo_id, user_id)` index, and each payment can record one claim.
+- **The reward lands with the payment, not before.** The checkout (`POST
+  /api/checkout`) validates the code and stores it on the `payments` row. When
+  the payment is confirmed, `fulfillPayment()` grants the paid program and then
+  the free one in the same save, and the receipt email names both. A code that
+  ends while Paystack is confirming is still honoured, because it was valid
+  when the student committed to the purchase.
+- **A code cannot give the program being bought**, a program the student
+  already owns, or a second use — the checkout modal says which of those it is
+  before any money moves.
+
+The tables are `promo_codes` (the offer and its window) and
+`promo_redemptions` (who claimed what, with which payment reference). The logic
+lives in `src/lib/promotions.ts`; the shapes and status rules are in
+`src/lib/promo-codes.ts`, which the browser can import safely.
 
 ### Reconciling a "I paid but it is locked" message
 

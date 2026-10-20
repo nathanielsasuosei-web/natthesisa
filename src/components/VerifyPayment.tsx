@@ -16,6 +16,8 @@ interface Status {
   passActive: boolean;
   courseId: string | null;
   authorizationUrl: string | null;
+  /** The free program a promo code added, once the payment is fulfilled. */
+  promo: { code: string; programId: string; programName: string; value: number } | null;
 }
 
 /** Polls one payment until it is final, then says plainly what happened. */
@@ -120,6 +122,12 @@ export default function VerifyPayment() {
               ) : null}
               . A receipt is on its way to your email.
             </p>
+            {state.promo && (
+              <div className="mx-auto mt-4 max-w-xs rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-[10px] leading-5 text-emerald-800">
+                Promo <span className="font-mono font-black">{state.promo.code}</span> also opened the{" "}
+                <strong>{state.promo.programName}</strong> program — free, worth {formatMoney(state.promo.value)}.
+              </div>
+            )}
             <Link
               href={continueHref}
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3 text-xs font-extrabold text-white"

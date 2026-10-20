@@ -74,6 +74,9 @@ export default async function PricingPage() {
         <p className="mt-4 text-[11px] leading-5 text-[#918a97]">
           {totals.courses} courses · {totals.lessons} lessons in total. Course overview pages are public; the lessons are not.
         </p>
+        <p className="mt-1 text-[11px] leading-5 text-[#6d4aff]">
+          Has your teacher given you a promo code? Enter it at checkout — it can add a free program to your purchase.
+        </p>
       </section>
 
       <InfoSection title="What the account is for">

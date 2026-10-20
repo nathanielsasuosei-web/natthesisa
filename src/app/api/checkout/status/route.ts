@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { CheckoutError, getPayment, verifyAndFulfill } from "@/lib/payments";
 import { hasActivePass } from "@/lib/access";
 import { getUserById } from "@/lib/store";
+import { promoRedemptionForPayment } from "@/lib/promotions";
 
 /**
  * Polls a payment: `GET /api/checkout/status?reference=CMG-…`.
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest) {
             invoiceNumber: outcome.payment.invoiceNumber,
             passActive: holder ? hasActivePass(holder) : false,
             courseId: outcome.payment.courseId,
+            promo: await promoRedemptionForPayment(outcome.payment.reference).catch(() => null),
           });
         } catch (error) {
           // Verification failing must not fail the poll: the webhook may still
@@ -68,6 +70,7 @@ export async function GET(req: NextRequest) {
       invoiceNumber: current.invoiceNumber,
       passActive: holder ? hasActivePass(holder) : false,
       courseId: current.courseId,
+      promo: await promoRedemptionForPayment(current.reference).catch(() => null),
       authorizationUrl: current.status === "pending" ? current.authorizationUrl : null,
     });
   } catch (error) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatMoney } from "@/lib/pass-periods";
+import { promoDateLabel } from "@/lib/promo-codes";
 import {
   MOMO_NETWORKS,
   MOMO_NETWORK_LABEL,
@@ -35,6 +36,15 @@ interface Props {
 }
 
 type Step = "details" | "redirecting" | "demo-wait" | "done";
+
+/** The result of checking a promo code, as `/api/promo` answered it. */
+interface AppliedPromo {
+  code: string;
+  programName: string;
+  programPrice: number;
+  description: string;
+  endsAt: string;
+}
 
 const NETWORK_STYLE: Record<MomoNetwork, { badge: string; ring: string }> = {
   MTN: { badge: "bg-[#ffcc00] text-[#1a1a1a]", ring: "border-[#ffcc00] ring-2 ring-[#ffcc00]/40" },
@@ -73,6 +83,12 @@ export default function CheckoutModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reference, setReference] = useState<string | null>(null);
+  // Promo code: typed, checked, and — once the server says yes — attached to
+  // the checkout. The free program is granted when the payment is confirmed.
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<AppliedPromo | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +116,54 @@ export default function CheckoutModal({
 
   const phoneCheck = useMemo(() => (phone.trim() ? checkMomoPhone(phone) : null), [phone]);
 
+  /**
+   * Asks the server whether the code can be used for this purchase. A code
+   * that has ended, is paused, or was already claimed is refused here — before
+   * the student approves any money.
+   */
+  async function applyPromo(): Promise<AppliedPromo | null> {
+    const code = promoInput.trim();
+    if (!code) {
+      setPromoError("Enter a promo code first.");
+      return null;
+    }
+    if (payload.kind !== "program" || !payload.programId) {
+      setPromoError("Promo codes apply when buying a program.");
+      return null;
+    }
+    setPromoBusy(true);
+    setPromoError(null);
+    try {
+      const response = await fetch("/api/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, programId: payload.programId }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setPromo(null);
+        setPromoError(data?.error ?? "That promo code could not be checked.");
+        return null;
+      }
+      const applied: AppliedPromo = {
+        code: String(data.code ?? code),
+        programName: String(data.programName ?? "free program"),
+        programPrice: Number(data.programPrice ?? 0),
+        description: String(data.description ?? ""),
+        endsAt: String(data.endsAt ?? ""),
+      };
+      setPromo(applied);
+      setPromoInput(applied.code);
+      return applied;
+    } catch {
+      setPromo(null);
+      setPromoError("That promo code could not be checked. Check your connection.");
+      return null;
+    } finally {
+      setPromoBusy(false);
+    }
+  }
+
   async function startCheckout() {
     if (busy) return;
     const check = checkMomoPhone(phone);
@@ -111,13 +175,27 @@ export default function CheckoutModal({
       setError("Choose your Mobile Money network.");
       return;
     }
+    // A code that was typed but never applied is applied now, so a student
+    // who forgets the button still gets what the code promises — and an
+    // invalid one stops the payment with the reason.
+    let promoCode = promo?.code ?? null;
+    if (!promoCode && promoInput.trim()) {
+      const applied = await applyPromo();
+      if (!applied) return;
+      promoCode = applied.code;
+    }
     setBusy(true);
     setError(null);
     try {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, phone: check.phone, network }),
+        body: JSON.stringify({
+          ...payload,
+          phone: check.phone,
+          network,
+          ...(promoCode ? { promoCode } : {}),
+        }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -257,6 +335,69 @@ export default function CheckoutModal({
                     <p role="alert" className="mt-2 text-[10px] font-semibold text-red-600">{phoneCheck.error}</p>
                   )}
 
+                  <div className="mt-4 rounded-xl border border-[#e6e1ea] bg-[#fdfcfe] p-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-[#817a87]">Promo code</p>
+                      {promo && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPromo(null);
+                            setPromoInput("");
+                            setPromoError(null);
+                          }}
+                          className="text-[9px] font-extrabold text-[#918a97] underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {promo ? (
+                      <div className="mt-2 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+                        <Icon name="check" size={14} className="mt-0.5 shrink-0 text-emerald-700" />
+                        <div className="min-w-0">
+                          <p className="font-mono text-[10px] font-black tracking-wide text-emerald-800">
+                            {promo.code} applied
+                          </p>
+                          <p className="mt-0.5 text-[10px] leading-4 text-emerald-800">
+                            This payment also opens the <strong>{promo.programName}</strong> program free — worth{" "}
+                            {formatMoney(promo.programPrice)}. Code valid until {promoDateLabel(promo.endsAt)}.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          value={promoInput}
+                          onChange={(event) => {
+                            setPromoInput(event.target.value.toUpperCase());
+                            setPromoError(null);
+                          }}
+                          placeholder="Have a code?"
+                          autoComplete="off"
+                          spellCheck={false}
+                          aria-label="Promo code"
+                          className="min-w-0 flex-1 rounded-lg border border-[#ddd9e2] bg-white px-3 py-2 font-mono text-[11px] font-bold tracking-wide outline-none placeholder:font-medium placeholder:tracking-normal placeholder:text-[#b3adb8] focus:border-[#6d4aff]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void applyPromo();
+                          }}
+                          disabled={promoBusy}
+                          className="shrink-0 rounded-lg border border-[#6d4aff] px-3 py-2 text-[10px] font-extrabold text-[#6d4aff] transition hover:bg-[#f0ecff] disabled:opacity-50"
+                        >
+                          {promoBusy ? "Checking…" : "Apply"}
+                        </button>
+                      </div>
+                    )}
+                    {promoError && (
+                      <p role="alert" className="mt-1.5 text-[10px] font-semibold text-red-600">
+                        {promoError}
+                      </p>
+                    )}
+                  </div>
+
                   {error && (
                     <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">
                       {error}
@@ -354,6 +495,12 @@ export default function CheckoutModal({
                 <Icon name="check" size={26} />
               </span>
               <p className="mx-auto mt-4 max-w-xs text-sm font-bold leading-6 text-[#413a4a]">{successMessage}</p>
+              {promo && (
+                <div className="mx-auto mt-4 max-w-xs rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-[10px] leading-5 text-emerald-800">
+                  Promo <span className="font-mono font-black">{promo.code}</span> also added the{" "}
+                  <strong>{promo.programName}</strong> program — free, worth {formatMoney(promo.programPrice)}.
+                </div>
+              )}
               {reference && (
                 <p className="mt-2 font-mono text-[10px] text-[#918a97]">Ref {reference}</p>
               )}
