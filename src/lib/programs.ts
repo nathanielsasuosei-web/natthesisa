@@ -717,7 +717,7 @@ export const PROGRAM_COURSES: Course[] = [
     title: "Programming Languages",
     shortTitle: "Programming Languages",
     description:
-      "Stop being trapped by one syntax: how languages differ in paradigm, typing and execution, how they run underneath, how to read unfamiliar code, and how to learn the next language in weeks.",
+      "Compare paradigms, typing and execution, then explore introductory lessons on programming languages, mobile development, document formats, templates and specialist languages.",
     category: "Computer Science",
     level: "Intermediate",
     tone: "violet",
@@ -732,6 +732,7 @@ export const PROGRAM_COURSES: Course[] = [
       "Explain the stack, the heap, scope, closures and memory leaks in managed languages",
       "Read an unfamiliar codebase with a method: entry point, data model, tests, debugger",
       "Learn a new language to functional competence on a four-week plan with evidence",
+      "Explore individual introductions to programming languages, mobile stacks, document formats and templates",
     ],
     tags: ["Paradigms", "Typing", "Compilers", "Learning to code"],
     modules: PROGRAMMING_LANGUAGES_MODULES,

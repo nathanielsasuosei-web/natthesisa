@@ -6,6 +6,7 @@ import Icon from "./Icon";
 import LessonProse from "./LessonProse";
 import { planLessonTools, type LessonToolId } from "@/lib/lesson-tools";
 import type { CodeSample, ToolProps } from "./lesson-tools/shared";
+import { GameBudgetLab, ClassificationLab, CapacityLab, SortLab, TouchTargetLab } from "./lesson-tools/CourseLabs";
 import { JsConsole, PythonLab, SqlLab, WebPlayground } from "./lesson-tools/CodeLabs";
 import { ApiLab, JsonTool, RegexLab, UrlInspector } from "./lesson-tools/WebLabs";
 import {
@@ -21,6 +22,11 @@ import {
 } from "./lesson-tools/StudyLabs";
 
 const TOOL_VIEWS: Record<LessonToolId, ComponentType<ToolProps>> = {
+  "game-budget": GameBudgetLab,
+  "classification-lab": ClassificationLab,
+  "capacity-lab": CapacityLab,
+  "sort-lab": SortLab,
+  "touch-target": TouchTargetLab,
   "web-playground": WebPlayground,
   "js-console": JsConsole,
   "python-lab": PythonLab,
@@ -77,8 +83,7 @@ export default function LessonTools({ courseId, lessonId, lessonTitle, summary, 
       </p>
       <h2 className="mt-2 text-xl font-black tracking-[-.03em] text-[#1d1922]">Do the lesson, not just read it</h2>
       <p className="mt-2 text-[13px] font-semibold leading-6 text-[#8b8494]">
-        A workbench picked for this lesson — {tools.length} tool{tools.length === 1 ? "" : "s"}. Everything runs in your
-        browser; nothing you type here leaves this page.
+        A workbench picked for this course and lesson — {tools.length} tool{tools.length === 1 ? "" : "s"}. Tools run in your browser; some download a runtime. Avoid entering sensitive information.
       </p>
 
       {/* The mission: the lesson's challenge, restated as the job for the tools. */}
@@ -138,7 +143,7 @@ export default function LessonTools({ courseId, lessonId, lessonTitle, summary, 
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e4e0e9] bg-white px-4 py-3">
         <p className="flex items-center gap-1.5 text-[11px] font-bold text-[#8b8494]">
-          <Icon name="check" size={13} className="text-emerald-600" /> Work saves in this browser, per lesson
+          <Icon name="check" size={13} className="text-emerald-600" /> Supported inputs save in this browser, per lesson
         </p>
         <span className="ml-auto flex flex-wrap gap-3">
           <Link href="/studio" className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#5d3be2] hover:underline">

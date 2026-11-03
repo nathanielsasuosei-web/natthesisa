@@ -29,7 +29,7 @@ function loadWorker(onStatus?: (status: PythonStatus) => void): Promise<Worker> 
     workerPromise = new Promise<Worker>((resolve, reject) => {
       let worker: Worker;
       try {
-        worker = new Worker(new URL("./python.worker.ts", import.meta.url), { type: "module" });
+        worker = new Worker("/workers/python.js");
       } catch (error) {
         workerPromise = null;
         reject(error instanceof Error ? error : new Error(String(error)));

@@ -31,7 +31,12 @@ export type LessonToolId =
   | "git-lab"
   | "cron-lab"
   | "prompt-lab"
-  | "notes-lab";
+  | "notes-lab"
+  | "game-budget"
+  | "classification-lab"
+  | "capacity-lab"
+  | "sort-lab"
+  | "touch-target";
 
 export interface LessonToolMeta {
   id: LessonToolId;
@@ -67,7 +72,7 @@ export const LESSON_TOOL_META: Record<LessonToolId, Omit<LessonToolMeta, "id">> 
   "web-playground": { label: "Web playground", blurb: "Write HTML, CSS and JavaScript and see the page live.", icon: "browser" },
   "js-console": { label: "JavaScript console", blurb: "Run JavaScript and read what it prints.", icon: "code" },
   "python-lab": { label: "Python lab", blurb: "Real Python in your browser, with print() output.", icon: "terminal" },
-  "sql-lab": { label: "SQL lab", blurb: "Query sample tables and see the rows come back.", icon: "server" },
+  "sql-lab": { label: "SQLite lab", blurb: "Run real SQL against a local practice database.", icon: "server" },
   "api-lab": { label: "API sandbox", blurb: "Send requests to a mock API and read real responses.", icon: "globe" },
   "url-inspector": { label: "URL inspector", blurb: "Pull a URL apart and see every piece.", icon: "search" },
   "json-tool": { label: "JSON formatter", blurb: "Format, validate and inspect JSON data.", icon: "file" },
@@ -80,6 +85,11 @@ export const LESSON_TOOL_META: Record<LessonToolId, Omit<LessonToolMeta, "id">> 
   "git-lab": { label: "Git simulator", blurb: "Practise commits and branches with zero risk.", icon: "upload" },
   "cron-lab": { label: "Cron explainer", blurb: "Turn schedules into plain English — and next runs.", icon: "clock" },
   "prompt-lab": { label: "Prompt builder", blurb: "Assemble a well-structured AI prompt, piece by piece.", icon: "spark" },
+  "game-budget": { label: "Game frame budget", blurb: "Calculate frame time, render resolution and buffer size.", icon: "target" },
+  "classification-lab": { label: "Classification metrics", blurb: "Calculate precision, recall, accuracy and F1.", icon: "chart" },
+  "capacity-lab": { label: "Capacity calculator", blurb: "Estimate traffic, response data and utilization.", icon: "server" },
+  "sort-lab": { label: "Sorting visualizer", blurb: "Trace bubble sort and count comparisons and swaps.", icon: "layers" },
+  "touch-target": { label: "Touch target checker", blurb: "Check mobile control dimensions and pixel scale.", icon: "target" },
   "notes-lab": { label: "Notebook", blurb: "Your scratchpad for this lesson, saved in this browser.", icon: "pencil" },
 };
 
@@ -121,6 +131,39 @@ const COURSE_DEFAULTS: Record<string, LessonToolId[]> = {
   "programming-languages": ["js-console", "python-lab", "json-tool"],
   "artificial-intelligence-machine-learning": ["prompt-lab", "python-lab", "data-lab"],
   "game-development": ["web-playground", "js-console", "data-lab"],
+};
+
+/** Explicit course-level tools are always available, even when keyword matches fill the workbench. */
+export const COURSE_PRIMARY_TOOLS: Record<string, LessonToolId> = {
+  "web-foundations": "web-playground",
+  "computer-science-essentials": "binary-lab",
+  "javascript-zero-to-builder": "js-console",
+  "react-production-apps": "js-console",
+  "mobile-apps-react-native": "touch-target",
+  "backend-node-apis": "json-tool",
+  "data-structures-algorithms": "sort-lab",
+  "databases-and-sql": "sql-lab",
+  "software-engineering-practices": "js-console",
+  "system-design-architecture": "capacity-lab",
+  "devops-and-delivery": "cron-lab",
+  "vibe-coding-ship-with-ai": "web-playground",
+  "ai-apps-agents-and-apis": "prompt-lab",
+  "cyber-security-foundations": "security-lab",
+  "cyber-security-offense-and-defense": "security-lab",
+  "cyber-security-cloud": "security-lab",
+  "ethical-hacking": "security-lab",
+  "cloud-computing-devops": "cron-lab",
+  "data-science-analytics": "data-lab",
+  "human-computer-interaction": "design-lab",
+  "graphic-design": "design-lab",
+  "web-designing": "web-playground",
+  "computer-networking": "network-lab",
+  "computer-networks-architecture": "network-lab",
+  "computer-basics-bcc": "binary-lab",
+  "microsoft-office": "data-lab",
+  "programming-languages": "python-lab",
+  "artificial-intelligence-machine-learning": "classification-lab",
+  "game-development": "game-budget",
 };
 
 const FALLBACK_TOOLS: LessonToolId[] = ["js-console", "json-tool"];
@@ -178,11 +221,10 @@ const MAX_TOOLS = 4;
 function toolForLanguage(language: string): LessonToolId | null {
   const lang = language.toLowerCase();
   if (/(^|\b)(html?|css)(\b|$)/.test(lang)) return "web-playground";
-  if (/javascript|\bjs\b|typescript|\bts\b|jsx|tsx|react/.test(lang)) return "js-console";
+  if (/^(javascript|js)$/.test(lang)) return "js-console";
   if (/python|\bpy\b/.test(lang)) return "python-lab";
   if (/\bsql\b|postgres/.test(lang)) return "sql-lab";
   if (/\bjson\b/.test(lang)) return "json-tool";
-  if (/bash|shell|terminal|console|\bcmd\b/.test(lang)) return "git-lab";
   return null;
 }
 
@@ -211,7 +253,11 @@ export function planLessonTools(input: ToolPlanInput): PlannedTool[] {
     picked.push({ id, ...LESSON_TOOL_META[id], why });
   };
 
-  // 1. Runnable worked examples lead — the tool runs the lesson's own code.
+  // Every catalog course has a relevant, explicitly selected workbench tool.
+  const primary = COURSE_PRIMARY_TOOLS[input.courseId];
+  if (primary) add(primary, "A practical tool selected for this course.");
+
+  // Also include a runnable worked example when one is available.
   for (const language of input.sampleLanguages ?? []) {
     const tool = toolForLanguage(language);
     if (tool) add(tool, languageWhy(tool));
