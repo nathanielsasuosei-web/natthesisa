@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { readState, writeState } from "./app-state";
-import { blobBackend, blobUrl, deleteBlob, diskPath, putBlob, readDiskBlob, statBlob } from "./blob-store";
+import { blobBackend, blobUrl, deleteBlob, diskPath, isAbsent, putBlob, readDiskBlob, statBlob } from "./blob-store";
 import { pipeline } from "node:stream/promises";
 import type { Lesson, LessonFile, LessonSection } from "./courses";
 
@@ -505,20 +505,60 @@ export async function openStoredFile(
  * The URL to send the browser to when object storage is in use, or null to
  * stream from disk. Also null when the object is missing, so the caller can
  * answer 410 rather than redirecting to a broken link.
+ *
+ * A storage call that *failed* is not a missing file, so it is not swallowed
+ * here: it throws. The route then answers "storage unavailable, try again"
+ * instead of 410 "missing from storage", which would send the owner looking for
+ * a video that is in the bucket all along.
  */
 export async function storedBlobRedirect(
   record: UploadedFileRecord,
   downloadName?: string
 ): Promise<string | null> {
   if (blobBackend() !== "supabase") return null;
-  if (!(await statBlob(record.storedName))) return null;
-  return blobUrl(record.storedName, 3600, downloadName);
+  // The metadata read first, so a file that is plainly absent costs one request
+  // and no signature. Its failure is *not* fatal: signing below answers the
+  // question the player actually asks, and Storage serves a signature only for
+  // an object that exists — which is exactly the case where a broken metadata
+  // endpoint must not take the videos down with it.
+  try {
+    return await blobUrl(record.storedName, 3600, downloadName);
+  } catch (error) {
+    // "No such object" from the signature call is a real absence: answer null so
+    // the route says 410. Anything else is an outage, and it is thrown so the
+    // route can say 503 — never "missing".
+    if (isAbsent(error)) return null;
+    throw error;
+  }
 }
 
-/** Size of a stored object, or null when it is not there. */
+/**
+ * Size of a stored object, or null when it is not there — and only then.
+ *
+ * Throws when storage could not answer, because "we could not ask" and "it is
+ * not there" are different answers and the routes report them differently (503
+ * vs 410). Collapsing them is how a storage outage became a 410 for every video.
+ *
+ * The second opinion matters: metadata is one endpoint, and when it is the thing
+ * that is broken, a signature still succeeds for a file that exists. So a failed
+ * metadata read is not reported as absent until signing has also failed.
+ */
 export async function storedBlobSize(record: UploadedFileRecord): Promise<number | null> {
-  const stat = await statBlob(record.storedName);
-  return stat ? stat.size : null;
+  try {
+    const stat = await statBlob(record.storedName);
+    return stat ? stat.size : null;
+  } catch (metadataError) {
+    if (blobBackend() !== "supabase") throw metadataError;
+    try {
+      // Present but unsignable is a real problem — uploads, downloads and any
+      // private-bucket view. It is not this function's to report as "missing".
+      await blobUrl(record.storedName, 60);
+    } catch (signError) {
+      if (isAbsent(signError)) return null;
+      throw metadataError;
+    }
+    throw metadataError;
+  }
 }
 
 /** Reads a byte range from the disk backend. */

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { brandingAsset } from "@/lib/branding";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
+import { storageUnavailable } from "@/lib/storage-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,10 +16,17 @@ export async function GET(_req: Request, context: { params: Promise<{ asset: str
   const record = brandingAsset(asset);
   if (!record) return NextResponse.json({ error: `No ${asset} has been uploaded yet.` }, { status: 404 });
 
-  const redirect = await storedBlobRedirect(record);
-  if (redirect) return NextResponse.redirect(redirect, 302);
+  // A storage failure is not the same answer as an absent file: the first is
+  // a retryable 503, the second the 410 below.
+  let size: number | null;
+  try {
+    const redirect = await storedBlobRedirect(record);
+    if (redirect) return NextResponse.redirect(redirect, 302);
 
-  const size = await storedBlobSize(record);
+    size = await storedBlobSize(record);
+  } catch (error) {
+    return storageUnavailable(error, "image");
+  }
   if (size === null) return NextResponse.json({ error: "That image is missing from storage." }, { status: 410 });
   const stored = { size };
 

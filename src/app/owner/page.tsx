@@ -49,6 +49,9 @@ export default async function OwnerConsolePage() {
     // project, a rotated key and a bucket name that does not match.
     failure: videoStorage.failure,
     hint: videoStorage.hint,
+    // How many files storage could not answer about. Their state is unknown, so
+    // they are neither counted as missing nor as present — the card says so.
+    unknown: videoStorage.unknown,
     missingVideos: videoStorage.checks.filter((check) => check.kind === "lesson" && check.video === false).length,
     missingPosters: videoStorage.checks.filter((check) => check.kind === "lesson" && check.poster === false).length,
     missingWelcomes: videoStorage.checks.filter((check) => check.kind === "welcome" && check.video === false).length,

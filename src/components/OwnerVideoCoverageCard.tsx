@@ -24,6 +24,12 @@ interface Props {
     missingPosters: number;
     missingWelcomes: number;
     sizeMismatches: number;
+    /**
+     * Files storage could not answer about. Their state is unknown: they are
+     * not counted as missing (which would claim the library is empty) and not
+     * counted as present (which would claim it is complete).
+     */
+    unknown?: number;
   };
 }
 
@@ -43,9 +49,12 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
   const storageMissing = (storageStatus?.missingVideos ?? 0) + (storageStatus?.missingWelcomes ?? 0);
   const storageUnknown = storageStatus?.unreachable ?? false;
   const storageHint = storageStatus?.hint ?? null;
+  const unchecked = storageStatus?.unknown ?? 0;
   // "Complete" means students can actually press play: listed in the manifest
-  // *and* present in this deployment's storage.
-  const complete = missingTotal === 0 && covered === COURSES.length && storageMissing === 0;
+  // *and* present in this deployment's storage. A file whose presence is
+  // unknown is not evidence of that, so it also blocks the claim.
+  const complete =
+    missingTotal === 0 && covered === COURSES.length && storageMissing === 0 && !storageUnknown;
   const percent = lessons ? Math.round((withVideo / lessons) * 100) : 0;
   const firstGap = coursesWithGaps[0];
 
@@ -96,8 +105,12 @@ export default function OwnerVideoCoverageCard({ coursesWithVideo, coursesWithGa
               Video storage could not be reached, so these counts come from the video list only.
             </span>
             <span className="block">
-              Students see “Video unavailable right now” on every lesson until this is fixed — the written lesson
-              still reads in full.
+              {/* The unknown files are named, never silently folded into the
+                  counts: "could not check" is not "absent", and the difference
+                  decides whether the owner re-renders the whole library. */}
+              {`${unchecked > 0 ? `${unchecked} file${unchecked === 1 ? "" : "s"}` : "Some files"} could not be checked — that is not the same as missing, so nothing here says the library is empty. `}
+              Until storage answers, students may see “Video unavailable right now” where a walkthrough exists; the
+              written lesson still reads in full.
             </span>
           </p>
           {storageHint && (

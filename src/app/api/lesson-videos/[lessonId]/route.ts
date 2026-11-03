@@ -4,6 +4,7 @@ import { findContentLesson } from "@/lib/course-content";
 import { getCourse } from "@/lib/courses";
 import { lessonVideo } from "@/lib/lesson-videos";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
+import { storageUnavailable } from "@/lib/storage-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,10 +44,17 @@ export async function GET(
   // With Supabase Storage the browser is sent to the CDN: a public bucket URL,
   // or a one-hour signed one. Supabase serves range requests itself, so the
   // player can seek inside a two-minute clip without the server proxying it.
-  const redirect = await storedBlobRedirect(record, download ? entry.name : undefined);
-  if (redirect) return NextResponse.redirect(redirect, 302);
+  // Asking storage can fail as well as answer "absent"; only the second is
+  // a 410, and the difference is the whole point of this route's error.
+  let size: number | null;
+  try {
+    const redirect = await storedBlobRedirect(record, download ? entry.name : undefined);
+    if (redirect) return NextResponse.redirect(redirect, 302);
 
-  const size = await storedBlobSize(record);
+    size = await storedBlobSize(record);
+  } catch (error) {
+    return storageUnavailable(error, "lesson video");
+  }
   if (size === null) {
     return NextResponse.json(
       { error: "The lesson video is missing from storage.", code: "STORAGE_MISSING" },

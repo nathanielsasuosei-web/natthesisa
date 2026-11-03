@@ -70,6 +70,13 @@ jobs:
       - name: Prove the bucket round-trips
         run: npm run storage:check
 
+      # No credentials and no network: this drives the stub in scripts/ and
+      # asserts that "this video was never built" is reported as absent, while
+      # "storage could not answer" is not — the confusion that once made every
+      # lesson show "Video unavailable right now".
+      - name: Prove the storage diagnosis (offline stub)
+        run: npm run storage:diagnose
+
       - name: Fetch ffmpeg
         run: npm run videos:setup
 

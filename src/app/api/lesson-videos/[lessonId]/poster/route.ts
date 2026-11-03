@@ -4,6 +4,7 @@ import { getCourse } from "@/lib/courses";
 import { findContentLesson } from "@/lib/course-content";
 import { lessonVideo } from "@/lib/lesson-videos";
 import { diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
+import { storageUnavailable } from "@/lib/storage-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,10 +31,17 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
     uploadedAt: entry.generatedAt,
   };
 
-  const redirect = await storedBlobRedirect(record);
-  if (redirect) return NextResponse.redirect(redirect, 302);
+  // Asking storage can fail as well as answer "absent"; only the second is
+  // a 410, and the difference is the whole point of this route's error.
+  let size: number | null;
+  try {
+    const redirect = await storedBlobRedirect(record);
+    if (redirect) return NextResponse.redirect(redirect, 302);
 
-  const size = await storedBlobSize(record);
+    size = await storedBlobSize(record);
+  } catch (error) {
+    return storageUnavailable(error, "video thumbnail");
+  }
   if (size === null) {
     return NextResponse.json(
       { error: "The video thumbnail is missing from storage.", code: "STORAGE_MISSING" },

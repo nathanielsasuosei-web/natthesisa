@@ -4,6 +4,7 @@ import { isOwner } from "@/lib/owner";
 import { getUserById, logActivity, saveUser } from "@/lib/store";
 import { AVATAR_MAX_BYTES, avatarHref, removeAvatarImage, saveAvatarImage } from "@/lib/avatars";
 import { UploadError, diskBlobRange, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
+import { storageUnavailable } from "@/lib/storage-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,16 +45,23 @@ export async function GET(req: NextRequest) {
   const record = account.avatar;
   if (!record) return NextResponse.json({ error: "No profile picture has been added." }, { status: 404 });
 
-  const redirect = await storedBlobRedirect(record);
-  if (redirect) {
-    const response = NextResponse.redirect(redirect, 302);
-    // The redirect target (a signed URL or a public object URL) is already
-    // cacheable, but this hop is keyed to the viewer's session — so it is not.
-    response.headers.set("Cache-Control", "private, no-store");
-    return response;
-  }
+  // A storage failure is not the same answer as an absent file: the first is
+  // a retryable 503, the second the 410 below.
+  let size: number | null;
+  try {
+    const redirect = await storedBlobRedirect(record);
+    if (redirect) {
+      const response = NextResponse.redirect(redirect, 302);
+      // The redirect target (a signed URL or a public object URL) is already
+      // cacheable, but this hop is keyed to the viewer's session — so it is not.
+      response.headers.set("Cache-Control", "private, no-store");
+      return response;
+    }
 
-  const size = await storedBlobSize(record);
+    size = await storedBlobSize(record);
+  } catch (error) {
+    return storageUnavailable(error, "profile picture");
+  }
   if (size === null) {
     return NextResponse.json({ error: "That picture is missing from storage." }, { status: 410 });
   }
