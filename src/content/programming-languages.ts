@@ -1,5 +1,6 @@
 import { lesson, module } from "@/lib/lesson-builder";
 import type { CourseModule } from "@/lib/courses";
+import { LANGUAGE_SURVEY_MODULES } from "@/content/language-survey";
 
 /**
  * Programming Languages — how languages differ, and how to learn the next one.
@@ -337,4 +338,5 @@ export const PROGRAMMING_LANGUAGES_MODULES: CourseModule[] = [
       }),
     ]
   ),
+  ...LANGUAGE_SURVEY_MODULES,
 ];

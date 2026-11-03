@@ -612,19 +612,20 @@ function base64UrlDecode(segment: string): string {
   return new TextDecoder().decode(bytes);
 }
 
-export function SecurityLab({ courseId, lessonId }: ToolProps) {
+export function SecurityLab(_props: ToolProps) {
   const [tab, setTab] = useState<"password" | "hash" | "codec" | "jwt">("password");
   const [length, setLength] = useState(16);
   const [sets, setSets] = useState({ lower: true, upper: true, digits: true, symbols: true });
-  const [password, setPassword] = usePersistentState(storageKey(courseId, lessonId, "security-lab", "password"), "");
-  const [hashInput, setHashInput] = usePersistentState(storageKey(courseId, lessonId, "security-lab", "hash"), "correct horse battery staple");
+  const [password, setPassword] = useState("");
+  const [generatedEntropy, setGeneratedEntropy] = useState(0);
+  const [randomError, setRandomError] = useState("");
+  const [hashInput, setHashInput] = useState("correct horse battery staple");
   const [hash, setHash] = useState("");
   const [hashDemo, setHashDemo] = useState(false);
-  const [codecInput, setCodecInput] = usePersistentState(storageKey(courseId, lessonId, "security-lab", "codec"), "Hello, Accra! 🇬🇭");
-  const [jwt, setJwt] = usePersistentState(storageKey(courseId, lessonId, "security-lab", "jwt"), JWT_SAMPLE);
+  const [codecInput, setCodecInput] = useState("Hello, Accra! 🇬🇭");
+  const [jwt, setJwt] = useState(JWT_SAMPLE);
 
-  const poolSize = (sets.lower ? 26 : 0) + (sets.upper ? 26 : 0) + (sets.digits ? 10 : 0) + (sets.symbols ? 32 : 0);
-  const entropy = poolSize > 0 ? Math.round(length * Math.log2(poolSize)) : 0;
+  const entropy = generatedEntropy;
   const strength = entropy >= 100 ? ["Excellent", "bg-emerald-500"] : entropy >= 70 ? ["Strong", "bg-emerald-400"] : entropy >= 50 ? ["Okay", "bg-amber-400"] : ["Weak", "bg-rose-400"];
 
   function generate() {
@@ -633,10 +634,25 @@ export function SecurityLab({ courseId, lessonId }: ToolProps) {
       (sets.upper ? "ABCDEFGHJKLMNPQRSTUVWXYZ" : "") +
       (sets.digits ? "23456789" : "") +
       (sets.symbols ? "!@#$%^&*()-_=+[]{}<>?" : "");
-    if (!alphabet) return;
-    const random = new Uint32Array(length);
-    globalThis.crypto?.getRandomValues(random);
-    setPassword([...random].map((value) => alphabet[value % alphabet.length]).join(""));
+    if (!alphabet || !globalThis.crypto?.getRandomValues) {
+      setPassword("");
+      setRandomError(alphabet ? "Secure random generation is unavailable in this browser." : "Select at least one character set.");
+      return;
+    }
+    // Rejection sampling removes modulo bias. Do not persist generated secrets.
+    const limit = Math.floor(256 / alphabet.length) * alphabet.length;
+    let value = "";
+    while (value.length < length) {
+      const bytes = new Uint8Array(length * 2);
+      globalThis.crypto.getRandomValues(bytes);
+      for (const byte of bytes) {
+        if (byte < limit) value += alphabet[byte % alphabet.length];
+        if (value.length === length) break;
+      }
+    }
+    setRandomError("");
+    setGeneratedEntropy(Math.floor(length * Math.log2(alphabet.length)));
+    setPassword(value);
   }
 
   useEffect(() => {
@@ -708,6 +724,7 @@ export function SecurityLab({ courseId, lessonId }: ToolProps) {
             <GhostButton onClick={generate}>Generate</GhostButton>
             {password && <CopyButton text={password} label="Copy password" />}
           </div>
+          {randomError && <p role="alert" className="text-sm text-red-700">{randomError}</p>}
           {password ? (
             <div className="grid gap-2 rounded-2xl bg-[#1b1822] p-4">
               <p className="break-all font-mono text-[15px] font-bold text-[#e8e2f0]">{password}</p>
@@ -719,7 +736,7 @@ export function SecurityLab({ courseId, lessonId }: ToolProps) {
           ) : (
             <p className="rounded-2xl border border-dashed border-[#d5cfe0] bg-[#faf9fc] px-4 py-5 text-center text-[12px] font-semibold text-[#8b8494]">Press Generate — randomness does the remembering for you.</p>
           )}
-          <Hint>Use a password manager, give every site its own password, and switch on two-factor where it matters. Nobody memorises 16 random characters — that is the point.</Hint>
+          <Hint>Use a password manager and unique passwords with two-factor authentication. Generated passwords are not saved here. Do not enter real credentials or tokens into practice tools.</Hint>
         </div>
       )}
 

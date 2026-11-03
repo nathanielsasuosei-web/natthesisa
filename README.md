@@ -1164,3 +1164,19 @@ Production checklist:
    register `https://your-domain.com/api/webhooks/paystack` in the Paystack
    dashboard, and run `npm run payments:check`. Without the key the checkout
    runs in demo mode — see [Mobile Money payments](#mobile-money-payments).
+
+### Course workbenches
+
+Each catalogue course has a primary practical tool in its lessons; other tools
+are selected from the lesson content. Tools are browser-based teaching aids,
+not full versions of commercial applications. The SQL lab runs real SQLite in
+a worker with a fresh in-memory database on each run. To create and query a
+table, run its CREATE, INSERT and SELECT statements together. SQLite syntax may
+differ from other database engines. The Python lab downloads Pyodide on first
+use; other tools can also require a network connection. Avoid entering secrets.
+
+The SQL lab serves the sql.js JavaScript and WASM files from `public/vendor/sqljs`
+(the upstream license is included there). When upgrading the `sql.js` package,
+copy both `dist/sql-wasm.js` and `dist/sql-wasm.wasm` from the same installed
+version into that directory. Run `npx tsx scripts/check-course-tools.mts` to
+check course mappings, calculator behavior and the SQLite worker.

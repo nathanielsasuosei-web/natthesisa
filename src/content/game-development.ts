@@ -33,6 +33,7 @@ export const GAME_DEVELOPMENT_MODULES: CourseModule[] = [
         summary:
           "Every game, in any number of dimensions and at any resolution, is a loop that reads input, advances a simulation by a measured slice of time, and draws the result. This lesson builds that loop properly: delta time, a fixed timestep with an accumulator, interpolation, and a frame budget you can spend on purpose.",
         objectives: [
+          "Identify the main categories of game development tools and choose a suitable stack for a project.",
           "Explain what a game loop does on each pass and why updating the world and drawing it are kept apart.",
           "Turn a frame rate into a budget in milliseconds and say what the budget has to pay for.",
           "Write movement in units per second, and show why movement written per frame changes the game's speed on different screens.",
@@ -45,6 +46,94 @@ export const GAME_DEVELOPMENT_MODULES: CourseModule[] = [
             kind: "paragraph",
             body:
               "A film is a recording; a game is a conversation. Sixty times a second the machine asks two questions: what is the world now, given what the player just did, and what does that world look like? Everything in this course, from a tile map to a spinning hypercube to an 8K picture, hangs from that rhythm.\n\nTwo ideas keep returning. The first is that the **world has dimensions**: two, three, four, five, and as many as you care to define. Those decide what you simulate. The second is that the **picture has dimensions too**: 1080p, 4K, 8K and beyond. Those decide how much work it takes to show the world. Both are paid for from the same small allowance of time, about 16.7 milliseconds per frame at 60 frames per second. This first lesson is about that allowance and the loop that spends it.\n\nGhana is a good place to learn this the hard way. Many players are on mid-range Android phones that heat up, slow down to protect themselves, and run on a battery between power cuts. A loop that is only correct on a fast laptop is only correct for some of your players.",
+          },
+          {
+            heading: "Tools used in game development",
+            kind: "paragraph",
+            body: `Game development brings together programming, art, audio, design, testing and distribution. You do not need every tool below: choose a small set that fits your game, team, budget and target devices.
+
+**1. Game engines**
+
+An engine provides the core framework for rendering, physics, input, audio and scripting.
+
+- **Unity** — C#; used for 2D and 3D games, mobile, indie projects and VR.
+- **Unreal Engine** — C++ and Blueprints visual scripting; suited to high-end 3D graphics.
+- **Godot** — free, open-source and lightweight; uses GDScript and C#.
+- **GameMaker** — beginner-friendly and focused on 2D games.
+- **Construct, RPG Maker and Ren'Py** — no-code, specialised or genre-focused options.
+- **Custom engines** — built in-house, often by large studios; examples include Frostbite, RE Engine and Source 2.
+
+**2. Programming and scripting**
+
+- **Languages:** C++, C#, Python, Lua, JavaScript for web games, and Rust.
+- **IDEs and editors:** Visual Studio, VS Code, JetBrains Rider and Xcode.
+- **Frameworks and libraries:** SDL, SFML, MonoGame, Phaser for the web, LibGDX and Pygame.
+
+**3. 3D modeling and sculpting**
+
+- **Blender** — free, all-in-one modeling, rigging, animation and rendering.
+- **Autodesk Maya and 3ds Max** — widely used in AAA studios.
+- **ZBrush** — digital sculpting for highly detailed characters.
+- **Houdini** — procedural modeling, visual effects and destruction.
+
+**4. 2D art and texturing**
+
+- **Photoshop, Krita, GIMP and Clip Studio Paint** — concept art, sprites and interfaces.
+- **Aseprite and Pyxel Edit** — pixel art and sprite animation.
+- **Substance 3D Painter and Designer** — physically based rendering (PBR) textures and materials.
+- **Spine, DragonBones and Live2D** — 2D skeletal animation.
+
+**5. Animation**
+
+- **Blender, Maya and MotionBuilder** — keyframe and motion-capture animation.
+- **Mixamo** — free automatic rigging and an animation library.
+- **Cascadeur** — physics-based character animation.
+
+**6. Audio**
+
+- **FMOD and Wwise** — audio middleware for adaptive game sound.
+- **Audacity, Reaper, FL Studio and Ableton Live** — recording, editing and music production.
+- **Bfxr and sfxr** — quick retro sound effects.
+
+**7. Level and world design**
+
+- **Tiled and LDtk** — 2D tile map editors.
+- **Unity Terrain, Unreal Landscape and ProBuilder** — engine-native world and level tools.
+- **World Machine and Gaea** — terrain generation.
+- **SpeedTree** — vegetation.
+
+**8. Version control and collaboration**
+
+- **Git with GitHub, GitLab or Bitbucket** — code and collaboration; Git LFS can help manage larger assets.
+- **Perforce Helix Core** — widely used for projects with large binary assets.
+- **Plastic SCM / Unity Version Control** — a game-focused alternative.
+
+**9. Project management**
+
+- **Jira, Trello, Notion, HacknPlan and ClickUp** — task tracking and sprints.
+- **Miro and Figma** — design documents, wireframes and UI prototypes.
+- **Discord and Slack** — team communication.
+
+**10. Testing, debugging and analytics**
+
+- **Profilers:** Unity Profiler, Unreal Insights, RenderDoc, PIX and NVIDIA Nsight.
+- **Crash reporting:** Sentry and Backtrace.
+- **Analytics:** Unity Analytics, GameAnalytics and PlayFab.
+- **Automated testing:** Unity Test Framework and Gauntlet for Unreal.
+
+**11. Build, deployment and distribution**
+
+- **Continuous integration and delivery (CI/CD):** Jenkins, GitHub Actions, Unity Cloud Build and TeamCity.
+- **Storefronts and platform tools:** Steamworks, itch.io, Epic Games Store, Google Play Console, App Store Connect and console development kits.
+
+**12. Networking and backend for multiplayer**
+
+- **Networking:** Photon, Mirror, Netcode for GameObjects and Unreal Replication.
+- **Backend services:** PlayFab, Nakama, Firebase and AWS GameLift.
+
+**Example indie stack:** Godot or Unity, Blender, Aseprite, Audacity, Git/GitHub and Trello.
+
+**Example AAA stack:** Unreal or a custom engine, Maya, ZBrush, Substance, Wwise, Perforce and Jira.`,
           },
           {
             heading: "Definition: the frame, the tick and the budget",
@@ -134,6 +223,7 @@ export const GAME_DEVELOPMENT_MODULES: CourseModule[] = [
           },
         ],
         keyPoints: [
+          "Choose game development tools for the project: an engine, programming, art, audio, collaboration, testing and distribution tools as needed.",
           "A game loop reads input, updates the simulation and renders; update changes the world and render only reads it.",
           "The frame budget is 1000 ÷ fps: 16.7 ms at 60 fps and 8.3 ms at 120 fps, and every feature spends from it.",
           "Write motion in units per second and multiply by dt; movement written per frame changes the game's speed with the display.",
@@ -141,6 +231,7 @@ export const GAME_DEVELOPMENT_MODULES: CourseModule[] = [
           "Determinism, the same state and inputs giving the same result, is what makes replay, rewind and multiplayer possible; hidden randomness and wall-clock time break it.",
         ],
         exercises: [
+          "Choose an engine and a small set of art, audio and collaboration tools for a game you want to build. Explain why each fits your project and budget.",
           "Work out the frame budget in milliseconds at 30, 72, 90 and 165 frames per second, and say which of them a phone that manages only 12 ms of work per frame can sustain.",
           "In the console sample, change the ship's speed to 300 units per second and the frame rates to 50, 75 and 240. Predict the per-frame result for 4 units per frame before you run it.",
           "Change `stepMs` in `fixedStep` to 10 and then to 50. How do the two runs behave? Which one is closest to the true physics of the ball, and what does it cost in updates per second?",
