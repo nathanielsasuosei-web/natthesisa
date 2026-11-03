@@ -77,6 +77,9 @@ jobs:
       - name: Prove the storage diagnosis (offline stub)
         run: npm run storage:diagnose
 
+      - name: Prove the schema batching is equivalent
+        run: npm run schema:check
+
       - name: Fetch ffmpeg
         run: npm run videos:setup
 

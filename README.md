@@ -335,6 +335,36 @@ minutes per server instance, which collapses a burst of page views into one
 round trip. Failures are never cached, so the console's **Check again** button
 always really checks again.
 
+## When `/api/health` reports `database.schema: false`
+
+Two different failures wear that field, and they need opposite fixes:
+
+- **The tables are missing** — the role cannot create them, or the initialiser
+  hit a statement it cannot run. The hint says so; the
+  `[codemasterghana] schema statement failed …` log line names the statement.
+  Paste `db/schema.sql` into the Supabase SQL editor as the admin user.
+- **The initialiser did not finish in time.** A first request after a deploy may
+  be creating every table on a cold instance. The health check no longer reports
+  that as a schema failure: it looks in the catalogue for the three tables
+  sign-in needs and reports `schema: true` when they are there, with a hint
+  saying the initialiser was still running. The initialiser itself is left to
+  finish in the background — it is abandoned, never cancelled — so the next
+  request finds it done. `HEALTH_SCHEMA_TIMEOUT_MS` (default 20s) bounds it.
+
+The schema step is 89 idempotent statements, and it used to be 89 round trips:
+on a serverless host each one is a fresh pooler connection, which is how
+*describing* a correct database could outlast the endpoint's own budget.
+`schemaBatches()` in `src/lib/schema.ts` now sends them in 13 groups — the
+`do $$ … $$` repair blocks stay on their own, because their real statement count
+lives inside a body the batcher cannot see — and any group that is refused is
+replayed one statement at a time, which is the old behaviour rather than a
+broken deploy.
+
+`npm run schema:check` proves that is safe: it applies both forms to two fresh
+embedded databases and diffs the catalogue (5 tables, 65 columns, 17 indexes,
+64 constraints, 2 sequences — identical), checks the `do` blocks are never cut
+up, re-applies to confirm idempotence, and times a fresh `ready()`.
+
 ## Run locally
 
 ```bash

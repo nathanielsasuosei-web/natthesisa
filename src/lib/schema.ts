@@ -561,3 +561,161 @@ export interface UserRow {
   created_at: Date | string;
   updated_at: Date | string;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Batching                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Splits a statement on its top-level semicolons, ignoring every semicolon that
+ * lives inside a string literal, a `-- …` comment, or a `do $$ … $$` body.
+ *
+ * The `do` blocks are the reason this exists, and the reason it is a scanner
+ * rather than a `split(";")`: they contain ten or more statements of their own,
+ * and cutting one in half would leave `end` behind as a syntax error — which is
+ * exactly the sort of failure that must not be possible on a first deploy.
+ *
+ * Returns `null` when a statement cannot be shown to be single, which is the
+ * safe answer: the caller then sends it on its own.
+ */
+export function splitSingleStatement(statement: string): string[] | null {
+  const parts: string[] = [];
+  let start = 0;
+  let index = 0;
+  let quote: "'" | '"' | null = null;
+  let dollarTag: string | null = null;
+
+  while (index < statement.length) {
+    const character = statement[index];
+
+    if (dollarTag) {
+      if (statement.startsWith(dollarTag, index)) {
+        index += dollarTag.length;
+        dollarTag = null;
+        continue;
+      }
+      index += 1;
+      continue;
+    }
+
+    if (quote) {
+      if (character === quote) {
+        // '' inside a literal is an escaped quote, not the end of it.
+        if (statement[index + 1] === quote) {
+          index += 2;
+          continue;
+        }
+        quote = null;
+      }
+      index += 1;
+      continue;
+    }
+
+    if (character === "-" && statement[index + 1] === "-") {
+      const newline = statement.indexOf("\n", index);
+      index = newline === -1 ? statement.length : newline + 1;
+      continue;
+    }
+
+    if (character === "/" && statement[index + 1] === "*") {
+      const end = statement.indexOf("*/", index + 2);
+      if (end === -1) return null; // an unterminated comment cannot be reasoned about
+      index = end + 2;
+      continue;
+    }
+
+    if (character === "'" || character === '"') {
+      quote = character;
+      index += 1;
+      continue;
+    }
+
+    if (character === "$") {
+      const tag = /^\$[A-Za-z_]*\$/.exec(statement.slice(index));
+      if (tag) {
+        dollarTag = tag[0];
+        index += tag[0].length;
+        continue;
+      }
+    }
+
+    if (character === ";") {
+      const piece = statement.slice(start, index).trim();
+      if (piece) parts.push(piece);
+      start = index + 1;
+    }
+    index += 1;
+  }
+
+  const tail = statement.slice(start).trim();
+  if (tail) parts.push(tail);
+  // Anything left dangling (an unclosed quote or dollar quote) means this text
+  // was not understood well enough to be cut up.
+  if (quote || dollarTag) return null;
+  return parts.length ? parts : null;
+}
+
+/**
+ * Turns the two lists into the smallest number of round trips that is still
+ * safe to make.
+ *
+ * 89 separate round trips is not a rounding error on a serverless host: each one
+ * is a fresh connection to the Supabase pooler, so a cold instance spent longer
+ * than the health check's own 12s budget simply *describing* a database that was
+ * already correct — and the report said `schema: false` while every table
+ * existed. Statements here are all `if not exists`, so a duplicate object cannot
+ * abort the group they share.
+ *
+ * A sentinel leading each statement turns "it already exists" into a fact the
+ * database reports rather than a savepoint it has to restore: an error there
+ * would otherwise discard the whole group and force a replay, one statement at
+ * a time.
+ *
+ * `do $$ … $$` blocks are isolated on purpose: their real statement count sits
+ * inside a body this code cannot see, and grouping them with others would waste
+ * the batch's failure guarantee. They go first, in order, as before.
+ */
+export function schemaBatches(
+  statements: readonly string[],
+  options: { maxBytes?: number; maxStatements?: number } = {}
+): { kind: "sentinel" | "solo"; sql: string; parts: string[] }[] {
+  const maxBytes = options.maxBytes ?? 96_000; // far inside the 1 MB simple-query limit
+  const maxStatements = options.maxStatements ?? 30;
+  const batches: { kind: "sentinel" | "solo"; sql: string; parts: string[] }[] = [];
+
+  for (const statement of statements) {
+    let sql = statement.trim();
+    if (!sql) continue;
+    // A trailing newline matters: `-- …` comments inside the statement must not
+    // swallow whatever is appended after it.
+    if (!sql.endsWith(";")) sql += ";";
+
+    const hasBody = /\$[A-Za-z_]*\$/.test(sql);
+    if (hasBody) {
+      batches.push({ kind: "solo", sql, parts: [statement] });
+      continue;
+    }
+
+    const parts = splitSingleStatement(sql);
+    const previous = batches[batches.length - 1];
+    const canJoin =
+      parts !== null &&
+      previous !== undefined &&
+      previous.kind === "sentinel" &&
+      previous.parts.length < maxStatements &&
+      previous.sql.length + sql.length + 1 < maxBytes;
+
+    if (parts !== null && canJoin) {
+      previous.parts.push(statement);
+      previous.sql += `\n${sql}`;
+      continue;
+    }
+    batches.push({
+      kind: parts === null ? "solo" : "sentinel",
+      sql: parts === null ? sql : `select 1 as codemasterghana_schema_batch;\n${sql}`,
+      parts: [statement],
+    });
+  }
+
+  return batches;
+}

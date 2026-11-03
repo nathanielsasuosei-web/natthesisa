@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { probeStorage, storageSummary, type StorageFailureKind, type StorageProbe } from "@/lib/blob-store";
-import { CONNECTION_STRING_VARS, connectionHint, databaseInfo, databaseTarget, ready } from "@/lib/db";
+import { CONNECTION_STRING_VARS, connectionHint, databaseInfo, databaseTarget, query, ready } from "@/lib/db";
 import { lessonVideoCount } from "@/lib/lesson-videos";
 import { courseVideoCount } from "@/lib/course-videos";
 import { sampleVideoKey } from "@/lib/video-availability";
@@ -11,6 +11,37 @@ import { sampleVideoKey } from "@/lib/video-availability";
 export const dynamic = "force-dynamic";
 
 const PROBE_TIMEOUT_MS = 12_000;
+
+/**
+ * How long the schema *initialiser* may take — separate from the probe budget
+ * above, and the only one that can be raised.
+ *
+ * A first request after a deploy may have to create every table on a cold
+ * instance; that is a legitimate minute's work on a slow project. The route must
+ * still answer, so the initialiser is abandoned rather than waited on, and the
+ * catalogue check below then says what is actually there.
+ */
+const SCHEMA_INIT_TIMEOUT_MS = Number(process.env.HEALTH_SCHEMA_TIMEOUT_MS ?? 20_000);
+
+/**
+ * The initialiser runs in the background, once per process.
+ *
+ * `/api/health` is a diagnosis, so it must answer even while the schema step is
+ * still working — and it must not *cancel* that work by giving up on it: the
+ * next request would only start again from the top. Abandoning the promise here
+ * and letting it finish means the first request after a deploy describes the
+ * database, and the deploy finishes coming up in the background.
+ */
+let schemaInit: Promise<void> | null = null;
+
+function startSchemaInit(): { promise: Promise<void>; started: boolean } {
+  if (schemaInit) return { promise: schemaInit, started: false };
+  schemaInit = ready();
+  // Its rejection is reported by whoever awaits it; this listener only stops an
+  // unhandled rejection from taking the process down when nobody is waiting.
+  schemaInit.catch(() => {});
+  return { promise: schemaInit, started: true };
+}
 
 /** How the app decided where to connect. */
 export interface HealthReport {
@@ -115,6 +146,22 @@ function isAlreadyExists(error: unknown): boolean {
   return /already exists/i.test(detail);
 }
 
+/**
+ * Are the tables sign-in needs actually in the database?
+ *
+ * Deliberately not `ready()`: that runs the whole schema and can be slow on a
+ * cold instance, which is the situation being diagnosed. This only looks.
+ */
+async function schemaTablesPresent(): Promise<boolean> {
+  const rows = await query<{ present: string }>(
+    `select count(*)::text as present
+       from information_schema.tables
+      where table_schema = current_schema()
+        and table_name in ('users', 'app_state', 'payments')`
+  );
+  return Number(rows[0]?.present ?? 0) === 3;
+}
+
 /** Did the probe give up waiting, as opposed to getting an answer? */
 function timedOut(error: unknown): boolean {
   const detail = error instanceof Error ? error.message : String(error);
@@ -201,7 +248,10 @@ export async function GET() {
     report.database.host = info.host;
     report.database.server = info.version?.split(" ").slice(0, 2).join(" ") ?? null;
 
-    await withTimeout(ready(), PROBE_TIMEOUT_MS);
+    // Joined, not restarted: a second request while the first is still
+    // creating tables waits for the same work.
+    const init = startSchemaInit().promise;
+    await withTimeout(init, SCHEMA_INIT_TIMEOUT_MS);
     report.database.schema = true;
     report.ok = true;
   } catch (error) {
@@ -226,7 +276,7 @@ export async function GET() {
         report.database.hint = timedOut(error)
           ? report.database.connected
             ? "The database answered, but checking (and, on a first deploy, creating) its tables did not finish " +
-              `within ${PROBE_TIMEOUT_MS / 1000}s. That is usually a cold instance working through the schema for ` +
+              `within ${SCHEMA_INIT_TIMEOUT_MS / 1000}s. That is usually a cold instance working through the schema for ` +
               "the first time, or a pooled connection waiting on a busy project — ask again in a minute. If it " +
               "keeps happening, read the `[codemasterghana] schema statement failed …` line in the host's logs."
             : "The database did not answer within 12s. A paused free-tier project or a blocked connection pooler " +
@@ -243,6 +293,28 @@ export async function GET() {
                 "`[codemasterghana] database connection failed …` line in the host's logs.";
       }
       console.error("[codemasterghana] health check failed", error);
+    }
+  }
+
+  // A failed *initialiser* is not the same as a missing schema, and reporting it
+  // as one sends the owner looking for permissions they already have: on a cold
+  // instance the schema step can outlast this endpoint's budget while every
+  // table is in place. So ask the catalogue directly — one small query that says
+  // whether sign-in has what it needs, whatever the initialiser is doing.
+  if (!report.database.schema && report.database.connected) {
+    const present = await withTimeout(schemaTablesPresent(), PROBE_TIMEOUT_MS).catch(() => null);
+    if (present === true) {
+      report.database.schema = true;
+      report.database.hint =
+        "The tables sign-in needs are all present, so this is not a schema problem — the app's own schema " +
+        "initialiser did not finish within the time allowed, which on a first request after a deploy is " +
+        "usually a cold instance. Ask again in a minute.";
+    } else if (present === false) {
+      report.database.hint =
+        "The connection works, but the tables sign-in needs are missing. Either the role cannot create them " +
+        "(run the schema once as the database's admin user — paste db/schema.sql into the Supabase SQL " +
+        "editor) or the schema initialiser is failing: read the `[codemasterghana] schema statement failed …` " +
+        "line in the host's logs, which names the exact statement.";
     }
   }
 
