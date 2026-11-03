@@ -4,6 +4,7 @@ import {
   CheckoutError,
   createCheckout,
   describeCheckoutFailure,
+  findOutstandingDeposit,
   quoteCheckout,
 } from "@/lib/payments";
 import { PurchaseError } from "@/lib/purchases";
@@ -72,6 +73,7 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
   const lessonId = typeof body.lessonId === "string" ? body.lessonId : undefined;
   const programId = typeof body.programId === "string" ? body.programId : undefined;
   const promoCode = typeof body.promoCode === "string" ? body.promoCode : undefined;
+  const deposit = body.deposit === true;
 
   // The MoMo number is how we address the approval prompt (and the receipt).
   // It is validated here and stored on the payment row either way.
@@ -101,6 +103,7 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
       promoCode: quote.promo?.code,
       phone: phoneCheck?.phone ?? undefined,
       network,
+      deposit,
     },
     { callbackBaseUrl: base }
   );
@@ -113,6 +116,9 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
       currency: checkout.payment.currency,
       description: checkout.payment.description,
       authorizationUrl: checkout.authorizationUrl,
+      deposit: checkout.payment.deposit,
+      balanceDue: checkout.payment.balanceDue,
+      fullAmount: checkout.fullAmount,
       // The bonus the payment will unlock, so the modal can say it plainly.
       promo: quote.promo
         ? {
@@ -128,6 +134,33 @@ async function startCheckout(req: NextRequest): Promise<NextResponse> {
 }
 
 /** Whether live payments are on, so the checkout UI can say so honestly. */
-export async function GET() {
-  return NextResponse.json({ ok: true, live: isPaystackConfigured() }, { headers: NO_STORE });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const programId =
+    typeof searchParams.get("programId") === "string" ? searchParams.get("programId")!.trim() : "";
+
+  // A paid deposit whose balance is still due — the "rest later" half of a
+  // half-now purchase. The student can only pay the balance, not another
+  // whole purchase, until it is cleared.
+  let outstandingBalance:
+    | { reference: string; amount: number; balanceDue: number }
+    | undefined;
+  if (programId) {
+    const user = await getCurrentUser().catch(() => null);
+    if (user) {
+      const owed = await findOutstandingDeposit(user.id, programId);
+      if (owed) {
+        outstandingBalance = { reference: owed.reference, amount: owed.amount, balanceDue: owed.balanceDue };
+      }
+    }
+  }
+
+  return NextResponse.json(
+    {
+      ok: true,
+      live: isPaystackConfigured(),
+      ...(outstandingBalance ? { outstandingBalance } : {}),
+    },
+    { headers: NO_STORE },
+  );
 }

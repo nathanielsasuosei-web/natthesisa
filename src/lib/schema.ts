@@ -111,6 +111,9 @@ export const SCHEMA_STATEMENTS: string[] = [
      provider_event_id text,
      promo_code        text,
      paid_at           timestamptz,
+     deposit           boolean not null default false,
+     balance_due       integer not null default 0 check (balance_due >= 0),
+     settles_reference text references payments(reference),
      created_at        timestamptz not null default now(),
      updated_at        timestamptz not null default now()
    )`,
@@ -317,10 +320,18 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table payments add column if not exists paid_at timestamptz`,
   `alter table payments add column if not exists created_at timestamptz`,
   `alter table payments add column if not exists updated_at timestamptz`,
+  // Half-now / half-later program payments: half paid now, the rest later.
+  `alter table payments add column if not exists deposit boolean not null default false`,
+  `alter table payments add column if not exists balance_due integer not null default 0`,
+  `alter table payments add column if not exists settles_reference text references payments(reference)`,
   // Indexes last, once every column they reference is guaranteed to exist.
   `create index if not exists payments_user_idx on payments (user_id, created_at desc)`,
   `create index if not exists payments_status_idx on payments (status, created_at desc)`,
   `create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null`,
+  // Find a student's unpaid half-payment for a program, and the balance
+  // payment that clears it.
+  `create index if not exists payments_deposit_idx on payments (user_id, program_id, created_at desc) where deposit`,
+  `create index if not exists payments_settles_idx on payments (settles_reference) where settles_reference is not null`,
 
   // ---------------------------------------------------------------------------
   // Payments: align a table that came from somewhere else.

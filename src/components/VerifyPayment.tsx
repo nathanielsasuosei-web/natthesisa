@@ -15,7 +15,14 @@ interface Status {
   invoiceNumber: string | null;
   passActive: boolean;
   courseId: string | null;
+  programId: string | null;
   authorizationUrl: string | null;
+  /** True when this payment was half of a program's price. */
+  deposit: boolean;
+  /** What remains due after this payment — set on a paid deposit. */
+  balanceDue: number;
+  /** The deposit reference a balance payment clears, if any. */
+  settlesReference: string | null;
   /** The free program a promo code added, once the payment is fulfilled. */
   promo: { code: string; programId: string; programName: string; value: number } | null;
 }
@@ -77,7 +84,12 @@ export default function VerifyPayment() {
 
   // Where "continue" goes: a paid program opens the course library, anything
   // else the billing history (a failure to retry).
-  const continueHref = state?.status === "paid" ? "/dashboard/courses" : "/dashboard/billing";
+  const continueHref =
+    state?.status === "paid"
+      ? state.balanceDue > 0
+        ? "/dashboard/billing"
+        : "/dashboard/courses"
+      : "/dashboard/billing";
 
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-md place-items-center p-6">
@@ -120,7 +132,15 @@ export default function VerifyPayment() {
                   {" "}· invoice <strong className="font-mono">{state.invoiceNumber}</strong>
                 </>
               ) : null}
-              . A receipt is on its way to your email.
+            </p>
+            {state.balanceDue > 0 ? (
+              <p className="mt-2 text-xs leading-5 text-[#756f7b]">
+                GH₵{formatMoney(state.balanceDue)} still due for this program — pay the rest on your Billing page
+                to clear it.
+              </p>
+            ) : null}
+            <p className="mt-2 text-xs leading-5 text-[#756f7b]">
+              A receipt is on its way to your email.
             </p>
             {state.promo && (
               <div className="mx-auto mt-4 max-w-xs rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-[10px] leading-5 text-emerald-800">
