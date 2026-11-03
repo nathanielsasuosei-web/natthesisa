@@ -283,13 +283,202 @@ export const MIGRATION_STATEMENTS: string[] = [
   `alter table app_state add column if not exists updated_at timestamptz not null default now()`,
 
   // A `payments` table made by hand (or by an older build) may already exist
-  // with fewer columns — `create table if not exists` skips it silently, and
+  // with missing columns — `create table if not exists` skips it silently, and
   // building the indexes below would then fail with `column … does not
-  // exist`. So every column is added here first. All added nullable, so the
-  // healing itself can never fail on rows that are already there; the app
+  // exist`. So every column is added below first.
+  //
+  // The missing columns are found *first*, by catalogue, and only those are
+  // added. `add column if not exists` is not enough on its own: when a legacy
+  // table has a column with a name but not a type this app writes, the
+  // `if not exists` silently keeps the old type (`serial`, `uuid`,
+  // `varchar(8)`, an enum, a `numeric(10,2)` amount), so the table looks
+  // healed while checkout still fails with 22P02/42804. Each one is added as
+  // text — the type the app writes — so `create index …` below has something
+  // it can build on. Rows that are already there keep their values; the app
   // always writes complete rows, and pre-existing foreign rows are simply
   // never matched by a checkout reference.
-  `alter table payments add column if not exists reference text`,
+  `do $$
+declare
+  wanted_column record;
+begin
+  for wanted_column in
+    select * from (values
+      ('reference', 'text'), ('user_id', 'text'), ('kind', 'text'), ('period', 'text'),
+      ('course_id', 'text'), ('lesson_id', 'text'), ('program_id', 'text'), ('amount', 'integer'),
+      ('currency', 'text'), ('description', 'text'), ('status', 'text'), ('provider', 'text'),
+      ('phone', 'text'), ('network', 'text'), ('authorization_url', 'text'), ('channel', 'text'),
+      ('invoice_number', 'text'), ('provider_event_id', 'text'), ('promo_code', 'text'),
+      ('paid_at', 'timestamptz')
+    ) as columns(name, type_name)
+  loop
+    if not exists (
+      select 1 from information_schema.columns
+       where table_schema = current_schema()
+         and table_name = 'payments'
+         and column_name = wanted_column.name
+    ) then
+      -- A missing optional column is not worth stopping the app for: log it
+      -- and carry on with the next one.
+      begin
+        execute format('alter table payments add column %I %s', wanted_column.name, wanted_column.type_name);
+        raise warning '[codemasterghana] added missing payments column % (%)', wanted_column.name, wanted_column.type_name;
+      exception when others then
+        raise warning '[codemasterghana] could not add missing payments column %: %', wanted_column.name, sqlerrm;
+      end;
+    end if;
+  end loop;
+
+  -- These two carry NOT NULL defaults, so they are added only when absent and
+  -- never retyped: a legacy value is preserved as it is.
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'deposit') then
+    execute 'alter table payments add column deposit boolean not null default false';
+  end if;
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'balance_due') then
+    execute 'alter table payments add column balance_due integer not null default 0';
+  end if;
+  -- The timestamps keep the canonical defaults, so ordering by created_at
+  -- and the checkout-reuse window have a real value on rows this app writes.
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'created_at') then
+    execute 'alter table payments add column created_at timestamptz not null default now()';
+  end if;
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'updated_at') then
+    execute 'alter table payments add column updated_at timestamptz not null default now()';
+  end if;
+end $$`,
+  // ---------------------------------------------------------------------------
+  // Payments: align a table that came from somewhere else.
+  //
+  // A `payments` table that this app did not create — one left by an older
+  // project in the same database, or a paste from a Supabase-style schema —
+  // can have the right *names* and the wrong *types*, and `create table if not
+  // exists` plus the `add column` list below will never notice. The failure it
+  // causes is invisible: `checkout` compares `user_id`, PostgreSQL refuses the
+  // comparison (`42883 operator does not exist: text = uuid` in the teacher
+  // console), the row is never written (`22P02 invalid input syntax for type
+  // uuid` on a text account id), and the student sees only
+  // "The checkout could not be started — the payments table stores account ids
+  // in a format this app cannot use."
+  //
+  // So the columns this app writes are aligned to the types it writes: text
+  // for every id, reference and string column. Existing values are cast, never
+  // dropped — a UUID stored as text is the same value, and it is the format
+  // the app has always written.
+  //
+  // This has to happen *first*, before the `add column` list and before any
+  // rule that compares these columns. A constraint or index statement that
+  // names `kind`, `status` or `reference` is parsed and executed against the
+  // column's current type: adding `check (kind in ('pass', …, 'program'))` to
+  // a `kind` that is still an old enum fails with
+  // `22P02 invalid input value for enum …: "program"`, and that failure aborts
+  // `ensureSchema()` — the whole app, not just the one statement.
+  //
+  // A column cannot be retyped while a constraint on it cannot survive the new
+  // type. Three kinds block it, and all three are cleared here:
+  //
+  //   * a foreign key built on the column (`payments.user_id -> accounts.id`);
+  //   * a foreign key in *another* table pointing at the column (an old
+  //     `receipts.payer -> payments.user_id`, or `settles_reference` already
+  //     pointing at a uuid `reference`) — the error names the *other* table's
+  //     constraint, which is why the old version of this block could not clear
+  //     it and every checkout kept failing with 42804;
+  //   * a check constraint that compares the column with values that are not
+  //     of its type (an enum rule against text labels: `42883 operator does
+  //     not exist: text = legacy_status`).
+  //
+  // The retype is attempted first and blockers are only dropped when it
+  // actually fails, so a database that converts cleanly keeps every constraint
+  // it had. Whatever is dropped is rebuilt afterwards where this app wants it:
+  // `payments.user_id -> users.id` and `payments.settles_reference ->
+  // payments.reference` by the foreign-key heal below, and the `kind` /
+  // `status` / `provider` / `period` / `amount` / `currency` rules by the rule
+  // cleanup. A column that still cannot be converted is left alone and logged
+  // — a heal must never keep the app from starting — but the log line now
+  // names the column and PostgreSQL's own reason.
+  // ---------------------------------------------------------------------------
+  `do $$
+declare
+  column_to_fix record;
+  attached_key record;
+begin
+  for column_to_fix in
+    select column_name
+      from information_schema.columns
+     where table_schema = current_schema()
+       and table_name = 'payments'
+       and column_name in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
+                           'program_id', 'description', 'status', 'provider', 'currency', 'phone',
+                           'network', 'authorization_url', 'channel', 'invoice_number', 'provider_event_id',
+                           'promo_code', 'settles_reference')
+       -- Anything that is not plain text, including varchar(8) (which would
+       -- silently reject a CMG-… reference) and enum types (which accept only
+       -- the labels they were born with).
+       and data_type <> 'text'
+  loop
+    begin
+      begin
+        execute format('alter table payments alter column %I type text using %I::text',
+                       column_to_fix.column_name, column_to_fix.column_name);
+      exception when others then
+        -- The conversion needs help. Drop only the constraints that stand in
+        -- its way, then try exactly once more.
+        for attached_key in
+          select conname
+            from pg_constraint
+           where conrelid = 'payments'::regclass
+             and contype = 'f'
+             and (select attnum from pg_attribute
+                   where attrelid = 'payments'::regclass
+                     and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
+        loop
+          execute format('alter table payments drop constraint %I', attached_key.conname);
+          raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
+        end loop;
+
+        for attached_key in
+          select conrelid::regclass as owner_table, conname
+            from pg_constraint
+           where contype = 'f'
+             and confrelid = 'payments'::regclass
+             and (select attnum from pg_attribute
+                   where attrelid = 'payments'::regclass
+                     and attname = column_to_fix.column_name and not attisdropped) = any(confkey)
+        loop
+          execute format('alter table %s drop constraint %I', attached_key.owner_table, attached_key.conname);
+          raise warning '[codemasterghana] dropped foreign key % on % (it pointed at payments.%, which is now text)', attached_key.conname, attached_key.owner_table, column_to_fix.column_name;
+        end loop;
+
+        for attached_key in
+          select conname
+            from pg_constraint
+           where conrelid = 'payments'::regclass
+             and contype = 'c'
+             and (select attnum from pg_attribute
+                   where attrelid = 'payments'::regclass
+                     and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
+        loop
+          execute format('alter table payments drop constraint %I', attached_key.conname);
+          raise warning '[codemasterghana] dropped rule % on payments.% (it cannot survive the text conversion; this app puts its own rules back)', attached_key.conname, column_to_fix.column_name;
+        end loop;
+
+        execute format('alter table payments alter column %I type text using %I::text',
+                       column_to_fix.column_name, column_to_fix.column_name);
+      end;
+      raise warning '[codemasterghana] payments.% aligned to text', column_to_fix.column_name;
+    exception when others then
+      raise warning '[codemasterghana] could not align payments.% to text: %', column_to_fix.column_name, sqlerrm;
+    end;
+  end loop;
+end $$`,
+
+  // `settles_reference` is added without its foreign key here: on a legacy
+  // table whose `reference` is not text yet the FK cannot be implemented, and
+  // the statement would abort `ensureSchema()`. The foreign-key heal below
+  // installs it once `reference` has been aligned.
+  `alter table payments add column if not exists settles_reference text`,
   `alter table payments add column if not exists user_id text`,
   `alter table payments add column if not exists kind text`,
   `alter table payments add column if not exists period text`,
@@ -323,7 +512,6 @@ export const MIGRATION_STATEMENTS: string[] = [
   // Half-now / half-later program payments: half paid now, the rest later.
   `alter table payments add column if not exists deposit boolean not null default false`,
   `alter table payments add column if not exists balance_due integer not null default 0`,
-  `alter table payments add column if not exists settles_reference text references payments(reference)`,
   // Indexes last, once every column they reference is guaranteed to exist.
   `create index if not exists payments_user_idx on payments (user_id, created_at desc)`,
   `create index if not exists payments_status_idx on payments (status, created_at desc)`,
@@ -333,79 +521,31 @@ export const MIGRATION_STATEMENTS: string[] = [
   `create index if not exists payments_deposit_idx on payments (user_id, program_id, created_at desc) where deposit`,
   `create index if not exists payments_settles_idx on payments (settles_reference) where settles_reference is not null`,
 
-  // ---------------------------------------------------------------------------
-  // Payments: align a table that came from somewhere else.
-  //
-  // A `payments` table that this app did not create — one left by an older
-  // project in the same database, or a paste from a Supabase-style schema —
-  // can have the right *names* and the wrong *types*, and `create table if not
-  // exists` plus the `add column` list above will never notice. The failure it
-  // causes is invisible: `checkout` compares `user_id`, PostgreSQL refuses the
-  // comparison (`42883 operator does not exist: text = uuid` in the teacher
-  // console), the row is never written (`22P02 invalid input syntax for type
-  // uuid` on a text account id), and the student sees only
-  // "The checkout could not be started."
-  //
-  // So the columns this app writes are aligned to the types it writes: text
-  // for every id, reference and string column. Existing values are cast, never
-  // dropped — a UUID stored as text is the same value, and it is the format
-  // the app has always written. A foreign key on such a column has to go
-  // first (PostgreSQL cannot retype a column an FK is built on). The next
-  // migration also checks text columns: an old payments.user_id FK can point
-  // at a different app's accounts table even when its type already matches.
-  // Every step is best-effort: a column that cannot be converted is left
-  // alone and logged, so a heal can never keep the app from starting.
-  // ---------------------------------------------------------------------------
-  `do $$
-declare
-  column_to_fix record;
-  attached_key record;
-begin
-  for column_to_fix in
-    select column_name
-      from information_schema.columns
-     where table_schema = current_schema()
-       and table_name = 'payments'
-       and column_name in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
-                           'program_id', 'description', 'status', 'provider', 'currency', 'phone',
-                           'network', 'authorization_url', 'channel', 'invoice_number', 'provider_event_id')
-       -- Anything that is not plain text, including varchar(8) (which would
-       -- silently reject a CMG-… reference) and enum types (which accept only
-       -- the labels they were born with).
-       and data_type <> 'text'
-  loop
-    begin
-      for attached_key in
-        select conname from pg_constraint
-         where conrelid = 'payments'::regclass
-           and contype = 'f'
-           and (select attnum from pg_attribute
-                 where attrelid = 'payments'::regclass
-                   and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
-      loop
-        execute format('alter table payments drop constraint %I', attached_key.conname);
-        raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
-      end loop;
-      execute format('alter table payments alter column %I type text using %I::text', column_to_fix.column_name, column_to_fix.column_name);
-      raise warning '[codemasterghana] payments.% aligned to text', column_to_fix.column_name;
-    exception when others then
-      raise warning '[codemasterghana] could not align payments.% to text: %', column_to_fix.column_name, sqlerrm;
-    end;
-  end loop;
-end $$`,
-
   // Retire foreign keys left by another application's `payments` table. A
   // particularly common case is `payments.user_id` being text but still
   // referencing that application's `accounts(id)`: type healing above skips
   // it, and every new checkout then fails with 23503 even though the student
-  // exists in this app's `users` table. Keep only the intended single-column
-  // user_id -> users.id relationship. `NOT VALID` preserves older/orphaned
-  // payment rows while PostgreSQL still checks every new checkout.
+  // exists in this app's `users` table. Keep only the two relationships this
+  // app defines:
+  //
+  //   * `payments.user_id -> users.id` (one account);
+  //   * `payments.settles_reference -> payments.reference` (a balance payment
+  //     clearing a deposit).
+  //
+  // Anything else is another application's link and would reject this app's
+  // rows. `NOT VALID` preserves older/orphaned payment rows while PostgreSQL
+  // still checks every new checkout. Both links are *installed* when missing:
+  // the type alignment above (and the `settles_reference` column, which is
+  // added without an inline FK for exactly this reason) needs them to exist
+  // once, in one place, after every column is text.
   `do $heal$
 declare
   payment_user_attnum smallint;
   users_id_attnum smallint;
+  payment_reference_attnum smallint;
+  payment_settles_attnum smallint;
   keep_user_fk boolean := false;
+  keep_settles_fk boolean := false;
   attached_key record;
 begin
   select attnum into payment_user_attnum
@@ -417,6 +557,16 @@ begin
     from pg_attribute
    where attrelid = 'users'::regclass
      and attname = 'id'
+     and not attisdropped;
+  select attnum into payment_reference_attnum
+    from pg_attribute
+   where attrelid = 'payments'::regclass
+     and attname = 'reference'
+     and not attisdropped;
+  select attnum into payment_settles_attnum
+    from pg_attribute
+   where attrelid = 'payments'::regclass
+     and attname = 'settles_reference'
      and not attisdropped;
 
   for attached_key in
@@ -431,6 +581,12 @@ begin
        and attached_key.confrelid = 'users'::regclass
        and attached_key.confkey = array[users_id_attnum]::smallint[] then
       keep_user_fk := true;
+    elsif payment_settles_attnum is not null
+       and payment_reference_attnum is not null
+       and attached_key.conkey = array[payment_settles_attnum]::smallint[]
+       and attached_key.confrelid = 'payments'::regclass
+       and attached_key.confkey = array[payment_reference_attnum]::smallint[] then
+      keep_settles_fk := true;
     else
       begin
         execute format('alter table payments drop constraint %I', attached_key.conname);
@@ -447,6 +603,15 @@ begin
       raise notice '[codemasterghana] added payments.user_id -> users.id foreign key (not validated for legacy rows)';
     exception when others then
       raise warning '[codemasterghana] could not add payments.user_id -> users.id foreign key: %', sqlerrm;
+    end;
+  end if;
+
+  if payment_settles_attnum is not null and payment_reference_attnum is not null and not keep_settles_fk then
+    begin
+      execute 'alter table payments add constraint payments_settles_reference_fkey foreign key (settles_reference) references payments(reference) not valid';
+      raise notice '[codemasterghana] added payments.settles_reference -> payments.reference foreign key (not validated for legacy rows)';
+    exception when others then
+      raise warning '[codemasterghana] could not add payments.settles_reference -> payments.reference foreign key: %', sqlerrm;
     end;
   end if;
 exception when others then

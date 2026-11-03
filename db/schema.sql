@@ -66,6 +66,9 @@ create table if not exists payments (
      provider_event_id text,
      promo_code        text,
      paid_at           timestamptz,
+     deposit           boolean not null default false,
+     balance_due       integer not null default 0 check (balance_due >= 0),
+     settles_reference text references payments(reference),
      created_at        timestamptz not null default now(),
      updated_at        timestamptz not null default now()
    );
@@ -209,7 +212,135 @@ alter table app_state alter column value set not null;
 
 alter table app_state add column if not exists updated_at timestamptz not null default now();
 
-alter table payments add column if not exists reference text;
+do $$
+declare
+  wanted_column record;
+begin
+  for wanted_column in
+    select * from (values
+      ('reference', 'text'), ('user_id', 'text'), ('kind', 'text'), ('period', 'text'),
+      ('course_id', 'text'), ('lesson_id', 'text'), ('program_id', 'text'), ('amount', 'integer'),
+      ('currency', 'text'), ('description', 'text'), ('status', 'text'), ('provider', 'text'),
+      ('phone', 'text'), ('network', 'text'), ('authorization_url', 'text'), ('channel', 'text'),
+      ('invoice_number', 'text'), ('provider_event_id', 'text'), ('promo_code', 'text'),
+      ('paid_at', 'timestamptz')
+    ) as columns(name, type_name)
+  loop
+    if not exists (
+      select 1 from information_schema.columns
+       where table_schema = current_schema()
+         and table_name = 'payments'
+         and column_name = wanted_column.name
+    ) then
+      -- A missing optional column is not worth stopping the app for: log it
+      -- and carry on with the next one.
+      begin
+        execute format('alter table payments add column %I %s', wanted_column.name, wanted_column.type_name);
+        raise warning '[codemasterghana] added missing payments column % (%)', wanted_column.name, wanted_column.type_name;
+      exception when others then
+        raise warning '[codemasterghana] could not add missing payments column %: %', wanted_column.name, sqlerrm;
+      end;
+    end if;
+  end loop;
+
+  -- These two carry NOT NULL defaults, so they are added only when absent and
+  -- never retyped: a legacy value is preserved as it is.
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'deposit') then
+    execute 'alter table payments add column deposit boolean not null default false';
+  end if;
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'balance_due') then
+    execute 'alter table payments add column balance_due integer not null default 0';
+  end if;
+  -- The timestamps keep the canonical defaults, so ordering by created_at
+  -- and the checkout-reuse window have a real value on rows this app writes.
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'created_at') then
+    execute 'alter table payments add column created_at timestamptz not null default now()';
+  end if;
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = current_schema() and table_name = 'payments' and column_name = 'updated_at') then
+    execute 'alter table payments add column updated_at timestamptz not null default now()';
+  end if;
+end $$;
+
+do $$
+declare
+  column_to_fix record;
+  attached_key record;
+begin
+  for column_to_fix in
+    select column_name
+      from information_schema.columns
+     where table_schema = current_schema()
+       and table_name = 'payments'
+       and column_name in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
+                           'program_id', 'description', 'status', 'provider', 'currency', 'phone',
+                           'network', 'authorization_url', 'channel', 'invoice_number', 'provider_event_id',
+                           'promo_code', 'settles_reference')
+       -- Anything that is not plain text, including varchar(8) (which would
+       -- silently reject a CMG-… reference) and enum types (which accept only
+       -- the labels they were born with).
+       and data_type <> 'text'
+  loop
+    begin
+      begin
+        execute format('alter table payments alter column %I type text using %I::text',
+                       column_to_fix.column_name, column_to_fix.column_name);
+      exception when others then
+        -- The conversion needs help. Drop only the constraints that stand in
+        -- its way, then try exactly once more.
+        for attached_key in
+          select conname
+            from pg_constraint
+           where conrelid = 'payments'::regclass
+             and contype = 'f'
+             and (select attnum from pg_attribute
+                   where attrelid = 'payments'::regclass
+                     and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
+        loop
+          execute format('alter table payments drop constraint %I', attached_key.conname);
+          raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
+        end loop;
+
+        for attached_key in
+          select conrelid::regclass as owner_table, conname
+            from pg_constraint
+           where contype = 'f'
+             and confrelid = 'payments'::regclass
+             and (select attnum from pg_attribute
+                   where attrelid = 'payments'::regclass
+                     and attname = column_to_fix.column_name and not attisdropped) = any(confkey)
+        loop
+          execute format('alter table %s drop constraint %I', attached_key.owner_table, attached_key.conname);
+          raise warning '[codemasterghana] dropped foreign key % on % (it pointed at payments.%, which is now text)', attached_key.conname, attached_key.owner_table, column_to_fix.column_name;
+        end loop;
+
+        for attached_key in
+          select conname
+            from pg_constraint
+           where conrelid = 'payments'::regclass
+             and contype = 'c'
+             and (select attnum from pg_attribute
+                   where attrelid = 'payments'::regclass
+                     and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
+        loop
+          execute format('alter table payments drop constraint %I', attached_key.conname);
+          raise warning '[codemasterghana] dropped rule % on payments.% (it cannot survive the text conversion; this app puts its own rules back)', attached_key.conname, column_to_fix.column_name;
+        end loop;
+
+        execute format('alter table payments alter column %I type text using %I::text',
+                       column_to_fix.column_name, column_to_fix.column_name);
+      end;
+      raise warning '[codemasterghana] payments.% aligned to text', column_to_fix.column_name;
+    exception when others then
+      raise warning '[codemasterghana] could not align payments.% to text: %', column_to_fix.column_name, sqlerrm;
+    end;
+  end loop;
+end $$;
+
+alter table payments add column if not exists settles_reference text;
 
 alter table payments add column if not exists user_id text;
 
@@ -257,55 +388,28 @@ alter table payments add column if not exists created_at timestamptz;
 
 alter table payments add column if not exists updated_at timestamptz;
 
+alter table payments add column if not exists deposit boolean not null default false;
+
+alter table payments add column if not exists balance_due integer not null default 0;
+
 create index if not exists payments_user_idx on payments (user_id, created_at desc);
 
 create index if not exists payments_status_idx on payments (status, created_at desc);
 
 create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null;
 
-do $$
-declare
-  column_to_fix record;
-  attached_key record;
-begin
-  for column_to_fix in
-    select column_name
-      from information_schema.columns
-     where table_schema = current_schema()
-       and table_name = 'payments'
-       and column_name in ('reference', 'user_id', 'kind', 'period', 'course_id', 'lesson_id',
-                           'program_id', 'description', 'status', 'provider', 'currency', 'phone',
-                           'network', 'authorization_url', 'channel', 'invoice_number', 'provider_event_id')
-       -- Anything that is not plain text, including varchar(8) (which would
-       -- silently reject a CMG-… reference) and enum types (which accept only
-       -- the labels they were born with).
-       and data_type <> 'text'
-  loop
-    begin
-      for attached_key in
-        select conname from pg_constraint
-         where conrelid = 'payments'::regclass
-           and contype = 'f'
-           and (select attnum from pg_attribute
-                 where attrelid = 'payments'::regclass
-                   and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
-      loop
-        execute format('alter table payments drop constraint %I', attached_key.conname);
-        raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
-      end loop;
-      execute format('alter table payments alter column %I type text using %I::text', column_to_fix.column_name, column_to_fix.column_name);
-      raise warning '[codemasterghana] payments.% aligned to text', column_to_fix.column_name;
-    exception when others then
-      raise warning '[codemasterghana] could not align payments.% to text: %', column_to_fix.column_name, sqlerrm;
-    end;
-  end loop;
-end $$;
+create index if not exists payments_deposit_idx on payments (user_id, program_id, created_at desc) where deposit;
+
+create index if not exists payments_settles_idx on payments (settles_reference) where settles_reference is not null;
 
 do $heal$
 declare
   payment_user_attnum smallint;
   users_id_attnum smallint;
+  payment_reference_attnum smallint;
+  payment_settles_attnum smallint;
   keep_user_fk boolean := false;
+  keep_settles_fk boolean := false;
   attached_key record;
 begin
   select attnum into payment_user_attnum
@@ -317,6 +421,16 @@ begin
     from pg_attribute
    where attrelid = 'users'::regclass
      and attname = 'id'
+     and not attisdropped;
+  select attnum into payment_reference_attnum
+    from pg_attribute
+   where attrelid = 'payments'::regclass
+     and attname = 'reference'
+     and not attisdropped;
+  select attnum into payment_settles_attnum
+    from pg_attribute
+   where attrelid = 'payments'::regclass
+     and attname = 'settles_reference'
      and not attisdropped;
 
   for attached_key in
@@ -331,6 +445,12 @@ begin
        and attached_key.confrelid = 'users'::regclass
        and attached_key.confkey = array[users_id_attnum]::smallint[] then
       keep_user_fk := true;
+    elsif payment_settles_attnum is not null
+       and payment_reference_attnum is not null
+       and attached_key.conkey = array[payment_settles_attnum]::smallint[]
+       and attached_key.confrelid = 'payments'::regclass
+       and attached_key.confkey = array[payment_reference_attnum]::smallint[] then
+      keep_settles_fk := true;
     else
       begin
         execute format('alter table payments drop constraint %I', attached_key.conname);
@@ -347,6 +467,15 @@ begin
       raise notice '[codemasterghana] added payments.user_id -> users.id foreign key (not validated for legacy rows)';
     exception when others then
       raise warning '[codemasterghana] could not add payments.user_id -> users.id foreign key: %', sqlerrm;
+    end;
+  end if;
+
+  if payment_settles_attnum is not null and payment_reference_attnum is not null and not keep_settles_fk then
+    begin
+      execute 'alter table payments add constraint payments_settles_reference_fkey foreign key (settles_reference) references payments(reference) not valid';
+      raise notice '[codemasterghana] added payments.settles_reference -> payments.reference foreign key (not validated for legacy rows)';
+    exception when others then
+      raise warning '[codemasterghana] could not add payments.settles_reference -> payments.reference foreign key: %', sqlerrm;
     end;
   end if;
 exception when others then
