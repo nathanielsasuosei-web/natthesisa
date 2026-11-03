@@ -1,6 +1,6 @@
 import { mkdirSync, renameSync } from "node:fs";
 import path from "node:path";
-import { MIGRATION_STATEMENTS, SCHEMA_STATEMENTS } from "./schema";
+import { MIGRATION_STATEMENTS, SCHEMA_STATEMENTS, schemaBatches } from "./schema";
 
 /**
  * Database connection.
@@ -21,6 +21,16 @@ export type DbDriver = "postgres" | "embedded";
 
 interface Driver {
   kind: DbDriver;
+  /**
+   * Runs several semicolon-separated statements in one call, or null when the
+   * driver cannot.
+   *
+   * `pg` sends a parameterless multi-statement query through the simple
+   * protocol; PGlite's `query` uses the extended protocol and rejects it, but
+   * its `exec` runs a script. Both let the schema step cost single-digit round
+   * trips instead of 89.
+   */
+  exec(sql: string): Promise<void>;
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
   close(): Promise<void>;
 }
@@ -232,6 +242,11 @@ async function createDriver(): Promise<Driver> {
     );
     return {
       kind: "postgres",
+      // No parameters are bound for schema SQL, so this is the simple protocol:
+      // several statements, one round trip.
+      exec: async (sql: string) => {
+        await pool.query(sql);
+      },
       query: async <T>(sql: string, params?: unknown[]) => (await pool.query(sql, params)).rows as T[],
       close: () => pool.end(),
     };
@@ -256,6 +271,10 @@ async function createDriver(): Promise<Driver> {
 
   return {
     kind: "embedded",
+    exec: async (sql: string) => {
+      await db.exec(sql);
+      await db.syncToFs();
+    },
     query: async <T>(sql: string, params?: unknown[]) => {
       const result = await db.query<T>(sql, params as never);
       if (WRITE_STATEMENT.test(sql)) {
@@ -314,7 +333,13 @@ async function openEmbedded(directory: string): Promise<PGliteDb> {
   }
 }
 
-type PGliteDb = { query<T>(sql: string, params?: never): Promise<{ rows: T[] }>; syncToFs(): Promise<void>; close(): Promise<void> };
+type PGliteDb = {
+  query<T>(sql: string, params?: never): Promise<{ rows: T[] }>;
+  /** Runs a script of several statements — the embedded path for schema batches. */
+  exec(sql: string): Promise<unknown>;
+  syncToFs(): Promise<void>;
+  close(): Promise<void>;
+};
 
 /**
  * Closes the database when the process is asked to stop, so a normal restart
@@ -354,6 +379,18 @@ export async function dbKind(): Promise<DbDriver> {
   return (await driver()).kind;
 }
 
+/**
+ * Runs a script of several statements in one call.
+ *
+ * Used by the schema step, which is idempotent SQL and only needs the round
+ * trips to be few. Never use it for anything with user input: a simple query
+ * carrying multiple statements cannot take parameters, which is exactly what
+ * makes it safe here (there is nothing to interpolate) and wrong anywhere else.
+ */
+export async function execScript(sql: string): Promise<void> {
+  await (await driver()).exec(sql);
+}
+
 export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
   return (await driver()).query<T>(sql, params);
 }
@@ -370,14 +407,22 @@ export async function queryOne<T = Record<string, unknown>>(sql: string, params?
 export async function ensureSchema(): Promise<void> {
   if (!g.__codaraSchema) {
     g.__codaraSchema = (async () => {
-      for (const statement of SCHEMA_STATEMENTS) {
-        await runSchemaStatement(statement);
+      // One round trip per batch, not per statement. On a serverless host each
+      // of the 89 statements was a fresh pooler connection, and describing an
+      // already-correct database could outlast the health check's own budget —
+      // so a first request on a cold instance reported a schema failure while
+      // every table existed. Batches keep the same statements, in the same
+      // order, in single-digit round trips.
+      for (const batch of schemaBatches(SCHEMA_STATEMENTS, { maxStatements: 30 })) {
+        await runSchemaBatch(batch, "schema");
       }
       // A stale database has the tables but not the columns: the migration
       // reshapes it in place (additive only — rows are never dropped,
       // renamed or retyped), so deploying the new code is the whole upgrade.
-      for (const statement of MIGRATION_STATEMENTS) {
-        await runSchemaStatement(statement);
+      // Migrations are smaller batches: they alter existing tables, so a batch
+      // that fails should strand as little work as possible.
+      for (const batch of schemaBatches(MIGRATION_STATEMENTS, { maxStatements: 10 })) {
+        await runSchemaBatch(batch, "migration");
       }
     })().catch((error) => {
       g.__codaraSchema = undefined;
@@ -388,6 +433,43 @@ export async function ensureSchema(): Promise<void> {
 }
 
 /**
+ * Runs one batch, and falls back to statement-by-statement if it fails.
+ *
+ * The batched form is an optimisation, never a change in behaviour: if the
+ * group cannot be sent as one (a driver or a proxy that refuses multiple
+ * statements in a simple query), the same statements are replayed one at a
+ * time and the individual error — with the statement that caused it — is the
+ * one reported. Every statement is `if not exists`, so replaying a batch whose
+ * earlier halves already landed is a no-op.
+ */
+async function runSchemaBatch(
+  batch: { kind: "sentinel" | "solo"; sql: string; parts: string[] },
+  phase: "schema" | "migration"
+): Promise<void> {
+  if (batch.parts.length <= 1) {
+    await runSchemaStatement(batch.parts[0] ?? batch.sql.trim(), phase);
+    return;
+  }
+  try {
+    await execScript(batch.sql);
+  } catch (error) {
+    // Not necessarily a bad statement: a future driver, or a proxy in front of
+    // the database, may simply refuse a multi-statement query. Either way the
+    // statements are replayed one at a time, which is what ran before batching
+    // existed — so the worst case is the old behaviour, not a broken deploy.
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[codemasterghana] schema: a ${batch.parts.length}-statement ${phase} batch was refused (${detail}) — ` +
+        "replaying it one statement at a time"
+    );
+    for (const statement of batch.parts) {
+      await runSchemaStatement(statement, phase);
+    }
+  }
+}
+
+
+/**
  * Runs one schema/migration statement, naming it in the logs if it fails.
  *
  * A schema failure is often the first thing a wrong role hits — the connection
@@ -395,13 +477,13 @@ export async function ensureSchema(): Promise<void> {
  * The hint is logged here too, because by then `logConnectionFailure` has
  * already run and reported success.
  */
-async function runSchemaStatement(statement: string): Promise<void> {
+async function runSchemaStatement(statement: string, phase: "schema" | "migration" = "schema"): Promise<void> {
   try {
     await query(statement);
   } catch (error) {
     const preview = statement.replace(/\s+/g, " ").trim().slice(0, 120);
     const detail = error instanceof Error ? error.message : String(error);
-    console.error(`[codemasterghana] schema statement failed (${preview}…): ${detail}`);
+    console.error(`[codemasterghana] ${phase} statement failed (${preview}…): ${detail}`);
     const hint = connectionHint(error);
     if (hint) console.error(`[codemasterghana] ${hint}`);
     throw error;

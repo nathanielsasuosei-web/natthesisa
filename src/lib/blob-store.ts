@@ -156,7 +156,26 @@ export type StorageFailureKind =
   | "server-error"
   | "timeout"
   | "network"
-  | "unknown";
+  | "unknown"
+  /**
+   * The object's metadata could not be read even though the bucket answered, so
+   * nothing is known about the file — *not* the same as an empty bucket.
+   *
+   * This is the category the video library actually fails in, and mixing it up
+   * with "absent" is expensive: `/api/health` then blames an empty bucket and
+   * tells the owner to re-render 81 files, the teacher console reports the whole
+   * catalog as missing, and `/api/lesson-videos/*` answers 410 "missing from
+   * storage" for a file that is sitting in the bucket the whole time.
+   */
+  | "metadata-unavailable"
+  /**
+   * Storage answered "no such object" for a *specific* file. Unlike every other
+   * category this is not a fault in storage at all: the bytes were never
+   * uploaded, so the fix is to render/upload the file, not to repair anything.
+   * It is still carried as an error because it is how `signedBlobUrl` reports a
+   * missing object — and callers must be able to tell it from a real outage.
+   */
+  | "object-absent";
 
 /** Thrown by every Storage call that fails, carrying its category and a fix. */
 export class StorageError extends Error {
@@ -164,7 +183,6 @@ export class StorageError extends Error {
   readonly status: number | null;
   /** Plain-language next step, safe to show the owner (never a credential). */
   readonly hint: string;
-
   constructor(kind: StorageFailureKind, message: string, hint: string, status: number | null = null) {
     super(message);
     this.name = "StorageError";
@@ -172,6 +190,21 @@ export class StorageError extends Error {
     this.hint = hint;
     this.status = status;
   }
+}
+
+
+/**
+ * Did Storage itself say this object is not there?
+ *
+ * Only `object-absent` counts — raised by `signedBlobUrl` when a signature is
+ * refused with "no such object". Nothing else may be read as absence: a timeout,
+ * a refused key, a broken metadata endpoint and a 5xx all leave the file's
+ * existence unknown, and reporting those as missing is exactly the bug this
+ * module exists to prevent (a 410 for every video, and an owner told to
+ * re-render a library that is already in the bucket).
+ */
+export function isAbsent(error: unknown): boolean {
+  return error instanceof StorageError && error.kind === "object-absent";
 }
 
 /** The fix for each failure category, written for the person who has to act. */
@@ -219,6 +252,23 @@ export function storageHint(kind: StorageFailureKind, status: number | null = nu
         "after a week of inactivity and stops answering: open the dashboard and restore it. " +
         "Otherwise check NEXT_PUBLIC_SUPABASE_URL for a typo, and the host's egress/network rules."
       );
+    case "metadata-unavailable":
+      return (
+        `The bucket “${bucket}” answered, and this key was accepted, but Supabase would not report ` +
+        `an object's metadata${status ? ` (${status})` : ""}. That is a Storage/API-version mismatch, ` +
+        "not an empty bucket — so do not re-render the videos. `npm run storage:check` writes a " +
+        "probe object and reads it back through this same call and names the step that fails; " +
+        "the `[codemasterghana] storage probe failed` line in the host's logs has the full response. " +
+        "If the project's Storage API was just upgraded, redeploying is enough to clear it. " +
+        "The videos themselves are unaffected on a public bucket; on a private one they need this " +
+        "call to sign a URL, so they stay unavailable until it answers."
+      );
+    case "object-absent":
+      return (
+        "The file is not in the bucket — Storage answered “no such object” for this exact key. That is a " +
+        "missing upload rather than a storage problem: render or upload it (`npm run videos:build`, or the " +
+        "Lesson videos workflow) and it will play."
+      );
     default:
       return "Storage failed for a reason this app does not recognise yet. Read the error above.";
   }
@@ -233,7 +283,71 @@ function supabaseHost(): string {
   }
 }
 
-/** Turns a Storage response into a categorised, actionable error. */
+/* -------------------------------------------------------------------------- */
+/* Reading a failure out of a Storage answer                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Supabase marks a "this object is not there" answer in the *body* even when the
+ * HTTP status says something else.
+ *
+ * `GET /object/info/{bucket}/{key}` does not answer 404 for a missing object: it
+ * answers **400** with
+ *
+ *   {"statusCode":"404","error":"not_found","message":"Object not found","code":"NoSuchKey"}
+ *
+ * — the 404 lives inside `statusCode`, because the outer 400 is reporting the
+ * request rather than the object. Reading only `response.status` therefore
+ * classes a perfectly ordinary "not built yet" as an unrecognised failure, and
+ * every caller downstream then mistakes "unknown" for "the whole storage is
+ * broken". This decides "absent" from the Supabase error code/name first and the
+ * HTTP status second, which is the only reading that holds for both.
+ */
+const ABSENT_CODES = /^(NoSuchKey|NotFound|not_found|resource_not_found)$/i;
+const ABSENT_MESSAGE = /object not found|no such (key|object)|object does not exist|not\s*found/i;
+
+function responseErrorName(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { code?: unknown; error?: unknown; statusCode?: unknown };
+    for (const value of [parsed.code, parsed.error, parsed.statusCode]) {
+      if (typeof value === "string") return value;
+      if (typeof value === "number") return String(value);
+    }
+  } catch {
+    /* not JSON — fall through to the text match */
+  }
+  return "";
+}
+
+/**
+ * True when Storage is saying the object is absent, whatever the HTTP status.
+ *
+ * Deliberately narrow: it must not fire for a refusal (401/403), a rate limit,
+ * a server error, or a message that merely mentions "bucket". A false positive
+ * here would turn an outage into "the file is missing", which is the mistake
+ * this whole module exists to avoid.
+ */
+function saysObjectAbsent(status: number, body: string): boolean {
+  if (status === 401 || status === 403 || status === 429 || status >= 500) return false;
+  if (/bucket not found|not public|bucket_id|invalid bucket|jwt|unauthori[sz]ed|permission/i.test(body)) {
+    return false;
+  }
+  const name = responseErrorName(body);
+  if (ABSENT_CODES.test(name)) return true;
+  if (status === 404) return true;
+  return ABSENT_MESSAGE.test(body);
+}
+
+/**
+ * Turns a Storage response into a categorised, actionable error.
+ *
+ * The categories are the point: "storage could not be reached" is a dead end for
+ * whoever has to fix it, while `bucket-missing` / `auth-rejected` / `not-public`
+ * / `network` each name one knob. Anything that is not one of those is reported
+ * as `metadata-unavailable` or `unknown` *with the status and body preserved*,
+ * because an unclassified failure still has to be readable from `/api/health`
+ * and from the host's logs.
+ */
 function storageErrorFromResponse(response: Response, body: string): StorageError {
   const detail = body.slice(0, 200).replace(/\s+/g, " ").trim();
   const status = response.status;
@@ -257,10 +371,16 @@ function storageErrorFromResponse(response: Response, body: string): StorageErro
     const kind: StorageFailureKind = "server-error";
     return new StorageError(kind, `Supabase Storage answered ${status}. ${detail}`, storageHint(kind, status), status);
   }
-  // A 400 that mentions the bucket is still most likely a bucket problem;
-  // anything else is reported as unrecognised rather than guessed at.
-  const kind: StorageFailureKind = status === 400 && /bucket/i.test(body) ? "bucket-missing" : "unknown";
-  return new StorageError(kind, `Supabase Storage answered ${status}. ${detail}`, storageHint(kind, status), status);
+  // The bucket is reachable and the key was accepted, but the object's own
+  // answer was neither "here it is" nor "it is not here": that is a metadata
+  // problem, and it is neither an empty bucket nor an unknown one.
+  const kind: StorageFailureKind = "metadata-unavailable";
+  return new StorageError(
+    kind,
+    `Supabase Storage did not report the object's metadata (${status}). ${detail}`,
+    storageHint(kind, status),
+    status
+  );
 }
 
 /** Categorises whatever a failed `fetch` threw (DNS, refusal, abort). */
@@ -350,7 +470,9 @@ async function publicStat(key: string): Promise<BlobStat | null | undefined> {
     return { size: Number.isFinite(size) ? size : 0, contentType: response.headers.get("content-type") };
   }
   const body = await response.text().catch(() => "");
-  if (response.status === 404 || /object not found/i.test(body)) return null;
+  // Same body-shaped answer as the authenticated call (400 + NoSuchKey), so the
+  // same reader decides — otherwise this second opinion quietly disagrees.
+  if (saysObjectAbsent(response.status, body)) return null;
   // "Bucket not public", or anything else: this route cannot answer, so let the
   // authenticated error stand rather than claiming the file is missing.
   return undefined;
@@ -369,8 +491,12 @@ export async function statBlob(key: string): Promise<BlobStat | null> {
   } catch (error) {
     throw storageErrorFromException(error);
   }
-  if (response.status === 404) return null;  if (!response.ok) {
+  if (!response.ok) {
     const body = await response.text().catch(() => "");
+    // "Not there" is answered by Supabase in the body (400 + NoSuchKey), not by
+    // a 404, so it has to be read before anything else — otherwise an unfilled
+    // bucket looks like broken storage to every caller.
+    if (saysObjectAbsent(response.status, body)) return null;
     const failure = storageErrorFromResponse(response, body);
     // A refused metadata call is not proof the file is gone: on a public bucket
     // the object URL needs no key at all, so ask it before giving up.
@@ -444,7 +570,20 @@ export async function signedBlobUrl(
     body: JSON.stringify({ expiresIn: expiresInSeconds }),
   });
   if (!response.ok) {
-    await throwStorageError(response);
+    const body = await response.text().catch(() => "");
+    // Signing is the honest presence check: it is the call a view actually
+    // needs, and Storage says "no such object" for a missing file without
+    // going near `/object/info`. That matters when the metadata endpoint is the
+    // thing that is broken — the videos still play, because this call works.
+    if (saysObjectAbsent(response.status, body)) {
+      throw new StorageError(
+        "object-absent",
+        `“${key}” is not in the storage bucket. ${body.slice(0, 200).replace(/\s+/g, " ").trim()}`,
+        storageHint("object-absent"),
+        response.status
+      );
+    }
+    await throwStorageError(new Response(body, { status: response.status }));
   }
   const body = (await response.json().catch(() => ({}))) as { signedURL?: string; signedUrl?: string };
   const relative = body.signedURL ?? body.signedUrl;
@@ -508,6 +647,34 @@ export interface StorageProbe {
    * "storage is fine and simply does not have the videos yet".
    */
   sample: { present: boolean; size: number | null } | null;
+  /**
+   * What the bucket's own *listing* says, which needs neither the object
+   * metadata call nor a signature: how many objects it holds and whether the
+   * sampled key is among them.
+   *
+   * This is the independent second opinion. When `/object/info` is broken, the
+   * listing still answers "the bucket is empty" or "the file is right there",
+   * and either one turns a vague "could not check" into a fix: render the
+   * videos, or leave them alone and repair one endpoint.
+   */
+  listing: { objects: number; sampleListed: boolean | null; truncated: boolean } | null;
+  /**
+   * Whether a lesson video could actually be played right now: the object is
+   * there *and* the step that hands the browser a URL answers. Null when either
+   * question went unanswered.
+   *
+   * This is what a student experiences, so it is asked directly rather than
+   * inferred from the metadata call. Metadata (`/object/info`) and playback
+   * (`/object/sign`) answer independently: a deployment where signing works and
+   * `info` does not is a healthy site with a sick diagnosis, not a broken one.
+   */
+  playable: boolean | null;
+  /**
+   * The bucket's own metadata read failed, so nothing could be said about a
+   * file even if the sample check also failed. Kept apart from `sample` so the
+   * two are never confused: an unreadable bucket is not an empty one.
+   */
+  bucketFailed: boolean;
   failure: StorageFailureKind | null;
   /** The error text, for the logs and for `/api/health`. */
   error: string | null;
@@ -544,6 +711,9 @@ export async function probeStorage(sampleKey?: string): Promise<StorageProbe> {
     bucketIsPublic: null,
     publicUrlsWillWork: null,
     sample: null,
+    listing: null,
+    playable: null,
+    bucketFailed: false,
     failure: null,
     error: null,
     hint: null,
@@ -596,6 +766,7 @@ export async function probeStorage(sampleKey?: string): Promise<StorageProbe> {
       const failure = storageErrorFromResponse(response, body);
       probe.authOk = failure.kind === "auth-rejected" ? false : null;
       probe.bucketExists = failure.kind === "bucket-missing" ? false : null;
+      probe.bucketFailed = true;
       probe.failure = failure.kind;
       probe.error = failure.message;
       probe.hint = failure.hint;
@@ -603,6 +774,7 @@ export async function probeStorage(sampleKey?: string): Promise<StorageProbe> {
   } catch (error) {
     const failure = storageErrorFromException(error);
     probe.reachable = false;
+    probe.bucketFailed = true;
     probe.failure = failure.kind;
     probe.error = failure.message;
     probe.hint = failure.hint;
@@ -615,28 +787,199 @@ export async function probeStorage(sampleKey?: string): Promise<StorageProbe> {
     probe.hint = storageHint("not-public");
   }
 
-  if (sampleKey) {
-    try {
-      const stat = await statBlob(sampleKey);
-      probe.sample = { present: stat !== null, size: stat?.size ?? null };
-      // A refused key on a *public* bucket is a partial outage, and saying so
-      // stops the owner replacing a working bucket: the files still play
-      // through their permanent URLs, and it is uploads and signed downloads
-      // that are broken.
-      if (probe.failure === "auth-rejected" && stat !== null) {
-        probe.hint =
-          `${probe.hint ?? "Supabase refused SUPABASE_SECRET_KEY."} The bucket is public, so the videos that are already in it still play — ` +
-          "existing files are served straight from the CDN. Uploads and signed downloads stay broken " +
-          "until the key is replaced.";
+  // Before asking about one object, ask what the bucket holds. `/object/list`
+  // is a different endpoint from `/object/info`, so it answers when that one is
+  // broken — and it can distinguish "empty bucket" from "the file is there"
+  // without a signature, which is exactly what the metadata call was needed for.
+  try {
+    const response = await storageFetch(
+      `/object/list/${encodeURIComponent(bucketName())}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prefix: "", limit: 1000, offset: 0, sortBy: { column: "name", order: "asc" } }),
+      },
+      READ_TIMEOUT_MS
+    );
+    if (response.ok) {
+      const rows = (await response.json().catch(() => null)) as { name?: string }[] | null;
+      if (Array.isArray(rows)) {
+        const names = rows.map((row) => String(row.name ?? ""));
+        probe.listing = {
+          objects: names.filter(Boolean).length,
+          sampleListed: sampleKey ? names.includes(path.basename(sampleKey)) : null,
+          truncated: rows.length >= 1000,
+        };
       }
+    }
+  } catch {
+    // A listing the key cannot read is not the story here; the object checks
+    // below are. Its absence only means the second opinion is unavailable.
+  }
+
+  if (sampleKey) {
+    // Three questions, asked independently, because they fail independently and
+    // each answers a different one:
+    //
+    //   /object/info   is this object's metadata readable, and what is its size?
+    //   /object/sign   can a browser be given a URL for it? (playback)
+    //   /object/list   what is in the bucket at all? (the second opinion)
+    //
+    // A failure in one must not stop the others: it is the *disagreement*
+    // between them that identifies which single endpoint is broken, and a
+    // failure to ask any of them is never evidence that a file is missing.
+    let stat: BlobStat | null = null;
+    let statError: unknown = null;
+    try {
+      stat = await statBlob(sampleKey);
     } catch (error) {
-      const failure = storageErrorFromException(error);
+      statError = error;
+    }
+
+    // Playback is only worth asking about when the file is known to be there: a
+    // URL for an absent object is refused by Storage, and that refusal is not a
+    // storage fault.
+    let signError: unknown = null;
+    let playable: boolean | null = null;
+    if (statError !== null) {
+      playable = null; // could not even find out whether the file is there
+    } else if (stat === null) {
+      playable = false; // answered, and it is not there: nothing to play
+    } else {
+      try {
+        await blobUrl(sampleKey, 60);
+        playable = true;
+      } catch (error) {
+        signError = error;
+        playable = null; // present, but the browser could not be given a URL
+      }
+    }
+
+    // The listing is the tie-breaker, and it wins a straight disagreement: it
+    // names the object directly, whereas `/object/info` refusing to describe it
+    // is exactly what a broken metadata endpoint looks like. Believing the
+    // metadata call over the listing is how a bucket full of working videos gets
+    // reported as empty — and emptied of its videos by an owner who acts on it.
+    const listed = probe.listing?.sampleListed ?? null;
+    if (statError === null && stat !== null) {
+      probe.sample = { present: true, size: stat.size };
+    } else if (listed === true) {
+      probe.sample = { present: true, size: null };
+    } else if (statError === null && stat === null) {
+      probe.sample = { present: false, size: null };
+    } else if (probe.listing !== null && probe.listing.objects === 0) {
+      probe.sample = { present: false, size: null };
+    } else {
+      // No answer from anything: unknown, and `null` says exactly that. It must
+      // never become `{ present: false }`, which starts the "the bucket is
+      // empty, re-render everything" machinery for a file that may be there.
       probe.sample = null;
+    }
+    // Present but unsignable is still the student's answer: no video. Present and
+    // unsignable on a *public* bucket is not — the browser fetches the object URL
+    // without any signature — so `playable` is only overruled where it matters.
+    if (probe.sample?.present === true && playable === false) {
+      probe.playable = publicBucket() ? true : false;
+    } else {
+      probe.playable = playable === null && probe.sample?.present === true ? null : playable;
+    }
+
+    // A refused key on a *public* bucket is a partial outage, and saying so
+    // stops the owner replacing a working bucket: the files still play through
+    // their permanent URLs, and it is uploads and signed downloads that are
+    // broken.
+    if (probe.failure === "auth-rejected" && probe.sample?.present) {
+      probe.hint =
+        `${probe.hint ?? "Supabase refused SUPABASE_SECRET_KEY."} The bucket is public, so the videos that are already in it still play — ` +
+        "existing files are served straight from the CDN. Uploads and signed downloads stay broken " +
+        "until the key is replaced.";
+    }
+
+    // What to do about it. Five states, and the difference between them is the
+    // whole value of this probe, so they are written out one per branch rather
+    // than folded into a boolean.
+    const unreachable = statError !== null;
+    const metaSaysAbsent = !unreachable && stat === null;
+    const present = probe.sample?.present === true;
+
+    if (unreachable) {
+      const failure = storageErrorFromException(statError);
+      if (!probe.failure) {
+        probe.failure = failure.kind;
+        probe.error = failure.message;
+      }
+      if (present) {
+        // The listing found it and the metadata call could not even be asked.
+        probe.hint =
+          "The sampled video is in the bucket — the bucket's listing shows it — but Storage would not describe " +
+          "the object" +
+          (publicBucket()
+            ? ". The bucket is public, so the videos still play straight from their CDN URLs; do not re-render " +
+              "anything. `npm run storage:check` names the call that fails."
+            : "; this bucket is private, so a view also needs that call to sign a URL, which is what is stopping " +
+              "the videos. Do not re-render anything: the files are there. `npm run storage:check` names the " +
+              "call that fails.");
+      } else {
+        // Neither the metadata call nor the listing settled it. With a public
+        // bucket the browser fetches the object URL directly, so playback is
+        // untouched; with a private one every view needs a signature from the
+        // same service that just failed.
+        probe.hint = publicBucket()
+          ? "Storage answered, but the object's metadata could not be read. The bucket is public, so the " +
+            "videos still play straight from their CDN URLs — treat this as a fault in one Storage endpoint, " +
+            "not a broken library, and do not re-render anything. `npm run storage:check` writes its own probe " +
+            "object and reads it back through these same calls, naming the step that fails."
+          : "Storage answered, but the object's metadata could not be read; this bucket is private, so every " +
+            "view also needs a signed URL from the same service — that is what is stopping the videos. It is " +
+            "not known to be an empty bucket, so do not re-render anything: `npm run storage:check` writes its " +
+            "own probe object and reads it back through these same calls, naming the step that fails.";
+      }
+    } else if (metaSaysAbsent && present) {
+      // The two endpoints disagree, and this is the disagreement that matters:
+      // the listing names the file and the metadata call says there is nothing
+      // there. The listing is naming an object; the metadata call is refusing to
+      // describe one. That is a broken endpoint, not a missing video — and
+      // believing it would have the owner re-render a library that is already in
+      // the bucket.
+      probe.failure = probe.failure ?? "metadata-unavailable";
+      probe.error =
+        `Storage listed “${sampleKey}” in the bucket, but its metadata call answered "not found" for the same ` +
+        "object. One of the two is wrong, and the listing is the one naming a real key.";
+      probe.hint =
+        "The videos are in the bucket — its listing shows them — but the call that reads an object's metadata " +
+        "answers “not found” for files that exist, so the app cannot confirm any of them." +
+        (publicBucket()
+          ? " The bucket is public, so playback still works: the browser fetches each video straight from its " +
+            "CDN URL. Do not re-render anything."
+          : " This bucket is private, so every view also needs a signed URL from that same service, which is " +
+            "why students see “Video unavailable right now”. Do not re-render anything — the files are there.") +
+        " Run `npm run storage:check`: it writes a probe object and reads it back through these exact calls, " +
+        "and the step that fails names the endpoint. If the project's Storage API was just upgraded or the " +
+        "deployment is mid-rollout, redeploy and ask again.";
+    } else if (metaSaysAbsent) {
+      // Both endpoints agree, in the only direction they can both be right.
+      probe.hint =
+        probe.listing && probe.listing.objects > 0
+          ? "The bucket holds " +
+            `${probe.listing.objects} object${probe.listing.objects === 1 ? "" : "s"} but not this video: ` +
+            "the walkthrough was never rendered. Run Actions → Lesson videos → Run workflow, or " +
+            "`npm run videos:build` with these storage variables set."
+          : null; // an empty bucket is the caller's wording — it knows the counts
+    } else if (signError) {
+      const failure = storageErrorFromException(signError);
       if (!probe.failure) {
         probe.failure = failure.kind;
         probe.error = failure.message;
         probe.hint = failure.hint;
       }
+    } else if (probe.bucketFailed) {
+      // The bucket's own metadata read failed, but this object answered: the
+      // videos are fine and only the bucket endpoint is unhappy.
+      probe.error = null;
+      probe.hint =
+        "The bucket's metadata could not be read, but objects in it answer normally, so the videos " +
+        "themselves are fine. `npm run storage:check` names the call that fails; the " +
+        "`[codemasterghana] storage probe failed` line in the host's logs has the full response.";
     }
   }
 

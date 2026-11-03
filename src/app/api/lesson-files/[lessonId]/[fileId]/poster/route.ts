@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { refuseUnlessCourseOpen } from "@/lib/course-guard";
 import { findUploadedLessonCourse } from "@/lib/course-content";
 import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
+import { storageUnavailable } from "@/lib/storage-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,10 +22,17 @@ export async function GET(_req: Request, context: { params: Promise<{ lessonId: 
   const poster = file?.poster;
   if (!poster) return NextResponse.json({ error: "This video has no thumbnail." }, { status: 404 });
 
-  const redirect = await storedBlobRedirect(poster);
-  if (redirect) return NextResponse.redirect(redirect, 302);
+  // A storage failure is not the same answer as an absent file: the first is
+  // a retryable 503, the second the 410 below.
+  let size: number | null;
+  try {
+    const redirect = await storedBlobRedirect(poster);
+    if (redirect) return NextResponse.redirect(redirect, 302);
 
-  const size = await storedBlobSize(poster);
+    size = await storedBlobSize(poster);
+  } catch (error) {
+    return storageUnavailable(error, "file preview");
+  }
   if (size === null) return NextResponse.json({ error: "The thumbnail is missing from storage." }, { status: 410 });
   const stored = { size };
 

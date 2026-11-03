@@ -27,7 +27,7 @@
  */
 import { COURSE_VIDEOS } from "@/content/course-videos";
 import { LESSON_VIDEOS } from "@/content/lesson-videos";
-import { statBlob, type BlobStat, type StorageFailureKind } from "./blob-store";
+import { blobUrl, isAbsent, statBlob, type BlobStat, type StorageFailureKind } from "./blob-store";
 import { courseVideo, type CourseVideoEntry } from "./course-videos";
 import { lessonVideo, type LessonVideoEntry } from "./lesson-videos";
 
@@ -181,17 +181,60 @@ async function statBlobWithRetry(key: string): Promise<BlobStat | null> {
   }
 }
 
+/**
+ * One object's presence, with the second opinion that keeps a page working.
+ *
+ * The metadata call is the cheap check, but it is a *single* endpoint. When it
+ * is the thing that is broken, asking it whether a video exists answers "no"
+ * for a file that is there — and the lesson page then renders "no video yet"
+ * over a video the student could play. Signing (or, on a public bucket, building
+ * the CDN URL) is the call that actually serves the view, so a metadata failure
+ * is only believed once that has failed too.
+ */
+async function presenceViaSign(key: string): Promise<PresenceAnswer & { confirmed: boolean }> {
+  try {
+    const stat = await statBlobWithRetry(key);
+    if (stat !== null) return { present: true, failure: null, hint: null, confirmed: false };
+    // The metadata call answered "not there". Confirm it with the call that
+    // actually serves a view before a page says "no video yet": when
+    // `/object/info` is the broken endpoint it answers that for every key, and
+    // believing it is how a lesson with a perfectly good video renders an empty
+    // player slot.
+    const signed = await settlesAsPresent(key);
+    // Signed fine === present, and one endpoint is still broken: say so, because
+    // a metadata outage that stays quiet is the one that reappears as a 410.
+    return { present: signed, failure: signed ? "metadata-unavailable" : null, hint: null, confirmed: true };
+  } catch (error) {
+    const failure = failureOf(error);
+    return { present: await settlesAsPresent(key), ...failure, confirmed: true };
+  }
+}
+
 async function presence(key: string): Promise<PresenceAnswer> {
   const cached = cachedPresence(key);
   if (cached) return cached;
-  let answer: PresenceAnswer;
-  try {
-    answer = { present: (await statBlobWithRetry(key)) !== null, failure: null, hint: null };
-  } catch (error) {
-    answer = { present: null, ...failureOf(error) };
-  }
+  const { confirmed: _confirmed, ...answer } = await presenceViaSign(key);
   rememberPresence(key, answer);
   return answer;
+}
+
+/**
+ * When presence could not be read, can the object be served anyway?
+ *
+ * True means the bytes are reachable and the view works, so the page should
+ * offer the player; the error is still reported (it is a real fault in one
+ * Storage endpoint) but it no longer stands in the way of watching. False means
+ * storage said the object is not there; null means nothing could tell.
+ */
+async function settlesAsPresent(key: string): Promise<boolean | null> {
+  try {
+    await blobUrl(key, 60);
+    return true;
+  } catch (signError) {
+    // "No such object" from the signature call is Storage's own word for it.
+    // Any other failure is a fault, not evidence about this file.
+    return isAbsent(signError) ? false : null;
+  }
 }
 
 /** A lesson's walkthrough, if the manifest lists one, with its storage state. */
@@ -211,13 +254,17 @@ export async function courseVideoAvailability(slug: string): Promise<VideoAvaila
 async function availabilityFor<T>(entry: T, key: string, posterKey: string): Promise<VideoAvailability<T>> {
   const [video, poster] = await Promise.all([presence(key), presence(posterKey)]);
   const failed = video.present === null ? video : poster.present === null ? poster : null;
+  const playable = video.present === true;
   return {
     entry,
-    video: video.present === true,
+    video: playable,
     poster: poster.present === true,
-    unreachable: failed !== null,
-    failure: failed?.failure ?? null,
-    hint: failed?.hint ?? null,
+    // "Unreachable" is what the page shows when it has *no* video to offer. A
+    // storage fault that did not stop the video being served is not that: it is
+    // reported in `failure` for the owner console instead.
+    unreachable: failed !== null && !playable,
+    failure: failed?.failure ?? (playable ? video.failure : null),
+    hint: failed?.hint ?? (playable ? video.hint : null),
   };
 }
 
@@ -268,8 +315,17 @@ async function checkEntry(
     const stat = await statBlobWithRetry(key);
     video = stat !== null;
     sizeMismatch = stat !== null && stat.size !== expectedSize;
+    if (stat === null) {
+      // Absent per the metadata call: confirm before it becomes a "missing
+      // video" count the owner acts on by re-rendering the file.
+      video = await settlesAsPresent(key);
+    }
   } catch (error) {
-    video = null;
+    // The console's job is to say whether a student can press play — not
+    // whether one Storage endpoint is healthy. If the object can still be
+    // served, the answer is "playable", and the endpoint fault is carried
+    // alongside rather than reported as a missing count.
+    video = await settlesAsPresent(key);
     ({ failure, hint } = failureOf(error));
   }
   const poster = await presence(posterKey);
@@ -299,6 +355,8 @@ async function checkEntry(
 export async function verifyVideoStorage(): Promise<{
   checks: StoredVideoCheck[];
   unreachable: boolean;
+  /** How many questions storage left unanswered — one per file it could not read. */
+  unknown: number;
   failure: StorageFailureKind | null;
   hint: string | null;
 }> {
@@ -321,10 +379,17 @@ export async function verifyVideoStorage(): Promise<{
   for (let index = 0; index < jobs.length; index += BATCH) {
     checks.push(...(await Promise.all(jobs.slice(index, index + BATCH).map((job) => job()))));
   }
+  // `video === null` means "storage gave no answer about this file", which is
+  // the outage case the console warns about. `false` is different: storage
+  // answered and the bytes are genuinely absent — a hole in the library, which
+  // the console reports as a missing count instead. Keeping the two apart is
+  // what stops an unfilled bucket reading as a broken one, and a broken one
+  // reading as an unfilled catalog.
   const failed = checks.find((check) => check.video === null || check.poster === null);
   return {
     checks,
     unreachable: Boolean(failed),
+    unknown: checks.filter((check) => check.video === null || check.poster === null).length,
     failure: failed?.failure ?? null,
     hint: failed?.hint ?? null,
   };

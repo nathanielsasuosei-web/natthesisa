@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { probeStorage, storageSummary, type StorageFailureKind, type StorageProbe } from "@/lib/blob-store";
-import { CONNECTION_STRING_VARS, connectionHint, databaseInfo, databaseTarget, ready } from "@/lib/db";
+import { CONNECTION_STRING_VARS, connectionHint, databaseInfo, databaseTarget, query, ready } from "@/lib/db";
 import { lessonVideoCount } from "@/lib/lesson-videos";
 import { courseVideoCount } from "@/lib/course-videos";
 import { sampleVideoKey } from "@/lib/video-availability";
@@ -11,6 +11,37 @@ import { sampleVideoKey } from "@/lib/video-availability";
 export const dynamic = "force-dynamic";
 
 const PROBE_TIMEOUT_MS = 12_000;
+
+/**
+ * How long the schema *initialiser* may take — separate from the probe budget
+ * above, and the only one that can be raised.
+ *
+ * A first request after a deploy may have to create every table on a cold
+ * instance; that is a legitimate minute's work on a slow project. The route must
+ * still answer, so the initialiser is abandoned rather than waited on, and the
+ * catalogue check below then says what is actually there.
+ */
+const SCHEMA_INIT_TIMEOUT_MS = Number(process.env.HEALTH_SCHEMA_TIMEOUT_MS ?? 20_000);
+
+/**
+ * The initialiser runs in the background, once per process.
+ *
+ * `/api/health` is a diagnosis, so it must answer even while the schema step is
+ * still working — and it must not *cancel* that work by giving up on it: the
+ * next request would only start again from the top. Abandoning the promise here
+ * and letting it finish means the first request after a deploy describes the
+ * database, and the deploy finishes coming up in the background.
+ */
+let schemaInit: Promise<void> | null = null;
+
+function startSchemaInit(): { promise: Promise<void>; started: boolean } {
+  if (schemaInit) return { promise: schemaInit, started: false };
+  schemaInit = ready();
+  // Its rejection is reported by whoever awaits it; this listener only stops an
+  // unhandled rejection from taking the process down when nobody is waiting.
+  schemaInit.catch(() => {});
+  return { promise: schemaInit, started: true };
+}
 
 /** How the app decided where to connect. */
 export interface HealthReport {
@@ -55,6 +86,18 @@ export interface HealthReport {
     bucketIsPublic: boolean | null;
     publicUrlsWillWork: boolean | null;
     missingVars: string[];
+    /**
+     * Whether a walkthrough could be played right now: the sampled object is in
+     * the bucket *and* the step that hands the browser a URL answers. Null when
+     * either question went unanswered — which is not the same as "no", and is
+     * reported as such so an unreadable file is never mistaken for an absent one.
+     */
+    playable: boolean | null;
+    /**
+     * What the bucket's own listing says — the second opinion when the object
+     * metadata call is the thing that is broken. Null when it could not be read.
+     */
+    listed: { objects: number; sampleListed: boolean | null; truncated: boolean } | null;
     /** Videos the manifest lists, and whether the one sampled object is there. */
     videos: { listed: number; welcomes: number; sampled: string | null; samplePresent: boolean | null };
     failure: StorageFailureKind | null;
@@ -86,6 +129,43 @@ function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
       }
     );
   });
+}
+
+/**
+ * Did a schema statement lose a race rather than fail?
+ *
+ * Every statement in the schema and migration lists is `if not exists`, so the
+ * only way one of them reports an error is a *concurrent* create between the
+ * check and the insert — two instances booting at once, or a deploy overlapping
+ * the instance it replaces. The database ends up correct either way.
+ */
+function isAlreadyExists(error: unknown): boolean {
+  const code = (error as { code?: unknown }).code;
+  if (code === "42P07" || code === "42710" || code === "42P06") return true; // duplicate table / object / schema
+  const detail = error instanceof Error ? error.message : String(error);
+  return /already exists/i.test(detail);
+}
+
+/**
+ * Are the tables sign-in needs actually in the database?
+ *
+ * Deliberately not `ready()`: that runs the whole schema and can be slow on a
+ * cold instance, which is the situation being diagnosed. This only looks.
+ */
+async function schemaTablesPresent(): Promise<boolean> {
+  const rows = await query<{ present: string }>(
+    `select count(*)::text as present
+       from information_schema.tables
+      where table_schema = current_schema()
+        and table_name in ('users', 'app_state', 'payments')`
+  );
+  return Number(rows[0]?.present ?? 0) === 3;
+}
+
+/** Did the probe give up waiting, as opposed to getting an answer? */
+function timedOut(error: unknown): boolean {
+  const detail = error instanceof Error ? error.message : String(error);
+  return /^No answer within/.test(detail) || (error instanceof Error && error.name === "TimeoutError");
 }
 
 /**
@@ -145,6 +225,8 @@ export async function GET() {
       bucketIsPublic: null,
       publicUrlsWillWork: null,
       missingVars: [],
+      playable: null,
+      listed: null,
       videos: { listed: lessonVideoCount(), welcomes: courseVideoCount(), sampled: null, samplePresent: null },
       failure: null,
       error: null,
@@ -166,32 +248,74 @@ export async function GET() {
     report.database.host = info.host;
     report.database.server = info.version?.split(" ").slice(0, 2).join(" ") ?? null;
 
-    await withTimeout(ready(), PROBE_TIMEOUT_MS);
+    // Joined, not restarted: a second request while the first is still
+    // creating tables waits for the same work.
+    const init = startSchemaInit().promise;
+    await withTimeout(init, SCHEMA_INIT_TIMEOUT_MS);
     report.database.schema = true;
     report.ok = true;
   } catch (error) {
-    if (!report.database.connected) {
-      report.database.connected = false;
-      report.database.schema = null;
+    // A schema statement that answers "already exists" is not a failure:
+    // another instance deployed at the same moment may have created the table
+    // between our check and our create, and the database is exactly as
+    // intended. Reporting that as a schema error would page the owner about a
+    // no-op — the tables they need are there.
+    if (report.database.connected && isAlreadyExists(error)) {
+      report.database.schema = true;
+      report.ok = true;
+      console.warn("[codemasterghana] health: a schema statement raced another instance — the schema is complete");
     } else {
-      report.database.schema = false;
+      if (!report.database.connected) {
+        report.database.schema = null;
+      } else {
+        report.database.schema = false;
+      }
+      report.database.hint = connectionHint(error);
+      report.error = error instanceof Error ? error.message : String(error);
+      if (!report.database.hint) {
+        report.database.hint = timedOut(error)
+          ? report.database.connected
+            ? "The database answered, but checking (and, on a first deploy, creating) its tables did not finish " +
+              `within ${SCHEMA_INIT_TIMEOUT_MS / 1000}s. That is usually a cold instance working through the schema for ` +
+              "the first time, or a pooled connection waiting on a busy project — ask again in a minute. If it " +
+              "keeps happening, read the `[codemasterghana] schema statement failed …` line in the host's logs."
+            : "The database did not answer within 12s. A paused free-tier project or a blocked connection pooler " +
+              "looks like this; check the project in the dashboard, then ask again."
+          : target.driver === "embedded"
+            ? "No PostgreSQL connection string is configured, so the app fell back to its embedded database. " +
+              "Set one of the variables in `checked` in the host's environment variables and redeploy."
+            : report.database.connected
+              ? "Connected to the database, but its tables could not be created or upgraded. The role may lack " +
+                "permission to change tables, or a table made by hand (or by another project) may exist under the " +
+                "same name with different columns. Read the `[codemasterghana] schema statement failed …` line in " +
+                "the host's logs — it names the exact statement."
+              : "The database could not be reached and the error did not match a known cause. Read the " +
+                "`[codemasterghana] database connection failed …` line in the host's logs.";
+      }
+      console.error("[codemasterghana] health check failed", error);
     }
-    report.database.hint = connectionHint(error);
-    report.error = error instanceof Error ? error.message : String(error);
-    if (!report.database.hint) {
+  }
+
+  // A failed *initialiser* is not the same as a missing schema, and reporting it
+  // as one sends the owner looking for permissions they already have: on a cold
+  // instance the schema step can outlast this endpoint's budget while every
+  // table is in place. So ask the catalogue directly — one small query that says
+  // whether sign-in has what it needs, whatever the initialiser is doing.
+  if (!report.database.schema && report.database.connected) {
+    const present = await withTimeout(schemaTablesPresent(), PROBE_TIMEOUT_MS).catch(() => null);
+    if (present === true) {
+      report.database.schema = true;
       report.database.hint =
-        target.driver === "embedded"
-          ? "No PostgreSQL connection string is configured, so the app fell back to its embedded database. " +
-            "Set one of the variables in `checked` in the host's environment variables and redeploy."
-          : report.database.connected
-            ? "Connected to the database, but its tables could not be created or upgraded. The role may lack " +
-              "permission to change tables, or a table made by hand (or by another project) may exist under the " +
-              "same name with different columns. Read the `[codemasterghana] schema statement failed …` line in " +
-              "the host's logs — it names the exact statement."
-            : "The database could not be reached and the error did not match a known cause. Read the " +
-              "`[codemasterghana] database connection failed …` line in the host's logs.";
+        "The tables sign-in needs are all present, so this is not a schema problem — the app's own schema " +
+        "initialiser did not finish within the time allowed, which on a first request after a deploy is " +
+        "usually a cold instance. Ask again in a minute.";
+    } else if (present === false) {
+      report.database.hint =
+        "The connection works, but the tables sign-in needs are missing. Either the role cannot create them " +
+        "(run the schema once as the database's admin user — paste db/schema.sql into the Supabase SQL " +
+        "editor) or the schema initialiser is failing: read the `[codemasterghana] schema statement failed …` " +
+        "line in the host's logs, which names the exact statement.";
     }
-    console.error("[codemasterghana] health check failed", error);
   }
 
   const storage = await storagePromise;
@@ -201,9 +325,15 @@ export async function GET() {
     // database. `storage.ok` is the separate question, and it means the one
     // thing a student cares about: could a walkthrough actually play? That
     // needs both a storage that answers and bytes in it.
+    // Only a real "absent" counts as missing: `sample === null` means the probe
+    // could not read the object at all, which is an outage, not an empty bucket.
     const sampleMissing = storage.sample?.present === false;
     report.storage = {
-      ok: storage.failure === null && !sampleMissing,
+      // The question a student asks. Deliberately not `failure === null`: a
+      // metadata endpoint can be broken while every video still plays, and the
+      // reverse (a clean failure report over an empty bucket) is the case that
+      // needs saying out loud.
+      ok: storage.playable === true,
       backend: storage.backend,
       target: storageSummary(),
       bucket: storage.bucket,
@@ -215,6 +345,8 @@ export async function GET() {
       bucketIsPublic: storage.bucketIsPublic,
       publicUrlsWillWork: storage.publicUrlsWillWork,
       missingVars: storage.missingVars,
+      playable: storage.playable,
+      listed: storage.listing,
       videos: {
         listed: report.storage.videos.listed,
         welcomes: report.storage.videos.welcomes,
@@ -236,7 +368,37 @@ export async function GET() {
         "verifies the bucket), or run `npm run videos:synthesize && npm run videos:build` from a machine that has " +
         "these same storage variables set.";
     }
-    if (!report.storage.ok) console.error("[codemasterghana] storage check failed", report.storage.error ?? report.storage.hint);
+    // A probe that could not read the sample at all is an outage, not an empty
+    // bucket: `videos.samplePresent` is null for "no answer", and saying so
+    // explicitly stops the two very different fixes — re-render every video, or
+    // repair the storage call — being swapped for each other.
+    // Only when the answer is still unknown. If the listing settled it (the file
+    // is there, or the bucket is empty) the probe's hint is already the fix, and
+    // overwriting it would bury it.
+    if (storage.sample === null) {
+      // One plain sentence for the state, then the most specific advice there
+      // is: the probe's own hint already names the failing call, and repeating
+      // it here only makes the fix harder to find.
+      const said = storage.error ? ` Storage said: ${storage.error}` : "";
+      const advice =
+        storage.hint ??
+        "`npm run storage:check` writes its own probe object and reads it back through these same calls, " +
+          "naming the step that fails.";
+      report.storage.hint =
+        "Storage answered, but the sampled lesson video could not be read, so whether the videos are in the " +
+        `bucket is unknown — this is not the same as an empty bucket.${said} ${advice}`;
+    }
+    // `ok` is now "a video would play". Say which of the two reasons it is, so a
+    // log reader does not have to work it out from the fields.
+    if (!report.storage.ok) {
+      console.error(
+        "[codemasterghana] storage check failed",
+        report.storage.playable === false
+          ? "storage answered and the sampled video is not playable"
+          : "the sampled video could not be read",
+        report.storage.error ?? report.storage.hint
+      );
+    }
   } else {
     report.storage.error = "The storage probe did not finish.";
     report.storage.hint =

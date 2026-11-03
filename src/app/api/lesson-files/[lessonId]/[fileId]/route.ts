@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { refuseUnlessCourseOpen } from "@/lib/course-guard";
 import { findUploadedLessonCourse } from "@/lib/course-content";
 import { diskBlobRange, getUploadedLesson, storedBlobRedirect, storedBlobSize } from "@/lib/lesson-uploads";
+import { storageUnavailable } from "@/lib/storage-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,10 +35,17 @@ export async function GET(
   // bucket's permanent public URL, or a one-hour signed one when it is private.
   // Either way the CDN serves range requests itself, so a long video seeks
   // properly, and the bytes never pass through this route.
-  const redirect = await storedBlobRedirect(file, download ? file.name : undefined);
-  if (redirect) return NextResponse.redirect(redirect, 302);
+  // A storage failure is not the same answer as an absent file: the first is
+  // a retryable 503, the second the 410 below.
+  let size: number | null;
+  try {
+    const redirect = await storedBlobRedirect(file, download ? file.name : undefined);
+    if (redirect) return NextResponse.redirect(redirect, 302);
 
-  const size = await storedBlobSize(file);
+    size = await storedBlobSize(file);
+  } catch (error) {
+    return storageUnavailable(error, "lesson file");
+  }
   if (size === null) {
     return NextResponse.json({ error: "The uploaded file is missing from storage." }, { status: 410 });
   }

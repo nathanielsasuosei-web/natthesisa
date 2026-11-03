@@ -32,6 +32,13 @@ function send(response: import("node:http").ServerResponse, status: number, body
   response.end(payload);
 }
 
+// STUB_INFO_BROKEN=1 makes `/object/info` answer the way the production project
+// did — a 400 carrying a 404 — for *every* object, present or not. Everything
+// else keeps working, which is precisely the shape of the outage this stub is
+// used to test: the videos are fine, one endpoint is not, and the app must not
+// tell the owner to re-render the library.
+const infoBroken = /^(1|true|yes|on)$/i.test(process.env.STUB_INFO_BROKEN ?? "");
+
 const server = createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${port}`);
   const parts = url.pathname.split("/").filter(Boolean); // storage, v1, ...
@@ -41,6 +48,19 @@ const server = createServer((request, response) => {
   const action = parts[2];
   const bucket = parts[3];
   const key = parts.slice(4).join("/");
+
+  // GET /bucket/{name} — the bucket's own metadata. This is the call `/api/health`
+  // makes first: it proves the project answers, the key is accepted, the bucket
+  // exists and whether it is public, all before a single object is touched.
+  if (action === "bucket" && parts.length === 4 && request.method === "GET") {
+    if (!request.headers.authorization?.startsWith("Bearer ") || !request.headers.apikey) {
+      return send(response, 401, { statusCode: "401", error: "Unauthorized", message: "Invalid JWT" });
+    }
+    if (bucket !== (process.env.STUB_BUCKET ?? "lesson-files")) {
+      return send(response, 400, { statusCode: "404", error: "not_found", message: "Bucket not found" });
+    }
+    return send(response, 200, { id: bucket, name: bucket, public: Boolean(process.env.STUB_BUCKET_PUBLIC) });
+  }
 
   const body: Buffer[] = [];
   request.on("data", (chunk) => body.push(chunk as Buffer));
@@ -53,12 +73,39 @@ const server = createServer((request, response) => {
     if (action === "object" && parts[3] === "info" && request.method === "GET") {
       const infoId = parts.slice(4).join("/");
       const object = objects.get(infoId);
-      if (!object) return send(response, 404, { message: "Object not found" });
+      if (!object || infoBroken) {
+        // Exactly what Supabase answers for a missing object: **400**, with the
+        // 404 inside the body. (Verified against the deployed project — a stub
+        // that answered a plain 404 here is why the app never learned to read
+        // this shape, and reported an unfilled bucket as broken storage.)
+        return send(response, 400, {
+          statusCode: "404",
+          error: "not_found",
+          message: "Object not found",
+          code: "NoSuchKey",
+        });
+      }
       return send(response, 200, {
         key: infoId,
         size: object.bytes.length,
         metadata: { size: object.bytes.length, mimetype: object.contentType },
       });
+    }
+
+    // POST /object/list/{bucket} — the bucket's listing. A different endpoint
+    // from `/object/info`, which is the point: it answers when that one is broken.
+    if (action === "object" && parts[3] === "list" && request.method === "POST") {
+      if (!request.headers.authorization?.startsWith("Bearer ")) {
+        return send(response, 401, { message: "Missing authorization" });
+      }
+      const listBucket = parts[4];
+      const prefix = String(JSON.parse(bytes.toString() || "{}").prefix ?? "");
+      const names = [...objects.keys()]
+        .filter((id) => id.startsWith(`${listBucket}/`))
+        .map((id) => id.slice(listBucket.length + 1))
+        .filter((name) => name.startsWith(prefix))
+        .sort();
+      return send(response, 200, names.map((name) => ({ name, id: null, metadata: null })));
     }
 
     if (action === "object" && parts[3] === "sign" && request.method === "POST") {

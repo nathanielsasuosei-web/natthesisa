@@ -261,10 +261,56 @@ distinguishes:
 | `network` / `timeout` | The project did not answer | Restore a paused free-tier project; check the URL and the host's egress rules |
 | `not-public` | `SUPABASE_BUCKET_PUBLIC=1` on a private bucket | Click Make public, or unset the flag to go back to signed URLs |
 | `rate-limited` / `server-error` | A burst, or Supabase's own outage | Wait a minute; the app retries and caches nothing when it fails |
+| `metadata-unavailable` | The bucket answered, but `GET /object/info/<key>` would not report an object | **Not an empty bucket.** Run `npm run storage:check`; read `storage.error` for the status and body |
 
 `storage.failure: null` with `storage.videos.samplePresent: false` is the one
 case no environment variable fixes: storage is healthy and the bucket is simply
 empty, which is the 410 situation above — run the **Lesson videos** workflow.
+`samplePresent: null` is the opposite and must not be read as `false`: the
+object could not be *read*, so whether it is in the bucket is unknown.
+`storage.playable` is the answer to the question a student asks — the sampled
+object is in the bucket **and** the app can hand out a URL for it.
+
+### The "absent" answer that is not a 404
+
+Supabase Storage answers a missing object on `GET /object/info/{bucket}/{key}`
+with **HTTP 400** and the 404 *inside the body*:
+
+```json
+{"statusCode":"404","error":"not_found","message":"Object not found","code":"NoSuchKey"}
+```
+
+Reading `response.status` alone therefore classes "this video has not been built
+yet" as an unrecognised failure — and every layer above it then treats "unknown"
+as "storage is broken": `/api/health` blames an empty bucket, the teacher console
+warns that no video can be watched, and the video routes answer `410 missing from
+storage`. `saysObjectAbsent()` in `src/lib/blob-store.ts` reads the error code
+first and the HTTP status second, and that single decision is what keeps "not
+built" and "not reachable" apart. `scripts/stub-storage.mts` reproduces the
+400-with-a-404-body shape so the case stays covered.
+
+Two more guards, because the first fix only made the *report* honest:
+
+- `/object/list` is read as an independent second opinion. When the metadata
+  endpoint is the broken one, the listing still says whether the bucket is empty
+  or the file is right there — so `/api/health` can answer "the videos are in the
+  bucket, one endpoint is lying" instead of shrugging, and it never
+  suggests re-rendering a library that is already uploaded.
+- Nothing downstream trusts a single call. A lesson page, the teacher console and
+  every file route confirm "not there" (or "could not ask") against signing, the
+  call that actually serves a view, before they show "no video" or answer 410.
+
+`npm run storage:diagnose` drives `scripts/stub-storage.mts` on a free port and
+asserts all six states — no credentials, no network:
+
+| State | What the report must say |
+| --- | --- |
+| Bucket empty | `samplePresent: false`, hint offers the **Lesson videos** workflow |
+| File present | `ok: true`, `playable: true` |
+| File present, metadata endpoint broken | `samplePresent: true`, `failure: metadata-unavailable`, "do not re-render" |
+| Bucket empty, metadata endpoint broken | back to `samplePresent: false` |
+| File routes | redirect to storage when it plays; `410` only when storage says absent |
+| Lesson page | player rendered whenever the file can be served |
 
 The same finding, without a terminal, is in the teacher console: the **Lesson
 videos** card prints the reason and the fix whenever it cannot reach storage.
@@ -275,6 +321,10 @@ fatal than it looks:
 - A metadata read times out after 10 seconds, not a minute, so a storage
   problem slows a lesson page down but does not turn it into a platform
   timeout.
+- A file route answers `410 STORAGE_MISSING` only when Storage *said* the object
+  is absent. A storage call that failed is a retryable `503 STORAGE_UNAVAILABLE`
+  with `Retry-After`, so a blip never tells a student (or the owner) that a video
+  is gone.
 - When the bucket is **public**, presence is confirmed through the object's own
   URL if the authenticated call was refused. A wrong or rotated key then breaks
   uploads and signed downloads, but the videos that are already in the bucket
@@ -284,6 +334,36 @@ Definite answers ("this file is there", "it is not") are remembered for a few
 minutes per server instance, which collapses a burst of page views into one
 round trip. Failures are never cached, so the console's **Check again** button
 always really checks again.
+
+## When `/api/health` reports `database.schema: false`
+
+Two different failures wear that field, and they need opposite fixes:
+
+- **The tables are missing** — the role cannot create them, or the initialiser
+  hit a statement it cannot run. The hint says so; the
+  `[codemasterghana] schema statement failed …` log line names the statement.
+  Paste `db/schema.sql` into the Supabase SQL editor as the admin user.
+- **The initialiser did not finish in time.** A first request after a deploy may
+  be creating every table on a cold instance. The health check no longer reports
+  that as a schema failure: it looks in the catalogue for the three tables
+  sign-in needs and reports `schema: true` when they are there, with a hint
+  saying the initialiser was still running. The initialiser itself is left to
+  finish in the background — it is abandoned, never cancelled — so the next
+  request finds it done. `HEALTH_SCHEMA_TIMEOUT_MS` (default 20s) bounds it.
+
+The schema step is 89 idempotent statements, and it used to be 89 round trips:
+on a serverless host each one is a fresh pooler connection, which is how
+*describing* a correct database could outlast the endpoint's own budget.
+`schemaBatches()` in `src/lib/schema.ts` now sends them in 13 groups — the
+`do $$ … $$` repair blocks stay on their own, because their real statement count
+lives inside a body the batcher cannot see — and any group that is refused is
+replayed one statement at a time, which is the old behaviour rather than a
+broken deploy.
+
+`npm run schema:check` proves that is safe: it applies both forms to two fresh
+embedded databases and diffs the catalogue (5 tables, 65 columns, 17 indexes,
+64 constraints, 2 sequences — identical), checks the `do` blocks are never cut
+up, re-applies to confirm idempotence, and times a fresh `ready()`.
 
 ## Run locally
 
