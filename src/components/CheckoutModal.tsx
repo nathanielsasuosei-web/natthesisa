@@ -20,6 +20,10 @@ export interface CheckoutPayload {
   courseId?: string;
   lessonId?: string;
   programId?: string;
+  /** Pay half the program price now, the rest later. */
+  deposit?: boolean;
+  /** The deposit reference this payment clears, when paying a balance. */
+  settlesReference?: string;
 }
 
 interface Props {
@@ -33,6 +37,14 @@ interface Props {
   successMessage: string;
   onClose: () => void;
   onSuccess: () => void;
+  /** Half-now purchase: shown as "GH₵150 of GH₵300" when set. */
+  fullAmount?: number;
+  /** Pay half the program price now, the rest later. */
+  deposit?: boolean;
+  /** What remains due after this payment — shown under a deposit. */
+  balanceDue?: number;
+  /** The deposit reference this balance payment clears. */
+  settlesReference?: string;
 }
 
 type Step = "details" | "redirecting" | "demo-wait" | "done";
@@ -71,6 +83,10 @@ export default function CheckoutModal({
   successMessage,
   onClose,
   onSuccess,
+  fullAmount,
+  balanceDue,
+  deposit = false,
+  settlesReference,
 }: Props) {
   const [network, setNetwork] = useState<MomoNetwork | null>(
     defaultNetwork === "MTN" || defaultNetwork === "Telecel" || defaultNetwork === "AirtelTigo"
@@ -195,6 +211,8 @@ export default function CheckoutModal({
           phone: check.phone,
           network,
           ...(promoCode ? { promoCode } : {}),
+          ...(deposit ? { deposit: true } : {}),
+          ...(settlesReference ? { settlesReference } : {}),
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -280,6 +298,11 @@ export default function CheckoutModal({
                   <div className="min-w-0">
                     <p className="truncate text-xs font-extrabold">{title}</p>
                     <p className="mt-1 text-[10px] text-[#918a97]">{subtitle}</p>
+                    {fullAmount && fullAmount !== amount && (
+                      <p className="mt-0.5 text-[9px] text-[#817a87]">
+                        {formatMoney(amount)} of {formatMoney(fullAmount)}
+                      </p>
+                    )}
                   </div>
                   <p className="shrink-0 text-lg font-black">{formatMoney(amount)}</p>
                 </div>
@@ -423,7 +446,13 @@ export default function CheckoutModal({
                     disabled={busy}
                     className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#6d4aff] px-4 py-3.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#5e3ce8] disabled:opacity-60"
                   >
-                    {busy ? "Starting checkout…" : `Pay ${formatMoney(amount)} with MoMo`}
+                    {busy
+                      ? "Starting checkout…"
+                      : deposit
+                        ? `Pay ${formatMoney(amount)} now`
+                        : settlesReference
+                          ? `Pay balance of ${formatMoney(amount)}`
+                          : `Pay ${formatMoney(amount)} with MoMo`}
                     {!busy && <Icon name="arrow-right" size={16} />}
                   </button>
                   {live && (

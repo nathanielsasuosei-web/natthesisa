@@ -70,6 +70,10 @@ export async function GET(req: NextRequest) {
       invoiceNumber: current.invoiceNumber,
       passActive: holder ? hasActivePass(holder) : false,
       courseId: current.courseId,
+      programId: current.programId,
+      deposit: current.deposit,
+      balanceDue: current.balanceDue,
+      settlesReference: current.settlesReference,
       promo: await promoRedemptionForPayment(current.reference).catch(() => null),
       authorizationUrl: current.status === "pending" ? current.authorizationUrl : null,
     });

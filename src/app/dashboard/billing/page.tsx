@@ -7,6 +7,7 @@ import { fmtDate, fmtMoney } from "@/lib/format";
 import { listPaymentsForUser } from "@/lib/payments";
 import { formatPhone } from "@/lib/momo";
 import Icon from "@/components/Icon";
+import PayBalanceButton from "@/components/PayBalanceButton";
 
 export const metadata: Metadata = { title: "Billing" };
 
@@ -23,8 +24,25 @@ export default async function BillingPage({
   const user = await requireCurrentUser();
   const params = (await searchParams) ?? {};
   const checkoutFlag = params.checkout;
-  const payments = await listPaymentsForUser(user.id, 10);
+  const payments = await listPaymentsForUser(user.id, 200);
   const pending = payments.filter((payment) => payment.status === "pending");
+
+  // Deposits paid but not yet cleared by a balance payment: what the student
+  // still owes on half-now purchases.
+  const cleared = new Set(
+    payments
+      .filter((payment) => payment.status === "paid" && Boolean(payment.settlesReference))
+      .map((payment) => payment.settlesReference)
+      .filter((reference): reference is string => Boolean(reference))
+  );
+  const due = payments.filter(
+    (payment) =>
+      payment.kind === "program" &&
+      payment.deposit &&
+      payment.status === "paid" &&
+      payment.balanceDue > 0 &&
+      !cleared.has(payment.reference),
+  );
   const method = user.paymentMethod;
   const paidWithMomo =
     method.provider === "paystack" && (method.channel === "mobile_money" || Boolean(method.phone));
@@ -62,37 +80,84 @@ export default async function BillingPage({
             <Icon name="mobile" size={17} className="text-amber-600" />
           </div>
           <ul>
-            {pending.map((payment) => (
-              <li
-                key={payment.reference}
-                className="flex flex-wrap items-center justify-between gap-3 border-t border-amber-200/70 px-5 py-4 sm:px-6"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-[11px] font-bold text-[#4f4956]">{payment.description}</p>
-                  <p className="mt-0.5 font-mono text-[9px] text-[#918a97]">
-                    {payment.reference} · {fmtDate(payment.createdAt)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-[11px] font-extrabold">{fmtMoney(payment.amount)}</p>
-                  {payment.authorizationUrl ? (
-                    <a
-                      href={payment.authorizationUrl}
-                      className="inline-flex items-center gap-1 rounded-xl bg-[#1b1822] px-3.5 py-2 text-[10px] font-extrabold text-white"
-                    >
-                      Complete payment <Icon name="arrow-right" size={12} />
-                    </a>
-                  ) : (
-                    <Link
-                      href={`/checkout/verify?reference=${encodeURIComponent(payment.reference)}`}
-                      className="inline-flex items-center gap-1 rounded-xl bg-[#1b1822] px-3.5 py-2 text-[10px] font-extrabold text-white"
-                    >
-                      Check status <Icon name="arrow-right" size={12} />
-                    </Link>
-                  )}
-                </div>
-              </li>
-            ))}
+          {pending.map((payment) => (
+            <li
+              key={payment.reference}
+              className="flex flex-wrap items-center justify-between gap-3 border-t border-amber-200/70 px-5 py-4 sm:px-6"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-[11px] font-bold text-[#4f4956]">{payment.description}</p>
+                <p className="mt-0.5 font-mono text-[9px] text-[#918a97]">
+                  {payment.reference} · {fmtDate(payment.createdAt)}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="text-[11px] font-extrabold">{fmtMoney(payment.amount)}</p>
+                {payment.authorizationUrl ? (
+                  <a
+                    href={payment.authorizationUrl}
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#1b1822] px-3.5 py-2 text-[10px] font-extrabold text-white"
+                  >
+                    Complete payment <Icon name="arrow-right" size={12} />
+                  </a>
+                ) : (
+                  <Link
+                    href={`/checkout/verify?reference=${encodeURIComponent(payment.reference)}`}
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#1b1822] px-3.5 py-2 text-[10px] font-extrabold text-white"
+                  >
+                    Check status <Icon name="arrow-right" size={12} />
+                  </Link>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+      )}
+
+      {due.length > 0 && (
+        <section className="overflow-hidden rounded-[22px] border border-amber-200 bg-amber-50">
+          <div className="border-b border-amber-200/70 px-5 py-4 sm:px-6">
+            <h2 className="text-sm font-extrabold text-amber-900">Amounts due</h2>
+            <p className="mt-1 text-[10px] text-amber-700">
+              Pay the rest of a half-now deposit to clear it. Until it is
+              cleared, the teacher may pause the account, which closes the
+              program again.
+            </p>
+          </div>
+          <ul>
+            {due.map((payment) => {
+              const program = getProgram(payment.programId ?? "");
+              return (
+                <li
+                  key={payment.reference}
+                  className="flex flex-wrap items-center justify-between gap-3 border-t border-amber-200/70 px-5 py-4 sm:px-6"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[11px] font-bold text-[#4f4956]">
+                      {program?.name ?? "Program"} — balance due
+                    </p>
+                    <p className="mt-0.5 font-mono text-[9px] text-[#918a97]">
+                      Deposit {fmtMoney(payment.amount)} paid{" "}
+                      {payment.paidAt ? fmtDate(payment.paidAt) : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-[11px] font-extrabold text-amber-900">
+                      {fmtMoney(payment.balanceDue)} due
+                    </p>
+                    <PayBalanceButton
+                      programId={payment.programId!}
+                      programName={program?.name ?? payment.programId!}
+                      price={payment.amount + payment.balanceDue}
+                      reference={payment.reference}
+                      amount={payment.amount}
+                      balanceDue={payment.balanceDue}
+                    />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

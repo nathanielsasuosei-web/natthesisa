@@ -11,7 +11,7 @@ import {
   buyProgram,
   type PaymentAttribution,
 } from "./purchases";
-import { getUserById, logActivity, saveUser, type User } from "./store";
+import { addInvoice, getUserById, logActivity, saveUser, type User } from "./store";
 import { notifyContentPurchased, notifyPassPurchased, notifyProgramPurchased } from "./email";
 import {
   PaystackError,
@@ -72,6 +72,12 @@ export interface Payment {
   paidAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /** True when this row is half of a program's price paid now, the rest later. */
+  deposit: boolean;
+  /** What remains to be paid after this row (set on a paid deposit). */
+  balanceDue: number;
+  /** The deposit reference this balance payment clears, if any. */
+  settlesReference: string | null;
 }
 
 interface PaymentRow {
@@ -97,6 +103,9 @@ interface PaymentRow {
   paid_at: Date | string | null;
   created_at: Date | string;
   updated_at: Date | string;
+  deposit: boolean;
+  balance_due: number;
+  settles_reference: string | null;
 }
 
 const iso = (value: Date | string): string =>
@@ -131,6 +140,9 @@ function fromRow(row: PaymentRow): Payment {
     paidAt: row.paid_at ? iso(row.paid_at) : null,
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
+    deposit: Boolean(row.deposit),
+    balanceDue: Number(row.balance_due ?? 0),
+    settlesReference: row.settles_reference ?? null,
   };
 }
 
@@ -242,6 +254,32 @@ export async function countPendingPayments(): Promise<number> {
   return Number(row?.count ?? 0);
 }
 
+/**
+ * A deposit this student already paid for a program, whose balance has not
+ * been cleared by a settled balance payment — the "rest later" half of a
+ * half-now purchase. Null when the student is fully paid up or never paid a
+ * deposit for this program.
+ */
+export async function findOutstandingDeposit(
+  userId: string,
+  programId: string,
+): Promise<Payment | null> {
+  await ensureSchema();
+  const row = await queryOne<PaymentRow>(
+    `select * from payments
+      where user_id::text = $1 and kind = 'program' and program_id = $2
+        and deposit = true and status = 'paid' and balance_due > 0
+        and not exists (
+          select 1 from payments p2
+           where p2.settles_reference = payments.reference
+             and p2.status = 'paid'
+        )
+      order by paid_at desc nulls last, created_at desc limit 1`,
+    [userId, programId],
+  );
+  return row ? fromRow(row) : null;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Checkout creation                                                          */
 /* -------------------------------------------------------------------------- */
@@ -260,6 +298,11 @@ export interface CheckoutInput {
    * `redeemPromotion` in `promotions.ts`).
    */
   promoCode?: string;
+  /**
+   * True when the student wants to pay half the program's price now and the
+   * rest later. Refused for anything but a program.
+   */
+  deposit?: boolean;
 }
 
 export interface CheckoutQuote {
@@ -269,9 +312,17 @@ export interface CheckoutQuote {
   lessonId: string | null;
   programId: string | null;
   amount: number;
+  /** The full program price — the UI can show "GH₵150 of GH₵300". */
+  fullAmount: number;
   description: string;
   /** The checked promo code, or null when the student did not use one. */
   promo: PromotionQuote | null;
+  /** True when this quote is a deposit (half now) rather than the whole price. */
+  deposit?: boolean;
+  /** What remains due after this payment is confirmed — set on deposits. */
+  balanceDue?: number;
+  /** The deposit reference a balance payment clears, if any. */
+  settlesReference?: string;
 }
 
 /**
@@ -291,16 +342,76 @@ export async function quoteCheckout(user: User, input: CheckoutInput): Promise<C
     if (ownsProgram(user, programId)) {
       throw new PurchaseError("You already own this program.", "ALREADY_OWNED", 409);
     }
+
+    const full = programPrice(programId);
+    const deposit = input.deposit === true;
+
+    // A student who already paid half may only pay the remaining balance — a
+    // second whole purchase for the same program would be a double charge.
+    if (!deposit) {
+      const owed = await findOutstandingDeposit(user.id, programId);
+      if (owed) {
+        throw new CheckoutError(
+          `You already paid half for this program — GH₵${owed.balanceDue} remains. Pay the balance first.`,
+          "BALANCE_DUE",
+          409,
+        );
+      }
+    }
+
     const promo = input.promoCode?.trim()
       ? await resolvePromotion(input.promoCode, user, programId)
       : null;
+
+    if (deposit) {
+      // Half now, the rest later: the deposit is ceil(full / 2) so an odd
+      // price always rounds up in the student's favour... no — in the
+      // platform's favour: the deposit takes the larger half.
+      const depositAmount = Math.ceil(full / 2);
+      const balance = full - depositAmount;
+      return {
+        kind,
+        period: null,
+        courseId: null,
+        lessonId: null,
+        programId,
+        amount: depositAmount,
+        fullAmount: full,
+        description: `${program.name} — deposit (1/2) — GH₵${balance} remains due after this payment`,
+        promo,
+        deposit: true,
+        balanceDue: balance,
+      };
+    }
+
+    // A paid deposit with an outstanding balance already exists: this
+    // checkout pays the rest of it instead of opening a new deposit.
+    const owed = await findOutstandingDeposit(user.id, programId);
+    if (owed) {
+      return {
+        kind,
+        period: null,
+        courseId: null,
+        lessonId: null,
+        programId,
+        amount: owed.balanceDue,
+        fullAmount: full,
+        description: `${program.name} — remaining balance — clears your deposit and opens everything`,
+        promo: null,
+        deposit: false,
+        balanceDue: 0,
+        settlesReference: owed.reference,
+      };
+    }
+
     return {
       kind,
       period: null,
       courseId: null,
       lessonId: null,
       programId,
-      amount: programPrice(programId),
+      amount: full,
+      fullAmount: full,
       description: `${program.name} — program purchase`,
       promo,
     };
@@ -333,6 +444,8 @@ export interface CreatedCheckout {
   demo: boolean;
   /** True when an already-open checkout was reused instead of creating one. */
   reused: boolean;
+  /** The full program price — the UI can show "GH₵150 of GH₵300". */
+  fullAmount: number;
 }
 
 /**
@@ -342,7 +455,10 @@ export interface CreatedCheckout {
  */
 async function findOpenCheckout(
   userId: string,
-  quote: Pick<CheckoutQuote, "kind" | "period" | "courseId" | "lessonId" | "programId" | "promo">
+  quote: Pick<
+    CheckoutQuote,
+    "kind" | "period" | "courseId" | "lessonId" | "programId" | "promo" | "deposit" | "settlesReference"
+  >,
 ): Promise<Payment | null> {
   await ensureSchema();
   const row = await queryOne<PaymentRow>(
@@ -350,7 +466,9 @@ async function findOpenCheckout(
     // not be allowed to take the whole checkout down with a type error.
     // The promo code is part of "the same item": a student who goes back and
     // adds a code gets a fresh checkout that carries it, rather than a reused
-    // row that would silently drop it.
+    // row that would silently drop it. A deposit and the balance payment that
+    // clears it are different items, so the deposit flag and the reference it
+    // settles are part of the match too.
     `select * from payments
       where user_id::text = $1 and kind = $2
         and coalesce(period, '') = $3
@@ -358,6 +476,8 @@ async function findOpenCheckout(
         and coalesce(lesson_id, '') = $5
         and coalesce(program_id, '') = $6
         and coalesce(promo_code, '') = $7
+        and deposit = $8
+        and coalesce(settles_reference, '') = $9
         and status = 'pending'
       order by created_at desc limit 1`,
     [
@@ -368,6 +488,8 @@ async function findOpenCheckout(
       quote.lessonId ?? "",
       quote.programId ?? "",
       quote.promo?.code ?? "",
+      Boolean(quote.deposit),
+      quote.settlesReference ?? "",
     ]
   );
   return row ? fromRow(row) : null;
@@ -405,7 +527,13 @@ export async function createCheckout(
     }
     const payment = (await getPayment(open.reference))!;
     console.info(`[codemasterghana] checkout reused ${payment.reference} (${quote.kind}, GH₵${quote.amount})`);
-    return { payment, authorizationUrl: payment.authorizationUrl, demo: provider === "demo", reused: true };
+    return {
+      payment,
+      authorizationUrl: payment.authorizationUrl,
+      demo: provider === "demo",
+      reused: true,
+      fullAmount: quote.fullAmount,
+    };
   }
   if (open) {
     await markPaymentAbandoned(open.reference);
@@ -421,6 +549,8 @@ export async function createCheckout(
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
         and coalesce(program_id, '') = $6
+        and deposit = $8
+        and coalesce(settles_reference, '') = $9
         and status = 'pending'
         and coalesce(promo_code, '') <> $7`,
     [
@@ -431,6 +561,8 @@ export async function createCheckout(
       quote.lessonId ?? "",
       quote.programId ?? "",
       quote.promo?.code ?? "",
+      Boolean(quote.deposit),
+      quote.settlesReference ?? "",
     ]
   );
 
@@ -445,8 +577,9 @@ export async function createCheckout(
       await query(
         `insert into payments
            (reference, user_id, kind, period, course_id, lesson_id, program_id, amount, currency,
-            description, status, provider, phone, network, promo_code)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,'GHS',$9,'pending',$10,$11,$12,$13)`,
+            description, status, provider, phone, network, promo_code, deposit, balance_due,
+            settles_reference)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'GHS',$9,'pending',$10,$11,$12,$13,$14,$15,$16)`,
         [
           reference,
           user.id,
@@ -461,6 +594,9 @@ export async function createCheckout(
           phone,
           network,
           quote.promo?.code ?? null,
+          Boolean(quote.deposit),
+          quote.balanceDue ?? 0,
+          quote.settlesReference ?? null,
         ]
       );
       break;
@@ -471,9 +607,9 @@ export async function createCheckout(
   }
   console.info(`[codemasterghana] checkout created ${reference} (${quote.kind}, GH₵${quote.amount}, ${provider})`);
 
-  if (!live) {
+    if (!live) {
     const payment = (await getPayment(reference))!;
-    return { payment, authorizationUrl: null, demo: true, reused: false };
+    return { payment, authorizationUrl: null, demo: true, reused: false, fullAmount: quote.fullAmount };
   }
 
   // Live: ask Paystack for a checkout page, then send the student there.
@@ -512,9 +648,9 @@ export async function createCheckout(
     "update payments set authorization_url = $2, updated_at = now() where reference = $1",
     [reference, authorizationUrl]
   );
-  const payment = (await getPayment(reference))!;
-  return { payment, authorizationUrl, demo: false, reused: false };
-}
+    const payment = (await getPayment(reference))!;
+    return { payment, authorizationUrl, demo: false, reused: false, fullAmount: quote.fullAmount };
+  }
 
 /* -------------------------------------------------------------------------- */
 /* Fulfilment                                                                 */
@@ -598,6 +734,8 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
         and coalesce(course_id, '') = $4
         and coalesce(lesson_id, '') = $5
         and coalesce(program_id, '') = $6
+        and deposit = $8
+        and coalesce(settles_reference, '') = $9
         and status = 'paid' and reference <> $7
       order by paid_at desc nulls last limit 1`,
     [
@@ -608,6 +746,8 @@ async function findPaidTwin(payment: Payment): Promise<Payment | null> {
       payment.lessonId ?? "",
       payment.programId ?? "",
       payment.reference,
+      Boolean(payment.deposit),
+      payment.settlesReference ?? "",
     ]
   );
   return row ? fromRow(row) : null;
@@ -733,16 +873,53 @@ export async function fulfillPayment(
 
   try {
     if (payment.kind === "program" && payment.programId) {
-      const purchase = await buyProgram(user, payment.programId, credit);
-      purchase.amount = payment.amount;
-      applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
-
-      // The promo the student used was checked when this checkout was
-      // created. Granting here — after the money is confirmed, in the same
-      // save as the purchase — means the free program appears on the account
-      // the moment the payment does. A failure to record the claim must
-      // never fail the payment the student already made.
+      const program = getProgram(payment.programId);
+      let invoiceNumber: string | null = null;
       let bonusProgram: string | null = null;
+
+      if (payment.settlesReference) {
+        // Paying the balance of an earlier deposit. The deposit must be real,
+        // paid, and still waiting for this balance — anything else is a
+        // checkout row the student (or a tampered request) invented.
+        const deposit = await getPayment(payment.settlesReference);
+        if (!deposit || !deposit.deposit || deposit.status !== "paid" || deposit.balanceDue <= 0) {
+          throw new CheckoutError(
+            "That payment has nothing to settle — the deposit it was meant to clear is missing or already paid off.",
+            "NOT_SETTLEABLE",
+            409,
+          );
+        }
+        // Access was already granted when the deposit landed: record the
+        // balance money, clear the debt, grant nothing twice.
+        const invoice = await addInvoice(
+          user,
+          payment.amount,
+          `${program?.name ?? "Program"} — balance`,
+          credit.reference,
+        );
+        invoiceNumber = invoice?.number ?? null;
+        logActivity(
+          user,
+          `Cleared the balance for “${program?.name ?? payment.programId}” — everything is open now`,
+          "billing",
+        );
+        await saveUser(user);
+        await notifyProgramPurchased({
+          to: user.email,
+          toName: user.name,
+          program: program?.name ?? "Program",
+          amount: payment.amount,
+          invoiceNumber,
+        });
+      } else {
+        // The whole price at once, or half now with the rest due later: either
+        // way the program opens now. `balance_due` on the row keeps the
+        // "rest later" half visible until a balance payment clears it.
+        const purchase = await buyProgram(user, payment.programId, credit);
+        purchase.amount = payment.amount;
+        applyPaidAmount(user, purchase.invoiceNumber, payment.amount);
+        invoiceNumber = purchase.invoiceNumber;
+
       try {
         const reward = await redeemPromotion(user, {
           reference: payment.reference,
@@ -757,25 +934,25 @@ export async function fulfillPayment(
       }
 
       await saveUser(user);
-      const program = getProgram(payment.programId);
       await notifyProgramPurchased({
         to: user.email,
         toName: user.name,
         program: program?.name ?? "Program",
         amount: payment.amount,
-        invoiceNumber: purchase.invoiceNumber,
+        invoiceNumber,
         bonusProgram,
       });
+      }
       const paid = await markPaymentPaid(reference, {
         channel: attribution.channel ?? null,
-        invoiceNumber: purchase.invoiceNumber,
+        invoiceNumber,
         providerEventId: attribution.providerEventId ?? null,
         paidAt: attribution.paidAt ?? null,
       });
       return {
         payment: paid,
         alreadyPaid: false,
-        invoiceNumber: purchase.invoiceNumber,
+        invoiceNumber,
         passActive: hasActivePass(user),
       };
     }
