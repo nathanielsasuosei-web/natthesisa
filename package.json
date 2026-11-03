@@ -11,6 +11,7 @@
     "db:check": "tsx scripts/check-db.mts",
     "schema:check": "tsx scripts/check-schema-batching.mts",
     "payments:check": "tsx scripts/check-payments.mts",
+    "payments:schema": "tsx scripts/check-payments-schema.mts",
     "storage:check": "tsx scripts/check-storage.mts",
     "storage:diagnose": "tsx scripts/check-storage-diagnosis.mts",
     "supabase:check": "tsx scripts/supabase-check.mts",

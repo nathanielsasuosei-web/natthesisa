@@ -160,10 +160,42 @@ for (const [key, label] of labels) {
 }
 if (differing) failures += differing;
 
+// A migration can be "identical" and still be wrong in the same way both
+// paths are wrong: a heal that drops a constraint the schema declared. The
+// deposit -> balance link is the one that was lost this way — every boot
+// removed it, silently.
+console.log("\n5b. the migrations keep the constraints the schema declares");
+expect(
+  "payments.settles_reference -> payments.reference still exists",
+  oneAtATime.constraints.includes("payments_settles_reference_fkey"),
+  true
+);
+expect(
+  "payments.user_id -> users.id exists",
+  oneAtATime.constraints.includes("payments_user_id_fkey"),
+  true
+);
+
 console.log("\n6. a second run is a no-op (every statement is idempotent)");
 const before = JSON.stringify(await catalogue());
 await applyBatched();
 expect("re-applying changes nothing", JSON.stringify(await catalogue()) === before, true);
+
+// Migrations alter existing tables, so "idempotent" is not automatic: a heal
+// that drops a constraint and forgets to put it back looks correct on a fresh
+// database (the schema created it inline) and loses it on the second boot.
+// Applying the migrations alone again — with the schema step that normally
+// re-adds such a column left out — is what makes that visible.
+console.log("\n6b. migrations alone change nothing on a healed database");
+const healed = JSON.stringify(await catalogue());
+for (const batch of schemaBatches(MIGRATION_STATEMENTS, { maxStatements: 10 })) await execScript(batch.sql);
+expect("a migration re-run leaves the catalogue alone", JSON.stringify(await catalogue()) === healed, true);
+const reRun = JSON.parse(JSON.stringify(await catalogue())) as Catalogue;
+if (JSON.stringify(reRun) !== healed) {
+  const a = healed.split("\n");
+  const b = JSON.stringify(reRun).split("\n");
+  for (const line of a.filter((value) => !b.includes(value)).slice(0, 5)) console.log(`      lost after a re-run: ${line}`);
+}
 
 // The real entry point, on a database that does not exist yet: the cold-start
 // case that used to time out.

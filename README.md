@@ -354,16 +354,27 @@ Two different failures wear that field, and they need opposite fixes:
 The schema step is 89 idempotent statements, and it used to be 89 round trips:
 on a serverless host each one is a fresh pooler connection, which is how
 *describing* a correct database could outlast the endpoint's own budget.
-`schemaBatches()` in `src/lib/schema.ts` now sends them in 13 groups — the
+`schemaBatches()` in `src/lib/schema.ts` now sends them in 15 groups — the
 `do $$ … $$` repair blocks stay on their own, because their real statement count
 lives inside a body the batcher cannot see — and any group that is refused is
 replayed one statement at a time, which is the old behaviour rather than a
 broken deploy.
 
 `npm run schema:check` proves that is safe: it applies both forms to two fresh
-embedded databases and diffs the catalogue (5 tables, 65 columns, 17 indexes,
-64 constraints, 2 sequences — identical), checks the `do` blocks are never cut
-up, re-applies to confirm idempotence, and times a fresh `ready()`.
+embedded databases and diffs the catalogue (5 tables, 68 columns, 19 indexes,
+68 constraints, 2 sequences — identical), checks the `do` blocks are never cut
+up, checks the migrations keep the constraints the schema declares, re-applies
+to confirm idempotence, and times a fresh `ready()`.
+
+`npm run payments:schema` covers the harder case: a `payments` table that
+already existed. Each legacy shape — serial, uuid, enum and text account ids,
+a short `varchar` reference, a uuid `reference`, a sibling foreign key on
+`payments.user_id`, an old build's own `settles_reference` — is created in its
+own embedded database, healed by the real `ready()`, and then checked out
+against as a real account. It asserts the student's checkout starts, the row
+carries the text account id, every id/string column is text, the legacy rows
+survive value for value, only this app's two foreign keys remain, its rules are
+back, and a second boot changes nothing.
 
 ## Run locally
 
@@ -389,6 +400,8 @@ npm run typecheck   # TypeScript only
 npm start           # run the production build
 npm run db:check    # which database is in use + account counts
 npm run db:schema   # write db/schema.sql for a hosted Postgres
+npm run schema:check    # batched and one-at-a-time schema build the same database
+npm run payments:schema # a legacy payments table is healed and checkout starts
 ```
 
 ## Accounts
@@ -1071,14 +1084,22 @@ Postgres error. Two causes are worth knowing:
   of this app's `users`, whose `status` / `provider` rules were written for a
   different app, or which demands a column this app never fills. Any of those
   can refuse checkout while sign-in and the rest of the site look perfectly
-  healthy. On the first request after deploying, the app aligns payment ID
-  types, removes stale foreign keys (keeping or installing the `users.id`
-  relationship), and repairs the other known payment constraints. Existing
-  payment rows are preserved; the new account foreign key is not validated
-  against old rows, but it protects new checkouts. See the heal blocks at the
-  end of `MIGRATION_STATEMENTS` in `src/lib/schema.ts`. If the database role
-  cannot alter tables, paste the generated `db/schema.sql` into the database's
-  SQL editor instead.
+  healthy. On the first request after deploying, the app aligns every payment
+  ID and string column to text *before* it adds any rule or index that depends
+  on them (a `uuid` `reference` or an old `kind` enum used to make that rule
+  fail, which took the whole schema step — and every checkout — down with it).
+  Clearing the way means dropping the foreign keys built on those columns and
+  the foreign keys in *other* tables that point at them, plus old check rules
+  that cannot survive the cast; the two relationships this app defines
+  (`payments.user_id -> users.id` and `payments.settles_reference ->
+  payments.reference`) and its `kind` / `status` / `provider` / `period` /
+  `amount` / `currency` rules are then put back. Existing payment rows are
+  preserved value for value; the rebuilt foreign keys are not validated
+  against old rows, but they protect every new checkout. See the heal blocks
+  in `MIGRATION_STATEMENTS` in `src/lib/schema.ts`, and run
+  `npm run payments:schema` to prove a real checkout starts against each
+  legacy table shape. If the database role cannot alter tables, paste the
+  generated `db/schema.sql` into the database's SQL editor instead.
 - **Paystack refusing the charge.** The message then quotes Paystack ("Invalid
   key", "Currency not supported by merchant", …). Run `npm run payments:check`
   and make sure Ghana cedis (GHS) are activated on the Paystack account.
