@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Brag: Game Development: 2D, 3D, 4D, 5D and 4K–8K+</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
+    #video-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      opacity: 0.3;
+    }
+    #content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 90%;
+    }
+    #logo {
+      width: 150px;
+      margin-bottom: 20px;
+    }
+    #title {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+    #subtitle {
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      color: #00ffcc;
+    }
+    .scene {
+      display: none;
+      animation: fadeIn 1s ease-in;
+    }
+    .scene.active {
+      display: block;
+    }
+    .scene-title {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #ffcc00;
+    }
+    .scene-content {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .scene-code {
+      background: rgba(0,0,0,0.7);
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      text-align: left;
+      margin: 20px auto;
+      max-width: 80%;
+      border-left: 4px solid #00ffcc;
+    }
+    .scene-image {
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,255,204,0.3);
+    }
+    #voiceover {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      z-index: 3;
+      max-width: 80%;
+      text-align: center;
+      border: 1px solid #00ffcc;
+    }
+    #controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 3;
+    }
+    button {
+      background: #00ffcc;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    button:hover {
+      background: #00ccaa;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 5px;
+      background: #00ffcc;
+      width: 0;
+      transition: width 0.1s linear;
+      z-index: 4;
+    }
+  </style>
+</head>
+<body>
+  <div id="video-container">
+    <img id="background" src="public/course-covers/game-development.jpg" alt="Background">
+    <div id="content">
+      <!-- Scene 1: Hook -->
+      <div id="scene-1" class="scene active">
+        <img id="logo" src="public/branding/logo.webp" alt="Codemaster Ghana Logo">
+        <div id="title">Game Development</div>
+        <div id="subtitle">2D, 3D, 4D, 5D and 4K–8K+</div>
+        <div class="scene-content">From the game loop to 4D worlds and 8K screens—Codemaster Ghana presents the ultimate Game Development journey.</div>
+      </div>
+
+      <!-- Scene 2: 2D -->
+      <div id="scene-2" class="scene">
+        <div class="scene-title">Module 1: 2D Worlds</div>
+        <div class="scene-content">Master the 2D loop: tile maps, collisions, and pixel art scaling from 480×270 all the way to 4K and 8K.</div>
+        <div class="scene-code">
+          // Fixed-timestep loop
+          const timestep = 1/60;
+          let accumulator = 0;
+          function gameLoop(deltaTime) {
+            accumulator += deltaTime;
+            while (accumulator >= timestep) {
+              update(timestep);
+              accumulator -= timestep;
+            }
+            render();
+          }
+        </div>
+        <img class="scene-image" src="public/course-covers/game-development.jpg" alt="2D Demo">
+      </div>
+
+      <!-- Scene 3: 3D -->
+      <div id="scene-3" class="scene">
+        <div class="scene-title">Module 2: 3D Engines</div>
+        <div class="scene-content">Enter 3D: vectors, matrices, projection, lighting, and physics integrators across Godot, Unity, Unreal, and Web.</div>
+        <div class="scene-code">
+          // Vector math & projection
+          const vector = new Vector3(1, 2, 3);
+          const matrix = new Matrix4();
+          const projected = matrix.multiply(vector);
+        </div>
+        <img class="scene-image" src="public/course-covers/game-development.jpg" alt="3D Demo">
+      </div>
+
+      <!-- Scene 4: 4D/5D -->
+      <div id="scene-4" class="scene">
+        <div class="scene-title">Module 3: 4D & 5D Dimensions</div>
+        <div class="scene-content">Break the barrier: 4D tesseracts, rotation planes, slicing, time coordinates, and the 5D Chess multiverse—conquering the n-dimensional curse.</div>
+        <div class="scene-code">
+          // Tesseract: 16 corners, 32 edges, 24 squares, 8 cubes
+          const tesseract = new Tesseract();
+          tesseract.rotate4D(planeXY, angle);
+        </div>
+        <img class="scene-image" src="public/course-covers/game-development.jpg" alt="4D/5D Demo">
+      </div>
+
+      <!-- Scene 5: 4K-8K+ -->
+      <div id="scene-5" class="scene">
+        <div class="scene-title">Module 4: Resolution (4K–8K+)</div>
+        <div class="scene-content">Push the limits: 0.50 nanoseconds per pixel at 8K/60fps, 1.06 GB frame buffers, 318.5 GB/s bandwidth, and dynamic resolution scaling for Ghana's unique data and heat constraints.</div>
+        <div class="scene-code">
+          // Pixel budget: 0.50 ns/pixel @ 8K/60fps
+          const pixelBudget = 0.50e-9; // seconds per pixel
+          const frameBuffer = 1.06e9; // bytes at 8K
+          const bandwidth = 318.5e9; // bytes/second at 8K/60fps
+        </div>
+        <img class="scene-image" src="public/course-covers/game-development.jpg" alt="4K/8K Demo">
+      </div>
+
+      <!-- Scene 6: Dimensions Project -->
+      <div id="scene-6" class="scene">
+        <div class="scene-title">Project: Dimensions</div>
+        <div class="scene-content">Build the 'Dimensions' game spanning all dimensions, complete with performance reports (p50/p95/p99 frame times, CPU/GPU verdict, quality tiers).</div>
+        <div class="scene-code">
+          // Performance report
+          const report = {
+            p50: 16.67, // ms
+            p95: 20.00, // ms
+            p99: 25.00, // ms
+            cpuVerdict: "Excellent",
+            gpuVerdict: "Good",
+            qualityTiers: ["Low", "Medium", "High", "Ultra"]
+          };
+        </div>
+        <img class="scene-image" src="public/course-covers/game-development.jpg" alt="Dimensions Project">
+      </div>
+
+      <!-- Scene 7: Call to Action -->
+      <div id="scene-7" class="scene">
+        <img id="logo" src="public/branding/logo.webp" alt="Codemaster Ghana Logo">
+        <div id="title">Enroll Now</div>
+        <div id="subtitle">codemastergh.online</div>
+        <div class="scene-content">Join Codemaster Ghana and build the future. Enroll in Game Development: 2D, 3D, 4D, 5D and 4K–8K+.</div>
+        <a href="https://www.codemastergh.online/courses/game-development" target="_blank" style="display: inline-block; background: #00ffcc; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.2rem; margin-top: 20px;">Visit Course Page</a>
+      </div>
+    </div>
+
+    <div id="voiceover">Loading voiceover...</div>
+    <div class="progress-bar" id="progress"></div>
+
+    <div id="controls">
+      <button onclick="prevScene()">Previous</button>
+      <button onclick="nextScene()">Next</button>
+      <button onclick="playAudio()">Play Audio</button>
+    </div>
+  </div>
+
+  <audio id="audio" src="audio/video-brag-voiceover.mp3" preload="auto"></audio>
+
+  <script>
+    const scenes = document.querySelectorAll('.scene');
+    let currentScene = 0;
+    const totalScenes = scenes.length;
+    const audio = document.getElementById('audio');
+    const voiceoverText = document.getElementById('voiceover');
+    const progressBar = document.getElementById('progress');
+    
+    const sceneTexts = [
+      "From the game loop to 4D worlds and 8K screens—Codemaster Ghana presents the ultimate Game Development journey.",
+      "Master the 2D loop: tile maps, collisions, and pixel art scaling from 480×270 all the way to 4K and 8K.",
+      "Enter 3D: vectors, matrices, projection, lighting, and physics integrators across Godot, Unity, Unreal, and Web.",
+      "Break the barrier: 4D tesseracts, rotation planes, slicing, time coordinates, and the 5D Chess multiverse—conquering the n-dimensional curse.",
+      "Push the limits: 0.50 nanoseconds per pixel at 8K/60fps, 1.06 GB frame buffers, 318.5 GB/s bandwidth, and dynamic resolution scaling for Ghana's unique data and heat constraints.",
+      "Build the 'Dimensions' project: a game spanning all dimensions, complete with performance reports and quality tiers.",
+      "Enroll in Game Development: 2D, 3D, 4D, 5D and 4K–8K+ at codemastergh.online. Build the future."
+    ];
+
+    function updateScene() {
+      scenes.forEach((scene, index) => {
+        scene.className = 'scene' + (index === currentScene ? ' active' : '');
+      });
+      voiceoverText.textContent = sceneTexts[currentScene];
+      
+      // Update progress bar
+      const progress = ((currentScene + 1) / totalScenes) * 100;
+      progressBar.style.width = progress + '%';
+    }
+
+    function nextScene() {
+      if (currentScene < totalScenes - 1) {
+        currentScene++;
+        updateScene();
+      }
+    }
+
+    function prevScene() {
+      if (currentScene > 0) {
+        currentScene--;
+        updateScene();
+      }
+    }
+
+    function playAudio() {
+      audio.play();
+      
+      // Sync scenes with audio timestamps (approximate)
+      const timestamps = [0, 5, 15, 25, 40, 50, 55];
+      let currentTimestampIndex = 0;
+      
+      const interval = setInterval(() => {
+        if (audio.paused || audio.ended) {
+          clearInterval(interval);
+          return;
+        }
+        
+        const currentTime = audio.currentTime;
+        if (currentTimestampIndex < timestamps.length - 1 && 
+            currentTime >= timestamps[currentTimestampIndex + 1]) {
+          currentTimestampIndex++;
+          currentScene = currentTimestampIndex;
+          updateScene();
+        }
+        
+        // Update progress bar based on audio
+        const progress = (currentTime / audio.duration) * 100;
+        progressBar.style.width = progress + '%';
+      }, 100);
+    }
+
+    // Initialize
+    updateScene();
+    
+    // Auto-play audio after 1 second
+    setTimeout(() => {
+      playAudio();
+    }, 1000);
+  </script>
+</body>
+</html>
