@@ -3252,5 +3252,245 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     "approximateTiming": false,
     "voice": "en-gb",
     "generatedAt": "2026-10-07T15:07:43.804Z"
+  },
+  "product-research-ai": {
+    "lessonId": "product-research-ai",
+    "courseId": "ai-dropshipping",
+    "title": "Product research with AI",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 68.88,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__product-research-ai.mp4",
+    "name": "Product research with AI — video walkthrough.mp4",
+    "size": 4521159,
+    "poster": {
+      "key": "lessonvideo__product-research-ai--poster.jpg",
+      "name": "Product research with AI — poster.jpg",
+      "size": 67040,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.81
+      },
+      {
+        "label": "Worked example",
+        "start": 58.04
+      },
+      {
+        "label": "Your turn",
+        "start": 110.73
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:23:04.407Z"
+  },
+  "choosing-a-niche": {
+    "lessonId": "choosing-a-niche",
+    "courseId": "ai-dropshipping",
+    "title": "Choosing and validating a niche",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 64.73,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__choosing-a-niche.mp4",
+    "name": "Choosing and validating a niche — video walkthrough.mp4",
+    "size": 4007114,
+    "poster": {
+      "key": "lessonvideo__choosing-a-niche--poster.jpg",
+      "name": "Choosing and validating a niche — poster.jpg",
+      "size": 67660,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 23.79
+      },
+      {
+        "label": "Worked example",
+        "start": 58.42
+      },
+      {
+        "label": "Your turn",
+        "start": 108.76
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:23:02.158Z"
+  },
+  "setting-up-a-dropshipping-store": {
+    "lessonId": "setting-up-a-dropshipping-store",
+    "courseId": "ai-dropshipping",
+    "title": "Setting up your dropshipping store",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 67.29,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__setting-up-a-dropshipping-store.mp4",
+    "name": "Setting up your dropshipping store — video walkthrough.mp4",
+    "size": 4096680,
+    "poster": {
+      "key": "lessonvideo__setting-up-a-dropshipping-store--poster.jpg",
+      "name": "Setting up your dropshipping store — poster.jpg",
+      "size": 71282,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 23.1
+      },
+      {
+        "label": "Worked example",
+        "start": 56.29
+      },
+      {
+        "label": "Your turn",
+        "start": 107.48
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:23:43.430Z"
+  },
+  "product-pages-that-convert": {
+    "lessonId": "product-pages-that-convert",
+    "courseId": "ai-dropshipping",
+    "title": "Product pages that convert",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 66.9,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__product-pages-that-convert.mp4",
+    "name": "Product pages that convert — video walkthrough.mp4",
+    "size": 4295297,
+    "poster": {
+      "key": "lessonvideo__product-pages-that-convert--poster.jpg",
+      "name": "Product pages that convert — poster.jpg",
+      "size": 65828,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.24
+      },
+      {
+        "label": "Worked example",
+        "start": 56.4
+      },
+      {
+        "label": "Your turn",
+        "start": 106.69
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:23:44.964Z"
+  },
+  "ads-and-content-with-ai": {
+    "lessonId": "ads-and-content-with-ai",
+    "courseId": "ai-dropshipping",
+    "title": "Ads and content with AI",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 60.84,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ads-and-content-with-ai.mp4",
+    "name": "Ads and content with AI — video walkthrough.mp4",
+    "size": 3836273,
+    "poster": {
+      "key": "lessonvideo__ads-and-content-with-ai--poster.jpg",
+      "name": "Ads and content with AI — poster.jpg",
+      "size": 63558,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.62
+      },
+      {
+        "label": "Worked example",
+        "start": 59.35
+      },
+      {
+        "label": "Your turn",
+        "start": 111.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:24:25.014Z"
+  },
+  "orders-fulfillment-ai-support": {
+    "lessonId": "orders-fulfillment-ai-support",
+    "courseId": "ai-dropshipping",
+    "title": "Orders, fulfillment and AI support",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 66.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__orders-fulfillment-ai-support.mp4",
+    "name": "Orders, fulfillment and AI support — video walkthrough.mp4",
+    "size": 4482101,
+    "poster": {
+      "key": "lessonvideo__orders-fulfillment-ai-support--poster.jpg",
+      "name": "Orders, fulfillment and AI support — poster.jpg",
+      "size": 68294,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.02
+      },
+      {
+        "label": "Worked example",
+        "start": 58.76
+      },
+      {
+        "label": "Your turn",
+        "start": 109.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:24:26.546Z"
   }
 };

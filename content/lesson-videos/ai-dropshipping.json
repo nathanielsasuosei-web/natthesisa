@@ -1,0 +1,42 @@
+{
+  "course": "ai-dropshipping",
+  "voice": "en-gb",
+  "lessons": {
+    "product-research-ai": {
+      "title": "Welcome to Product research with AI. In the next few minutes you will see how to turn a vague idea into a shortlist of products worth testing, using AI as your research assistant and demand signals as your proof.",
+      "idea": "Most dropshipping stores fail because they sell something nobody wants. You do not manufacture, warehouse or ship, so the only lever you control is what you sell and how you sell it. AI can suggest products, read reviews and scan competitors, but it cannot tell you what will sell this week. Treat every suggestion as a hypothesis to test with a small ad spend.",
+      "example": "A learner searches sneaker reviews and asks AI to summarise the one star reviews. The pattern comes back: comfortable, but the laces come undone and there is nowhere to keep a spare pair. That points at no tie elastic laces with a small carrying pouch, cheap, light, and solving a clear problem. She lists it, runs a small ad test, and only orders stock after three sales come in.",
+      "challenge": "List five product ideas for a niche you choose. For each, note the problem it solves, the price band, one competitor and one demand signal. Pick one and write the single ad test that would prove or kill it."
+    },
+    "choosing-a-niche": {
+      "title": "This lesson is Choosing and validating a niche. You will learn how to pick a niche narrow enough to own but wide enough to stock, and how to validate demand before you build anything.",
+      "idea": "General stores sell everything to nobody. Niche stores sell specific things to specific people, which means better ads, better product pages and customers who come back. Home office gear for remote workers is a niche. Gadgets is not. Validate with real clicks and review velocity, not with friends and family, and set go or no go numbers before you spend.",
+      "example": "A learner considers phone cases. Huge search volume, but huge competition and high cost per click. She pivots to cable organisers for remote workers: lower volume, fewer advertisers, a clear problem under the desk, and a cheap light product. A small ad test brings sign ups at an acceptable cost. Go.",
+      "challenge": "Define your niche: the audience, the problem and why you can reach them. List three products that fit and one that does not, with why. Write your go or no go numbers: click through rate, cost per click and pre order count."
+    },
+    "setting-up-a-dropshipping-store": {
+      "title": "This is Setting up your dropshipping store. You will choose a platform, connect a supplier, and publish the pages buyers trust so your store can take its first order.",
+      "idea": "For a first store use a hosted ecommerce platform. It handles checkout, payments and security, and you connect a dropshipping supplier with an app. You trade a monthly fee for not managing servers. Before you list anything, order one unit yourself and check the packaging, speed and quality. If you would not receive it happily, your customers will not either.",
+      "example": "Publish the essential pages before ads: home, product pages, about and contact, shipping and delivery, returns and refunds, and terms and privacy. Be upfront that shipping may take days or weeks. Surprise is the biggest source of refunds and chargebacks. Connect payments and taxes, and use your own domain from day one.",
+      "challenge": "Choose your platform and supplier, note the supplier's shipping time and tracking policy, order one sample product, draft your shipping returns and contact pages, and connect a payment method and your own domain. Your store must be capable of taking an order."
+    },
+    "product-pages-that-convert": {
+      "title": "This lesson is Product pages that convert. Your product page is your salesperson, and in a few seconds it must answer what this is, who it is for, why to trust it and what it costs.",
+      "idea": "Use AI to draft titles and descriptions, then edit until they sound specific and believable. Turn features into benefits: stainless steel becomes will not rust even by the sink. Use real photos, start with two or three variants, and price at roughly two and a half to three times your landed cost so ads can work.",
+      "example": "One clear structure: title, one line promise, who it is for, three benefits, how to use it, what is in the box, shipping and returns. Include one concrete detail AI could not invent, a measurement, a material, a use case. Do not change price, images and copy all at once, or you will not know what moved the number.",
+      "challenge": "Publish one complete product page with title, benefit led description, images, price, variants and visible shipping and returns. Show it to someone who has never seen it and ask them the four questions. If they cannot answer all four, rewrite until they can."
+    },
+    "ads-and-content-with-ai": {
+      "title": "This is Ads and content with AI. An ad buys attention, not sales. Your page gets the sale, so before you advertise, know the page converts.",
+      "idea": "Use AI to draft many ad variants: headlines, hooks and calls to action in different tones. Test one variable at a time with equal small budgets, same image different headline or same headline different image. Keep the winner. The metric that matters is cost per order versus profit per order. Scale what pays for itself, kill what does not.",
+      "example": "A fifteen second script: problem in three seconds, product as the answer, one benefit shown, call to action. Good creative shows the product being used, not just pictured. Tangled cables becomes an organised desk. Record spend, clicks, cost per click, orders, cost per order and profit per order for every ad set.",
+      "challenge": "Run one small ad test with two variants, record cost per order, and decide scale, tweak or kill. Document the decision and the numbers behind it."
+    },
+    "orders-fulfillment-ai-support": {
+      "title": "This lesson is Orders, fulfillment and AI support. The order flow is simple: customer buys, you receive payment, you place the order with your supplier, supplier ships, you send tracking.",
+      "idea": "Automate what you can but check every order manually at first so you catch supplier errors before the customer does. Never promise a delivery date you have not confirmed. Most complaints come from silence, not delay, so send order confirmation, shipping confirmation with tracking and delivery confirmation. If shipping will be late, tell the customer before they ask.",
+      "example": "Have a clear refund policy and honour it fast. A refund you give cheerfully costs one order; a chargeback costs fees, time and possibly your payment account. AI can draft replies to common questions such as where is my order and how do I return, but you review and send. Never let AI approve refunds or discounts on its own.",
+      "challenge": "Run the store through one full order cycle: receive an order, place it with the supplier, send tracking, and record profit after ads and any refunds. Write support replies for your top five questions and state your refund rule."
+    }
+  }
+}
