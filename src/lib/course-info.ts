@@ -894,6 +894,41 @@ const BRIEFS: Record<string, CourseBrief> = {
       "Ghana already has a game scene: Accra's Leti Arts has published mobile games from African folklore since 2009, and a game that runs well on an ordinary phone is the one most players can actually play.",
     ],
   },
+
+  "ai-dropshipping": {
+    overview: [
+      "Dropshipping is simple to describe — you list a product, a customer buys it, and a supplier ships it — but the only lever you control is what you sell and how you sell it. This course teaches how to run a store with AI doing the repetitive work: finding products, writing listings and ads, and drafting support replies.",
+      "You will choose and validate a niche, set up a store and connect a supplier, write product pages that convert, run small ad tests, and manage orders, fulfillment, tracking and refunds. The metric that runs through every lesson is profit after ads, not revenue.",
+      "By the end you have a live store, one tested product, and a playbook for choosing what to sell next — whether you run it yourself or hand it to a team.",
+    ],
+    audience: [
+      "You want to start an online store and do not know which product to sell first.",
+      "You are comfortable with the internet and a phone, and can spend a few hours a week testing products.",
+      "You want to use AI as a research and writing assistant rather than a replacement for judgment.",
+    ],
+    prerequisites: [
+      "No coding or ecommerce experience is required.",
+      "A phone or laptop and a way to receive payments (a bank account or mobile money wallet).",
+      "A small budget for a domain, a platform trial and a few ad tests.",
+    ],
+    tools: [
+      "A hosted ecommerce platform trial (Shopify or similar)",
+      "A supplier with dropshipping integration and order tracking",
+      "An AI chat tool for drafting copy, ads and support replies",
+      "A payment method customers can use (cards or mobile money where relevant)",
+    ],
+    build: [
+      "A shortlist of validated product candidates",
+      "A published store with a product page, shipping and returns pages",
+      "One ad test with a documented cost-per-order decision",
+      "Support replies for your five most common questions",
+    ],
+    after: [
+      "Artificial Intelligence & Machine Learning covers the models behind the AI features you will use.",
+      "Web Development Foundations is useful if you want to customise the store beyond the platform theme.",
+      "A store that converts is the foundation for paid ads, email and the next product.",
+    ],
+  },
 };
 
 /** The brief for a course, or a sensible fallback for owner-published content. */
