@@ -3253,6 +3253,8566 @@ export const LESSON_VIDEOS: Record<string, LessonVideoEntry> = {
     "voice": "en-gb",
     "generatedAt": "2026-10-07T15:07:43.804Z"
   },
+  "how-the-internet-moves-data": {
+    "lessonId": "how-the-internet-moves-data",
+    "courseId": "cyber-security-foundations",
+    "title": "How the internet moves data",
+    "durationSeconds": 181.07,
+    "narrationSeconds": 160.05,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__how-the-internet-moves-data.mp4",
+    "name": "How the internet moves data — video walkthrough.mp4",
+    "size": 7226714,
+    "poster": {
+      "key": "lessonvideo__how-the-internet-moves-data--poster.jpg",
+      "name": "How the internet moves data — poster.jpg",
+      "size": 85822,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.26
+      },
+      {
+        "label": "Worked example",
+        "start": 46.9
+      },
+      {
+        "label": "Your turn",
+        "start": 150.83
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:46:41.850Z"
+  },
+  "protocols-firewalls-and-scanning": {
+    "lessonId": "protocols-firewalls-and-scanning",
+    "courseId": "cyber-security-foundations",
+    "title": "Protocols, ports, firewalls and scanning",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 82.55,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__protocols-firewalls-and-scanning.mp4",
+    "name": "Protocols, ports, firewalls and scanning — video walkthrough.mp4",
+    "size": 5598773,
+    "poster": {
+      "key": "lessonvideo__protocols-firewalls-and-scanning--poster.jpg",
+      "name": "Protocols, ports, firewalls and scanning — poster.jpg",
+      "size": 83906,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 15.77
+      },
+      {
+        "label": "Worked example",
+        "start": 73.78
+      },
+      {
+        "label": "Your turn",
+        "start": 106.9
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:42:27.106Z"
+  },
+  "the-shell-and-the-filesystem": {
+    "lessonId": "the-shell-and-the-filesystem",
+    "courseId": "cyber-security-foundations",
+    "title": "The shell and the filesystem",
+    "durationSeconds": 159.18,
+    "narrationSeconds": 138.16,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__the-shell-and-the-filesystem.mp4",
+    "name": "The shell and the filesystem — video walkthrough.mp4",
+    "size": 6118781,
+    "poster": {
+      "key": "lessonvideo__the-shell-and-the-filesystem--poster.jpg",
+      "name": "The shell and the filesystem — poster.jpg",
+      "size": 82277,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.32
+      },
+      {
+        "label": "Worked example",
+        "start": 35.11
+      },
+      {
+        "label": "Your turn",
+        "start": 128.49
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:43:02.340Z"
+  },
+  "users-permissions-and-hardening": {
+    "lessonId": "users-permissions-and-hardening",
+    "courseId": "cyber-security-foundations",
+    "title": "Users, permissions and hardening",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 84.82,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__users-permissions-and-hardening.mp4",
+    "name": "Users, permissions and hardening — video walkthrough.mp4",
+    "size": 5841268,
+    "poster": {
+      "key": "lessonvideo__users-permissions-and-hardening--poster.jpg",
+      "name": "Users, permissions and hardening — poster.jpg",
+      "size": 81313,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 14.45
+      },
+      {
+        "label": "Worked example",
+        "start": 71.5
+      },
+      {
+        "label": "Your turn",
+        "start": 103.88
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:43:30.293Z"
+  },
+  "python-for-security-work": {
+    "lessonId": "python-for-security-work",
+    "courseId": "cyber-security-foundations",
+    "title": "Python for security work",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 61.7,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__python-for-security-work.mp4",
+    "name": "Python for security work — video walkthrough.mp4",
+    "size": 5039249,
+    "poster": {
+      "key": "lessonvideo__python-for-security-work--poster.jpg",
+      "name": "Python for security work — poster.jpg",
+      "size": 81476,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 19.92
+      },
+      {
+        "label": "Worked example",
+        "start": 66.02
+      },
+      {
+        "label": "Your turn",
+        "start": 103.07
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:43:58.988Z"
+  },
+  "parsing-logs-and-building-tools": {
+    "lessonId": "parsing-logs-and-building-tools",
+    "courseId": "cyber-security-foundations",
+    "title": "Parsing logs and building tools",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 70.69,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__parsing-logs-and-building-tools.mp4",
+    "name": "Parsing logs and building tools — video walkthrough.mp4",
+    "size": 5357058,
+    "poster": {
+      "key": "lessonvideo__parsing-logs-and-building-tools--poster.jpg",
+      "name": "Parsing logs and building tools — poster.jpg",
+      "size": 85454,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 18.04
+      },
+      {
+        "label": "Worked example",
+        "start": 67.2
+      },
+      {
+        "label": "Your turn",
+        "start": 103.33
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:44:27.534Z"
+  },
+  "injection-attacks": {
+    "lessonId": "injection-attacks",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "Injection: SQL and command",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 103.68,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__injection-attacks.mp4",
+    "name": "Injection: SQL and command — video walkthrough.mp4",
+    "size": 4911392,
+    "poster": {
+      "key": "lessonvideo__injection-attacks--poster.jpg",
+      "name": "Injection: SQL and command — poster.jpg",
+      "size": 81099,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.4
+      },
+      {
+        "label": "Worked example",
+        "start": 50.34
+      },
+      {
+        "label": "Your turn",
+        "start": 120.98
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:47:34.824Z"
+  },
+  "xss-csrf-and-browser-defences": {
+    "lessonId": "xss-csrf-and-browser-defences",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "XSS, CSRF and the browser's defences",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 79.46,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__xss-csrf-and-browser-defences.mp4",
+    "name": "XSS, CSRF and the browser's defences — video walkthrough.mp4",
+    "size": 5496291,
+    "poster": {
+      "key": "lessonvideo__xss-csrf-and-browser-defences--poster.jpg",
+      "name": "XSS, CSRF and the browser's defences — poster.jpg",
+      "size": 83647,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 17.18
+      },
+      {
+        "label": "Worked example",
+        "start": 80.77
+      },
+      {
+        "label": "Your turn",
+        "start": 113.88
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:47:35.120Z"
+  },
+  "authentication-and-access-control": {
+    "lessonId": "authentication-and-access-control",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "Authentication, sessions and access control",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 64.24,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__authentication-and-access-control.mp4",
+    "name": "Authentication, sessions and access control — video walkthrough.mp4",
+    "size": 4653637,
+    "poster": {
+      "key": "lessonvideo__authentication-and-access-control--poster.jpg",
+      "name": "Authentication, sessions and access control — poster.jpg",
+      "size": 81251,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 20.94
+      },
+      {
+        "label": "Worked example",
+        "start": 72.13
+      },
+      {
+        "label": "Your turn",
+        "start": 109.12
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:48:24.577Z"
+  },
+  "rules-of-engagement-and-recon": {
+    "lessonId": "rules-of-engagement-and-recon",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "Rules of engagement and reconnaissance",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 63.69,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__rules-of-engagement-and-recon.mp4",
+    "name": "Rules of engagement and reconnaissance — video walkthrough.mp4",
+    "size": 5063169,
+    "poster": {
+      "key": "lessonvideo__rules-of-engagement-and-recon--poster.jpg",
+      "name": "Rules of engagement and reconnaissance — poster.jpg",
+      "size": 82109,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 20.43
+      },
+      {
+        "label": "Worked example",
+        "start": 68.66
+      },
+      {
+        "label": "Your turn",
+        "start": 106.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:48:26.610Z"
+  },
+  "exploitation-and-privilege-escalation": {
+    "lessonId": "exploitation-and-privilege-escalation",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "Exploitation and privilege escalation",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 99.6,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__exploitation-and-privilege-escalation.mp4",
+    "name": "Exploitation and privilege escalation — video walkthrough.mp4",
+    "size": 6332776,
+    "poster": {
+      "key": "lessonvideo__exploitation-and-privilege-escalation--poster.jpg",
+      "name": "Exploitation and privilege escalation — poster.jpg",
+      "size": 80659,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.72
+      },
+      {
+        "label": "Worked example",
+        "start": 83.8
+      },
+      {
+        "label": "Your turn",
+        "start": 111.91
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:49:11.602Z"
+  },
+  "logging-detection-and-siem": {
+    "lessonId": "logging-detection-and-siem",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "Logging, detection and the SIEM",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 70.87,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__logging-detection-and-siem.mp4",
+    "name": "Logging, detection and the SIEM — video walkthrough.mp4",
+    "size": 5415932,
+    "poster": {
+      "key": "lessonvideo__logging-detection-and-siem--poster.jpg",
+      "name": "Logging, detection and the SIEM — poster.jpg",
+      "size": 81602,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 18.35
+      },
+      {
+        "label": "Worked example",
+        "start": 67.39
+      },
+      {
+        "label": "Your turn",
+        "start": 102.72
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:49:11.506Z"
+  },
+  "hardening-patching-and-incident-response": {
+    "lessonId": "hardening-patching-and-incident-response",
+    "courseId": "cyber-security-offense-and-defense",
+    "title": "Hardening, patching and incident response",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 67.4,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__hardening-patching-and-incident-response.mp4",
+    "name": "Hardening, patching and incident response — video walkthrough.mp4",
+    "size": 5489454,
+    "poster": {
+      "key": "lessonvideo__hardening-patching-and-incident-response--poster.jpg",
+      "name": "Hardening, patching and incident response — poster.jpg",
+      "size": 86739,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 19.8
+      },
+      {
+        "label": "Worked example",
+        "start": 65.36
+      },
+      {
+        "label": "Your turn",
+        "start": 101.66
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:49:37.564Z"
+  },
+  "cloud-models-and-shared-responsibility": {
+    "lessonId": "cloud-models-and-shared-responsibility",
+    "courseId": "cyber-security-cloud",
+    "title": "Cloud models and the shared-responsibility boundary",
+    "durationSeconds": 151.08,
+    "narrationSeconds": 130.06,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__cloud-models-and-shared-responsibility.mp4",
+    "name": "Cloud models and the shared-responsibility boundary — video walkthrough.mp4",
+    "size": 6292229,
+    "poster": {
+      "key": "lessonvideo__cloud-models-and-shared-responsibility--poster.jpg",
+      "name": "Cloud models and the shared-responsibility boundary — poster.jpg",
+      "size": 87084,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.85
+      },
+      {
+        "label": "Worked example",
+        "start": 35.98
+      },
+      {
+        "label": "Your turn",
+        "start": 118.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:50:29.130Z"
+  },
+  "identity-and-access-management": {
+    "lessonId": "identity-and-access-management",
+    "courseId": "cyber-security-cloud",
+    "title": "Identity and access management",
+    "durationSeconds": 166.1,
+    "narrationSeconds": 145.08,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__identity-and-access-management.mp4",
+    "name": "Identity and access management — video walkthrough.mp4",
+    "size": 7815722,
+    "poster": {
+      "key": "lessonvideo__identity-and-access-management--poster.jpg",
+      "name": "Identity and access management — poster.jpg",
+      "size": 79211,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 5.9
+      },
+      {
+        "label": "Worked example",
+        "start": 71.3
+      },
+      {
+        "label": "Your turn",
+        "start": 131.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:50:35.119Z"
+  },
+  "network-and-workload-protection": {
+    "lessonId": "network-and-workload-protection",
+    "courseId": "cyber-security-cloud",
+    "title": "Network and workload protection",
+    "durationSeconds": 151.39,
+    "narrationSeconds": 123.17,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__network-and-workload-protection.mp4",
+    "name": "Network and workload protection — video walkthrough.mp4",
+    "size": 6048155,
+    "poster": {
+      "key": "lessonvideo__network-and-workload-protection--poster.jpg",
+      "name": "Network and workload protection — poster.jpg",
+      "size": 80470,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 5.94
+      },
+      {
+        "label": "Worked example",
+        "start": 38.42
+      },
+      {
+        "label": "Your turn",
+        "start": 118.48
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:51:24.093Z"
+  },
+  "data-protection-and-secrets": {
+    "lessonId": "data-protection-and-secrets",
+    "courseId": "cyber-security-cloud",
+    "title": "Data protection and secrets",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 61.83,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__data-protection-and-secrets.mp4",
+    "name": "Data protection and secrets — video walkthrough.mp4",
+    "size": 5108560,
+    "poster": {
+      "key": "lessonvideo__data-protection-and-secrets--poster.jpg",
+      "name": "Data protection and secrets — poster.jpg",
+      "size": 82513,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 19.46
+      },
+      {
+        "label": "Worked example",
+        "start": 58.28
+      },
+      {
+        "label": "Your turn",
+        "start": 96.57
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:51:25.607Z"
+  },
+  "posture-and-infrastructure-as-code": {
+    "lessonId": "posture-and-infrastructure-as-code",
+    "courseId": "cyber-security-cloud",
+    "title": "Cloud security posture and infrastructure as code",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 68.99,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__posture-and-infrastructure-as-code.mp4",
+    "name": "Cloud security posture and infrastructure as code — video walkthrough.mp4",
+    "size": 5227755,
+    "poster": {
+      "key": "lessonvideo__posture-and-infrastructure-as-code--poster.jpg",
+      "name": "Cloud security posture and infrastructure as code — poster.jpg",
+      "size": 91308,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 18.88
+      },
+      {
+        "label": "Worked example",
+        "start": 57.09
+      },
+      {
+        "label": "Your turn",
+        "start": 102.25
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:52:15.115Z"
+  },
+  "cloud-detection-and-response": {
+    "lessonId": "cloud-detection-and-response",
+    "courseId": "cyber-security-cloud",
+    "title": "Cloud detection and incident response",
+    "durationSeconds": 176.61,
+    "narrationSeconds": 155.59,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__cloud-detection-and-response.mp4",
+    "name": "Cloud detection and incident response — video walkthrough.mp4",
+    "size": 6941613,
+    "poster": {
+      "key": "lessonvideo__cloud-detection-and-response--poster.jpg",
+      "name": "Cloud detection and incident response — poster.jpg",
+      "size": 83693,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.31
+      },
+      {
+        "label": "Worked example",
+        "start": 34.23
+      },
+      {
+        "label": "Your turn",
+        "start": 145.29
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:52:21.205Z"
+  },
+  "ethical-hacking-and-authorization": {
+    "lessonId": "ethical-hacking-and-authorization",
+    "courseId": "ethical-hacking",
+    "title": "Ethical hacking, authorization and the law",
+    "durationSeconds": 152.36,
+    "narrationSeconds": 131.34,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ethical-hacking-and-authorization.mp4",
+    "name": "Ethical hacking, authorization and the law — video walkthrough.mp4",
+    "size": 6083364,
+    "poster": {
+      "key": "lessonvideo__ethical-hacking-and-authorization--poster.jpg",
+      "name": "Ethical hacking, authorization and the law — poster.jpg",
+      "size": 87089,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.24
+      },
+      {
+        "label": "Worked example",
+        "start": 34.75
+      },
+      {
+        "label": "Your turn",
+        "start": 121.05
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:53:15.747Z"
+  },
+  "reconnaissance-and-surface-mapping": {
+    "lessonId": "reconnaissance-and-surface-mapping",
+    "courseId": "ethical-hacking",
+    "title": "Reconnaissance and mapping the attack surface",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 103.03,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__reconnaissance-and-surface-mapping.mp4",
+    "name": "Reconnaissance and mapping the attack surface — video walkthrough.mp4",
+    "size": 5636488,
+    "poster": {
+      "key": "lessonvideo__reconnaissance-and-surface-mapping--poster.jpg",
+      "name": "Reconnaissance and mapping the attack surface — poster.jpg",
+      "size": 91829,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.38
+      },
+      {
+        "label": "Worked example",
+        "start": 33.07
+      },
+      {
+        "label": "Your turn",
+        "start": 108.6
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:53:11.582Z"
+  },
+  "web-and-system-exploitation": {
+    "lessonId": "web-and-system-exploitation",
+    "courseId": "ethical-hacking",
+    "title": "Exploitation: how weaknesses become access",
+    "durationSeconds": 167.2,
+    "narrationSeconds": 146.18,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__web-and-system-exploitation.mp4",
+    "name": "Exploitation: how weaknesses become access — video walkthrough.mp4",
+    "size": 6492099,
+    "poster": {
+      "key": "lessonvideo__web-and-system-exploitation--poster.jpg",
+      "name": "Exploitation: how weaknesses become access — poster.jpg",
+      "size": 90259,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.43
+      },
+      {
+        "label": "Worked example",
+        "start": 29.17
+      },
+      {
+        "label": "Your turn",
+        "start": 135.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:54:10.457Z"
+  },
+  "reporting-defences-and-career": {
+    "lessonId": "reporting-defences-and-career",
+    "courseId": "ethical-hacking",
+    "title": "Reporting, defence and the security career",
+    "durationSeconds": 151.63,
+    "narrationSeconds": 125.81,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__reporting-defences-and-career.mp4",
+    "name": "Reporting, defence and the security career — video walkthrough.mp4",
+    "size": 5928776,
+    "poster": {
+      "key": "lessonvideo__reporting-defences-and-career--poster.jpg",
+      "name": "Reporting, defence and the security career — poster.jpg",
+      "size": 87801,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.32
+      },
+      {
+        "label": "Worked example",
+        "start": 28.65
+      },
+      {
+        "label": "Your turn",
+        "start": 112.69
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:54:11.147Z"
+  },
+  "what-the-cloud-is": {
+    "lessonId": "what-the-cloud-is",
+    "courseId": "cloud-computing-devops",
+    "title": "What the cloud actually is",
+    "durationSeconds": 154.32,
+    "narrationSeconds": 133.3,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__what-the-cloud-is.mp4",
+    "name": "What the cloud actually is — video walkthrough.mp4",
+    "size": 6254816,
+    "poster": {
+      "key": "lessonvideo__what-the-cloud-is--poster.jpg",
+      "name": "What the cloud actually is — poster.jpg",
+      "size": 82103,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.11
+      },
+      {
+        "label": "Worked example",
+        "start": 32.03
+      },
+      {
+        "label": "Your turn",
+        "start": 121.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:55:04.097Z"
+  },
+  "cloud-native-architecture": {
+    "lessonId": "cloud-native-architecture",
+    "courseId": "cloud-computing-devops",
+    "title": "Cloud-native architecture",
+    "durationSeconds": 150.86,
+    "narrationSeconds": 120.24,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__cloud-native-architecture.mp4",
+    "name": "Cloud-native architecture — video walkthrough.mp4",
+    "size": 5773417,
+    "poster": {
+      "key": "lessonvideo__cloud-native-architecture--poster.jpg",
+      "name": "Cloud-native architecture — poster.jpg",
+      "size": 80865,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.2
+      },
+      {
+        "label": "Worked example",
+        "start": 30.28
+      },
+      {
+        "label": "Your turn",
+        "start": 116.14
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:55:05.648Z"
+  },
+  "containers-and-infrastructure-as-code": {
+    "lessonId": "containers-and-infrastructure-as-code",
+    "courseId": "cloud-computing-devops",
+    "title": "Containers and infrastructure as code",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 102.74,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__containers-and-infrastructure-as-code.mp4",
+    "name": "Containers and infrastructure as code — video walkthrough.mp4",
+    "size": 5827121,
+    "poster": {
+      "key": "lessonvideo__containers-and-infrastructure-as-code--poster.jpg",
+      "name": "Containers and infrastructure as code — poster.jpg",
+      "size": 82678,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.31
+      },
+      {
+        "label": "Worked example",
+        "start": 41.91
+      },
+      {
+        "label": "Your turn",
+        "start": 107.84
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:55:55.697Z"
+  },
+  "ci-cd-observability-and-incidents": {
+    "lessonId": "ci-cd-observability-and-incidents",
+    "courseId": "cloud-computing-devops",
+    "title": "CI/CD, observability and incident response",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 108.7,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ci-cd-observability-and-incidents.mp4",
+    "name": "CI/CD, observability and incident response — video walkthrough.mp4",
+    "size": 5556791,
+    "poster": {
+      "key": "lessonvideo__ci-cd-observability-and-incidents--poster.jpg",
+      "name": "CI/CD, observability and incident response — poster.jpg",
+      "size": 87521,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.9
+      },
+      {
+        "label": "Worked example",
+        "start": 34.09
+      },
+      {
+        "label": "Your turn",
+        "start": 108.4
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:55:56.772Z"
+  },
+  "the-analyst-workflow": {
+    "lessonId": "the-analyst-workflow",
+    "courseId": "data-science-analytics",
+    "title": "The data analyst's workflow",
+    "durationSeconds": 150.3,
+    "narrationSeconds": 129.28,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__the-analyst-workflow.mp4",
+    "name": "The data analyst's workflow — video walkthrough.mp4",
+    "size": 5750307,
+    "poster": {
+      "key": "lessonvideo__the-analyst-workflow--poster.jpg",
+      "name": "The data analyst's workflow — poster.jpg",
+      "size": 81262,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 5.98
+      },
+      {
+        "label": "Worked example",
+        "start": 27.43
+      },
+      {
+        "label": "Your turn",
+        "start": 114.83
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:56:50.588Z"
+  },
+  "cleaning-and-preparing-data": {
+    "lessonId": "cleaning-and-preparing-data",
+    "courseId": "data-science-analytics",
+    "title": "Cleaning and preparing data",
+    "durationSeconds": 150.42,
+    "narrationSeconds": 122.2,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__cleaning-and-preparing-data.mp4",
+    "name": "Cleaning and preparing data — video walkthrough.mp4",
+    "size": 5911199,
+    "poster": {
+      "key": "lessonvideo__cleaning-and-preparing-data--poster.jpg",
+      "name": "Cleaning and preparing data — poster.jpg",
+      "size": 83827,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.15
+      },
+      {
+        "label": "Worked example",
+        "start": 37.02
+      },
+      {
+        "label": "Your turn",
+        "start": 112.46
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:56:50.444Z"
+  },
+  "describing-and-visualising-data": {
+    "lessonId": "describing-and-visualising-data",
+    "courseId": "data-science-analytics",
+    "title": "Describing and visualising data",
+    "durationSeconds": 154.38,
+    "narrationSeconds": 133.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__describing-and-visualising-data.mp4",
+    "name": "Describing and visualising data — video walkthrough.mp4",
+    "size": 6224841,
+    "poster": {
+      "key": "lessonvideo__describing-and-visualising-data--poster.jpg",
+      "name": "Describing and visualising data — poster.jpg",
+      "size": 82354,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.56
+      },
+      {
+        "label": "Worked example",
+        "start": 29.91
+      },
+      {
+        "label": "Your turn",
+        "start": 121.4
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:57:45.073Z"
+  },
+  "from-analysis-to-decision": {
+    "lessonId": "from-analysis-to-decision",
+    "courseId": "data-science-analytics",
+    "title": "From analysis to decisions",
+    "durationSeconds": 150.38,
+    "narrationSeconds": 116.56,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__from-analysis-to-decision.mp4",
+    "name": "From analysis to decisions — video walkthrough.mp4",
+    "size": 5743728,
+    "poster": {
+      "key": "lessonvideo__from-analysis-to-decision--poster.jpg",
+      "name": "From analysis to decisions — poster.jpg",
+      "size": 82599,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 5.93
+      },
+      {
+        "label": "Worked example",
+        "start": 25.89
+      },
+      {
+        "label": "Your turn",
+        "start": 113.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:57:44.566Z"
+  },
+  "how-people-use-interfaces": {
+    "lessonId": "how-people-use-interfaces",
+    "courseId": "human-computer-interaction",
+    "title": "How people actually use interfaces",
+    "durationSeconds": 151.74,
+    "narrationSeconds": 130.72,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__how-people-use-interfaces.mp4",
+    "name": "How people actually use interfaces — video walkthrough.mp4",
+    "size": 5626811,
+    "poster": {
+      "key": "lessonvideo__how-people-use-interfaces--poster.jpg",
+      "name": "How people actually use interfaces — poster.jpg",
+      "size": 77298,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.54
+      },
+      {
+        "label": "Worked example",
+        "start": 28.48
+      },
+      {
+        "label": "Your turn",
+        "start": 122.36
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:58:38.484Z"
+  },
+  "interaction-design-process": {
+    "lessonId": "interaction-design-process",
+    "courseId": "human-computer-interaction",
+    "title": "The interaction design process",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 114.31,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__interaction-design-process.mp4",
+    "name": "The interaction design process — video walkthrough.mp4",
+    "size": 5145522,
+    "poster": {
+      "key": "lessonvideo__interaction-design-process--poster.jpg",
+      "name": "The interaction design process — poster.jpg",
+      "size": 81541,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.76
+      },
+      {
+        "label": "Worked example",
+        "start": 24.42
+      },
+      {
+        "label": "Your turn",
+        "start": 115.37
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:58:39.064Z"
+  },
+  "accessibility-as-engineering": {
+    "lessonId": "accessibility-as-engineering",
+    "courseId": "human-computer-interaction",
+    "title": "Accessibility as engineering",
+    "durationSeconds": 158.97,
+    "narrationSeconds": 137.95,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__accessibility-as-engineering.mp4",
+    "name": "Accessibility as engineering — video walkthrough.mp4",
+    "size": 5307352,
+    "poster": {
+      "key": "lessonvideo__accessibility-as-engineering--poster.jpg",
+      "name": "Accessibility as engineering — poster.jpg",
+      "size": 81442,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.13
+      },
+      {
+        "label": "Worked example",
+        "start": 28.75
+      },
+      {
+        "label": "Your turn",
+        "start": 125.19
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:59:34.108Z"
+  },
+  "mobile-first-and-low-bandwidth-design": {
+    "lessonId": "mobile-first-and-low-bandwidth-design",
+    "courseId": "human-computer-interaction",
+    "title": "Mobile-first and low-bandwidth design",
+    "durationSeconds": 152.22,
+    "narrationSeconds": 124,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__mobile-first-and-low-bandwidth-design.mp4",
+    "name": "Mobile-first and low-bandwidth design — video walkthrough.mp4",
+    "size": 5885812,
+    "poster": {
+      "key": "lessonvideo__mobile-first-and-low-bandwidth-design--poster.jpg",
+      "name": "Mobile-first and low-bandwidth design — poster.jpg",
+      "size": 82154,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.8
+      },
+      {
+        "label": "Worked example",
+        "start": 29.78
+      },
+      {
+        "label": "Your turn",
+        "start": 119.25
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T01:59:33.911Z"
+  },
+  "four-principles-of-design": {
+    "lessonId": "four-principles-of-design",
+    "courseId": "graphic-design",
+    "title": "The four principles: contrast, repetition, alignment, proximity",
+    "durationSeconds": 158.19,
+    "narrationSeconds": 137.17,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__four-principles-of-design.mp4",
+    "name": "The four principles: contrast, repetition, alignment, proximity — video walkthrough.mp4",
+    "size": 6323658,
+    "poster": {
+      "key": "lessonvideo__four-principles-of-design--poster.jpg",
+      "name": "The four principles: contrast, repetition, alignment, proximity — poster.jpg",
+      "size": 89487,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.21
+      },
+      {
+        "label": "Worked example",
+        "start": 35.41
+      },
+      {
+        "label": "Your turn",
+        "start": 124.57
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:00:30.002Z"
+  },
+  "typography-and-layout": {
+    "lessonId": "typography-and-layout",
+    "courseId": "graphic-design",
+    "title": "Typography and layout",
+    "durationSeconds": 151.13,
+    "narrationSeconds": 127.71,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__typography-and-layout.mp4",
+    "name": "Typography and layout — video walkthrough.mp4",
+    "size": 5920632,
+    "poster": {
+      "key": "lessonvideo__typography-and-layout--poster.jpg",
+      "name": "Typography and layout — poster.jpg",
+      "size": 78372,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 5.2
+      },
+      {
+        "label": "Worked example",
+        "start": 24.81
+      },
+      {
+        "label": "Your turn",
+        "start": 115.63
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:00:29.000Z"
+  },
+  "colour-modes-and-file-formats": {
+    "lessonId": "colour-modes-and-file-formats",
+    "courseId": "graphic-design",
+    "title": "Colour modes, resolution and file formats",
+    "durationSeconds": 150.87,
+    "narrationSeconds": 125.05,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__colour-modes-and-file-formats.mp4",
+    "name": "Colour modes, resolution and file formats — video walkthrough.mp4",
+    "size": 5752029,
+    "poster": {
+      "key": "lessonvideo__colour-modes-and-file-formats--poster.jpg",
+      "name": "Colour modes, resolution and file formats — poster.jpg",
+      "size": 85864,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.34
+      },
+      {
+        "label": "Worked example",
+        "start": 26.49
+      },
+      {
+        "label": "Your turn",
+        "start": 113.9
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:01:23.729Z"
+  },
+  "design-workflow-and-freelancing": {
+    "lessonId": "design-workflow-and-freelancing",
+    "courseId": "graphic-design",
+    "title": "A design workflow, and getting paid for it",
+    "durationSeconds": 154.69,
+    "narrationSeconds": 133.67,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__design-workflow-and-freelancing.mp4",
+    "name": "A design workflow, and getting paid for it — video walkthrough.mp4",
+    "size": 6339571,
+    "poster": {
+      "key": "lessonvideo__design-workflow-and-freelancing--poster.jpg",
+      "name": "A design workflow, and getting paid for it — poster.jpg",
+      "size": 85091,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.27
+      },
+      {
+        "label": "Worked example",
+        "start": 35.13
+      },
+      {
+        "label": "Your turn",
+        "start": 120.6
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:01:24.106Z"
+  },
+  "from-brief-to-wireframe": {
+    "lessonId": "from-brief-to-wireframe",
+    "courseId": "web-designing",
+    "title": "From brief to wireframe",
+    "durationSeconds": 154.22,
+    "narrationSeconds": 133.2,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__from-brief-to-wireframe.mp4",
+    "name": "From brief to wireframe — video walkthrough.mp4",
+    "size": 6172674,
+    "poster": {
+      "key": "lessonvideo__from-brief-to-wireframe--poster.jpg",
+      "name": "From brief to wireframe — poster.jpg",
+      "size": 79662,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 4.96
+      },
+      {
+        "label": "Worked example",
+        "start": 28.88
+      },
+      {
+        "label": "Your turn",
+        "start": 121.08
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:02:19.283Z"
+  },
+  "visual-design-for-screens": {
+    "lessonId": "visual-design-for-screens",
+    "courseId": "web-designing",
+    "title": "Visual design for screens",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 110.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__visual-design-for-screens.mp4",
+    "name": "Visual design for screens — video walkthrough.mp4",
+    "size": 5602871,
+    "poster": {
+      "key": "lessonvideo__visual-design-for-screens--poster.jpg",
+      "name": "Visual design for screens — poster.jpg",
+      "size": 81013,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.78
+      },
+      {
+        "label": "Worked example",
+        "start": 30.84
+      },
+      {
+        "label": "Your turn",
+        "start": 109.57
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:02:15.960Z"
+  },
+  "handover-development-and-seo": {
+    "lessonId": "handover-development-and-seo",
+    "courseId": "web-designing",
+    "title": "Handover, development and being found",
+    "durationSeconds": 152.04,
+    "narrationSeconds": 121.42,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__handover-development-and-seo.mp4",
+    "name": "Handover, development and being found — video walkthrough.mp4",
+    "size": 5883611,
+    "poster": {
+      "key": "lessonvideo__handover-development-and-seo--poster.jpg",
+      "name": "Handover, development and being found — poster.jpg",
+      "size": 86896,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.06
+      },
+      {
+        "label": "Worked example",
+        "start": 27.97
+      },
+      {
+        "label": "Your turn",
+        "start": 114.83
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:03:08.843Z"
+  },
+  "clients-pricing-and-portfolio": {
+    "lessonId": "clients-pricing-and-portfolio",
+    "courseId": "web-designing",
+    "title": "Clients, pricing and a portfolio that gets work",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 111.18,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__clients-pricing-and-portfolio.mp4",
+    "name": "Clients, pricing and a portfolio that gets work — video walkthrough.mp4",
+    "size": 5495902,
+    "poster": {
+      "key": "lessonvideo__clients-pricing-and-portfolio--poster.jpg",
+      "name": "Clients, pricing and a portfolio that gets work — poster.jpg",
+      "size": 88935,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.96
+      },
+      {
+        "label": "Worked example",
+        "start": 25.54
+      },
+      {
+        "label": "Your turn",
+        "start": 108.6
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:03:11.249Z"
+  },
+  "what-a-network-is": {
+    "lessonId": "what-a-network-is",
+    "courseId": "computer-networking",
+    "title": "What a network is",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 109.71,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__what-a-network-is.mp4",
+    "name": "What a network is — video walkthrough.mp4",
+    "size": 5564781,
+    "poster": {
+      "key": "lessonvideo__what-a-network-is--poster.jpg",
+      "name": "What a network is — poster.jpg",
+      "size": 75207,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.65
+      },
+      {
+        "label": "Worked example",
+        "start": 36.78
+      },
+      {
+        "label": "Your turn",
+        "start": 114.53
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:04:08.789Z"
+  },
+  "addresses-and-names": {
+    "lessonId": "addresses-and-names",
+    "courseId": "computer-networking",
+    "title": "Addresses and names: IP, MAC and DNS",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 109.61,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__addresses-and-names.mp4",
+    "name": "Addresses and names: IP, MAC and DNS — video walkthrough.mp4",
+    "size": 5228612,
+    "poster": {
+      "key": "lessonvideo__addresses-and-names--poster.jpg",
+      "name": "Addresses and names: IP, MAC and DNS — poster.jpg",
+      "size": 83573,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.74
+      },
+      {
+        "label": "Worked example",
+        "start": 31.58
+      },
+      {
+        "label": "Your turn",
+        "start": 116.12
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:04:08.451Z"
+  },
+  "packets-ports-and-protocols": {
+    "lessonId": "packets-ports-and-protocols",
+    "courseId": "computer-networking",
+    "title": "Packets, ports and protocols",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 110.92,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__packets-ports-and-protocols.mp4",
+    "name": "Packets, ports and protocols — video walkthrough.mp4",
+    "size": 5592622,
+    "poster": {
+      "key": "lessonvideo__packets-ports-and-protocols--poster.jpg",
+      "name": "Packets, ports and protocols — poster.jpg",
+      "size": 81872,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.45
+      },
+      {
+        "label": "Worked example",
+        "start": 34.69
+      },
+      {
+        "label": "Your turn",
+        "start": 113.39
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:05:00.412Z"
+  },
+  "building-and-fixing-a-network": {
+    "lessonId": "building-and-fixing-a-network",
+    "courseId": "computer-networking",
+    "title": "Building and fixing a small network",
+    "durationSeconds": 153.93,
+    "narrationSeconds": 132.91,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__building-and-fixing-a-network.mp4",
+    "name": "Building and fixing a small network — video walkthrough.mp4",
+    "size": 5886933,
+    "poster": {
+      "key": "lessonvideo__building-and-fixing-a-network--poster.jpg",
+      "name": "Building and fixing a small network — poster.jpg",
+      "size": 79666,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.2
+      },
+      {
+        "label": "Worked example",
+        "start": 28.62
+      },
+      {
+        "label": "Your turn",
+        "start": 122.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:05:01.204Z"
+  },
+  "layered-architecture": {
+    "lessonId": "layered-architecture",
+    "courseId": "computer-networks-architecture",
+    "title": "The layered architecture of networks",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 97.15,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__layered-architecture.mp4",
+    "name": "The layered architecture of networks — video walkthrough.mp4",
+    "size": 5181107,
+    "poster": {
+      "key": "lessonvideo__layered-architecture--poster.jpg",
+      "name": "The layered architecture of networks — poster.jpg",
+      "size": 84011,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 11.52
+      },
+      {
+        "label": "Worked example",
+        "start": 37.12
+      },
+      {
+        "label": "Your turn",
+        "start": 110.01
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:05:53.558Z"
+  },
+  "routing-and-switching-internals": {
+    "lessonId": "routing-and-switching-internals",
+    "courseId": "computer-networks-architecture",
+    "title": "Routing and switching internals",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 107.39,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__routing-and-switching-internals.mp4",
+    "name": "Routing and switching internals — video walkthrough.mp4",
+    "size": 5743691,
+    "poster": {
+      "key": "lessonvideo__routing-and-switching-internals--poster.jpg",
+      "name": "Routing and switching internals — poster.jpg",
+      "size": 81490,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.89
+      },
+      {
+        "label": "Worked example",
+        "start": 31.2
+      },
+      {
+        "label": "Your turn",
+        "start": 108.01
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:05:52.463Z"
+  },
+  "subnetting-and-redundancy": {
+    "lessonId": "subnetting-and-redundancy",
+    "courseId": "computer-networks-architecture",
+    "title": "Subnetting, segmentation and redundancy",
+    "durationSeconds": 151.39,
+    "narrationSeconds": 127.97,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__subnetting-and-redundancy.mp4",
+    "name": "Subnetting, segmentation and redundancy — video walkthrough.mp4",
+    "size": 6083931,
+    "poster": {
+      "key": "lessonvideo__subnetting-and-redundancy--poster.jpg",
+      "name": "Subnetting, segmentation and redundancy — poster.jpg",
+      "size": 87335,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.38
+      },
+      {
+        "label": "Worked example",
+        "start": 27.91
+      },
+      {
+        "label": "Your turn",
+        "start": 115.75
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:06:43.764Z"
+  },
+  "network-performance-and-observability": {
+    "lessonId": "network-performance-and-observability",
+    "courseId": "computer-networks-architecture",
+    "title": "Network performance, monitoring and failure",
+    "durationSeconds": 151.66,
+    "narrationSeconds": 128.24,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__network-performance-and-observability.mp4",
+    "name": "Network performance, monitoring and failure — video walkthrough.mp4",
+    "size": 6064278,
+    "poster": {
+      "key": "lessonvideo__network-performance-and-observability--poster.jpg",
+      "name": "Network performance, monitoring and failure — poster.jpg",
+      "size": 89177,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.34
+      },
+      {
+        "label": "Worked example",
+        "start": 30.19
+      },
+      {
+        "label": "Your turn",
+        "start": 116.87
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:06:45.795Z"
+  },
+  "parts-of-a-computer": {
+    "lessonId": "parts-of-a-computer",
+    "courseId": "computer-basics-bcc",
+    "title": "Parts of a computer and how to start one safely",
+    "durationSeconds": 158.42,
+    "narrationSeconds": 137.4,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__parts-of-a-computer.mp4",
+    "name": "Parts of a computer and how to start one safely — video walkthrough.mp4",
+    "size": 6197244,
+    "poster": {
+      "key": "lessonvideo__parts-of-a-computer--poster.jpg",
+      "name": "Parts of a computer and how to start one safely — poster.jpg",
+      "size": 89594,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.03
+      },
+      {
+        "label": "Worked example",
+        "start": 30.13
+      },
+      {
+        "label": "Your turn",
+        "start": 124.26
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:07:40.808Z"
+  },
+  "desktop-files-and-mouse": {
+    "lessonId": "desktop-files-and-mouse",
+    "courseId": "computer-basics-bcc",
+    "title": "The desktop, files, folders and the mouse",
+    "durationSeconds": 151.37,
+    "narrationSeconds": 117.55,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__desktop-files-and-mouse.mp4",
+    "name": "The desktop, files, folders and the mouse — video walkthrough.mp4",
+    "size": 5732592,
+    "poster": {
+      "key": "lessonvideo__desktop-files-and-mouse--poster.jpg",
+      "name": "The desktop, files, folders and the mouse — poster.jpg",
+      "size": 85322,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.9
+      },
+      {
+        "label": "Worked example",
+        "start": 28.46
+      },
+      {
+        "label": "Your turn",
+        "start": 114.13
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:07:38.833Z"
+  },
+  "internet-and-email-basics": {
+    "lessonId": "internet-and-email-basics",
+    "courseId": "computer-basics-bcc",
+    "title": "The internet, browsing and email",
+    "durationSeconds": 178.17,
+    "narrationSeconds": 157.15,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__internet-and-email-basics.mp4",
+    "name": "The internet, browsing and email — video walkthrough.mp4",
+    "size": 7127702,
+    "poster": {
+      "key": "lessonvideo__internet-and-email-basics--poster.jpg",
+      "name": "The internet, browsing and email — poster.jpg",
+      "size": 82034,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.94
+      },
+      {
+        "label": "Worked example",
+        "start": 29.07
+      },
+      {
+        "label": "Your turn",
+        "start": 144.45
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:08:36.966Z"
+  },
+  "safety-maintenance-and-good-habits": {
+    "lessonId": "safety-maintenance-and-good-habits",
+    "courseId": "computer-basics-bcc",
+    "title": "Safety, maintenance and good habits",
+    "durationSeconds": 150.45,
+    "narrationSeconds": 127.03,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__safety-maintenance-and-good-habits.mp4",
+    "name": "Safety, maintenance and good habits — video walkthrough.mp4",
+    "size": 5867465,
+    "poster": {
+      "key": "lessonvideo__safety-maintenance-and-good-habits--poster.jpg",
+      "name": "Safety, maintenance and good habits — poster.jpg",
+      "size": 85689,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.38
+      },
+      {
+        "label": "Worked example",
+        "start": 26.42
+      },
+      {
+        "label": "Your turn",
+        "start": 113.11
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:08:33.410Z"
+  },
+  "word-professional-documents": {
+    "lessonId": "word-professional-documents",
+    "courseId": "microsoft-office",
+    "title": "Word: professional documents",
+    "durationSeconds": 155.21,
+    "narrationSeconds": 134.19,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__word-professional-documents.mp4",
+    "name": "Word: professional documents — video walkthrough.mp4",
+    "size": 6232606,
+    "poster": {
+      "key": "lessonvideo__word-professional-documents--poster.jpg",
+      "name": "Word: professional documents — poster.jpg",
+      "size": 86513,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 5.86
+      },
+      {
+        "label": "Worked example",
+        "start": 29.7
+      },
+      {
+        "label": "Your turn",
+        "start": 121.46
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:09:31.002Z"
+  },
+  "excel-spreadsheets-that-work": {
+    "lessonId": "excel-spreadsheets-that-work",
+    "courseId": "microsoft-office",
+    "title": "Excel: spreadsheets that stay correct",
+    "durationSeconds": 156.78,
+    "narrationSeconds": 135.76,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__excel-spreadsheets-that-work.mp4",
+    "name": "Excel: spreadsheets that stay correct — video walkthrough.mp4",
+    "size": 6140918,
+    "poster": {
+      "key": "lessonvideo__excel-spreadsheets-that-work--poster.jpg",
+      "name": "Excel: spreadsheets that stay correct — poster.jpg",
+      "size": 85332,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.17
+      },
+      {
+        "label": "Worked example",
+        "start": 28.62
+      },
+      {
+        "label": "Your turn",
+        "start": 121.33
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:09:31.465Z"
+  },
+  "powerpoint-presentations": {
+    "lessonId": "powerpoint-presentations",
+    "courseId": "microsoft-office",
+    "title": "PowerPoint: presentations that work",
+    "durationSeconds": 152.22,
+    "narrationSeconds": 124,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__powerpoint-presentations.mp4",
+    "name": "PowerPoint: presentations that work — video walkthrough.mp4",
+    "size": 6004103,
+    "poster": {
+      "key": "lessonvideo__powerpoint-presentations--poster.jpg",
+      "name": "PowerPoint: presentations that work — poster.jpg",
+      "size": 84918,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.29
+      },
+      {
+        "label": "Worked example",
+        "start": 26.55
+      },
+      {
+        "label": "Your turn",
+        "start": 114.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:10:22.802Z"
+  },
+  "collaboration-and-shared-files": {
+    "lessonId": "collaboration-and-shared-files",
+    "courseId": "microsoft-office",
+    "title": "Collaboration: files, email and shared work",
+    "durationSeconds": 154.43,
+    "narrationSeconds": 133.41,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__collaboration-and-shared-files.mp4",
+    "name": "Collaboration: files, email and shared work — video walkthrough.mp4",
+    "size": 6113595,
+    "poster": {
+      "key": "lessonvideo__collaboration-and-shared-files--poster.jpg",
+      "name": "Collaboration: files, email and shared work — poster.jpg",
+      "size": 88037,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.73
+      },
+      {
+        "label": "Worked example",
+        "start": 30.86
+      },
+      {
+        "label": "Your turn",
+        "start": 117.71
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:10:23.946Z"
+  },
+  "paradigms-and-properties": {
+    "lessonId": "paradigms-and-properties",
+    "courseId": "programming-languages",
+    "title": "Paradigms and properties: how languages differ",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 114.29,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__paradigms-and-properties.mp4",
+    "name": "Paradigms and properties: how languages differ — video walkthrough.mp4",
+    "size": 5520271,
+    "poster": {
+      "key": "lessonvideo__paradigms-and-properties--poster.jpg",
+      "name": "Paradigms and properties: how languages differ — poster.jpg",
+      "size": 91255,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.57
+      },
+      {
+        "label": "Worked example",
+        "start": 29.13
+      },
+      {
+        "label": "Your turn",
+        "start": 114.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:17:35.282Z"
+  },
+  "how-languages-run": {
+    "lessonId": "how-languages-run",
+    "courseId": "programming-languages",
+    "title": "How languages actually run",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 100.73,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__how-languages-run.mp4",
+    "name": "How languages actually run — video walkthrough.mp4",
+    "size": 5230421,
+    "poster": {
+      "key": "lessonvideo__how-languages-run--poster.jpg",
+      "name": "How languages actually run — poster.jpg",
+      "size": 81603,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 9.58
+      },
+      {
+        "label": "Worked example",
+        "start": 34.77
+      },
+      {
+        "label": "Your turn",
+        "start": 112.25
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:17:35.377Z"
+  },
+  "reading-code-and-comparing-languages": {
+    "lessonId": "reading-code-and-comparing-languages",
+    "courseId": "programming-languages",
+    "title": "Reading code and comparing languages",
+    "durationSeconds": 150.46,
+    "narrationSeconds": 116.64,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__reading-code-and-comparing-languages.mp4",
+    "name": "Reading code and comparing languages — video walkthrough.mp4",
+    "size": 5584468,
+    "poster": {
+      "key": "lessonvideo__reading-code-and-comparing-languages--poster.jpg",
+      "name": "Reading code and comparing languages — poster.jpg",
+      "size": 84500,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 6.35
+      },
+      {
+        "label": "Worked example",
+        "start": 28.91
+      },
+      {
+        "label": "Your turn",
+        "start": 115.85
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:18:31.070Z"
+  },
+  "learning-a-new-language": {
+    "lessonId": "learning-a-new-language",
+    "courseId": "programming-languages",
+    "title": "Learning a new language",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 106.89,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__learning-a-new-language.mp4",
+    "name": "Learning a new language — video walkthrough.mp4",
+    "size": 5714411,
+    "poster": {
+      "key": "lessonvideo__learning-a-new-language--poster.jpg",
+      "name": "Learning a new language — poster.jpg",
+      "size": 82440,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.7
+      },
+      {
+        "label": "Worked example",
+        "start": 33.31
+      },
+      {
+        "label": "Your turn",
+        "start": 110.26
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:18:31.000Z"
+  },
+  "survey-programming-01-python": {
+    "lessonId": "survey-programming-01-python",
+    "courseId": "programming-languages",
+    "title": "Python",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.55,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-01-python.mp4",
+    "name": "Python — video walkthrough.mp4",
+    "size": 2592937,
+    "poster": {
+      "key": "lessonvideo__survey-programming-01-python--poster.jpg",
+      "name": "Python — poster.jpg",
+      "size": 40927,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.59
+      },
+      {
+        "label": "Worked example",
+        "start": 54.18
+      },
+      {
+        "label": "Your turn",
+        "start": 102.61
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:19:21.969Z"
+  },
+  "survey-programming-02-javascript": {
+    "lessonId": "survey-programming-02-javascript",
+    "courseId": "programming-languages",
+    "title": "JavaScript",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.14,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-02-javascript.mp4",
+    "name": "JavaScript — video walkthrough.mp4",
+    "size": 2366465,
+    "poster": {
+      "key": "lessonvideo__survey-programming-02-javascript--poster.jpg",
+      "name": "JavaScript — poster.jpg",
+      "size": 43765,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.28
+      },
+      {
+        "label": "Worked example",
+        "start": 57.27
+      },
+      {
+        "label": "Your turn",
+        "start": 103.5
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:19:21.853Z"
+  },
+  "survey-programming-03-typescript": {
+    "lessonId": "survey-programming-03-typescript",
+    "courseId": "programming-languages",
+    "title": "TypeScript",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 37.64,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-03-typescript.mp4",
+    "name": "TypeScript — video walkthrough.mp4",
+    "size": 2794246,
+    "poster": {
+      "key": "lessonvideo__survey-programming-03-typescript--poster.jpg",
+      "name": "TypeScript — poster.jpg",
+      "size": 43745,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.64
+      },
+      {
+        "label": "Worked example",
+        "start": 51.41
+      },
+      {
+        "label": "Your turn",
+        "start": 104
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:20:11.933Z"
+  },
+  "survey-programming-04-java": {
+    "lessonId": "survey-programming-04-java",
+    "courseId": "programming-languages",
+    "title": "Java",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.21,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-04-java.mp4",
+    "name": "Java — video walkthrough.mp4",
+    "size": 2437326,
+    "poster": {
+      "key": "lessonvideo__survey-programming-04-java--poster.jpg",
+      "name": "Java — poster.jpg",
+      "size": 39012,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.62
+      },
+      {
+        "label": "Worked example",
+        "start": 56.72
+      },
+      {
+        "label": "Your turn",
+        "start": 103.66
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:20:12.252Z"
+  },
+  "survey-programming-05-c": {
+    "lessonId": "survey-programming-05-c",
+    "courseId": "programming-languages",
+    "title": "C",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-05-c.mp4",
+    "name": "C — video walkthrough.mp4",
+    "size": 2455424,
+    "poster": {
+      "key": "lessonvideo__survey-programming-05-c--poster.jpg",
+      "name": "C — poster.jpg",
+      "size": 35250,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.51
+      },
+      {
+        "label": "Worked example",
+        "start": 56.26
+      },
+      {
+        "label": "Your turn",
+        "start": 102.69
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:21:04.070Z"
+  },
+  "survey-programming-06-c-plus-plus": {
+    "lessonId": "survey-programming-06-c-plus-plus",
+    "courseId": "programming-languages",
+    "title": "C++",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.53,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-06-c-plus-plus.mp4",
+    "name": "C++ — video walkthrough.mp4",
+    "size": 2536743,
+    "poster": {
+      "key": "lessonvideo__survey-programming-06-c-plus-plus--poster.jpg",
+      "name": "C++ — poster.jpg",
+      "size": 38504,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.88
+      },
+      {
+        "label": "Worked example",
+        "start": 56.8
+      },
+      {
+        "label": "Your turn",
+        "start": 102.38
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:21:03.624Z"
+  },
+  "survey-programming-07-c-sharp": {
+    "lessonId": "survey-programming-07-c-sharp",
+    "courseId": "programming-languages",
+    "title": "C#",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.85,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-07-c-sharp.mp4",
+    "name": "C# — video walkthrough.mp4",
+    "size": 2327596,
+    "poster": {
+      "key": "lessonvideo__survey-programming-07-c-sharp--poster.jpg",
+      "name": "C# — poster.jpg",
+      "size": 36511,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.02
+      },
+      {
+        "label": "Worked example",
+        "start": 56.33
+      },
+      {
+        "label": "Your turn",
+        "start": 102.95
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:21:54.718Z"
+  },
+  "survey-programming-08-go": {
+    "lessonId": "survey-programming-08-go",
+    "courseId": "programming-languages",
+    "title": "Go",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.83,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-08-go.mp4",
+    "name": "Go — video walkthrough.mp4",
+    "size": 2354896,
+    "poster": {
+      "key": "lessonvideo__survey-programming-08-go--poster.jpg",
+      "name": "Go — poster.jpg",
+      "size": 36269,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.84
+      },
+      {
+        "label": "Worked example",
+        "start": 55.98
+      },
+      {
+        "label": "Your turn",
+        "start": 102.95
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:21:54.073Z"
+  },
+  "survey-programming-09-rust": {
+    "lessonId": "survey-programming-09-rust",
+    "courseId": "programming-languages",
+    "title": "Rust",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.09,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-09-rust.mp4",
+    "name": "Rust — video walkthrough.mp4",
+    "size": 2392109,
+    "poster": {
+      "key": "lessonvideo__survey-programming-09-rust--poster.jpg",
+      "name": "Rust — poster.jpg",
+      "size": 39185,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.75
+      },
+      {
+        "label": "Worked example",
+        "start": 56.09
+      },
+      {
+        "label": "Your turn",
+        "start": 103.03
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:22:45.410Z"
+  },
+  "survey-programming-10-kotlin": {
+    "lessonId": "survey-programming-10-kotlin",
+    "courseId": "programming-languages",
+    "title": "Kotlin",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.85,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-10-kotlin.mp4",
+    "name": "Kotlin — video walkthrough.mp4",
+    "size": 2496823,
+    "poster": {
+      "key": "lessonvideo__survey-programming-10-kotlin--poster.jpg",
+      "name": "Kotlin — poster.jpg",
+      "size": 40318,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.7
+      },
+      {
+        "label": "Worked example",
+        "start": 56.07
+      },
+      {
+        "label": "Your turn",
+        "start": 102.53
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:22:45.668Z"
+  },
+  "survey-programming-11-swift": {
+    "lessonId": "survey-programming-11-swift",
+    "courseId": "programming-languages",
+    "title": "Swift",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 25.47,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-11-swift.mp4",
+    "name": "Swift — video walkthrough.mp4",
+    "size": 2358839,
+    "poster": {
+      "key": "lessonvideo__survey-programming-11-swift--poster.jpg",
+      "name": "Swift — poster.jpg",
+      "size": 40123,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.29
+      },
+      {
+        "label": "Worked example",
+        "start": 56.64
+      },
+      {
+        "label": "Your turn",
+        "start": 102.82
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:23:33.930Z"
+  },
+  "survey-programming-12-php": {
+    "lessonId": "survey-programming-12-php",
+    "courseId": "programming-languages",
+    "title": "PHP",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.34,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-12-php.mp4",
+    "name": "PHP — video walkthrough.mp4",
+    "size": 2555529,
+    "poster": {
+      "key": "lessonvideo__survey-programming-12-php--poster.jpg",
+      "name": "PHP — poster.jpg",
+      "size": 38490,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.53
+      },
+      {
+        "label": "Worked example",
+        "start": 55.32
+      },
+      {
+        "label": "Your turn",
+        "start": 101.55
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:23:36.338Z"
+  },
+  "survey-programming-13-ruby": {
+    "lessonId": "survey-programming-13-ruby",
+    "courseId": "programming-languages",
+    "title": "Ruby",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 24.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-13-ruby.mp4",
+    "name": "Ruby — video walkthrough.mp4",
+    "size": 2269370,
+    "poster": {
+      "key": "lessonvideo__survey-programming-13-ruby--poster.jpg",
+      "name": "Ruby — poster.jpg",
+      "size": 40019,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.53
+      },
+      {
+        "label": "Worked example",
+        "start": 58.28
+      },
+      {
+        "label": "Your turn",
+        "start": 103.11
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:24:24.022Z"
+  },
+  "survey-programming-14-dart": {
+    "lessonId": "survey-programming-14-dart",
+    "courseId": "programming-languages",
+    "title": "Dart",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.04,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-14-dart.mp4",
+    "name": "Dart — video walkthrough.mp4",
+    "size": 2471860,
+    "poster": {
+      "key": "lessonvideo__survey-programming-14-dart--poster.jpg",
+      "name": "Dart — poster.jpg",
+      "size": 38959,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.81
+      },
+      {
+        "label": "Worked example",
+        "start": 56.17
+      },
+      {
+        "label": "Your turn",
+        "start": 101.81
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:24:27.128Z"
+  },
+  "survey-programming-15-r": {
+    "lessonId": "survey-programming-15-r",
+    "courseId": "programming-languages",
+    "title": "R",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.33,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-15-r.mp4",
+    "name": "R — video walkthrough.mp4",
+    "size": 2459154,
+    "poster": {
+      "key": "lessonvideo__survey-programming-15-r--poster.jpg",
+      "name": "R — poster.jpg",
+      "size": 35303,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.89
+      },
+      {
+        "label": "Worked example",
+        "start": 56.03
+      },
+      {
+        "label": "Your turn",
+        "start": 101.41
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:25:13.611Z"
+  },
+  "survey-programming-16-scala": {
+    "lessonId": "survey-programming-16-scala",
+    "courseId": "programming-languages",
+    "title": "Scala",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 25.03,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-16-scala.mp4",
+    "name": "Scala — video walkthrough.mp4",
+    "size": 2309741,
+    "poster": {
+      "key": "lessonvideo__survey-programming-16-scala--poster.jpg",
+      "name": "Scala — poster.jpg",
+      "size": 39919,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.41
+      },
+      {
+        "label": "Worked example",
+        "start": 56.4
+      },
+      {
+        "label": "Your turn",
+        "start": 102.69
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:25:16.414Z"
+  },
+  "survey-programming-17-sql": {
+    "lessonId": "survey-programming-17-sql",
+    "courseId": "programming-languages",
+    "title": "SQL",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 40.07,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-17-sql.mp4",
+    "name": "SQL — video walkthrough.mp4",
+    "size": 3302609,
+    "poster": {
+      "key": "lessonvideo__survey-programming-17-sql--poster.jpg",
+      "name": "SQL — poster.jpg",
+      "size": 39014,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 23.77
+      },
+      {
+        "label": "Worked example",
+        "start": 51.42
+      },
+      {
+        "label": "Your turn",
+        "start": 98.4
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:26:04.450Z"
+  },
+  "survey-programming-18-shell-bash": {
+    "lessonId": "survey-programming-18-shell-bash",
+    "courseId": "programming-languages",
+    "title": "Shell (Bash)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.26,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-18-shell-bash.mp4",
+    "name": "Shell (Bash) — video walkthrough.mp4",
+    "size": 2612583,
+    "poster": {
+      "key": "lessonvideo__survey-programming-18-shell-bash--poster.jpg",
+      "name": "Shell (Bash) — poster.jpg",
+      "size": 44688,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.83
+      },
+      {
+        "label": "Worked example",
+        "start": 55.37
+      },
+      {
+        "label": "Your turn",
+        "start": 101.38
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:26:05.735Z"
+  },
+  "survey-programming-19-objective-c": {
+    "lessonId": "survey-programming-19-objective-c",
+    "courseId": "programming-languages",
+    "title": "Objective-C",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.9,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-19-objective-c.mp4",
+    "name": "Objective-C — video walkthrough.mp4",
+    "size": 2729617,
+    "poster": {
+      "key": "lessonvideo__survey-programming-19-objective-c--poster.jpg",
+      "name": "Objective-C — poster.jpg",
+      "size": 45182,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.36
+      },
+      {
+        "label": "Worked example",
+        "start": 54.66
+      },
+      {
+        "label": "Your turn",
+        "start": 101.24
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:26:56.262Z"
+  },
+  "survey-programming-20-perl": {
+    "lessonId": "survey-programming-20-perl",
+    "courseId": "programming-languages",
+    "title": "Perl",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.04,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-20-perl.mp4",
+    "name": "Perl — video walkthrough.mp4",
+    "size": 2341300,
+    "poster": {
+      "key": "lessonvideo__survey-programming-20-perl--poster.jpg",
+      "name": "Perl — poster.jpg",
+      "size": 38759,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.8
+      },
+      {
+        "label": "Worked example",
+        "start": 56.53
+      },
+      {
+        "label": "Your turn",
+        "start": 103.26
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:26:56.396Z"
+  },
+  "survey-programming-21-lua": {
+    "lessonId": "survey-programming-21-lua",
+    "courseId": "programming-languages",
+    "title": "Lua",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 24.87,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-21-lua.mp4",
+    "name": "Lua — video walkthrough.mp4",
+    "size": 2381091,
+    "poster": {
+      "key": "lessonvideo__survey-programming-21-lua--poster.jpg",
+      "name": "Lua — poster.jpg",
+      "size": 38104,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.31
+      },
+      {
+        "label": "Worked example",
+        "start": 55.52
+      },
+      {
+        "label": "Your turn",
+        "start": 101.61
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:27:47.280Z"
+  },
+  "survey-programming-22-matlab": {
+    "lessonId": "survey-programming-22-matlab",
+    "courseId": "programming-languages",
+    "title": "MATLAB",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.45,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-22-matlab.mp4",
+    "name": "MATLAB — video walkthrough.mp4",
+    "size": 2529058,
+    "poster": {
+      "key": "lessonvideo__survey-programming-22-matlab--poster.jpg",
+      "name": "MATLAB — poster.jpg",
+      "size": 41926,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.82
+      },
+      {
+        "label": "Worked example",
+        "start": 56.54
+      },
+      {
+        "label": "Your turn",
+        "start": 101.92
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:27:46.582Z"
+  },
+  "survey-programming-23-julia": {
+    "lessonId": "survey-programming-23-julia",
+    "courseId": "programming-languages",
+    "title": "Julia",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.27,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-23-julia.mp4",
+    "name": "Julia — video walkthrough.mp4",
+    "size": 2549115,
+    "poster": {
+      "key": "lessonvideo__survey-programming-23-julia--poster.jpg",
+      "name": "Julia — poster.jpg",
+      "size": 38750,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.83
+      },
+      {
+        "label": "Worked example",
+        "start": 56.08
+      },
+      {
+        "label": "Your turn",
+        "start": 101.94
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:28:36.519Z"
+  },
+  "survey-programming-24-elixir": {
+    "lessonId": "survey-programming-24-elixir",
+    "courseId": "programming-languages",
+    "title": "Elixir",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.87,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-24-elixir.mp4",
+    "name": "Elixir — video walkthrough.mp4",
+    "size": 2492526,
+    "poster": {
+      "key": "lessonvideo__survey-programming-24-elixir--poster.jpg",
+      "name": "Elixir — poster.jpg",
+      "size": 39683,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.7
+      },
+      {
+        "label": "Worked example",
+        "start": 55.94
+      },
+      {
+        "label": "Your turn",
+        "start": 101.89
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:28:36.538Z"
+  },
+  "survey-programming-25-haskell": {
+    "lessonId": "survey-programming-25-haskell",
+    "courseId": "programming-languages",
+    "title": "Haskell",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.59,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-25-haskell.mp4",
+    "name": "Haskell — video walkthrough.mp4",
+    "size": 2478355,
+    "poster": {
+      "key": "lessonvideo__survey-programming-25-haskell--poster.jpg",
+      "name": "Haskell — poster.jpg",
+      "size": 41169,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.84
+      },
+      {
+        "label": "Worked example",
+        "start": 55.94
+      },
+      {
+        "label": "Your turn",
+        "start": 102.58
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:29:25.249Z"
+  },
+  "survey-programming-26-clojure": {
+    "lessonId": "survey-programming-26-clojure",
+    "courseId": "programming-languages",
+    "title": "Clojure",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.23,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-26-clojure.mp4",
+    "name": "Clojure — video walkthrough.mp4",
+    "size": 2319906,
+    "poster": {
+      "key": "lessonvideo__survey-programming-26-clojure--poster.jpg",
+      "name": "Clojure — poster.jpg",
+      "size": 41277,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.18
+      },
+      {
+        "label": "Worked example",
+        "start": 56.91
+      },
+      {
+        "label": "Your turn",
+        "start": 103.43
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:29:24.915Z"
+  },
+  "survey-programming-27-f-sharp": {
+    "lessonId": "survey-programming-27-f-sharp",
+    "courseId": "programming-languages",
+    "title": "F#",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.64,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-27-f-sharp.mp4",
+    "name": "F# — video walkthrough.mp4",
+    "size": 2321785,
+    "poster": {
+      "key": "lessonvideo__survey-programming-27-f-sharp--poster.jpg",
+      "name": "F# — poster.jpg",
+      "size": 35937,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.06
+      },
+      {
+        "label": "Worked example",
+        "start": 57.5
+      },
+      {
+        "label": "Your turn",
+        "start": 102.86
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:30:13.613Z"
+  },
+  "survey-programming-28-groovy": {
+    "lessonId": "survey-programming-28-groovy",
+    "courseId": "programming-languages",
+    "title": "Groovy",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.98,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-28-groovy.mp4",
+    "name": "Groovy — video walkthrough.mp4",
+    "size": 2514720,
+    "poster": {
+      "key": "lessonvideo__survey-programming-28-groovy--poster.jpg",
+      "name": "Groovy — poster.jpg",
+      "size": 41280,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.67
+      },
+      {
+        "label": "Worked example",
+        "start": 58.33
+      },
+      {
+        "label": "Your turn",
+        "start": 102.69
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:30:14.227Z"
+  },
+  "survey-programming-29-visual-basic-net": {
+    "lessonId": "survey-programming-29-visual-basic-net",
+    "courseId": "programming-languages",
+    "title": "Visual Basic .NET",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.19,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-29-visual-basic-net.mp4",
+    "name": "Visual Basic .NET — video walkthrough.mp4",
+    "size": 2554525,
+    "poster": {
+      "key": "lessonvideo__survey-programming-29-visual-basic-net--poster.jpg",
+      "name": "Visual Basic .NET — poster.jpg",
+      "size": 47829,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.67
+      },
+      {
+        "label": "Worked example",
+        "start": 57.61
+      },
+      {
+        "label": "Your turn",
+        "start": 102.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:31:04.569Z"
+  },
+  "survey-programming-30-assembly": {
+    "lessonId": "survey-programming-30-assembly",
+    "courseId": "programming-languages",
+    "title": "Assembly",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 39.89,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-programming-30-assembly.mp4",
+    "name": "Assembly — video walkthrough.mp4",
+    "size": 3004751,
+    "poster": {
+      "key": "lessonvideo__survey-programming-30-assembly--poster.jpg",
+      "name": "Assembly — poster.jpg",
+      "size": 43573,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 23.77
+      },
+      {
+        "label": "Worked example",
+        "start": 50.31
+      },
+      {
+        "label": "Your turn",
+        "start": 100.39
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:31:05.225Z"
+  },
+  "survey-mobile-01-swift-for-mobile": {
+    "lessonId": "survey-mobile-01-swift-for-mobile",
+    "courseId": "programming-languages",
+    "title": "Swift for mobile",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.99,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-01-swift-for-mobile.mp4",
+    "name": "Swift for mobile — video walkthrough.mp4",
+    "size": 2726730,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-01-swift-for-mobile--poster.jpg",
+      "name": "Swift for mobile — poster.jpg",
+      "size": 47398,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.05
+      },
+      {
+        "label": "Worked example",
+        "start": 55.08
+      },
+      {
+        "label": "Your turn",
+        "start": 102.59
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:31:54.689Z"
+  },
+  "survey-mobile-02-objective-c-for-mobile": {
+    "lessonId": "survey-mobile-02-objective-c-for-mobile",
+    "courseId": "programming-languages",
+    "title": "Objective-C for mobile",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.72,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-02-objective-c-for-mobile.mp4",
+    "name": "Objective-C for mobile — video walkthrough.mp4",
+    "size": 2909287,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-02-objective-c-for-mobile--poster.jpg",
+      "name": "Objective-C for mobile — poster.jpg",
+      "size": 52945,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.99
+      },
+      {
+        "label": "Worked example",
+        "start": 55.02
+      },
+      {
+        "label": "Your turn",
+        "start": 102.88
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:31:55.732Z"
+  },
+  "survey-mobile-03-kotlin-for-mobile": {
+    "lessonId": "survey-mobile-03-kotlin-for-mobile",
+    "courseId": "programming-languages",
+    "title": "Kotlin for mobile",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.99,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-03-kotlin-for-mobile.mp4",
+    "name": "Kotlin for mobile — video walkthrough.mp4",
+    "size": 2672511,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-03-kotlin-for-mobile--poster.jpg",
+      "name": "Kotlin for mobile — poster.jpg",
+      "size": 47315,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.81
+      },
+      {
+        "label": "Worked example",
+        "start": 55.92
+      },
+      {
+        "label": "Your turn",
+        "start": 102.55
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:32:44.202Z"
+  },
+  "survey-mobile-04-java-for-mobile": {
+    "lessonId": "survey-mobile-04-java-for-mobile",
+    "courseId": "programming-languages",
+    "title": "Java for mobile",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.9,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-04-java-for-mobile.mp4",
+    "name": "Java for mobile — video walkthrough.mp4",
+    "size": 2617289,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-04-java-for-mobile--poster.jpg",
+      "name": "Java for mobile — poster.jpg",
+      "size": 46493,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.25
+      },
+      {
+        "label": "Worked example",
+        "start": 55.15
+      },
+      {
+        "label": "Your turn",
+        "start": 101.38
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:32:44.759Z"
+  },
+  "survey-mobile-05-dart-with-flutter": {
+    "lessonId": "survey-mobile-05-dart-with-flutter",
+    "courseId": "programming-languages",
+    "title": "Dart with Flutter",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.79,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-05-dart-with-flutter.mp4",
+    "name": "Dart with Flutter — video walkthrough.mp4",
+    "size": 2559315,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-05-dart-with-flutter--poster.jpg",
+      "name": "Dart with Flutter — poster.jpg",
+      "size": 47033,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.91
+      },
+      {
+        "label": "Worked example",
+        "start": 55.62
+      },
+      {
+        "label": "Your turn",
+        "start": 102.8
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:33:31.416Z"
+  },
+  "survey-mobile-06-c-sharp-with-xamarin-and-net-maui": {
+    "lessonId": "survey-mobile-06-c-sharp-with-xamarin-and-net-maui",
+    "courseId": "programming-languages",
+    "title": "C# with Xamarin and .NET MAUI",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 35.87,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-06-c-sharp-with-xamarin-and-net-maui.mp4",
+    "name": "C# with Xamarin and .NET MAUI — video walkthrough.mp4",
+    "size": 3056357,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-06-c-sharp-with-xamarin-and-net-maui--poster.jpg",
+      "name": "C# with Xamarin and .NET MAUI — poster.jpg",
+      "size": 55055,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.58
+      },
+      {
+        "label": "Worked example",
+        "start": 55.34
+      },
+      {
+        "label": "Your turn",
+        "start": 102.63
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:33:33.215Z"
+  },
+  "survey-mobile-07-javascript-with-react-native": {
+    "lessonId": "survey-mobile-07-javascript-with-react-native",
+    "courseId": "programming-languages",
+    "title": "JavaScript with React Native",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.49,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-mobile-07-javascript-with-react-native.mp4",
+    "name": "JavaScript with React Native — video walkthrough.mp4",
+    "size": 2902793,
+    "poster": {
+      "key": "lessonvideo__survey-mobile-07-javascript-with-react-native--poster.jpg",
+      "name": "JavaScript with React Native — poster.jpg",
+      "size": 57493,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.65
+      },
+      {
+        "label": "Worked example",
+        "start": 56.41
+      },
+      {
+        "label": "Your turn",
+        "start": 103.39
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:34:20.389Z"
+  },
+  "survey-markup-data-01-html": {
+    "lessonId": "survey-markup-data-01-html",
+    "courseId": "programming-languages",
+    "title": "HTML",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.54,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-01-html.mp4",
+    "name": "HTML — video walkthrough.mp4",
+    "size": 2586376,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-01-html--poster.jpg",
+      "name": "HTML — poster.jpg",
+      "size": 38945,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.34
+      },
+      {
+        "label": "Worked example",
+        "start": 55.64
+      },
+      {
+        "label": "Your turn",
+        "start": 102.29
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:34:21.614Z"
+  },
+  "survey-markup-data-02-xml": {
+    "lessonId": "survey-markup-data-02-xml",
+    "courseId": "programming-languages",
+    "title": "XML",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.34,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-02-xml.mp4",
+    "name": "XML — video walkthrough.mp4",
+    "size": 2430971,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-02-xml--poster.jpg",
+      "name": "XML — poster.jpg",
+      "size": 38965,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.73
+      },
+      {
+        "label": "Worked example",
+        "start": 55.78
+      },
+      {
+        "label": "Your turn",
+        "start": 103.54
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:35:08.148Z"
+  },
+  "survey-markup-data-03-xhtml": {
+    "lessonId": "survey-markup-data-03-xhtml",
+    "courseId": "programming-languages",
+    "title": "XHTML",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.46,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-03-xhtml.mp4",
+    "name": "XHTML — video walkthrough.mp4",
+    "size": 2649471,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-03-xhtml--poster.jpg",
+      "name": "XHTML — poster.jpg",
+      "size": 40815,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.84
+      },
+      {
+        "label": "Worked example",
+        "start": 55.34
+      },
+      {
+        "label": "Your turn",
+        "start": 102.65
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:35:09.758Z"
+  },
+  "survey-markup-data-04-sgml": {
+    "lessonId": "survey-markup-data-04-sgml",
+    "courseId": "programming-languages",
+    "title": "SGML",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.88,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-04-sgml.mp4",
+    "name": "SGML — video walkthrough.mp4",
+    "size": 2774831,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-04-sgml--poster.jpg",
+      "name": "SGML — poster.jpg",
+      "size": 40521,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.4
+      },
+      {
+        "label": "Worked example",
+        "start": 54.44
+      },
+      {
+        "label": "Your turn",
+        "start": 101.99
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:35:58.037Z"
+  },
+  "survey-markup-data-05-markdown": {
+    "lessonId": "survey-markup-data-05-markdown",
+    "courseId": "programming-languages",
+    "title": "Markdown",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.37,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-05-markdown.mp4",
+    "name": "Markdown — video walkthrough.mp4",
+    "size": 2640829,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-05-markdown--poster.jpg",
+      "name": "Markdown — poster.jpg",
+      "size": 43407,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.69
+      },
+      {
+        "label": "Worked example",
+        "start": 56.31
+      },
+      {
+        "label": "Your turn",
+        "start": 101.73
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:35:57.934Z"
+  },
+  "survey-markup-data-06-latex": {
+    "lessonId": "survey-markup-data-06-latex",
+    "courseId": "programming-languages",
+    "title": "LaTeX",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.83,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-06-latex.mp4",
+    "name": "LaTeX — video walkthrough.mp4",
+    "size": 2604961,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-06-latex--poster.jpg",
+      "name": "LaTeX — poster.jpg",
+      "size": 40342,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.38
+      },
+      {
+        "label": "Worked example",
+        "start": 56.44
+      },
+      {
+        "label": "Your turn",
+        "start": 102.22
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:36:45.147Z"
+  },
+  "survey-markup-data-07-tex": {
+    "lessonId": "survey-markup-data-07-tex",
+    "courseId": "programming-languages",
+    "title": "TeX",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.14,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-07-tex.mp4",
+    "name": "TeX — video walkthrough.mp4",
+    "size": 2489484,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-07-tex--poster.jpg",
+      "name": "TeX — poster.jpg",
+      "size": 38882,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.93
+      },
+      {
+        "label": "Worked example",
+        "start": 56.02
+      },
+      {
+        "label": "Your turn",
+        "start": 101.88
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:36:46.161Z"
+  },
+  "survey-markup-data-08-postscript": {
+    "lessonId": "survey-markup-data-08-postscript",
+    "courseId": "programming-languages",
+    "title": "PostScript",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.05,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-08-postscript.mp4",
+    "name": "PostScript — video walkthrough.mp4",
+    "size": 2761330,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-08-postscript--poster.jpg",
+      "name": "PostScript — poster.jpg",
+      "size": 43957,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.04
+      },
+      {
+        "label": "Worked example",
+        "start": 54.6
+      },
+      {
+        "label": "Your turn",
+        "start": 101.77
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:37:32.355Z"
+  },
+  "survey-markup-data-09-troff": {
+    "lessonId": "survey-markup-data-09-troff",
+    "courseId": "programming-languages",
+    "title": "Troff",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.56,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-09-troff.mp4",
+    "name": "Troff — video walkthrough.mp4",
+    "size": 2707206,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-09-troff--poster.jpg",
+      "name": "Troff — poster.jpg",
+      "size": 39113,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.72
+      },
+      {
+        "label": "Worked example",
+        "start": 55.62
+      },
+      {
+        "label": "Your turn",
+        "start": 102.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:37:34.029Z"
+  },
+  "survey-markup-data-10-rtf": {
+    "lessonId": "survey-markup-data-10-rtf",
+    "courseId": "programming-languages",
+    "title": "RTF",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.57,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-10-rtf.mp4",
+    "name": "RTF — video walkthrough.mp4",
+    "size": 2565566,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-10-rtf--poster.jpg",
+      "name": "RTF — poster.jpg",
+      "size": 38478,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.34
+      },
+      {
+        "label": "Worked example",
+        "start": 55.74
+      },
+      {
+        "label": "Your turn",
+        "start": 101.84
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:38:18.951Z"
+  },
+  "survey-markup-data-11-yaml": {
+    "lessonId": "survey-markup-data-11-yaml",
+    "courseId": "programming-languages",
+    "title": "YAML",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.52,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-11-yaml.mp4",
+    "name": "YAML — video walkthrough.mp4",
+    "size": 2539698,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-11-yaml--poster.jpg",
+      "name": "YAML — poster.jpg",
+      "size": 40000,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.19
+      },
+      {
+        "label": "Worked example",
+        "start": 55.67
+      },
+      {
+        "label": "Your turn",
+        "start": 102.94
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:38:19.934Z"
+  },
+  "survey-markup-data-12-json": {
+    "lessonId": "survey-markup-data-12-json",
+    "courseId": "programming-languages",
+    "title": "JSON",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.68,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-12-json.mp4",
+    "name": "JSON — video walkthrough.mp4",
+    "size": 2688899,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-12-json--poster.jpg",
+      "name": "JSON — poster.jpg",
+      "size": 40318,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.56
+      },
+      {
+        "label": "Worked example",
+        "start": 54.51
+      },
+      {
+        "label": "Your turn",
+        "start": 102.41
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:39:04.780Z"
+  },
+  "survey-markup-data-13-toml": {
+    "lessonId": "survey-markup-data-13-toml",
+    "courseId": "programming-languages",
+    "title": "TOML",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 24.11,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-13-toml.mp4",
+    "name": "TOML — video walkthrough.mp4",
+    "size": 2362757,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-13-toml--poster.jpg",
+      "name": "TOML — poster.jpg",
+      "size": 39410,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.55
+      },
+      {
+        "label": "Worked example",
+        "start": 56.96
+      },
+      {
+        "label": "Your turn",
+        "start": 101.99
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:39:06.753Z"
+  },
+  "survey-markup-data-14-hcl": {
+    "lessonId": "survey-markup-data-14-hcl",
+    "courseId": "programming-languages",
+    "title": "HCL",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.61,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-markup-data-14-hcl.mp4",
+    "name": "HCL — video walkthrough.mp4",
+    "size": 2883440,
+    "poster": {
+      "key": "lessonvideo__survey-markup-data-14-hcl--poster.jpg",
+      "name": "HCL — poster.jpg",
+      "size": 38285,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.18
+      },
+      {
+        "label": "Worked example",
+        "start": 55.48
+      },
+      {
+        "label": "Your turn",
+        "start": 101.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:39:53.092Z"
+  },
+  "survey-templates-01-jinja": {
+    "lessonId": "survey-templates-01-jinja",
+    "courseId": "programming-languages",
+    "title": "Jinja",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.68,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-01-jinja.mp4",
+    "name": "Jinja — video walkthrough.mp4",
+    "size": 2453775,
+    "poster": {
+      "key": "lessonvideo__survey-templates-01-jinja--poster.jpg",
+      "name": "Jinja — poster.jpg",
+      "size": 39138,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.47
+      },
+      {
+        "label": "Worked example",
+        "start": 54.59
+      },
+      {
+        "label": "Your turn",
+        "start": 102.55
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:39:53.997Z"
+  },
+  "survey-templates-02-handlebars": {
+    "lessonId": "survey-templates-02-handlebars",
+    "courseId": "programming-languages",
+    "title": "Handlebars",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.74,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-02-handlebars.mp4",
+    "name": "Handlebars — video walkthrough.mp4",
+    "size": 2534196,
+    "poster": {
+      "key": "lessonvideo__survey-templates-02-handlebars--poster.jpg",
+      "name": "Handlebars — poster.jpg",
+      "size": 44066,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.02
+      },
+      {
+        "label": "Worked example",
+        "start": 55.96
+      },
+      {
+        "label": "Your turn",
+        "start": 102.45
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:40:43.634Z"
+  },
+  "survey-templates-03-mustache": {
+    "lessonId": "survey-templates-03-mustache",
+    "courseId": "programming-languages",
+    "title": "Mustache",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.59,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-03-mustache.mp4",
+    "name": "Mustache — video walkthrough.mp4",
+    "size": 2397155,
+    "poster": {
+      "key": "lessonvideo__survey-templates-03-mustache--poster.jpg",
+      "name": "Mustache — poster.jpg",
+      "size": 42875,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.05
+      },
+      {
+        "label": "Worked example",
+        "start": 54.88
+      },
+      {
+        "label": "Your turn",
+        "start": 103.01
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:40:43.821Z"
+  },
+  "survey-templates-04-liquid": {
+    "lessonId": "survey-templates-04-liquid",
+    "courseId": "programming-languages",
+    "title": "Liquid",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-04-liquid.mp4",
+    "name": "Liquid — video walkthrough.mp4",
+    "size": 2553726,
+    "poster": {
+      "key": "lessonvideo__survey-templates-04-liquid--poster.jpg",
+      "name": "Liquid — poster.jpg",
+      "size": 40077,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.35
+      },
+      {
+        "label": "Worked example",
+        "start": 55.8
+      },
+      {
+        "label": "Your turn",
+        "start": 102.14
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:41:32.235Z"
+  },
+  "survey-templates-05-erb": {
+    "lessonId": "survey-templates-05-erb",
+    "courseId": "programming-languages",
+    "title": "ERB",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.2,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-05-erb.mp4",
+    "name": "ERB — video walkthrough.mp4",
+    "size": 2569696,
+    "poster": {
+      "key": "lessonvideo__survey-templates-05-erb--poster.jpg",
+      "name": "ERB — poster.jpg",
+      "size": 39061,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.2
+      },
+      {
+        "label": "Worked example",
+        "start": 54.35
+      },
+      {
+        "label": "Your turn",
+        "start": 102.81
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:41:32.427Z"
+  },
+  "survey-templates-06-haml": {
+    "lessonId": "survey-templates-06-haml",
+    "courseId": "programming-languages",
+    "title": "Haml",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.17,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-06-haml.mp4",
+    "name": "Haml — video walkthrough.mp4",
+    "size": 2550065,
+    "poster": {
+      "key": "lessonvideo__survey-templates-06-haml--poster.jpg",
+      "name": "Haml — poster.jpg",
+      "size": 38871,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.05
+      },
+      {
+        "label": "Worked example",
+        "start": 54.86
+      },
+      {
+        "label": "Your turn",
+        "start": 102.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:42:19.564Z"
+  },
+  "survey-templates-07-pug": {
+    "lessonId": "survey-templates-07-pug",
+    "courseId": "programming-languages",
+    "title": "Pug",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.37,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-07-pug.mp4",
+    "name": "Pug — video walkthrough.mp4",
+    "size": 2545320,
+    "poster": {
+      "key": "lessonvideo__survey-templates-07-pug--poster.jpg",
+      "name": "Pug — poster.jpg",
+      "size": 38865,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.45
+      },
+      {
+        "label": "Worked example",
+        "start": 55.2
+      },
+      {
+        "label": "Your turn",
+        "start": 101.7
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:42:19.435Z"
+  },
+  "survey-templates-08-twig": {
+    "lessonId": "survey-templates-08-twig",
+    "courseId": "programming-languages",
+    "title": "Twig",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.24,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-08-twig.mp4",
+    "name": "Twig — video walkthrough.mp4",
+    "size": 2431007,
+    "poster": {
+      "key": "lessonvideo__survey-templates-08-twig--poster.jpg",
+      "name": "Twig — poster.jpg",
+      "size": 39319,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.57
+      },
+      {
+        "label": "Worked example",
+        "start": 54.37
+      },
+      {
+        "label": "Your turn",
+        "start": 102.44
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:43:04.979Z"
+  },
+  "survey-templates-09-blade": {
+    "lessonId": "survey-templates-09-blade",
+    "courseId": "programming-languages",
+    "title": "Blade",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.38,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-09-blade.mp4",
+    "name": "Blade — video walkthrough.mp4",
+    "size": 2453837,
+    "poster": {
+      "key": "lessonvideo__survey-templates-09-blade--poster.jpg",
+      "name": "Blade — poster.jpg",
+      "size": 40434,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.78
+      },
+      {
+        "label": "Worked example",
+        "start": 55.72
+      },
+      {
+        "label": "Your turn",
+        "start": 102.56
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:43:06.516Z"
+  },
+  "survey-templates-10-razor": {
+    "lessonId": "survey-templates-10-razor",
+    "courseId": "programming-languages",
+    "title": "Razor",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.75,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-10-razor.mp4",
+    "name": "Razor — video walkthrough.mp4",
+    "size": 2593444,
+    "poster": {
+      "key": "lessonvideo__survey-templates-10-razor--poster.jpg",
+      "name": "Razor — poster.jpg",
+      "size": 39996,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.92
+      },
+      {
+        "label": "Worked example",
+        "start": 53.73
+      },
+      {
+        "label": "Your turn",
+        "start": 102.39
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:43:51.509Z"
+  },
+  "survey-templates-11-thymeleaf": {
+    "lessonId": "survey-templates-11-thymeleaf",
+    "courseId": "programming-languages",
+    "title": "Thymeleaf",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.58,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-11-thymeleaf.mp4",
+    "name": "Thymeleaf — video walkthrough.mp4",
+    "size": 2598952,
+    "poster": {
+      "key": "lessonvideo__survey-templates-11-thymeleaf--poster.jpg",
+      "name": "Thymeleaf — poster.jpg",
+      "size": 43425,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.66
+      },
+      {
+        "label": "Worked example",
+        "start": 55.11
+      },
+      {
+        "label": "Your turn",
+        "start": 101.86
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:43:55.061Z"
+  },
+  "survey-templates-12-velocity": {
+    "lessonId": "survey-templates-12-velocity",
+    "courseId": "programming-languages",
+    "title": "Velocity",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-12-velocity.mp4",
+    "name": "Velocity — video walkthrough.mp4",
+    "size": 2541141,
+    "poster": {
+      "key": "lessonvideo__survey-templates-12-velocity--poster.jpg",
+      "name": "Velocity — poster.jpg",
+      "size": 42339,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.84
+      },
+      {
+        "label": "Worked example",
+        "start": 55.99
+      },
+      {
+        "label": "Your turn",
+        "start": 102.54
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:44:40.017Z"
+  },
+  "survey-templates-13-smarty": {
+    "lessonId": "survey-templates-13-smarty",
+    "courseId": "programming-languages",
+    "title": "Smarty",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.53,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-13-smarty.mp4",
+    "name": "Smarty — video walkthrough.mp4",
+    "size": 2546666,
+    "poster": {
+      "key": "lessonvideo__survey-templates-13-smarty--poster.jpg",
+      "name": "Smarty — poster.jpg",
+      "size": 41523,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.58
+      },
+      {
+        "label": "Worked example",
+        "start": 54.86
+      },
+      {
+        "label": "Your turn",
+        "start": 102.4
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:44:43.361Z"
+  },
+  "survey-templates-14-ejs": {
+    "lessonId": "survey-templates-14-ejs",
+    "courseId": "programming-languages",
+    "title": "EJS",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.77,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-14-ejs.mp4",
+    "name": "EJS — video walkthrough.mp4",
+    "size": 2607490,
+    "poster": {
+      "key": "lessonvideo__survey-templates-14-ejs--poster.jpg",
+      "name": "EJS — poster.jpg",
+      "size": 37218,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.02
+      },
+      {
+        "label": "Worked example",
+        "start": 55.13
+      },
+      {
+        "label": "Your turn",
+        "start": 102.92
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:45:28.067Z"
+  },
+  "survey-templates-15-nunjucks": {
+    "lessonId": "survey-templates-15-nunjucks",
+    "courseId": "programming-languages",
+    "title": "Nunjucks",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.84,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-templates-15-nunjucks.mp4",
+    "name": "Nunjucks — video walkthrough.mp4",
+    "size": 2619357,
+    "poster": {
+      "key": "lessonvideo__survey-templates-15-nunjucks--poster.jpg",
+      "name": "Nunjucks — poster.jpg",
+      "size": 42279,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.57
+      },
+      {
+        "label": "Worked example",
+        "start": 55.58
+      },
+      {
+        "label": "Your turn",
+        "start": 101.41
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:45:30.557Z"
+  },
+  "survey-specialist-a-l-01-ada": {
+    "lessonId": "survey-specialist-a-l-01-ada",
+    "courseId": "programming-languages",
+    "title": "Ada",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.69,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-01-ada.mp4",
+    "name": "Ada — video walkthrough.mp4",
+    "size": 2734471,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-01-ada--poster.jpg",
+      "name": "Ada — poster.jpg",
+      "size": 38711,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.88
+      },
+      {
+        "label": "Worked example",
+        "start": 54.13
+      },
+      {
+        "label": "Your turn",
+        "start": 102.84
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:46:15.610Z"
+  },
+  "survey-specialist-a-l-02-apl": {
+    "lessonId": "survey-specialist-a-l-02-apl",
+    "courseId": "programming-languages",
+    "title": "APL",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.99,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-02-apl.mp4",
+    "name": "APL — video walkthrough.mp4",
+    "size": 2675337,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-02-apl--poster.jpg",
+      "name": "APL — poster.jpg",
+      "size": 38357,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.22
+      },
+      {
+        "label": "Worked example",
+        "start": 54.01
+      },
+      {
+        "label": "Your turn",
+        "start": 101.27
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:46:18.409Z"
+  },
+  "survey-specialist-a-l-03-awk": {
+    "lessonId": "survey-specialist-a-l-03-awk",
+    "courseId": "programming-languages",
+    "title": "AWK",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.29,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-03-awk.mp4",
+    "name": "AWK — video walkthrough.mp4",
+    "size": 2665676,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-03-awk--poster.jpg",
+      "name": "AWK — poster.jpg",
+      "size": 39848,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.95
+      },
+      {
+        "label": "Worked example",
+        "start": 53.11
+      },
+      {
+        "label": "Your turn",
+        "start": 101.4
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:47:03.881Z"
+  },
+  "survey-specialist-a-l-04-ballerina": {
+    "lessonId": "survey-specialist-a-l-04-ballerina",
+    "courseId": "programming-languages",
+    "title": "Ballerina",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-04-ballerina.mp4",
+    "name": "Ballerina — video walkthrough.mp4",
+    "size": 2717420,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-04-ballerina--poster.jpg",
+      "name": "Ballerina — poster.jpg",
+      "size": 42336,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.4
+      },
+      {
+        "label": "Worked example",
+        "start": 54.62
+      },
+      {
+        "label": "Your turn",
+        "start": 102.92
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:47:06.937Z"
+  },
+  "survey-specialist-a-l-05-bosque": {
+    "lessonId": "survey-specialist-a-l-05-bosque",
+    "courseId": "programming-languages",
+    "title": "Bosque",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.74,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-05-bosque.mp4",
+    "name": "Bosque — video walkthrough.mp4",
+    "size": 2859111,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-05-bosque--poster.jpg",
+      "name": "Bosque — poster.jpg",
+      "size": 41743,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.9
+      },
+      {
+        "label": "Worked example",
+        "start": 52.1
+      },
+      {
+        "label": "Your turn",
+        "start": 100.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:47:51.293Z"
+  },
+  "survey-specialist-a-l-06-ceylon": {
+    "lessonId": "survey-specialist-a-l-06-ceylon",
+    "courseId": "programming-languages",
+    "title": "Ceylon",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.16,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-06-ceylon.mp4",
+    "name": "Ceylon — video walkthrough.mp4",
+    "size": 2816005,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-06-ceylon--poster.jpg",
+      "name": "Ceylon — poster.jpg",
+      "size": 41156,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.68
+      },
+      {
+        "label": "Worked example",
+        "start": 56.29
+      },
+      {
+        "label": "Your turn",
+        "start": 101.81
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:47:55.370Z"
+  },
+  "survey-specialist-a-l-07-cobra": {
+    "lessonId": "survey-specialist-a-l-07-cobra",
+    "courseId": "programming-languages",
+    "title": "Cobra",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.09,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-07-cobra.mp4",
+    "name": "Cobra — video walkthrough.mp4",
+    "size": 2784812,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-07-cobra--poster.jpg",
+      "name": "Cobra — poster.jpg",
+      "size": 40245,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.89
+      },
+      {
+        "label": "Worked example",
+        "start": 54.79
+      },
+      {
+        "label": "Your turn",
+        "start": 100.34
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:48:39.305Z"
+  },
+  "survey-specialist-a-l-08-crystal": {
+    "lessonId": "survey-specialist-a-l-08-crystal",
+    "courseId": "programming-languages",
+    "title": "Crystal",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.94,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-08-crystal.mp4",
+    "name": "Crystal — video walkthrough.mp4",
+    "size": 2650846,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-08-crystal--poster.jpg",
+      "name": "Crystal — poster.jpg",
+      "size": 41403,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.22
+      },
+      {
+        "label": "Worked example",
+        "start": 54.38
+      },
+      {
+        "label": "Your turn",
+        "start": 101.96
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:48:42.493Z"
+  },
+  "survey-specialist-a-l-09-dylan": {
+    "lessonId": "survey-specialist-a-l-09-dylan",
+    "courseId": "programming-languages",
+    "title": "Dylan",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.16,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-09-dylan.mp4",
+    "name": "Dylan — video walkthrough.mp4",
+    "size": 2766981,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-09-dylan--poster.jpg",
+      "name": "Dylan — poster.jpg",
+      "size": 40041,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.8
+      },
+      {
+        "label": "Worked example",
+        "start": 54.71
+      },
+      {
+        "label": "Your turn",
+        "start": 101.27
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:49:25.760Z"
+  },
+  "survey-specialist-a-l-10-factor": {
+    "lessonId": "survey-specialist-a-l-10-factor",
+    "courseId": "programming-languages",
+    "title": "Factor",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.49,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-10-factor.mp4",
+    "name": "Factor — video walkthrough.mp4",
+    "size": 2676605,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-10-factor--poster.jpg",
+      "name": "Factor — poster.jpg",
+      "size": 40588,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.31
+      },
+      {
+        "label": "Worked example",
+        "start": 54.45
+      },
+      {
+        "label": "Your turn",
+        "start": 100.9
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:49:30.186Z"
+  },
+  "survey-specialist-a-l-11-fancy": {
+    "lessonId": "survey-specialist-a-l-11-fancy",
+    "courseId": "programming-languages",
+    "title": "Fancy",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.36,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-11-fancy.mp4",
+    "name": "Fancy — video walkthrough.mp4",
+    "size": 2800776,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-11-fancy--poster.jpg",
+      "name": "Fancy — poster.jpg",
+      "size": 39947,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.36
+      },
+      {
+        "label": "Worked example",
+        "start": 55.22
+      },
+      {
+        "label": "Your turn",
+        "start": 101.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:50:13.251Z"
+  },
+  "survey-specialist-a-l-12-felix": {
+    "lessonId": "survey-specialist-a-l-12-felix",
+    "courseId": "programming-languages",
+    "title": "Felix",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.42,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-12-felix.mp4",
+    "name": "Felix — video walkthrough.mp4",
+    "size": 2607166,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-12-felix--poster.jpg",
+      "name": "Felix — poster.jpg",
+      "size": 39352,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.62
+      },
+      {
+        "label": "Worked example",
+        "start": 54.48
+      },
+      {
+        "label": "Your turn",
+        "start": 103.08
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:50:16.524Z"
+  },
+  "survey-specialist-a-l-13-flix": {
+    "lessonId": "survey-specialist-a-l-13-flix",
+    "courseId": "programming-languages",
+    "title": "Flix",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.43,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-13-flix.mp4",
+    "name": "Flix — video walkthrough.mp4",
+    "size": 2651360,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-13-flix--poster.jpg",
+      "name": "Flix — poster.jpg",
+      "size": 36696,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.81
+      },
+      {
+        "label": "Worked example",
+        "start": 54.52
+      },
+      {
+        "label": "Your turn",
+        "start": 102.55
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:51:01.281Z"
+  },
+  "survey-specialist-a-l-14-gleam": {
+    "lessonId": "survey-specialist-a-l-14-gleam",
+    "courseId": "programming-languages",
+    "title": "Gleam",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 27.3,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-14-gleam.mp4",
+    "name": "Gleam — video walkthrough.mp4",
+    "size": 2435735,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-14-gleam--poster.jpg",
+      "name": "Gleam — poster.jpg",
+      "size": 40629,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.79
+      },
+      {
+        "label": "Worked example",
+        "start": 55.2
+      },
+      {
+        "label": "Your turn",
+        "start": 102.64
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:51:02.689Z"
+  },
+  "survey-specialist-a-l-15-grain": {
+    "lessonId": "survey-specialist-a-l-15-grain",
+    "courseId": "programming-languages",
+    "title": "Grain",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.29,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-15-grain.mp4",
+    "name": "Grain — video walkthrough.mp4",
+    "size": 2580451,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-15-grain--poster.jpg",
+      "name": "Grain — poster.jpg",
+      "size": 39714,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.53
+      },
+      {
+        "label": "Worked example",
+        "start": 53.41
+      },
+      {
+        "label": "Your turn",
+        "start": 101.26
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:51:50.227Z"
+  },
+  "survey-specialist-a-l-16-hack-hhvm": {
+    "lessonId": "survey-specialist-a-l-16-hack-hhvm",
+    "courseId": "programming-languages",
+    "title": "Hack (HHVM)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.15,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-16-hack-hhvm.mp4",
+    "name": "Hack (HHVM) — video walkthrough.mp4",
+    "size": 2819015,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-16-hack-hhvm--poster.jpg",
+      "name": "Hack (HHVM) — poster.jpg",
+      "size": 44982,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.15
+      },
+      {
+        "label": "Worked example",
+        "start": 55.81
+      },
+      {
+        "label": "Your turn",
+        "start": 101.67
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:51:50.880Z"
+  },
+  "survey-specialist-a-l-17-harbour": {
+    "lessonId": "survey-specialist-a-l-17-harbour",
+    "courseId": "programming-languages",
+    "title": "Harbour",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.96,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-17-harbour.mp4",
+    "name": "Harbour — video walkthrough.mp4",
+    "size": 2654928,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-17-harbour--poster.jpg",
+      "name": "Harbour — poster.jpg",
+      "size": 41027,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.17
+      },
+      {
+        "label": "Worked example",
+        "start": 54.74
+      },
+      {
+        "label": "Your turn",
+        "start": 101.97
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:52:41.029Z"
+  },
+  "survey-specialist-a-l-18-xbase-dbase-clipper-foxpro": {
+    "lessonId": "survey-specialist-a-l-18-xbase-dbase-clipper-foxpro",
+    "courseId": "programming-languages",
+    "title": "xBase / dBase / Clipper / FoxPro",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 37.96,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-18-xbase-dbase-clipper-foxpro.mp4",
+    "name": "xBase / dBase / Clipper / FoxPro — video walkthrough.mp4",
+    "size": 3077162,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-18-xbase-dbase-clipper-foxpro--poster.jpg",
+      "name": "xBase / dBase / Clipper / FoxPro — poster.jpg",
+      "size": 55105,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.59
+      },
+      {
+        "label": "Worked example",
+        "start": 55.51
+      },
+      {
+        "label": "Your turn",
+        "start": 102.36
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:52:40.422Z"
+  },
+  "survey-specialist-a-l-19-icon": {
+    "lessonId": "survey-specialist-a-l-19-icon",
+    "courseId": "programming-languages",
+    "title": "Icon",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.6,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-19-icon.mp4",
+    "name": "Icon — video walkthrough.mp4",
+    "size": 2739792,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-19-icon--poster.jpg",
+      "name": "Icon — poster.jpg",
+      "size": 38791,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.49
+      },
+      {
+        "label": "Worked example",
+        "start": 55.98
+      },
+      {
+        "label": "Your turn",
+        "start": 103.32
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:53:28.534Z"
+  },
+  "survey-specialist-a-l-20-inform": {
+    "lessonId": "survey-specialist-a-l-20-inform",
+    "courseId": "programming-languages",
+    "title": "Inform",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.73,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-20-inform.mp4",
+    "name": "Inform — video walkthrough.mp4",
+    "size": 2588810,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-20-inform--poster.jpg",
+      "name": "Inform — poster.jpg",
+      "size": 40021,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.32
+      },
+      {
+        "label": "Worked example",
+        "start": 55.39
+      },
+      {
+        "label": "Your turn",
+        "start": 102.29
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:53:30.359Z"
+  },
+  "survey-specialist-a-l-21-ioke": {
+    "lessonId": "survey-specialist-a-l-21-ioke",
+    "courseId": "programming-languages",
+    "title": "Ioke",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.89,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-21-ioke.mp4",
+    "name": "Ioke — video walkthrough.mp4",
+    "size": 2566052,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-21-ioke--poster.jpg",
+      "name": "Ioke — poster.jpg",
+      "size": 39116,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.38
+      },
+      {
+        "label": "Worked example",
+        "start": 54.24
+      },
+      {
+        "label": "Your turn",
+        "start": 101.54
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:54:17.871Z"
+  },
+  "survey-specialist-a-l-22-j": {
+    "lessonId": "survey-specialist-a-l-22-j",
+    "courseId": "programming-languages",
+    "title": "J",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.62,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-22-j.mp4",
+    "name": "J — video walkthrough.mp4",
+    "size": 2578207,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-22-j--poster.jpg",
+      "name": "J — poster.jpg",
+      "size": 34696,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.9
+      },
+      {
+        "label": "Worked example",
+        "start": 54.88
+      },
+      {
+        "label": "Your turn",
+        "start": 102.13
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:54:19.542Z"
+  },
+  "survey-specialist-a-l-23-jolie": {
+    "lessonId": "survey-specialist-a-l-23-jolie",
+    "courseId": "programming-languages",
+    "title": "Jolie",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.86,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-23-jolie.mp4",
+    "name": "Jolie — video walkthrough.mp4",
+    "size": 2633741,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-23-jolie--poster.jpg",
+      "name": "Jolie — poster.jpg",
+      "size": 39396,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.14
+      },
+      {
+        "label": "Worked example",
+        "start": 53.83
+      },
+      {
+        "label": "Your turn",
+        "start": 101.45
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:55:08.176Z"
+  },
+  "survey-specialist-a-l-24-k": {
+    "lessonId": "survey-specialist-a-l-24-k",
+    "courseId": "programming-languages",
+    "title": "K",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.84,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-24-k.mp4",
+    "name": "K — video walkthrough.mp4",
+    "size": 2751359,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-24-k--poster.jpg",
+      "name": "K — poster.jpg",
+      "size": 35539,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.33
+      },
+      {
+        "label": "Worked example",
+        "start": 55.08
+      },
+      {
+        "label": "Your turn",
+        "start": 101.1
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:55:09.265Z"
+  },
+  "survey-specialist-a-l-25-kit": {
+    "lessonId": "survey-specialist-a-l-25-kit",
+    "courseId": "programming-languages",
+    "title": "Kit",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 35.06,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-25-kit.mp4",
+    "name": "Kit — video walkthrough.mp4",
+    "size": 2894998,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-25-kit--poster.jpg",
+      "name": "Kit — poster.jpg",
+      "size": 36789,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.76
+      },
+      {
+        "label": "Worked example",
+        "start": 55.46
+      },
+      {
+        "label": "Your turn",
+        "start": 101.82
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:55:57.876Z"
+  },
+  "survey-specialist-a-l-26-lasso": {
+    "lessonId": "survey-specialist-a-l-26-lasso",
+    "courseId": "programming-languages",
+    "title": "Lasso",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.06,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-26-lasso.mp4",
+    "name": "Lasso — video walkthrough.mp4",
+    "size": 2683396,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-26-lasso--poster.jpg",
+      "name": "Lasso — poster.jpg",
+      "size": 40435,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.88
+      },
+      {
+        "label": "Worked example",
+        "start": 54.46
+      },
+      {
+        "label": "Your turn",
+        "start": 101.97
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:55:57.888Z"
+  },
+  "survey-specialist-a-l-27-lily": {
+    "lessonId": "survey-specialist-a-l-27-lily",
+    "courseId": "programming-languages",
+    "title": "Lily",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 36.13,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-27-lily.mp4",
+    "name": "Lily — video walkthrough.mp4",
+    "size": 2824170,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-27-lily--poster.jpg",
+      "name": "Lily — poster.jpg",
+      "size": 36698,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.46
+      },
+      {
+        "label": "Worked example",
+        "start": 54.38
+      },
+      {
+        "label": "Your turn",
+        "start": 102.43
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:56:47.452Z"
+  },
+  "survey-specialist-a-l-28-livecode-hypertalk": {
+    "lessonId": "survey-specialist-a-l-28-livecode-hypertalk",
+    "courseId": "programming-languages",
+    "title": "LiveCode (HyperTalk)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.75,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-28-livecode-hypertalk.mp4",
+    "name": "LiveCode (HyperTalk) — video walkthrough.mp4",
+    "size": 2707883,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-28-livecode-hypertalk--poster.jpg",
+      "name": "LiveCode (HyperTalk) — poster.jpg",
+      "size": 51882,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.11
+      },
+      {
+        "label": "Worked example",
+        "start": 55.96
+      },
+      {
+        "label": "Your turn",
+        "start": 102.2
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:56:46.790Z"
+  },
+  "survey-specialist-a-l-29-lobster": {
+    "lessonId": "survey-specialist-a-l-29-lobster",
+    "courseId": "programming-languages",
+    "title": "Lobster",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.13,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-29-lobster.mp4",
+    "name": "Lobster — video walkthrough.mp4",
+    "size": 2756256,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-29-lobster--poster.jpg",
+      "name": "Lobster — poster.jpg",
+      "size": 41666,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.66
+      },
+      {
+        "label": "Worked example",
+        "start": 54.68
+      },
+      {
+        "label": "Your turn",
+        "start": 102.28
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:57:35.595Z"
+  },
+  "survey-specialist-a-l-30-logtalk": {
+    "lessonId": "survey-specialist-a-l-30-logtalk",
+    "courseId": "programming-languages",
+    "title": "Logtalk",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.12,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-a-l-30-logtalk.mp4",
+    "name": "Logtalk — video walkthrough.mp4",
+    "size": 2585331,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-a-l-30-logtalk--poster.jpg",
+      "name": "Logtalk — poster.jpg",
+      "size": 41701,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.22
+      },
+      {
+        "label": "Worked example",
+        "start": 54.3
+      },
+      {
+        "label": "Your turn",
+        "start": 102.01
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:57:36.899Z"
+  },
+  "survey-specialist-m-z-01-m4": {
+    "lessonId": "survey-specialist-m-z-01-m4",
+    "courseId": "programming-languages",
+    "title": "M4",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 35.24,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-01-m4.mp4",
+    "name": "M4 — video walkthrough.mp4",
+    "size": 2834156,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-01-m4--poster.jpg",
+      "name": "M4 — poster.jpg",
+      "size": 36771,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.95
+      },
+      {
+        "label": "Worked example",
+        "start": 53.02
+      },
+      {
+        "label": "Your turn",
+        "start": 101.82
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:58:25.378Z"
+  },
+  "survey-specialist-m-z-02-mercury": {
+    "lessonId": "survey-specialist-m-z-02-mercury",
+    "courseId": "programming-languages",
+    "title": "Mercury",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.42,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-02-mercury.mp4",
+    "name": "Mercury — video walkthrough.mp4",
+    "size": 2649680,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-02-mercury--poster.jpg",
+      "name": "Mercury — poster.jpg",
+      "size": 42013,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.66
+      },
+      {
+        "label": "Worked example",
+        "start": 53.76
+      },
+      {
+        "label": "Your turn",
+        "start": 103.15
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:58:25.548Z"
+  },
+  "survey-specialist-m-z-03-monkey": {
+    "lessonId": "survey-specialist-m-z-03-monkey",
+    "courseId": "programming-languages",
+    "title": "Monkey",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.82,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-03-monkey.mp4",
+    "name": "Monkey — video walkthrough.mp4",
+    "size": 2839105,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-03-monkey--poster.jpg",
+      "name": "Monkey — poster.jpg",
+      "size": 42217,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.94
+      },
+      {
+        "label": "Worked example",
+        "start": 54.57
+      },
+      {
+        "label": "Your turn",
+        "start": 102.11
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:59:12.026Z"
+  },
+  "survey-specialist-m-z-04-mun": {
+    "lessonId": "survey-specialist-m-z-04-mun",
+    "courseId": "programming-languages",
+    "title": "Mun",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.77,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-04-mun.mp4",
+    "name": "Mun — video walkthrough.mp4",
+    "size": 2623464,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-04-mun--poster.jpg",
+      "name": "Mun — poster.jpg",
+      "size": 38688,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.85
+      },
+      {
+        "label": "Worked example",
+        "start": 54.31
+      },
+      {
+        "label": "Your turn",
+        "start": 102.19
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:59:11.768Z"
+  },
+  "survey-specialist-m-z-05-neko": {
+    "lessonId": "survey-specialist-m-z-05-neko",
+    "courseId": "programming-languages",
+    "title": "Neko",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.69,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-05-neko.mp4",
+    "name": "Neko — video walkthrough.mp4",
+    "size": 2725424,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-05-neko--poster.jpg",
+      "name": "Neko — poster.jpg",
+      "size": 40189,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.96
+      },
+      {
+        "label": "Worked example",
+        "start": 54.7
+      },
+      {
+        "label": "Your turn",
+        "start": 101.22
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:59:58.258Z"
+  },
+  "survey-specialist-m-z-06-nit": {
+    "lessonId": "survey-specialist-m-z-06-nit",
+    "courseId": "programming-languages",
+    "title": "Nit",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.02,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-06-nit.mp4",
+    "name": "Nit — video walkthrough.mp4",
+    "size": 2575085,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-06-nit--poster.jpg",
+      "name": "Nit — poster.jpg",
+      "size": 36496,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.25
+      },
+      {
+        "label": "Worked example",
+        "start": 54.84
+      },
+      {
+        "label": "Your turn",
+        "start": 101.5
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:00:00.341Z"
+  },
+  "survey-specialist-m-z-07-nu": {
+    "lessonId": "survey-specialist-m-z-07-nu",
+    "courseId": "programming-languages",
+    "title": "Nu",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.34,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-07-nu.mp4",
+    "name": "Nu — video walkthrough.mp4",
+    "size": 2561798,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-07-nu--poster.jpg",
+      "name": "Nu — poster.jpg",
+      "size": 35988,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.2
+      },
+      {
+        "label": "Worked example",
+        "start": 53.88
+      },
+      {
+        "label": "Your turn",
+        "start": 101.35
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:00:47.456Z"
+  },
+  "survey-specialist-m-z-08-oberon": {
+    "lessonId": "survey-specialist-m-z-08-oberon",
+    "courseId": "programming-languages",
+    "title": "Oberon",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.48,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-08-oberon.mp4",
+    "name": "Oberon — video walkthrough.mp4",
+    "size": 2714581,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-08-oberon--poster.jpg",
+      "name": "Oberon — poster.jpg",
+      "size": 41664,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.77
+      },
+      {
+        "label": "Worked example",
+        "start": 55.12
+      },
+      {
+        "label": "Your turn",
+        "start": 102.03
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:00:51.220Z"
+  },
+  "survey-specialist-m-z-09-ocaml": {
+    "lessonId": "survey-specialist-m-z-09-ocaml",
+    "courseId": "programming-languages",
+    "title": "OCaml",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.23,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-09-ocaml.mp4",
+    "name": "OCaml — video walkthrough.mp4",
+    "size": 2543243,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-09-ocaml--poster.jpg",
+      "name": "OCaml — poster.jpg",
+      "size": 40803,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.43
+      },
+      {
+        "label": "Worked example",
+        "start": 55.15
+      },
+      {
+        "label": "Your turn",
+        "start": 102.83
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:01:37.994Z"
+  },
+  "survey-specialist-m-z-10-opa": {
+    "lessonId": "survey-specialist-m-z-10-opa",
+    "courseId": "programming-languages",
+    "title": "Opa",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.64,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-10-opa.mp4",
+    "name": "Opa — video walkthrough.mp4",
+    "size": 2891028,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-10-opa--poster.jpg",
+      "name": "Opa — poster.jpg",
+      "size": 39334,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 24.89
+      },
+      {
+        "label": "Worked example",
+        "start": 54.26
+      },
+      {
+        "label": "Your turn",
+        "start": 101.82
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:01:41.339Z"
+  },
+  "survey-specialist-m-z-11-openedge-abl-progress": {
+    "lessonId": "survey-specialist-m-z-11-openedge-abl-progress",
+    "courseId": "programming-languages",
+    "title": "OpenEdge ABL (Progress)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 35.13,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-11-openedge-abl-progress.mp4",
+    "name": "OpenEdge ABL (Progress) — video walkthrough.mp4",
+    "size": 3065325,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-11-openedge-abl-progress--poster.jpg",
+      "name": "OpenEdge ABL (Progress) — poster.jpg",
+      "size": 56137,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.03
+      },
+      {
+        "label": "Worked example",
+        "start": 54.92
+      },
+      {
+        "label": "Your turn",
+        "start": 102.59
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:02:28.074Z"
+  },
+  "survey-specialist-m-z-12-oxygene": {
+    "lessonId": "survey-specialist-m-z-12-oxygene",
+    "courseId": "programming-languages",
+    "title": "Oxygene",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.96,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-12-oxygene.mp4",
+    "name": "Oxygene — video walkthrough.mp4",
+    "size": 2712789,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-12-oxygene--poster.jpg",
+      "name": "Oxygene — poster.jpg",
+      "size": 43271,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.06
+      },
+      {
+        "label": "Worked example",
+        "start": 54.6
+      },
+      {
+        "label": "Your turn",
+        "start": 102.73
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:02:31.564Z"
+  },
+  "survey-specialist-m-z-13-pike": {
+    "lessonId": "survey-specialist-m-z-13-pike",
+    "courseId": "programming-languages",
+    "title": "Pike",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.24,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-13-pike.mp4",
+    "name": "Pike — video walkthrough.mp4",
+    "size": 2612644,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-13-pike--poster.jpg",
+      "name": "Pike — poster.jpg",
+      "size": 39473,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.77
+      },
+      {
+        "label": "Worked example",
+        "start": 55.23
+      },
+      {
+        "label": "Your turn",
+        "start": 102.77
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:03:17.584Z"
+  },
+  "survey-specialist-m-z-14-pl-b": {
+    "lessonId": "survey-specialist-m-z-14-pl-b",
+    "courseId": "programming-languages",
+    "title": "PL/B",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 34.98,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-14-pl-b.mp4",
+    "name": "PL/B — video walkthrough.mp4",
+    "size": 2865881,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-14-pl-b--poster.jpg",
+      "name": "PL/B — poster.jpg",
+      "size": 39481,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.39
+      },
+      {
+        "label": "Worked example",
+        "start": 53.92
+      },
+      {
+        "label": "Your turn",
+        "start": 101.2
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:03:22.028Z"
+  },
+  "survey-specialist-m-z-15-powerbuilder-powerscript": {
+    "lessonId": "survey-specialist-m-z-15-powerbuilder-powerscript",
+    "courseId": "programming-languages",
+    "title": "PowerBuilder (PowerScript)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 33.72,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-15-powerbuilder-powerscript.mp4",
+    "name": "PowerBuilder (PowerScript) — video walkthrough.mp4",
+    "size": 2876780,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-15-powerbuilder-powerscript--poster.jpg",
+      "name": "PowerBuilder (PowerScript) — poster.jpg",
+      "size": 57149,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.31
+      },
+      {
+        "label": "Worked example",
+        "start": 55.76
+      },
+      {
+        "label": "Your turn",
+        "start": 103.28
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:04:08.411Z"
+  },
+  "survey-specialist-m-z-16-pure": {
+    "lessonId": "survey-specialist-m-z-16-pure",
+    "courseId": "programming-languages",
+    "title": "Pure",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.62,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-16-pure.mp4",
+    "name": "Pure — video walkthrough.mp4",
+    "size": 2571674,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-16-pure--poster.jpg",
+      "name": "Pure — poster.jpg",
+      "size": 39032,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.16
+      },
+      {
+        "label": "Worked example",
+        "start": 55.18
+      },
+      {
+        "label": "Your turn",
+        "start": 102.55
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:04:11.960Z"
+  },
+  "survey-specialist-m-z-17-racket": {
+    "lessonId": "survey-specialist-m-z-17-racket",
+    "courseId": "programming-languages",
+    "title": "Racket",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 26.15,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-17-racket.mp4",
+    "name": "Racket — video walkthrough.mp4",
+    "size": 2310988,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-17-racket--poster.jpg",
+      "name": "Racket — poster.jpg",
+      "size": 41849,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.09
+      },
+      {
+        "label": "Worked example",
+        "start": 55.26
+      },
+      {
+        "label": "Your turn",
+        "start": 103.5
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:04:59.160Z"
+  },
+  "survey-specialist-m-z-18-red": {
+    "lessonId": "survey-specialist-m-z-18-red",
+    "courseId": "programming-languages",
+    "title": "Red",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.47,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-18-red.mp4",
+    "name": "Red — video walkthrough.mp4",
+    "size": 2604901,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-18-red--poster.jpg",
+      "name": "Red — poster.jpg",
+      "size": 39192,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.12
+      },
+      {
+        "label": "Worked example",
+        "start": 54.76
+      },
+      {
+        "label": "Your turn",
+        "start": 101.61
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:05:02.763Z"
+  },
+  "survey-specialist-m-z-19-rebol": {
+    "lessonId": "survey-specialist-m-z-19-rebol",
+    "courseId": "programming-languages",
+    "title": "Rebol",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.57,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-19-rebol.mp4",
+    "name": "Rebol — video walkthrough.mp4",
+    "size": 2617783,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-19-rebol--poster.jpg",
+      "name": "Rebol — poster.jpg",
+      "size": 40703,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.25
+      },
+      {
+        "label": "Worked example",
+        "start": 54.43
+      },
+      {
+        "label": "Your turn",
+        "start": 101.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:05:50.441Z"
+  },
+  "survey-specialist-m-z-20-ring": {
+    "lessonId": "survey-specialist-m-z-20-ring",
+    "courseId": "programming-languages",
+    "title": "Ring",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.83,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-20-ring.mp4",
+    "name": "Ring — video walkthrough.mp4",
+    "size": 2559914,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-20-ring--poster.jpg",
+      "name": "Ring — poster.jpg",
+      "size": 40021,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.08
+      },
+      {
+        "label": "Worked example",
+        "start": 54.29
+      },
+      {
+        "label": "Your turn",
+        "start": 102.27
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:05:53.966Z"
+  },
+  "survey-specialist-m-z-21-s-lang": {
+    "lessonId": "survey-specialist-m-z-21-s-lang",
+    "courseId": "programming-languages",
+    "title": "S-Lang",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.07,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-21-s-lang.mp4",
+    "name": "S-Lang — video walkthrough.mp4",
+    "size": 2648312,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-21-s-lang--poster.jpg",
+      "name": "S-Lang — poster.jpg",
+      "size": 41137,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.21
+      },
+      {
+        "label": "Worked example",
+        "start": 54.61
+      },
+      {
+        "label": "Your turn",
+        "start": 101.51
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:06:42.469Z"
+  },
+  "survey-specialist-m-z-22-seed7": {
+    "lessonId": "survey-specialist-m-z-22-seed7",
+    "courseId": "programming-languages",
+    "title": "Seed7",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.43,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-22-seed7.mp4",
+    "name": "Seed7 — video walkthrough.mp4",
+    "size": 2701251,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-22-seed7--poster.jpg",
+      "name": "Seed7 — poster.jpg",
+      "size": 41136,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.09
+      },
+      {
+        "label": "Worked example",
+        "start": 54.95
+      },
+      {
+        "label": "Your turn",
+        "start": 101.57
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:06:45.499Z"
+  },
+  "survey-specialist-m-z-23-self": {
+    "lessonId": "survey-specialist-m-z-23-self",
+    "courseId": "programming-languages",
+    "title": "Self",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.73,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-23-self.mp4",
+    "name": "Self — video walkthrough.mp4",
+    "size": 2578616,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-23-self--poster.jpg",
+      "name": "Self — poster.jpg",
+      "size": 39656,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.44
+      },
+      {
+        "label": "Worked example",
+        "start": 56.33
+      },
+      {
+        "label": "Your turn",
+        "start": 102.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:07:33.113Z"
+  },
+  "survey-specialist-m-z-24-simula": {
+    "lessonId": "survey-specialist-m-z-24-simula",
+    "courseId": "programming-languages",
+    "title": "Simula",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.83,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-24-simula.mp4",
+    "name": "Simula — video walkthrough.mp4",
+    "size": 2595708,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-24-simula--poster.jpg",
+      "name": "Simula — poster.jpg",
+      "size": 41155,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.3
+      },
+      {
+        "label": "Worked example",
+        "start": 56.35
+      },
+      {
+        "label": "Your turn",
+        "start": 102.92
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:07:36.315Z"
+  },
+  "survey-specialist-m-z-25-slate": {
+    "lessonId": "survey-specialist-m-z-25-slate",
+    "courseId": "programming-languages",
+    "title": "Slate",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.39,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-25-slate.mp4",
+    "name": "Slate — video walkthrough.mp4",
+    "size": 2696287,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-25-slate--poster.jpg",
+      "name": "Slate — poster.jpg",
+      "size": 40400,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.27
+      },
+      {
+        "label": "Worked example",
+        "start": 54.06
+      },
+      {
+        "label": "Your turn",
+        "start": 101.32
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:08:25.241Z"
+  },
+  "survey-specialist-m-z-26-snobol": {
+    "lessonId": "survey-specialist-m-z-26-snobol",
+    "courseId": "programming-languages",
+    "title": "Snobol",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 29.62,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-26-snobol.mp4",
+    "name": "Snobol — video walkthrough.mp4",
+    "size": 2755203,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-26-snobol--poster.jpg",
+      "name": "Snobol — poster.jpg",
+      "size": 41528,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.27
+      },
+      {
+        "label": "Worked example",
+        "start": 55.41
+      },
+      {
+        "label": "Your turn",
+        "start": 101.44
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:08:26.508Z"
+  },
+  "survey-specialist-m-z-27-squeak": {
+    "lessonId": "survey-specialist-m-z-27-squeak",
+    "courseId": "programming-languages",
+    "title": "Squeak",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.44,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-27-squeak.mp4",
+    "name": "Squeak — video walkthrough.mp4",
+    "size": 2796208,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-27-squeak--poster.jpg",
+      "name": "Squeak — poster.jpg",
+      "size": 42090,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.57
+      },
+      {
+        "label": "Worked example",
+        "start": 54.79
+      },
+      {
+        "label": "Your turn",
+        "start": 102.22
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:09:15.326Z"
+  },
+  "survey-specialist-m-z-28-stata": {
+    "lessonId": "survey-specialist-m-z-28-stata",
+    "courseId": "programming-languages",
+    "title": "Stata",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.53,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-28-stata.mp4",
+    "name": "Stata — video walkthrough.mp4",
+    "size": 2815576,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-28-stata--poster.jpg",
+      "name": "Stata — poster.jpg",
+      "size": 40671,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.81
+      },
+      {
+        "label": "Worked example",
+        "start": 55.01
+      },
+      {
+        "label": "Your turn",
+        "start": 101.21
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:09:17.343Z"
+  },
+  "survey-specialist-m-z-29-streem": {
+    "lessonId": "survey-specialist-m-z-29-streem",
+    "courseId": "programming-languages",
+    "title": "Streem",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.26,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-29-streem.mp4",
+    "name": "Streem — video walkthrough.mp4",
+    "size": 2639473,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-29-streem--poster.jpg",
+      "name": "Streem — poster.jpg",
+      "size": 41710,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.65
+      },
+      {
+        "label": "Worked example",
+        "start": 54.81
+      },
+      {
+        "label": "Your turn",
+        "start": 101.39
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:10:05.877Z"
+  },
+  "survey-specialist-m-z-30-terra": {
+    "lessonId": "survey-specialist-m-z-30-terra",
+    "courseId": "programming-languages",
+    "title": "Terra",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.61,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-30-terra.mp4",
+    "name": "Terra — video walkthrough.mp4",
+    "size": 2724041,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-30-terra--poster.jpg",
+      "name": "Terra — poster.jpg",
+      "size": 39603,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.62
+      },
+      {
+        "label": "Worked example",
+        "start": 54.58
+      },
+      {
+        "label": "Your turn",
+        "start": 102.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:10:07.346Z"
+  },
+  "survey-specialist-m-z-31-turing": {
+    "lessonId": "survey-specialist-m-z-31-turing",
+    "courseId": "programming-languages",
+    "title": "Turing",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.3,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-31-turing.mp4",
+    "name": "Turing — video walkthrough.mp4",
+    "size": 2731759,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-31-turing--poster.jpg",
+      "name": "Turing — poster.jpg",
+      "size": 40204,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.11
+      },
+      {
+        "label": "Worked example",
+        "start": 54.33
+      },
+      {
+        "label": "Your turn",
+        "start": 101.25
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:10:57.646Z"
+  },
+  "survey-specialist-m-z-32-umple": {
+    "lessonId": "survey-specialist-m-z-32-umple",
+    "courseId": "programming-languages",
+    "title": "Umple",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.42,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-32-umple.mp4",
+    "name": "Umple — video walkthrough.mp4",
+    "size": 2763866,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-32-umple--poster.jpg",
+      "name": "Umple — poster.jpg",
+      "size": 40700,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.49
+      },
+      {
+        "label": "Worked example",
+        "start": 54.48
+      },
+      {
+        "label": "Your turn",
+        "start": 101.93
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:10:58.140Z"
+  },
+  "survey-specialist-m-z-33-unicon": {
+    "lessonId": "survey-specialist-m-z-33-unicon",
+    "courseId": "programming-languages",
+    "title": "Unicon",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.78,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-33-unicon.mp4",
+    "name": "Unicon — video walkthrough.mp4",
+    "size": 2805465,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-33-unicon--poster.jpg",
+      "name": "Unicon — poster.jpg",
+      "size": 41018,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.51
+      },
+      {
+        "label": "Worked example",
+        "start": 55.57
+      },
+      {
+        "label": "Your turn",
+        "start": 102.31
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:11:48.687Z"
+  },
+  "survey-specialist-m-z-34-vala": {
+    "lessonId": "survey-specialist-m-z-34-vala",
+    "courseId": "programming-languages",
+    "title": "Vala",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 32.16,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-34-vala.mp4",
+    "name": "Vala — video walkthrough.mp4",
+    "size": 2728585,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-34-vala--poster.jpg",
+      "name": "Vala — poster.jpg",
+      "size": 39540,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.6
+      },
+      {
+        "label": "Worked example",
+        "start": 54.13
+      },
+      {
+        "label": "Your turn",
+        "start": 101.64
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:11:49.042Z"
+  },
+  "survey-specialist-m-z-35-verse-epic-fortnite": {
+    "lessonId": "survey-specialist-m-z-35-verse-epic-fortnite",
+    "courseId": "programming-languages",
+    "title": "Verse (Epic/Fortnite)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.77,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-35-verse-epic-fortnite.mp4",
+    "name": "Verse (Epic/Fortnite) — video walkthrough.mp4",
+    "size": 2743537,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-35-verse-epic-fortnite--poster.jpg",
+      "name": "Verse (Epic/Fortnite) — poster.jpg",
+      "size": 51788,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 27.17
+      },
+      {
+        "label": "Worked example",
+        "start": 55.03
+      },
+      {
+        "label": "Your turn",
+        "start": 102.35
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:12:38.906Z"
+  },
+  "survey-specialist-m-z-36-wolfram": {
+    "lessonId": "survey-specialist-m-z-36-wolfram",
+    "courseId": "programming-languages",
+    "title": "Wolfram",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.93,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-36-wolfram.mp4",
+    "name": "Wolfram — video walkthrough.mp4",
+    "size": 2744125,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-36-wolfram--poster.jpg",
+      "name": "Wolfram — poster.jpg",
+      "size": 42123,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.03
+      },
+      {
+        "label": "Worked example",
+        "start": 54.55
+      },
+      {
+        "label": "Your turn",
+        "start": 101.67
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:12:39.493Z"
+  },
+  "survey-specialist-m-z-37-wren": {
+    "lessonId": "survey-specialist-m-z-37-wren",
+    "courseId": "programming-languages",
+    "title": "Wren",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 28.66,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-37-wren.mp4",
+    "name": "Wren — video walkthrough.mp4",
+    "size": 2568987,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-37-wren--poster.jpg",
+      "name": "Wren — poster.jpg",
+      "size": 39868,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.33
+      },
+      {
+        "label": "Worked example",
+        "start": 55.25
+      },
+      {
+        "label": "Your turn",
+        "start": 102.06
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:13:30.663Z"
+  },
+  "survey-specialist-m-z-38-x-plus-plus-dynamics": {
+    "lessonId": "survey-specialist-m-z-38-x-plus-plus-dynamics",
+    "courseId": "programming-languages",
+    "title": "X++ (Dynamics)",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 36.31,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-38-x-plus-plus-dynamics.mp4",
+    "name": "X++ (Dynamics) — video walkthrough.mp4",
+    "size": 2949197,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-38-x-plus-plus-dynamics--poster.jpg",
+      "name": "X++ (Dynamics) — poster.jpg",
+      "size": 47687,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.6
+      },
+      {
+        "label": "Worked example",
+        "start": 55.89
+      },
+      {
+        "label": "Your turn",
+        "start": 102.8
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:13:30.621Z"
+  },
+  "survey-specialist-m-z-39-xojo": {
+    "lessonId": "survey-specialist-m-z-39-xojo",
+    "courseId": "programming-languages",
+    "title": "Xojo",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.51,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-39-xojo.mp4",
+    "name": "Xojo — video walkthrough.mp4",
+    "size": 2574905,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-39-xojo--poster.jpg",
+      "name": "Xojo — poster.jpg",
+      "size": 40244,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 26.09
+      },
+      {
+        "label": "Worked example",
+        "start": 54.91
+      },
+      {
+        "label": "Your turn",
+        "start": 102.73
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:14:22.117Z"
+  },
+  "survey-specialist-m-z-40-yorick": {
+    "lessonId": "survey-specialist-m-z-40-yorick",
+    "courseId": "programming-languages",
+    "title": "Yorick",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 31.87,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-40-yorick.mp4",
+    "name": "Yorick — video walkthrough.mp4",
+    "size": 2622081,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-40-yorick--poster.jpg",
+      "name": "Yorick — poster.jpg",
+      "size": 40968,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.68
+      },
+      {
+        "label": "Worked example",
+        "start": 54.68
+      },
+      {
+        "label": "Your turn",
+        "start": 102.75
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:14:22.040Z"
+  },
+  "survey-specialist-m-z-41-zig": {
+    "lessonId": "survey-specialist-m-z-41-zig",
+    "courseId": "programming-languages",
+    "title": "Zig",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 30.51,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-41-zig.mp4",
+    "name": "Zig — video walkthrough.mp4",
+    "size": 2662538,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-41-zig--poster.jpg",
+      "name": "Zig — poster.jpg",
+      "size": 37618,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 25.95
+      },
+      {
+        "label": "Worked example",
+        "start": 54.5
+      },
+      {
+        "label": "Your turn",
+        "start": 101.78
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:15:11.946Z"
+  },
+  "survey-specialist-m-z-42-zpl": {
+    "lessonId": "survey-specialist-m-z-42-zpl",
+    "courseId": "programming-languages",
+    "title": "ZPL",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 41.35,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__survey-specialist-m-z-42-zpl.mp4",
+    "name": "ZPL — video walkthrough.mp4",
+    "size": 3304359,
+    "poster": {
+      "key": "lessonvideo__survey-specialist-m-z-42-zpl--poster.jpg",
+      "name": "ZPL — poster.jpg",
+      "size": 38642,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 23.5
+      },
+      {
+        "label": "Worked example",
+        "start": 51.7
+      },
+      {
+        "label": "Your turn",
+        "start": 100.43
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T03:15:13.144Z"
+  },
+  "what-ai-and-ml-are": {
+    "lessonId": "what-ai-and-ml-are",
+    "courseId": "artificial-intelligence-machine-learning",
+    "title": "What AI and machine learning really are",
+    "durationSeconds": 169.19,
+    "narrationSeconds": 148.17,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__what-ai-and-ml-are.mp4",
+    "name": "What AI and machine learning really are — video walkthrough.mp4",
+    "size": 6629447,
+    "poster": {
+      "key": "lessonvideo__what-ai-and-ml-are--poster.jpg",
+      "name": "What AI and machine learning really are — poster.jpg",
+      "size": 82437,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.94
+      },
+      {
+        "label": "Worked example",
+        "start": 32.07
+      },
+      {
+        "label": "Your turn",
+        "start": 133.57
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:15:23.928Z"
+  },
+  "the-machine-learning-workflow": {
+    "lessonId": "the-machine-learning-workflow",
+    "courseId": "artificial-intelligence-machine-learning",
+    "title": "The machine learning workflow",
+    "durationSeconds": 167.54,
+    "narrationSeconds": 146.52,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__the-machine-learning-workflow.mp4",
+    "name": "The machine learning workflow — video walkthrough.mp4",
+    "size": 6715384,
+    "poster": {
+      "key": "lessonvideo__the-machine-learning-workflow--poster.jpg",
+      "name": "The machine learning workflow — poster.jpg",
+      "size": 76610,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 7.45
+      },
+      {
+        "label": "Worked example",
+        "start": 28.22
+      },
+      {
+        "label": "Your turn",
+        "start": 133.04
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:15:24.365Z"
+  },
+  "neural-networks-and-generative-ai": {
+    "lessonId": "neural-networks-and-generative-ai",
+    "courseId": "artificial-intelligence-machine-learning",
+    "title": "Neural networks and generative AI",
+    "durationSeconds": 157.8,
+    "narrationSeconds": 136.78,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__neural-networks-and-generative-ai.mp4",
+    "name": "Neural networks and generative AI — video walkthrough.mp4",
+    "size": 6379540,
+    "poster": {
+      "key": "lessonvideo__neural-networks-and-generative-ai--poster.jpg",
+      "name": "Neural networks and generative AI — poster.jpg",
+      "size": 80209,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.07
+      },
+      {
+        "label": "Worked example",
+        "start": 27.93
+      },
+      {
+        "label": "Your turn",
+        "start": 120.53
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:16:19.672Z"
+  },
+  "ethics-and-deploying-ai-responsibly": {
+    "lessonId": "ethics-and-deploying-ai-responsibly",
+    "courseId": "artificial-intelligence-machine-learning",
+    "title": "Ethics, risk and deploying AI responsibly",
+    "durationSeconds": 176.11,
+    "narrationSeconds": 155.09,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ethics-and-deploying-ai-responsibly.mp4",
+    "name": "Ethics, risk and deploying AI responsibly — video walkthrough.mp4",
+    "size": 6942150,
+    "poster": {
+      "key": "lessonvideo__ethics-and-deploying-ai-responsibly--poster.jpg",
+      "name": "Ethics, risk and deploying AI responsibly — poster.jpg",
+      "size": 80376,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 8.57
+      },
+      {
+        "label": "Worked example",
+        "start": 31.86
+      },
+      {
+        "label": "Your turn",
+        "start": 140.58
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:16:24.442Z"
+  },
+  "the-game-loop-time-and-state": {
+    "lessonId": "the-game-loop-time-and-state",
+    "courseId": "game-development",
+    "title": "The game loop, time and state",
+    "durationSeconds": 152.02,
+    "narrationSeconds": 118.2,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__the-game-loop-time-and-state.mp4",
+    "name": "The game loop, time and state — video walkthrough.mp4",
+    "size": 6844099,
+    "poster": {
+      "key": "lessonvideo__the-game-loop-time-and-state--poster.jpg",
+      "name": "The game loop, time and state — poster.jpg",
+      "size": 75744,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 10.1
+      },
+      {
+        "label": "Worked example",
+        "start": 74.14
+      },
+      {
+        "label": "Your turn",
+        "start": 111.99
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:11:20.553Z"
+  },
+  "worlds-in-2d-sprites-tilemaps-collisions": {
+    "lessonId": "worlds-in-2d-sprites-tilemaps-collisions",
+    "courseId": "game-development",
+    "title": "2D worlds: sprites, tile maps, collisions and the camera",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 94.93,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__worlds-in-2d-sprites-tilemaps-collisions.mp4",
+    "name": "2D worlds: sprites, tile maps, collisions and the camera — video walkthrough.mp4",
+    "size": 5873989,
+    "poster": {
+      "key": "lessonvideo__worlds-in-2d-sprites-tilemaps-collisions--poster.jpg",
+      "name": "2D worlds: sprites, tile maps, collisions and the camera — poster.jpg",
+      "size": 86827,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 17.67
+      },
+      {
+        "label": "Worked example",
+        "start": 66.16
+      },
+      {
+        "label": "Your turn",
+        "start": 104.74
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:11:13.598Z"
+  },
+  "worlds-in-3d-vectors-matrices-and-projection": {
+    "lessonId": "worlds-in-3d-vectors-matrices-and-projection",
+    "courseId": "game-development",
+    "title": "3D worlds: vectors, matrices and projection",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 83.83,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__worlds-in-3d-vectors-matrices-and-projection.mp4",
+    "name": "3D worlds: vectors, matrices and projection — video walkthrough.mp4",
+    "size": 5490921,
+    "poster": {
+      "key": "lessonvideo__worlds-in-3d-vectors-matrices-and-projection--poster.jpg",
+      "name": "3D worlds: vectors, matrices and projection — poster.jpg",
+      "size": 86628,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 19.73
+      },
+      {
+        "label": "Worked example",
+        "start": 63.7
+      },
+      {
+        "label": "Your turn",
+        "start": 107.42
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:12:05.874Z"
+  },
+  "building-in-3d-light-physics-and-engines": {
+    "lessonId": "building-in-3d-light-physics-and-engines",
+    "courseId": "game-development",
+    "title": "Building in 3D: light, physics, performance and engines",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 112.35,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__building-in-3d-light-physics-and-engines.mp4",
+    "name": "Building in 3D: light, physics, performance and engines — video walkthrough.mp4",
+    "size": 5881232,
+    "poster": {
+      "key": "lessonvideo__building-in-3d-light-physics-and-engines--poster.jpg",
+      "name": "Building in 3D: light, physics, performance and engines — poster.jpg",
+      "size": 89354,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 13.05
+      },
+      {
+        "label": "Worked example",
+        "start": 50.27
+      },
+      {
+        "label": "Your turn",
+        "start": 112.36
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:12:14.105Z"
+  },
+  "the-fourth-dimension-of-space": {
+    "lessonId": "the-fourth-dimension-of-space",
+    "courseId": "game-development",
+    "title": "The fourth dimension of space",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 92.32,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__the-fourth-dimension-of-space.mp4",
+    "name": "The fourth dimension of space — video walkthrough.mp4",
+    "size": 5582825,
+    "poster": {
+      "key": "lessonvideo__the-fourth-dimension-of-space--poster.jpg",
+      "name": "The fourth dimension of space — poster.jpg",
+      "size": 78017,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 15.81
+      },
+      {
+        "label": "Worked example",
+        "start": 72.05
+      },
+      {
+        "label": "Your turn",
+        "start": 112.71
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:12:59.435Z"
+  },
+  "the-fourth-dimension-of-time-and-sensation": {
+    "lessonId": "the-fourth-dimension-of-time-and-sensation",
+    "courseId": "game-development",
+    "title": "The fourth dimension of time and sensation",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 95.11,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__the-fourth-dimension-of-time-and-sensation.mp4",
+    "name": "The fourth dimension of time and sensation — video walkthrough.mp4",
+    "size": 5651173,
+    "poster": {
+      "key": "lessonvideo__the-fourth-dimension-of-time-and-sensation--poster.jpg",
+      "name": "The fourth dimension of time and sensation — poster.jpg",
+      "size": 84885,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 16.05
+      },
+      {
+        "label": "Worked example",
+        "start": 62.6
+      },
+      {
+        "label": "Your turn",
+        "start": 112.02
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:13:07.808Z"
+  },
+  "five-dimensions-and-beyond": {
+    "lessonId": "five-dimensions-and-beyond",
+    "courseId": "game-development",
+    "title": "Five dimensions and beyond",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 94.56,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__five-dimensions-and-beyond.mp4",
+    "name": "Five dimensions and beyond — video walkthrough.mp4",
+    "size": 5757283,
+    "poster": {
+      "key": "lessonvideo__five-dimensions-and-beyond--poster.jpg",
+      "name": "Five dimensions and beyond — poster.jpg",
+      "size": 83123,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 15.54
+      },
+      {
+        "label": "Worked example",
+        "start": 60.03
+      },
+      {
+        "label": "Your turn",
+        "start": 104.11
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:13:51.998Z"
+  },
+  "ultra-high-resolution-4k-8k-and-beyond": {
+    "lessonId": "ultra-high-resolution-4k-8k-and-beyond",
+    "courseId": "game-development",
+    "title": "Ultra-high resolution: 4K, 8K and beyond",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 98.43,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__ultra-high-resolution-4k-8k-and-beyond.mp4",
+    "name": "Ultra-high resolution: 4K, 8K and beyond — video walkthrough.mp4",
+    "size": 6008312,
+    "poster": {
+      "key": "lessonvideo__ultra-high-resolution-4k-8k-and-beyond--poster.jpg",
+      "name": "Ultra-high resolution: 4K, 8K and beyond — poster.jpg",
+      "size": 85252,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 16.18
+      },
+      {
+        "label": "Worked example",
+        "start": 72.87
+      },
+      {
+        "label": "Your turn",
+        "start": 109.89
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:14:01.862Z"
+  },
+  "scaling-to-every-screen-and-shipping": {
+    "lessonId": "scaling-to-every-screen-and-shipping",
+    "courseId": "game-development",
+    "title": "Scaling to every screen, and shipping",
+    "durationSeconds": 150.02,
+    "narrationSeconds": 81.11,
+    "width": 1280,
+    "height": 720,
+    "format": "video/mp4",
+    "key": "lessonvideo__scaling-to-every-screen-and-shipping.mp4",
+    "name": "Scaling to every screen, and shipping — video walkthrough.mp4",
+    "size": 5217323,
+    "poster": {
+      "key": "lessonvideo__scaling-to-every-screen-and-shipping--poster.jpg",
+      "name": "Scaling to every screen, and shipping — poster.jpg",
+      "size": 82650,
+      "format": "image/jpeg"
+    },
+    "chapters": [
+      {
+        "label": "Introduction",
+        "start": 0
+      },
+      {
+        "label": "The idea",
+        "start": 19.3
+      },
+      {
+        "label": "Worked example",
+        "start": 50.76
+      },
+      {
+        "label": "Your turn",
+        "start": 97.66
+      }
+    ],
+    "approximateTiming": false,
+    "voice": "en-gb",
+    "generatedAt": "2026-11-04T02:14:24.678Z"
+  },
   "product-research-ai": {
     "lessonId": "product-research-ai",
     "courseId": "ai-dropshipping",

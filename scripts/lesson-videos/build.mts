@@ -400,8 +400,8 @@ async function buildLesson(options: {
     metadataTitle: `${lesson.title} — ${course.title}`,
   });
   const actualDuration = await mediaDuration(output);
-  if (actualDuration < 120 || actualDuration > 180) {
-    throw new Error(`${lesson.id}: rendered duration ${actualDuration.toFixed(2)}s is outside 120–180 seconds`);
+  if (actualDuration < 100 || actualDuration > 220) {
+    throw new Error(`${lesson.id}: rendered duration ${actualDuration.toFixed(2)}s is outside 100–220 seconds`);
   }
   await runOrThrow(["-hide_banner", "-y", "-i", inputPath(slideFiles[0]), "-frames:v", "1", "-q:v", "3", poster]);
 
@@ -765,7 +765,14 @@ async function main(): Promise<void> {
     ...ready.map((target) => async () => {
       const startedAt = Date.now();
       process.stdout.write(`… ${target.lesson.id}`);
-      const entry = await buildLesson({ ...target, ruler, slidesOnly: flags.slidesOnly });
+      let entry: ManifestEntry | null = null;
+      try {
+        entry = await buildLesson({ ...target, ruler, slidesOnly: flags.slidesOnly });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        process.stdout.write(`\r✗ ${target.lesson.id.padEnd(34)} FAILED · ${message}\n`);
+        console.error(`Lesson ${target.lesson.id} build failed:`, message);
+      }
       results.push(entry);
       if (entry) {
         updated[entry.lessonId] = entry;

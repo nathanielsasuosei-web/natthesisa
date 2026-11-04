@@ -1,0 +1,858 @@
+{
+  "course": "programming-languages",
+  "voice": "en-gb",
+  "lessons": {
+    "paradigms-and-properties": {
+      "title": "Welcome to Paradigms and properties: how languages differ, part of Programming Languages.",
+      "idea": "The moment you know one language well, the second one is mostly a matter of mapping: this is how it loops, this is how it models data, this is how it reports failure. What takes longer to learn is why a language makes a different choice, and that is exactly the knowledge that transfers between languages — and that interviewers probe when they ask why you would pick one over another.",
+      "example": "Task: from a list of student records, produce the names of those who passed, sorted by score. The same logic expressed four ways; read them for what each style makes visible. The imperative version says exactly what the machine does: an accumulator, a loop, a condition, a sort. It is explicit and long, and every reader can follow it. The declarative/functional version states the transformation: filter, then order. There is no index, no accumulator, and no way to make an off-by-one error. This style dominates modern JavaScript, Python and Cfor data transformations. The object-oriented version places the behaviour with the data: a Student knows whether it passed. Reuse improves and coupling grows; whether that is good depends on whether the rule is likely to change per student. The SQL version is the most declarative of all: the database decides how to filter and sort, and can use an index to do it in ways the application could not. Notice that the same question has four reasonable forms and that the choice between them is about who should own the logic and how it will be tested, not about which is correct.",
+      "challenge": "Write a two-page comparison of two languages for a specific job in your market — for example, building a payments API for a Ghanaian fintech — covering typing, ecosystem maturity, hiring pool, hosting cost and deployment constraints, with a recommendation and the strongest argument against it. No benchmarks without a stated workload."
+    },
+    "how-languages-run": {
+      "title": "Welcome to How languages actually run, part of Programming Languages.",
+      "idea": "Two developers see the same error and behave differently. One reads \"undefined is not a function\" and starts editing. The other understands that the error came from the language's run time, and knows what class of mistake it belongs to. The difference is a mental model of the machine underneath the language, and it is the single most useful thing you can acquire after basic syntax.",
+      "example": "A web handler receives a request, looks up a user, builds a response and returns it. Following the memory makes the invisible visible. The request object and parameters live on the stack for the duration of the call. The user record and the response structure are heap allocations. If the handler registers a timer or a listener that captures the response object, that object can no longer be collected when the response is finished — the timer still holds a reference. Ten thousand requests later, the process is holding ten thousand copies of objects it no longer needs, memory climbs, and the fix has nothing to do with the request logic. The same code in a language with manual memory management would leak for the same reason, with worse consequences; the same code in Rust would fail to compile, because the borrow checker sees the reference outliving its owner. Three languages, one bug, three very different experiences — which is a precise statement of what a language's memory model buys you.",
+      "challenge": "Take a program you have written that runs continuously or handles many requests, and investigate its memory behaviour: measure the heap before and after a load test, find the largest surviving objects, identify anything held longer than it is needed, fix one such case, and show the before-and-after memory graph under the same load."
+    },
+    "reading-code-and-comparing-languages": {
+      "title": "Welcome to Reading code and comparing languages, part of Programming Languages.",
+      "idea": "You will be handed a repository in a language you have never written professionally and asked for a fix by Friday. Panic is a strategy, but a poor one. The method in this lesson — find the entry point, follow the data, read the tests, learn the idiom — converts that task from archaeology into a sequence, and it works in any language with a debugger, a test suite and a standard library.",
+      "example": "The task: read a 2 GB CSV of transactions, filter to one month, and write a summary grouped by day and category. The same job in Python and Go, on the same machine, reading the same file, with idiomatic code in each. The measurements, and what they mean: Go's process starts instantly, streams rows with constant memory and finishes in roughly half the wall-clock time. Python with a streaming reader finishes a little slower and uses a little more memory; Python with pandas is faster than both if the file fits in memory, and much slower — or dead — if it does not. Read the comparison correctly: it is not \"Go beats Python\". It is that for streaming a file larger than RAM, Go's model (compiled, cheap goroutines, no interpreter overhead) is a better fit, while for exploratory analysis of a file that fits in memory, pandas is the strongest choice on earth, because the work is done in optimised C code underneath and the developer writes five lines. The honest conclusion names the workload, the constraints and the team. A data analyst should not rewrite in Go; a backend team processing uploads all day probably should. That is what a defensible technical opinion looks like.",
+      "challenge": "Contribute a small, real change to a codebase in a language that is not your strongest: reproduce an issue, write a failing test, make the smallest idiomatic fix, and open a pull request that explains what you changed and how you verified it. Include what surprised you about the language and what you would have done differently in the language you know best."
+    },
+    "learning-a-new-language": {
+      "title": "Welcome to Learning a new language, part of Programming Languages.",
+      "idea": "Language acquisition is a skill with a method, and the method is mostly about sequencing: syntax last, because it is the easiest part, and the standard library, idioms and tooling first, because they are what make code look like it was written by somebody who belongs. This lesson is the shortest chapter in the course and the one people return to most often, because the need to learn another language never stops.",
+      "example": "A developer who writes JavaScript needs to work in Go for a new backend service. A realistic plan, with a job and other work, is about one hour a day plus weekends — roughly fifty hours. The plan is organised around producing something, because projects force the learning of whatever is missing. The final item is the one that matters to an employer: a working service with tests, in the repository, deployable — plus the ability to explain why it was written the way it was. Note what the plan deliberately skips: advanced concurrency patterns in week one, the language specification, and writing \"the same app but in Go\" as a framework exercise. Idioms are learned from the language's own examples and documentation, not from translating a framework. At the end, the visible evidence of competence is small, real and verifiable: a repository, a README, tests that pass, and a deploy. That is worth more to a hiring manager than a certificate saying you attended a course.",
+      "challenge": "Complete the four-week plan for a language you do not know: a small service with tests, structured logging and validation; a README that explains its design; a deployment you can call with curl; and five written answers about the decisions you made. Then have somebody who uses the language professionally review the code and tell you the three places where it is not yet idiomatic — and fix them."
+    },
+    "survey-programming-01-python": {
+      "title": "Welcome to Python, part of Programming Languages.",
+      "idea": "Python is a dynamically typed, indentation-based language used for automation, web services and data analysis.",
+      "example": "A function can calculate a price with tax and return it. Indentation defines the function body; calling the function supplies the argument.",
+      "challenge": "Write a function that converts Celsius to Fahrenheit and test it at 0 and 100 degrees. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-02-javascript": {
+      "title": "Welcome to JavaScript, part of Programming Languages.",
+      "idea": "JavaScript runs in browsers and other runtimes such as Node.js; it is central to interactive web pages.",
+      "example": "An arrow function transforms an array; map returns a new array without changing the original.",
+      "challenge": "Filter an array of scores to keep only scores of at least 50. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-03-typescript": {
+      "title": "Welcome to TypeScript, part of Programming Languages.",
+      "idea": "TypeScript adds static type checking to JavaScript and compiles to JavaScript for execution.",
+      "example": "The annotation says the parameter must be a number; the compiler can reject a string before execution. Compile the example with TypeScript before running the resulting JavaScript; the JavaScript console does not run type annotations directly.",
+      "challenge": "Define a Student type with a name and score and write a function that returns whether the student passed. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-04-java": {
+      "title": "Welcome to Java, part of Programming Languages.",
+      "idea": "Java is a statically typed language commonly run on the Java Virtual Machine (JVM), used for backend systems and Android.",
+      "example": "A class contains the entry point; the integer variable and arithmetic are checked before the program runs.",
+      "challenge": "Create a class with a method that returns the larger of two integers. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-05-c": {
+      "title": "Welcome to C, part of Programming Languages.",
+      "idea": "C is a compiled procedural language used for systems and embedded software; programmers must manage memory carefully.",
+      "example": "The main function prints a sum. The format specifier tells printf how to display the integer.",
+      "challenge": "Write a function to sum an integer array, passing both its pointer and its length. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-06-c-plus-plus": {
+      "title": "Welcome to C++, part of Programming Languages.",
+      "idea": "C++ extends C-style systems programming with classes, generic programming and resource-management abstractions.",
+      "example": "A vector owns a sequence of integers and releases its storage when it goes out of scope.",
+      "challenge": "Store three scores in a vector and calculate their average without accessing past its end. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-07-c-sharp": {
+      "title": "Welcome to C#, part of Programming Languages.",
+      "idea": "Cis a statically typed language in the .NET ecosystem used for applications, services and games.",
+      "example": "A local variable holds an integer, then Console.WriteLine displays its doubled value.",
+      "challenge": "Write a method that accepts a list of integers and returns the sum. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-08-go": {
+      "title": "Welcome to Go, part of Programming Languages.",
+      "idea": "Go is a compiled language with simple syntax, garbage collection and goroutines for concurrent work.",
+      "example": "A short variable declaration creates an integer inside main, and fmt.Println prints it.",
+      "challenge": "Write a function returning the sum of a slice and test an empty slice. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-09-rust": {
+      "title": "Welcome to Rust, part of Programming Languages.",
+      "idea": "Rust is a systems language whose ownership and borrowing rules help prevent memory errors without a garbage collector.",
+      "example": "A vector owns its values. Iteration borrows them, so the vector remains available afterwards.",
+      "challenge": "Write a function that borrows a slice of integers and returns its sum. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-10-kotlin": {
+      "title": "Welcome to Kotlin, part of Programming Languages.",
+      "idea": "Kotlin is a statically typed language used on Android and the JVM, with null safety and concise syntax.",
+      "example": "A nullable string may contain a name or null. The Elvis operator supplies a fallback when it is null.",
+      "challenge": "Write a function that accepts a nullable name and returns a greeting with a fallback. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-11-swift": {
+      "title": "Welcome to Swift, part of Programming Languages.",
+      "idea": "Swift is a statically typed language used for Apple platforms and also available on other systems.",
+      "example": "An optional may have no value; nil coalescing selects the fallback in that case.",
+      "challenge": "Write a function that takes an optional name and returns a greeting. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-12-php": {
+      "title": "Welcome to PHP, part of Programming Languages.",
+      "idea": "PHP is a server-side scripting language widely used to generate web responses and build applications.",
+      "example": "The dollar sign marks a variable; concatenation joins the label and the calculated value.",
+      "challenge": "Write a function to calculate a total and escape any user-supplied text before placing it in HTML. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-13-ruby": {
+      "title": "Welcome to Ruby, part of Programming Languages.",
+      "idea": "Ruby is a dynamic, object-oriented language used for scripts and web applications such as those built with Rails.",
+      "example": "The map block returns a new array with each score doubled.",
+      "challenge": "Use select to keep scores of at least 50 from an array. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-14-dart": {
+      "title": "Welcome to Dart, part of Programming Languages.",
+      "idea": "Dart is a typed language used for Flutter applications and supports null safety and asynchronous programming.",
+      "example": "The typed function returns the sum of two values; main prints the result.",
+      "challenge": "Write a function that converts minutes to seconds and test zero and a positive value. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-15-r": {
+      "title": "Welcome to R, part of Programming Languages.",
+      "idea": "R is a language and environment for statistical computing, data analysis and visualisation.",
+      "example": "A vector holds scores and mean calculates their arithmetic average.",
+      "challenge": "Create a numeric vector, compute its mean and examine how missing values affect the result. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-16-scala": {
+      "title": "Welcome to Scala, part of Programming Languages.",
+      "idea": "Scala combines object-oriented and functional programming and commonly runs on the JVM.",
+      "example": "A list transformation produces doubled values without modifying the original list.",
+      "challenge": "Filter a list for passing scores and compute the sum of the result. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-17-sql": {
+      "title": "Welcome to SQL, part of Programming Languages.",
+      "idea": "SQL is a declarative language for querying and manipulating relational databases; syntax varies between database systems.",
+      "example": "SELECT specifies the columns, WHERE filters the rows, and ORDER BY controls their order. The products table in the SQL lab has name and price columns.",
+      "challenge": "Create a small students table and query passing scores; include a tie and a missing score. In the SQL lab, run CREATE, INSERT and SELECT together because each run starts with a fresh database. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-18-shell-bash": {
+      "title": "Welcome to Shell (Bash), part of Programming Languages.",
+      "idea": "Bash is a command interpreter and scripting language for automating tasks on Unix-like systems.",
+      "example": "A quoted variable expands into one argument, even if its value contains spaces.",
+      "challenge": "Write a script that accepts a name as an argument, checks that it is present, and prints a greeting. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-19-objective-c": {
+      "title": "Welcome to Objective-C, part of Programming Languages.",
+      "idea": "Objective-C adds Smalltalk-style messaging to C and is used in older Apple-platform code alongside Swift.",
+      "example": "A message is sent to an NSString object; the receiver is inside square brackets. This requires Foundation.",
+      "challenge": "Find how Objective-C represents objects and nil, then write a Foundation program that prints a string's length. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-20-perl": {
+      "title": "Welcome to Perl, part of Programming Languages.",
+      "idea": "Perl is a dynamic scripting language known for text processing, regular expressions and system administration.",
+      "example": "A scalar variable stores text and interpolation inserts its value into a double-quoted string.",
+      "challenge": "Read lines from a file and count those containing a chosen word. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-21-lua": {
+      "title": "Welcome to Lua, part of Programming Languages.",
+      "idea": "Lua is a lightweight scripting language often embedded in games and applications.",
+      "example": "A table can act as an array; ipairs visits its sequential integer entries.",
+      "challenge": "Write a function that sums a table of scores and returns zero for an empty table. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-22-matlab": {
+      "title": "Welcome to MATLAB, part of Programming Languages.",
+      "idea": "MATLAB is a numerical computing language and environment used for matrix operations, engineering and analysis.",
+      "example": "A row vector holds three observations; mean calculates their average.",
+      "challenge": "Create two vectors and compare element-wise multiplication with matrix multiplication. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-23-julia": {
+      "title": "Welcome to Julia, part of Programming Languages.",
+      "idea": "Julia is a language for numerical and scientific computing with multiple dispatch and a just-in-time compiler.",
+      "example": "A function doubles a value; broadcasting applies it element by element to a vector.",
+      "challenge": "Write a function that computes the average of a nonempty vector and test it on three numbers. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-24-elixir": {
+      "title": "Welcome to Elixir, part of Programming Languages.",
+      "idea": "Elixir is a functional language on the Erlang VM, known for immutable data and lightweight concurrent processes.",
+      "example": "Enum.map returns a new list with each element doubled; the original list is unchanged.",
+      "challenge": "Filter a list of scores with Enum.filter and explain why the input list remains unchanged. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-25-haskell": {
+      "title": "Welcome to Haskell, part of Programming Languages.",
+      "idea": "Haskell is a statically typed functional language with lazy evaluation and an explicit approach to effects.",
+      "example": "A pure function doubles a value; map applies it to a list, while print performs output in IO.",
+      "challenge": "Write a pure function that filters passing scores and test it with an empty list. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-26-clojure": {
+      "title": "Welcome to Clojure, part of Programming Languages.",
+      "idea": "Clojure is a Lisp-family language commonly hosted on the JVM, emphasizing immutable data and functions.",
+      "example": "map applies a function to each value; the result is a sequence rather than an in-place update.",
+      "challenge": "Use filter to select scores of at least 50 from a vector. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-27-f-sharp": {
+      "title": "Welcome to F#, part of Programming Languages.",
+      "idea": "Fis a functional-first .NET language supporting immutable values, pattern matching and object-oriented interoperation.",
+      "example": "List.map applies a function to every number and creates a new list.",
+      "challenge": "Use List.filter to select passing scores, then sum the result. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-28-groovy": {
+      "title": "Welcome to Groovy, part of Programming Languages.",
+      "idea": "Groovy is a JVM language with concise syntax, dynamic features and close Java interoperability; it is used in scripting and build automation.",
+      "example": "A closure passed to collect transforms each element of a list.",
+      "challenge": "Use findAll to select scores of at least 50 and explain the closure's role. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-29-visual-basic-net": {
+      "title": "Welcome to Visual Basic .NET, part of Programming Languages.",
+      "idea": "Visual Basic .NET is a .NET language with readable keywords used in desktop, business and legacy applications.",
+      "example": "A module provides an entry point; Console.WriteLine prints the sum.",
+      "challenge": "Write a function that returns the larger of two integers and call it from Main. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-programming-30-assembly": {
+      "title": "Welcome to Assembly, part of Programming Languages.",
+      "idea": "Assembly is a family of low-level languages whose instructions correspond closely to a particular processor architecture.",
+      "example": "On a hypothetical machine, load 2 into a register, add 3, and inspect the register: the result is 5. Actual instruction names, registers and system calls depend on the architecture and assembler.",
+      "challenge": "Choose x86-64 or ARM64, identify its assembler syntax, and trace a documented load-and-add example instruction by instruction. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-01-swift-for-mobile": {
+      "title": "Welcome to Swift for mobile, part of Programming Languages.",
+      "idea": "Swift is a primary language for native iOS and other Apple-platform apps, typically developed with Xcode and Apple SDKs.",
+      "example": "A SwiftUI screen can hold a counter in state and update the displayed number when a button is tapped; the framework redraws the affected view.",
+      "challenge": "Plan a SwiftUI counter screen, including state, a button action and a test for the initial value. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-02-objective-c-for-mobile": {
+      "title": "Welcome to Objective-C for mobile, part of Programming Languages.",
+      "idea": "Objective-C remains important when maintaining existing iOS apps and Apple framework integrations; it can coexist with Swift.",
+      "example": "A legacy UIKit view controller receives a button action and updates a label. Messages use bracket syntax, and memory is commonly managed with ARC.",
+      "challenge": "Sketch the action and label update in a UIKit controller and identify where a Swift bridge might be needed. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-03-kotlin-for-mobile": {
+      "title": "Welcome to Kotlin for mobile, part of Programming Languages.",
+      "idea": "Kotlin is a primary language for native Android development, used with Android Studio and Android SDK APIs.",
+      "example": "A Jetpack Compose counter stores state; tapping a button changes the value and Compose updates the UI.",
+      "challenge": "Design a Compose counter and explain how its state should survive a configuration change. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-04-java-for-mobile": {
+      "title": "Welcome to Java for mobile, part of Programming Languages.",
+      "idea": "Java remains supported for Android apps and is common in existing Android codebases.",
+      "example": "An Activity registers a click listener on a button and updates a TextView when the user taps it.",
+      "challenge": "Outline an Activity with a button and label; identify how to preserve its count across recreation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-05-dart-with-flutter": {
+      "title": "Welcome to Dart with Flutter, part of Programming Languages.",
+      "idea": "Flutter uses Dart to build cross-platform interfaces from widgets, including Android and iOS apps.",
+      "example": "A stateful widget owns a counter; calling setState after a tap schedules a rebuild of the relevant widget subtree.",
+      "challenge": "Plan a counter widget, listing the state, button callback and one widget test. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-06-c-sharp-with-xamarin-and-net-maui": {
+      "title": "Welcome to C# with Xamarin and .NET MAUI, part of Programming Languages.",
+      "idea": "Ccan build cross-platform apps with .NET MAUI. Xamarin is the older predecessor and existing Xamarin apps need migration planning.",
+      "example": "A MAUI page binds a label to a counter and a button command increments it; binding updates the displayed value when change notifications are raised.",
+      "challenge": "Sketch the page, counter property and change notification; list one issue to check when migrating a Xamarin app. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-mobile-07-javascript-with-react-native": {
+      "title": "Welcome to JavaScript with React Native, part of Programming Languages.",
+      "idea": "React Native uses JavaScript or TypeScript and React components to build mobile interfaces backed by native platform components.",
+      "example": "A component stores a count with useState and displays it in Text; pressing a Pressable updates state and re-renders the component.",
+      "challenge": "Design a counter component and explain when a native module might be needed for a device feature. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-01-html": {
+      "title": "Welcome to HTML, part of Programming Languages.",
+      "idea": "HTML describes the structure and semantics of web pages with elements such as headings, paragraphs and links.",
+      "example": "The heading names the page and the paragraph supplies its content; a browser renders both as document elements.",
+      "challenge": "Create a page with a heading, paragraph and descriptive link, then check its semantic structure. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-02-xml": {
+      "title": "Welcome to XML, part of Programming Languages.",
+      "idea": "XML is a markup format for structured documents with explicitly nested elements and well-formedness rules.",
+      "example": "A book element contains a title element. Matching closing tags and a single root make this small document well formed.",
+      "challenge": "Add an author element and check that your document remains well formed. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-03-xhtml": {
+      "title": "Welcome to XHTML, part of Programming Languages.",
+      "idea": "XHTML expresses HTML using XML syntax, including strict nesting, quoted attributes and closed elements.",
+      "example": "A line break is written as a self-closing element in a document with the XHTML namespace; XML parsing requires well-formed markup.",
+      "challenge": "Create a well-formed XHTML page and explain how its parsing depends on its content type. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-04-sgml": {
+      "title": "Welcome to SGML, part of Programming Languages.",
+      "idea": "SGML is a standard for defining markup languages and document structures; HTML and XML have historical roots in it.",
+      "example": "A document type definition can declare which elements are permitted in a document; an SGML parser uses those declarations when processing it.",
+      "challenge": "Compare a simple SGML document type definition with an XML DTD and list one difference in their parsing rules. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-05-markdown": {
+      "title": "Welcome to Markdown, part of Programming Languages.",
+      "idea": "Markdown is a lightweight plain-text markup format commonly rendered as HTML; features differ between implementations.",
+      "example": "A hash marks a heading and a hyphen starts a list item in common Markdown renderers.",
+      "challenge": "Write a short document with a heading, list and descriptive link; preview it in your chosen renderer. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-06-latex": {
+      "title": "Welcome to LaTeX, part of Programming Languages.",
+      "idea": "LaTeX is a document preparation system built on TeX, widely used for technical documents and mathematical typesetting.",
+      "example": "A document class sets the layout, and content between the document delimiters is typeset.",
+      "challenge": "Add a section and a displayed equation, then compile the document with a LaTeX installation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-07-tex": {
+      "title": "Welcome to TeX, part of Programming Languages.",
+      "idea": "TeX is a typesetting system and macro language; LaTeX is a macro package built on top of it.",
+      "example": "In plain TeX, text is typeset until the end command closes the document.",
+      "challenge": "Typeset a short plain TeX document and compare its source with a LaTeX document. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-08-postscript": {
+      "title": "Welcome to PostScript, part of Programming Languages.",
+      "idea": "PostScript is a stack-based page-description programming language used to describe printable graphics and text.",
+      "example": "The numbers 100 and 200 are pushed on the operand stack, then moveto consumes them as coordinates for the current point.",
+      "challenge": "Trace the operand stack in a moveto and lineto sequence, then render a page with a trusted PostScript viewer. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-09-troff": {
+      "title": "Welcome to Troff, part of Programming Languages.",
+      "idea": "Troff is a text-formatting system that processes requests and macros to produce typeset documents, including Unix manual pages.",
+      "example": "A request at the start of a line selects a paragraph or heading; a macro package determines the available requests.",
+      "challenge": "Using a documented man or ms macro package, write and render a short page with a heading and paragraph. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-10-rtf": {
+      "title": "Welcome to RTF, part of Programming Languages.",
+      "idea": "Rich Text Format is a document interchange format that encodes text and formatting with groups and control words.",
+      "example": "The control word b turns bold on and b0 turns it off within the RTF document group.",
+      "challenge": "Open a small RTF file in a compatible editor and identify the group that contains bold text. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-11-yaml": {
+      "title": "Welcome to YAML, part of Programming Languages.",
+      "idea": "YAML is a human-readable data serialization format commonly used for configuration; indentation indicates structure.",
+      "example": "The application mapping contains a name and a list of ports. Spaces, not tabs, are used for indentation.",
+      "challenge": "Add an enabled boolean and validate the result with the YAML version used by your tool. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-12-json": {
+      "title": "Welcome to JSON, part of Programming Languages.",
+      "idea": "JSON is a text format for exchanging structured data using objects, arrays, strings, numbers, booleans and null.",
+      "example": "The object holds a name and an array of scores. JSON requires double-quoted property names and does not allow comments or trailing commas.",
+      "challenge": "Add a boolean field and parse the result with a JSON parser; then try a trailing comma and observe the error. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-13-toml": {
+      "title": "Welcome to TOML, part of Programming Languages.",
+      "idea": "TOML is a configuration format built around key-value pairs, tables and clear data types.",
+      "example": "The table header groups the name and port under server.",
+      "challenge": "Add a boolean setting to the server table and parse the file with a TOML parser. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-markup-data-14-hcl": {
+      "title": "Welcome to HCL, part of Programming Languages.",
+      "idea": "HashiCorp Configuration Language is a configuration language used by tools such as Terraform; the tool defines which blocks and attributes are valid.",
+      "example": "A Terraform variable block declares a string input called region with a default value. It does not itself create a cloud resource.",
+      "challenge": "Declare a second input variable and run Terraform validation in an isolated configuration without applying infrastructure. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-01-jinja": {
+      "title": "Welcome to Jinja, part of Programming Languages.",
+      "idea": "Jinja is a template engine commonly used with Python applications and tools such as Ansible.",
+      "example": "A template containing {{ name }} substitutes the name from its rendering context; a for block can repeat content for a collection.",
+      "challenge": "Render a list of names and verify how your environment escapes HTML in a name. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-02-handlebars": {
+      "title": "Welcome to Handlebars, part of Programming Languages.",
+      "idea": "Handlebars is a template engine whose expressions insert values and whose helpers add controlled logic.",
+      "example": "Hello, {{name}}! renders a supplied name; an each block repeats content for each item.",
+      "challenge": "Render a list with each and test what happens when a name contains an HTML tag. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-03-mustache": {
+      "title": "Welcome to Mustache, part of Programming Languages.",
+      "idea": "Mustache is a logic-light template language implemented in many programming languages.",
+      "example": "Hello, {{name}}! inserts a value from the view; a section can repeat for a list or conditionally display content.",
+      "challenge": "Render a list with a section and an empty list with an inverted section. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-04-liquid": {
+      "title": "Welcome to Liquid, part of Programming Languages.",
+      "idea": "Liquid is a template language used by platforms including Shopify and Jekyll, with objects, tags and filters.",
+      "example": "{{ product.title }} outputs a title, while a for tag can iterate over a collection of products.",
+      "challenge": "Create a product-list template and investigate escaping in the specific Liquid host you use. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-05-erb": {
+      "title": "Welcome to ERB, part of Programming Languages.",
+      "idea": "Embedded Ruby (ERB) combines text with Ruby expressions and is commonly used in Rails views.",
+      "example": "An expression tag such as <%= name %> inserts the expression's result; a non-output tag can hold control flow.",
+      "challenge": "Render a greeting and compare escaping in plain ERB with the defaults of your web framework. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-06-haml": {
+      "title": "Welcome to Haml, part of Programming Languages.",
+      "idea": "Haml is an indentation-based template language that generates HTML and is often used with Ruby applications.",
+      "example": "A line starting with %p represents a paragraph; indentation nests elements without manually writing every closing tag.",
+      "challenge": "Describe a heading and two nested list items in Haml and inspect the generated HTML. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-07-pug": {
+      "title": "Welcome to Pug, part of Programming Languages.",
+      "idea": "Pug is an indentation-based template engine for generating HTML, commonly used with Node.js.",
+      "example": "An indented p line beneath a div line becomes a paragraph nested within the div in the rendered HTML.",
+      "challenge": "Write a template for a heading and a list, then verify its output and escaping in your Pug version. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-08-twig": {
+      "title": "Welcome to Twig, part of Programming Languages.",
+      "idea": "Twig is a template engine for PHP applications, including Symfony projects.",
+      "example": "{{ name }} outputs a context value and a for tag can iterate over items; escaping depends on the configured environment.",
+      "challenge": "Render a list of products and check the HTML escaping setting for your template. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-09-blade": {
+      "title": "Welcome to Blade, part of Programming Languages.",
+      "idea": "Blade is Laravel's PHP templating engine, with directives and integration with application views.",
+      "example": "{{ $name }} prints an escaped value in a Blade view; @foreach can repeat a block for a collection.",
+      "challenge": "Build a view that lists products and check how Blade handles untrusted names. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-10-razor": {
+      "title": "Welcome to Razor, part of Programming Languages.",
+      "idea": "Razor is a .NET templating syntax used in ASP.NET Core views and components.",
+      "example": "An expression such as @Model.Name displays a model property in a view; the framework applies HTML encoding in ordinary output contexts.",
+      "challenge": "Design a view model with a name and render it in a Razor page; test a name containing angle brackets. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-11-thymeleaf": {
+      "title": "Welcome to Thymeleaf, part of Programming Languages.",
+      "idea": "Thymeleaf is a Java template engine often used with Spring, designed to work naturally with HTML.",
+      "example": "An element with th:text can replace its text content using a value from the rendering context.",
+      "challenge": "Create a page with a model-supplied title and inspect both the template and rendered HTML. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-12-velocity": {
+      "title": "Welcome to Velocity, part of Programming Languages.",
+      "idea": "Apache Velocity is a Java template engine that inserts values and supports directives in text templates.",
+      "example": "A reference like $name reads a context value; a foreach directive can iterate through a collection.",
+      "challenge": "Render a collection of names and check how your application handles output escaping. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-13-smarty": {
+      "title": "Welcome to Smarty, part of Programming Languages.",
+      "idea": "Smarty is a PHP template engine that separates templates from application data and logic.",
+      "example": "A template variable such as {$name} reads a value assigned by PHP; a foreach block can display a list.",
+      "challenge": "Render a product list and configure or apply escaping appropriate to your output context. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-14-ejs": {
+      "title": "Welcome to EJS, part of Programming Languages.",
+      "idea": "Embedded JavaScript (EJS) is a template engine that combines text with JavaScript executed during rendering.",
+      "example": "An output tag such as <%= name %> inserts an escaped value; control-flow tags can loop over an array.",
+      "challenge": "Render names from an array and compare escaped output with EJS's unescaped output tag. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-templates-15-nunjucks": {
+      "title": "Welcome to Nunjucks, part of Programming Languages.",
+      "idea": "Nunjucks is a JavaScript template engine inspired by Jinja, with blocks, filters and template inheritance.",
+      "example": "{{ name }} reads a value from the context, while a for block repeats markup for each item.",
+      "challenge": "Create a base template and a child template that overrides a content block; verify autoescaping. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-01-ada": {
+      "title": "Welcome to Ada, part of Programming Languages.",
+      "idea": "Ada is a strongly typed language used in safety-critical and long-lived systems, with explicit support for concurrency and contracts.",
+      "example": "An aircraft-control component can declare a constrained integer range for a sensor reading; a value outside the range must be handled rather than silently treated as valid.",
+      "challenge": "Choose a sensor range, describe an Ada subtype for it, and identify how to handle an out-of-range input. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-02-apl": {
+      "title": "Welcome to APL, part of Programming Languages.",
+      "idea": "APL is an array-oriented language known for concise expressions and a distinctive symbol set.",
+      "example": "A single array expression can add corresponding elements of two vectors, instead of writing an explicit loop for each position.",
+      "challenge": "Choose an APL implementation, evaluate addition of two equal-length vectors, and explain the shape of the result. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-03-awk": {
+      "title": "Welcome to AWK, part of Programming Languages.",
+      "idea": "AWK is a pattern-action language commonly used to process lines and fields of text.",
+      "example": "For each line of a space-separated file, an AWK program can select rows where the second field exceeds 50 and print the first field.",
+      "challenge": "Create a two-column test file and count the lines whose second field is at least 50; check the field separator. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-04-ballerina": {
+      "title": "Welcome to Ballerina, part of Programming Languages.",
+      "idea": "Ballerina is a language designed for networked applications and service integration, with built-in concepts for services and data.",
+      "example": "A service can accept an HTTP request, validate a JSON payload and return a response, while explicitly handling failures from a downstream call.",
+      "challenge": "Design an HTTP endpoint that validates a name and describe its success and error responses. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-05-bosque": {
+      "title": "Welcome to Bosque, part of Programming Languages.",
+      "idea": "Bosque is an experimental language project exploring predictable, regularized programming and tooling.",
+      "example": "A data-transformation function can take a collection and produce a result without relying on hidden mutable state; the exact syntax depends on the project's version.",
+      "challenge": "Find the current project documentation, record its status and version, and explain how it models a simple collection transformation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-06-ceylon": {
+      "title": "Welcome to Ceylon, part of Programming Languages.",
+      "idea": "Ceylon is a statically typed language designed for modular applications on the JVM and JavaScript platforms; its development is no longer active.",
+      "example": "A module can declare dependencies and use type information to describe values that may be absent.",
+      "challenge": "Read the archived module and optional-type documentation and explain how each helps maintain a large application. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-07-cobra": {
+      "title": "Welcome to Cobra, part of Programming Languages.",
+      "idea": "Cobra is an object-oriented language with .NET origins, supporting features including contracts and tests.",
+      "example": "A function's precondition can state that a divisor must not be zero before the body executes.",
+      "challenge": "Specify preconditions and postconditions for a division function and find how your chosen Cobra implementation expresses them. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-08-crystal": {
+      "title": "Welcome to Crystal, part of Programming Languages.",
+      "idea": "Crystal is a compiled, statically typed language with Ruby-inspired syntax and type inference.",
+      "example": "A function can infer numeric types from usage, while the compiler checks the program before producing a native executable.",
+      "challenge": "Write a small function to sum integers and inspect the compiler's response to an incompatible argument. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-09-dylan": {
+      "title": "Welcome to Dylan, part of Programming Languages.",
+      "idea": "Dylan is a multi-paradigm language with object-oriented features, multiple dispatch and a focus on dynamic development.",
+      "example": "A generic operation can select a method based on the types of its arguments, rather than only the receiver of a message.",
+      "challenge": "Describe a generic draw operation for circles and rectangles, then locate the method syntax in a Dylan implementation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-10-factor": {
+      "title": "Welcome to Factor, part of Programming Languages.",
+      "idea": "Factor is a concatenative, stack-based language in which words operate on values on a data stack.",
+      "example": "Push 2 and 3, then add them: the operation consumes the two stack values and leaves 5.",
+      "challenge": "Trace the stack after pushing two numbers, adding them and duplicating the result, using Factor documentation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-11-fancy": {
+      "title": "Welcome to Fancy, part of Programming Languages.",
+      "idea": "Fancy is a dynamic object-oriented language project influenced by Smalltalk and Ruby; implementations and documentation may be historical.",
+      "example": "An object can receive a message to perform an operation; the resulting behavior belongs to the receiver's class or object model.",
+      "challenge": "Identify an available Fancy implementation and explain how message sending differs from a conventional function call. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-12-felix": {
+      "title": "Welcome to Felix, part of Programming Languages.",
+      "idea": "Felix is a compiled language with functional and imperative features, designed for systems and high-performance programming.",
+      "example": "A producer and consumer can exchange work using the concurrency facilities described by the implementation, separating the source of data from its processing.",
+      "challenge": "Find the Felix version you can use and describe how it models a producer-consumer pipeline. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-13-flix": {
+      "title": "Welcome to Flix, part of Programming Languages.",
+      "idea": "Flix is a statically typed functional language with an effect system and support for Datalog-style logic programming.",
+      "example": "A reachability rule can derive indirect connections from direct connections, while types and effects help describe what functions do.",
+      "challenge": "Write down two graph edges and infer which nodes are reachable before checking Flix's logic syntax. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-14-gleam": {
+      "title": "Welcome to Gleam, part of Programming Languages.",
+      "idea": "Gleam is a statically typed functional language that targets the Erlang runtime and JavaScript.",
+      "example": "A function can return a Result distinguishing a valid parsed number from an error; pattern matching handles both cases.",
+      "challenge": "Design a Result-based parser for an age and list the cases a caller must handle. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-15-grain": {
+      "title": "Welcome to Grain, part of Programming Languages.",
+      "idea": "Grain is a typed functional language designed to compile to WebAssembly.",
+      "example": "A function transforms a list of values and the compiled WebAssembly module can be used in a compatible host environment.",
+      "challenge": "Find the Grain toolchain's current instructions and trace how a source file becomes a WebAssembly module. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-16-hack-hhvm": {
+      "title": "Welcome to Hack (HHVM), part of Programming Languages.",
+      "idea": "Hack is a statically typed language related to PHP that runs on HHVM and supports gradual typing and asynchronous operations.",
+      "example": "A typed function can accept a collection of user records, returning only records that satisfy a condition.",
+      "challenge": "Design a typed user record and a filter function, then check their syntax against current HHVM documentation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-17-harbour": {
+      "title": "Welcome to Harbour, part of Programming Languages.",
+      "idea": "Harbour is an open-source compiler for the xBase family, designed for Clipper-compatible business applications.",
+      "example": "A business program can read customer records and print a report using xBase-style data access and procedural code.",
+      "challenge": "Identify a Harbour compiler and design a customer report; note any database-driver requirements. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-18-xbase-dbase-clipper-foxpro": {
+      "title": "Welcome to xBase / dBase / Clipper / FoxPro, part of Programming Languages.",
+      "idea": "xBase refers to a family of database-oriented languages and systems including dBase, Clipper and FoxPro; dialects are not identical.",
+      "example": "A customer table can be filtered to active records and displayed in a report, but the exact commands and file support depend on the chosen product.",
+      "challenge": "Choose one dialect, describe how it opens and filters a table, and document a compatibility difference with another dialect. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-19-icon": {
+      "title": "Welcome to Icon, part of Programming Languages.",
+      "idea": "Icon is a high-level language known for string processing and goal-directed evaluation, in which expressions can succeed, fail or produce alternatives.",
+      "example": "A string search can generate successive matching positions; a surrounding expression can use the next result when it needs another candidate.",
+      "challenge": "Trace a search through a string with two matches and explain success, failure and resumption. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-20-inform": {
+      "title": "Welcome to Inform, part of Programming Languages.",
+      "idea": "Inform is a language and toolset for interactive fiction, used to model rooms, objects and player actions.",
+      "example": "A story defines a room and a key in it; the player can examine the room and take the key as the world model changes.",
+      "challenge": "Design two connected rooms and a locked door, then describe the rule that makes a key unlock it. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-21-ioke": {
+      "title": "Welcome to Ioke, part of Programming Languages.",
+      "idea": "Ioke is a dynamic, prototype-oriented language with a flexible message-based syntax.",
+      "example": "An expression can be read as messages sent to objects; the meaning of a message depends on the receiver and its behavior.",
+      "challenge": "Find the implementation's message syntax and trace a simple arithmetic expression as message sends. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-22-j": {
+      "title": "Welcome to J, part of Programming Languages.",
+      "idea": "J is an array-oriented language descended from ideas in APL, using combinations of ASCII characters for operations.",
+      "example": "An operation can reduce an array of numbers to their sum without an explicit loop; array shape influences how operations apply.",
+      "challenge": "Use a J implementation to sum a vector and explain the difference between its elements and its shape. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-23-jolie": {
+      "title": "Welcome to Jolie, part of Programming Languages.",
+      "idea": "Jolie is a service-oriented programming language for building and composing network services.",
+      "example": "An order service can receive a request and call an inventory service; the interface defines the messages exchanged between them.",
+      "challenge": "Sketch the request and response types for an inventory service and list one network failure the caller must handle. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-24-k": {
+      "title": "Welcome to K, part of Programming Languages.",
+      "idea": "K is a concise array-oriented language associated with kdb+ and time-series data processing; dialect and product version matter.",
+      "example": "A column of prices can be treated as a vector and transformed as a whole instead of iterating through each row manually.",
+      "challenge": "Identify a specific K or q implementation and compare vector operations on two small lists using its documentation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-25-kit": {
+      "title": "Welcome to Kit, part of Programming Languages.",
+      "idea": "Kit is a name used by more than one programming-language project; the intended implementation must be identified before its syntax or capabilities can be specified.",
+      "example": "Two projects named Kit may have different compilers and type systems, so a sample for one cannot be assumed to run in the other.",
+      "challenge": "Choose a specific Kit project, record its repository and version, and describe its intended use from its documentation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-26-lasso": {
+      "title": "Welcome to Lasso, part of Programming Languages.",
+      "idea": "Lasso is a programming language and application platform historically used for database-driven web applications.",
+      "example": "A web application can query product records and generate a page, keeping database access separate from the displayed template.",
+      "challenge": "Find the documentation for your Lasso version and outline safe parameterized access to a product table. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-27-lily": {
+      "title": "Welcome to Lily, part of Programming Languages.",
+      "idea": "Lily is a name shared by language projects; one Lily language is an embeddable scripting language. Identify the specific project before choosing a toolchain.",
+      "example": "An embedded script might calculate a score for a host application, which supplies input and receives the result; host integration depends on the implementation.",
+      "challenge": "Select a Lily implementation, identify its host and type model, and trace its documented first example. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-28-livecode-hypertalk": {
+      "title": "Welcome to LiveCode (HyperTalk), part of Programming Languages.",
+      "idea": "LiveCode is an English-like, event-driven development environment influenced by HyperTalk and HyperCard.",
+      "example": "A button's mouse-up handler can change the text in a field; the handler runs in response to a user event.",
+      "challenge": "Design a card with a button and a field, and describe the event handler needed to display a greeting. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-29-lobster": {
+      "title": "Welcome to Lobster, part of Programming Languages.",
+      "idea": "Lobster is a programming language aimed at game development, with features including static type inference and memory management.",
+      "example": "A game update function can advance a character's position based on velocity and elapsed time, separating simulation from rendering.",
+      "challenge": "Describe the inputs and output of a movement update and check the current Lobster syntax for a function. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-a-l-30-logtalk": {
+      "title": "Welcome to Logtalk, part of Programming Languages.",
+      "idea": "Logtalk is an object-oriented logic programming language that runs on compatible Prolog systems.",
+      "example": "A collection of facts and rules can be organized inside an object; a query asks whether a relationship follows from those rules.",
+      "challenge": "Model a parent relationship with facts and explain how a rule can infer a grandparent relationship. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-01-m4": {
+      "title": "Welcome to M4, part of Programming Languages.",
+      "idea": "M4 is a macro processor that expands textual macros and can be used to generate configuration or source files.",
+      "example": "A macro can stand for a repeated project name. Processing a template replaces invocations with the defined text according to M4's quoting and expansion rules.",
+      "challenge": "Define a project-name macro in a test file and inspect the expansion; experiment with quoting to avoid unwanted expansion. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-02-mercury": {
+      "title": "Welcome to Mercury, part of Programming Languages.",
+      "idea": "Mercury is a strongly typed logic and functional programming language with mode and determinism declarations.",
+      "example": "A predicate can describe a relationship between inputs and outputs, while its mode and determinism indicate how it can be called and how many solutions to expect.",
+      "challenge": "Describe a predicate for membership in a list and distinguish a successful result from failure. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-03-monkey": {
+      "title": "Welcome to Monkey, part of Programming Languages.",
+      "idea": "Monkey is a name used for several programming languages, including the Monkey X game-development language; syntax depends on the implementation.",
+      "example": "In a game-oriented Monkey project, an update loop can move a sprite based on input; the framework and target platform determine the APIs used.",
+      "challenge": "Choose a specific Monkey language, record its version and write down how its game loop or entry point is structured. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-04-mun": {
+      "title": "Welcome to Mun, part of Programming Languages.",
+      "idea": "Mun is an experimental language project aimed at rapid iteration and hot reloading, particularly for games.",
+      "example": "A game can change the logic of a function and reload it while the host is running, subject to the runtime's compatibility constraints.",
+      "challenge": "Check the project's status and explain one benefit and one limitation of hot reloading game logic. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-05-neko": {
+      "title": "Welcome to Neko, part of Programming Languages.",
+      "idea": "Neko is a lightweight virtual machine and associated language/toolchain, also used as a target by Haxe.",
+      "example": "Source compiled to Neko bytecode runs on the Neko virtual machine rather than directly as processor instructions.",
+      "challenge": "Trace the steps from a documented source example to Neko bytecode and identify the runtime needed to execute it. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-06-nit": {
+      "title": "Welcome to Nit, part of Programming Languages.",
+      "idea": "Nit is a statically typed object-oriented language with a focus on modularity and software engineering.",
+      "example": "A class models a game entity, while modules group related definitions and make dependencies explicit.",
+      "challenge": "Design an entity with a position and movement operation; identify how Nit modules organize the code. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-07-nu": {
+      "title": "Welcome to Nu, part of Programming Languages.",
+      "idea": "Nu is a Lisp-like language designed for interaction with Objective-C and Apple frameworks.",
+      "example": "A Nu expression can send a message to an Objective-C object, allowing script code to use an existing platform API.",
+      "challenge": "Identify a compatible Nu environment and explain how an Objective-C object is accessed from a Nu script. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-08-oberon": {
+      "title": "Welcome to Oberon, part of Programming Languages.",
+      "idea": "Oberon is a language and family of systems derived from Pascal and Modula-2, emphasizing modularity and simplicity.",
+      "example": "A module can export a procedure while keeping its internal data private, so another module depends only on its interface.",
+      "challenge": "Sketch a module that exports a counter operation and find the syntax for exports in your Oberon dialect. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-09-ocaml": {
+      "title": "Welcome to OCaml, part of Programming Languages.",
+      "idea": "OCaml is a statically typed functional language with type inference, pattern matching and imperative features.",
+      "example": "A function can pattern-match a list: the empty case returns zero, and the nonempty case adds the head to the sum of the tail.",
+      "challenge": "Write a recursive function that counts list elements and test it with an empty list. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-10-opa": {
+      "title": "Welcome to Opa, part of Programming Languages.",
+      "idea": "Opa is a language and platform designed for web applications, with integrated client-server concepts; its ecosystem is historical.",
+      "example": "A web application can define a server endpoint and client interaction within one project, while the platform handles parts of the communication.",
+      "challenge": "Consult archived Opa documentation and identify which parts of a simple web app run on the server and which run in the browser. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-11-openedge-abl-progress": {
+      "title": "Welcome to OpenEdge ABL (Progress), part of Programming Languages.",
+      "idea": "OpenEdge Advanced Business Language is a business application language in the Progress OpenEdge platform, closely integrated with data access.",
+      "example": "A business procedure can retrieve customer records and produce a report, with database connections and transaction boundaries managed by the application.",
+      "challenge": "Outline a customer lookup and identify where validation and transaction handling belong in an OpenEdge application. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-12-oxygene": {
+      "title": "Welcome to Oxygene, part of Programming Languages.",
+      "idea": "Oxygene is an Object Pascal language from RemObjects that targets multiple platforms through the Elements toolchain.",
+      "example": "A typed class can hold a customer's name and expose a method; the chosen target determines the runtime and available platform libraries.",
+      "challenge": "Choose a supported Oxygene target and design a class with a name property and a greeting method. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-13-pike": {
+      "title": "Welcome to Pike, part of Programming Languages.",
+      "idea": "Pike is a dynamic, object-oriented scripting language with C-like syntax, used for network and application programming.",
+      "example": "A program can process a collection of strings and output a transformed list, using the language's array and function facilities.",
+      "challenge": "Find the Pike version's array documentation and describe how to filter strings by length. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-14-pl-b": {
+      "title": "Welcome to PL/B, part of Programming Languages.",
+      "idea": "PL/B is a business-oriented programming language descended from DATABUS, used in commercial data-processing applications.",
+      "example": "An order-processing routine can validate a record, calculate a total and write an output report; implementation details vary by product.",
+      "challenge": "Outline validation and total calculation for an order and identify the file and numeric types in your PL/B implementation. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-15-powerbuilder-powerscript": {
+      "title": "Welcome to PowerBuilder (PowerScript), part of Programming Languages.",
+      "idea": "PowerScript is the language used in PowerBuilder, a development environment known for data-driven business applications and DataWindows.",
+      "example": "A button event can retrieve rows into a DataWindow and show them to a user, subject to the application's database connection and permissions.",
+      "challenge": "Design a customer search window and explain how the event, query and DataWindow interact. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-16-pure": {
+      "title": "Welcome to Pure, part of Programming Languages.",
+      "idea": "Pure is a functional language based on term rewriting and pattern matching, with an emphasis on symbolic computation.",
+      "example": "A rewrite rule can replace a symbolic expression matching a pattern with a simpler expression, provided the rule's conditions are met.",
+      "challenge": "Describe a rule simplifying addition of zero and test how pattern matching applies it in Pure. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-17-racket": {
+      "title": "Welcome to Racket, part of Programming Languages.",
+      "idea": "Racket is a Lisp-family language and language-building platform derived from Scheme.",
+      "example": "A function squares a number; parentheses denote function application, so the operator comes before its arguments.",
+      "challenge": "Write a function that doubles each number in a list using map. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-18-red": {
+      "title": "Welcome to Red, part of Programming Languages.",
+      "idea": "Red is a language inspired by Rebol, designed for applications spanning scripting and systems programming.",
+      "example": "A Red program can represent structured values in blocks, then pass those values to functions for processing.",
+      "challenge": "Find the current Red toolchain and describe how a block of values is evaluated or passed to a function. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-19-rebol": {
+      "title": "Welcome to Rebol, part of Programming Languages.",
+      "idea": "Rebol is a messaging-oriented language with a compact syntax for representing data and programs.",
+      "example": "A block can hold a series of values, which a function may interpret or transform according to its semantics.",
+      "challenge": "Using a specific Rebol version, construct a block of numbers and find the documented way to iterate over it. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-20-ring": {
+      "title": "Welcome to Ring, part of Programming Languages.",
+      "idea": "Ring is a general-purpose language supporting procedural, object-oriented and other programming styles.",
+      "example": "A program can keep a list of scores and loop through it to calculate a total; built-in operations and indexing follow Ring's rules.",
+      "challenge": "Write a small score-total program using the current Ring documentation and test an empty list. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-21-s-lang": {
+      "title": "Welcome to S-Lang, part of Programming Languages.",
+      "idea": "S-Lang is an embeddable scripting language and library used in applications including terminal-based tools.",
+      "example": "A host application can expose a command to a script, letting users customize behavior without rebuilding the host.",
+      "challenge": "Identify an application using S-Lang and describe one customization possible through its scripting interface. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-22-seed7": {
+      "title": "Welcome to Seed7, part of Programming Languages.",
+      "idea": "Seed7 is an extensible language supporting user-defined syntax and structured, statically typed programming.",
+      "example": "A library can define an abstraction for a domain operation, allowing programs to express that operation at a higher level.",
+      "challenge": "Find a Seed7 example of an operator or syntax extension and explain what existing code it replaces. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-23-self": {
+      "title": "Welcome to Self, part of Programming Languages.",
+      "idea": "Self is a prototype-based object-oriented language in which objects inherit behavior from other objects rather than classes.",
+      "example": "A new object can delegate a message to a parent prototype and override a behavior locally.",
+      "challenge": "Draw a prototype chain for a vehicle and bicycle and trace where a move message is found. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-24-simula": {
+      "title": "Welcome to Simula, part of Programming Languages.",
+      "idea": "Simula is an influential language family developed for simulation and associated with early class-based object-oriented programming.",
+      "example": "A simulation models customers as objects and records arrivals and departures to study a queue over time.",
+      "challenge": "Describe the state of a customer object and two events needed to simulate a queue. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-25-slate": {
+      "title": "Welcome to Slate, part of Programming Languages.",
+      "idea": "Slate is a prototype-based language with multiple dispatch and reflective programming features.",
+      "example": "An operation can select behavior using the types or roles of multiple arguments, rather than a single receiver alone.",
+      "challenge": "Explain how a collision operation might choose different behavior for a player and a wall versus a player and a coin. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-26-snobol": {
+      "title": "Welcome to Snobol, part of Programming Languages.",
+      "idea": "SNOBOL is a family of languages known for string manipulation and pattern matching; SNOBOL4 is a prominent dialect.",
+      "example": "A pattern can search a line of text for a substring and separate the matching part from surrounding text.",
+      "challenge": "Choose a SNOBOL implementation and trace a documented pattern match on a string containing two candidate matches. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-27-squeak": {
+      "title": "Welcome to Squeak, part of Programming Languages.",
+      "idea": "Squeak is a Smalltalk implementation and live programming environment where objects, messages and an image-based workflow are central.",
+      "example": "An object receives a message and returns a result; the running image contains objects and code that can be inspected interactively.",
+      "challenge": "Open a Squeak image, inspect an object and explain how saving the image differs from saving a source file. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-28-stata": {
+      "title": "Welcome to Stata, part of Programming Languages.",
+      "idea": "Stata is a statistical software environment with a command language for data management, analysis and reproducible scripts.",
+      "example": "Load a dataset, summarize a numeric variable and inspect the count and mean before drawing conclusions.",
+      "challenge": "Use a sample dataset to summarize a variable, noting how missing values are treated and recording the commands in a do-file. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-29-streem": {
+      "title": "Welcome to Streem, part of Programming Languages.",
+      "idea": "Streem is an experimental language project exploring stream-based programming and concurrency.",
+      "example": "A pipeline can receive a stream of readings, transform each reading and send results to another stage.",
+      "challenge": "Diagram a three-stage readings pipeline and check the project documentation for how stages communicate. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-30-terra": {
+      "title": "Welcome to Terra, part of Programming Languages.",
+      "idea": "Terra is a low-level systems programming language embedded in and staged by Lua, designed for generating high-performance code.",
+      "example": "Lua code can generate a Terra function, which is then compiled; generation time and execution time are distinct stages.",
+      "challenge": "Identify which parts of a documented Terra example execute in Lua and which are compiled as Terra code. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-31-turing": {
+      "title": "Welcome to Turing, part of Programming Languages.",
+      "idea": "Turing is an educational programming language designed to teach structured programming and problem solving.",
+      "example": "A program can read a number, compare it with a threshold and print whether it passes, making the conditional explicit.",
+      "challenge": "Create a pass-or-fail program in the Turing implementation available to you and test values on both sides of the boundary. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-32-umple": {
+      "title": "Welcome to Umple, part of Programming Languages.",
+      "idea": "Umple combines modeling concepts such as classes, associations and state machines with programming language generation.",
+      "example": "A model can declare a relationship between a student and courses; generated code provides the corresponding association behavior.",
+      "challenge": "Model students and courses with multiplicities and explain which invalid associations the model should prevent. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-33-unicon": {
+      "title": "Welcome to Unicon, part of Programming Languages.",
+      "idea": "Unicon extends Icon with features for systems programming, networking and object-oriented development while retaining goal-directed evaluation.",
+      "example": "A text-processing expression can generate successive matches, and surrounding code can use each result as it becomes available.",
+      "challenge": "Compare Icon and Unicon on one documented string-processing example and explain the role of a generator. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-34-vala": {
+      "title": "Welcome to Vala, part of Programming Languages.",
+      "idea": "Vala is a statically typed language that compiles to C and integrates with the GLib and GObject ecosystem.",
+      "example": "A program can define an object and use a GLib library; compiling the generated C requires the appropriate development libraries.",
+      "challenge": "Identify the compiler and GLib dependencies for a small Vala application, then design a class with one property. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-35-verse-epic-fortnite": {
+      "title": "Welcome to Verse (Epic/Fortnite), part of Programming Languages.",
+      "idea": "Verse is a programming language used in Unreal Editor for Fortnite to define interactive game behavior.",
+      "example": "A device can respond to an in-game event and update a score, subject to the current Fortnite APIs and event lifecycle.",
+      "challenge": "Design an event-driven scoring device and identify how to test it in a private development island. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-36-wolfram": {
+      "title": "Welcome to Wolfram, part of Programming Languages.",
+      "idea": "Wolfram Language is a symbolic and computational language used in Mathematica and other Wolfram environments.",
+      "example": "A list of numbers can be transformed with a function, or an expression can remain symbolic until evaluated or simplified.",
+      "challenge": "Calculate the mean of a list and compare numeric evaluation with a symbolic expression in your Wolfram environment. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-37-wren": {
+      "title": "Welcome to Wren, part of Programming Languages.",
+      "idea": "Wren is a small embeddable, class-based scripting language designed to be integrated into host applications.",
+      "example": "A host can run a Wren script to calculate a game rule, while exposing only the API the script needs.",
+      "challenge": "Describe the data a host would pass to a score-calculation script and what it should receive back. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-38-x-plus-plus-dynamics": {
+      "title": "Welcome to X++ (Dynamics), part of Programming Languages.",
+      "idea": "X++ is a business application language used in Microsoft Dynamics 365 Finance and Operations, with integrated data-access features.",
+      "example": "A business operation can validate an order and update records within a transaction, using the application's data model and security rules.",
+      "challenge": "Outline an order update and identify where validation, transaction boundaries and authorization should be checked. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-39-xojo": {
+      "title": "Welcome to Xojo, part of Programming Languages.",
+      "idea": "Xojo is a development environment and object-oriented language for desktop, web and mobile applications.",
+      "example": "A button's event handler reads a text field and displays a greeting in a label; platform support depends on the chosen Xojo target.",
+      "challenge": "Design a small greeting window and specify the button event and empty-input behavior. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-40-yorick": {
+      "title": "Welcome to Yorick, part of Programming Languages.",
+      "idea": "Yorick is an interpreted language for scientific and numerical analysis, with array operations and visualization tools.",
+      "example": "A numerical array can hold sampled measurements; applying an operation across the array helps analyze the series without manually processing each element.",
+      "challenge": "Find a Yorick example that plots a vector and explain what the axes and units represent. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-41-zig": {
+      "title": "Welcome to Zig, part of Programming Languages.",
+      "idea": "Zig is a systems programming language with explicit memory allocation and compile-time evaluation facilities.",
+      "example": "A function that needs dynamic storage takes or uses an allocator, making the allocation strategy visible to its caller.",
+      "challenge": "Find the documentation for your Zig version and describe who owns and frees a dynamically allocated list. Record your assumptions, the tool or documentation version, and how you checked the result."
+    },
+    "survey-specialist-m-z-42-zpl": {
+      "title": "Welcome to ZPL, part of Programming Languages.",
+      "idea": "ZPL can mean Zebra Programming Language for label printers or the unrelated ZPL parallel programming language. The intended context matters.",
+      "example": "In Zebra's ZPL, a label format contains commands that position text before printing; in the parallel language, programs operate over distributed arrays. These are not interchangeable.",
+      "challenge": "Choose the label-printer or parallel-computing meaning, identify a compatible tool, and describe a minimal example from its documentation without sending it to a production device. Record your assumptions, the tool or documentation version, and how you checked the result."
+    }
+  }
+}
