@@ -23,6 +23,7 @@ import { MICROSOFT_OFFICE_MODULES } from "@/content/microsoft-office";
 import { PROGRAMMING_LANGUAGES_MODULES } from "@/content/programming-languages";
 import { AI_ML_MODULES } from "@/content/artificial-intelligence-machine-learning";
 import { GAME_DEVELOPMENT_MODULES } from "@/content/game-development";
+import { AI_DROPSHIPPING_MODULES } from "@/content/ai-dropshipping";
 
 /**
  * The thirteen programs, and the courses under them.
@@ -788,6 +789,32 @@ export const PROGRAM_COURSES: Course[] = [
     ],
     tags: ["Game loop", "2D & 3D", "4D & 5D", "4K–8K rendering"],
     modules: GAME_DEVELOPMENT_MODULES,
+  },
+  {
+    id: "ai-dropshipping",
+    cover: "/course-covers/ai-dropshipping.jpg",
+    slug: "ai-dropshipping",
+    title: "AI Dropshipping: Build and Run an AI-Powered Store",
+    shortTitle: "AI Dropshipping",
+    description:
+      "Find winning products with AI, build a dropshipping store, write product pages and ads, and run orders and support — all with AI doing the repetitive work and you making the decisions.",
+    category: "AI & Machine Learning",
+    level: "Beginner",
+    tone: "orange",
+    icon: "briefcase",
+    instructor: { name: "Ama Serwaa", role: "Ecommerce Operator", initials: "AS" },
+    rating: 0,
+    learners: 0,
+    project: "A live AI-powered dropshipping store plus a playbook for choosing products, running ads and fulfilling orders",
+    outcomes: [
+      "Find and validate products using AI and demand signals",
+      "Set up a store, connect a supplier and publish the pages buyers trust",
+      "Write product titles, descriptions and ads with AI that convert",
+      "Run fulfillment, tracking, refunds and AI-assisted customer support",
+      "Manage the store by profit after ads, not revenue",
+    ],
+    tags: ["Dropshipping", "Ecommerce", "AI", "Store operations"],
+    modules: AI_DROPSHIPPING_MODULES,
   },
 ];
 
