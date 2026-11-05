@@ -265,10 +265,20 @@ begin
   end if;
 end $$;
 
-do $$
+do $heal$
 declare
-  column_to_fix record;
-  attached_key record;
+  column_to_fix   record;
+  attached_key    record;
+  dependent_view  record;
+  generated_col   record;
+  stats_object    record;
+  inherited_parent record;
+  column_attnum   smallint;
+  column_type     text;
+  rebuild         text[] := '{}';
+  pass_number     integer;
+  made_progress   boolean;
+  statement_index integer;
 begin
   for column_to_fix in
     select column_name
@@ -284,61 +294,254 @@ begin
        -- the labels they were born with).
        and data_type <> 'text'
   loop
+    select attnum into column_attnum
+      from pg_attribute
+     where attrelid = 'payments'::regclass
+       and attname = column_to_fix.column_name
+       and not attisdropped;
+
     begin
       begin
         execute format('alter table payments alter column %I type text using %I::text',
                        column_to_fix.column_name, column_to_fix.column_name);
       exception when others then
-        -- The conversion needs help. Drop only the constraints that stand in
-        -- its way, then try exactly once more.
-        for attached_key in
-          select conname
-            from pg_constraint
-           where conrelid = 'payments'::regclass
-             and contype = 'f'
-             and (select attnum from pg_attribute
-                   where attrelid = 'payments'::regclass
-                     and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
-        loop
-          execute format('alter table payments drop constraint %I', attached_key.conname);
-          raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
-        end loop;
+        -- The conversion needs help. Clear everything PostgreSQL says is in the
+        -- way, then try exactly once more. Each step is best-effort: a blocker
+        -- this role may not touch is logged, and the column is left as it was.
+        begin
+          -- An *inherited* column cannot be retyped on this table alone
+          -- (cannot alter inherited column). The parent is altered instead,
+          -- which carries the change to every table that inherits it — the
+          -- column is one column, whichever table is named.
+          if exists (select 1
+                       from pg_attribute
+                      where attrelid = 'payments'::regclass
+                        and attnum = column_attnum
+                        and attinhcount > 0) then
+            for inherited_parent in
+              select inhparent::regclass as parent_name
+                from pg_inherits
+               where inhrelid = 'payments'::regclass
+            loop
+              begin
+                execute format('alter table %s alter column %I type text using %I::text',
+                               inherited_parent.parent_name,
+                               column_to_fix.column_name, column_to_fix.column_name);
+                raise warning '[codemasterghana] aligned inherited payments.% on % to text', column_to_fix.column_name, inherited_parent.parent_name;
+              exception when others then
+                raise warning '[codemasterghana] could not align inherited payments.% on %: %', column_to_fix.column_name, inherited_parent.parent_name, sqlerrm;
+              end;
+            end loop;
+          end if;
 
-        for attached_key in
-          select conrelid::regclass as owner_table, conname
-            from pg_constraint
-           where contype = 'f'
-             and confrelid = 'payments'::regclass
-             and (select attnum from pg_attribute
-                   where attrelid = 'payments'::regclass
-                     and attname = column_to_fix.column_name and not attisdropped) = any(confkey)
-        loop
-          execute format('alter table %s drop constraint %I', attached_key.owner_table, attached_key.conname);
-          raise warning '[codemasterghana] dropped foreign key % on % (it pointed at payments.%, which is now text)', attached_key.conname, attached_key.owner_table, column_to_fix.column_name;
-        end loop;
+          -- A foreign key built on the column.
+          for attached_key in
+            select conname
+              from pg_constraint
+             where conrelid = 'payments'::regclass
+               and contype = 'f'
+               and column_attnum = any(conkey)
+          loop
+            execute format('alter table payments drop constraint %I', attached_key.conname);
+            raise warning '[codemasterghana] dropped foreign key % on payments.% (a text id cannot satisfy it)', attached_key.conname, column_to_fix.column_name;
+          end loop;
 
-        for attached_key in
-          select conname
-            from pg_constraint
-           where conrelid = 'payments'::regclass
-             and contype = 'c'
-             and (select attnum from pg_attribute
-                   where attrelid = 'payments'::regclass
-                     and attname = column_to_fix.column_name and not attisdropped) = any(conkey)
-        loop
-          execute format('alter table payments drop constraint %I', attached_key.conname);
-          raise warning '[codemasterghana] dropped rule % on payments.% (it cannot survive the text conversion; this app puts its own rules back)', attached_key.conname, column_to_fix.column_name;
-        end loop;
+          -- A foreign key in *another* table pointing at the column — the error
+          -- names that table's constraint, not ours.
+          for attached_key in
+            select conrelid::regclass as owner_table, conname
+              from pg_constraint
+             where contype = 'f'
+               and confrelid = 'payments'::regclass
+               and column_attnum = any(confkey)
+          loop
+            execute format('alter table %s drop constraint %I', attached_key.owner_table, attached_key.conname);
+            raise warning '[codemasterghana] dropped foreign key % on % (it pointed at payments.%, which is now text)', attached_key.conname, attached_key.owner_table, column_to_fix.column_name;
+          end loop;
 
-        execute format('alter table payments alter column %I type text using %I::text',
-                       column_to_fix.column_name, column_to_fix.column_name);
+          -- A check or exclusion rule that compares the column with values of
+          -- its old type (an enum rule against text labels fails with 42883).
+          for attached_key in
+            select conname
+              from pg_constraint
+             where conrelid = 'payments'::regclass
+               and contype in ('c', 'x')
+               and column_attnum = any(conkey)
+          loop
+            execute format('alter table payments drop constraint %I', attached_key.conname);
+            raise warning '[codemasterghana] dropped rule % on payments.% (it cannot survive the text conversion; this app puts its own rules back)', attached_key.conname, column_to_fix.column_name;
+          end loop;
+
+          -- A view or materialized view built on the table. PostgreSQL refuses
+          -- to retype a column a view depends on (0A000 cannot alter type of a
+          -- column used by a view or rule), and that refusal used to leave the
+          -- column in its legacy type — so checkout kept saying the payments
+          -- table "stores account ids in a format this app cannot use" while
+          -- every other part of the site looked healthy. The definition is kept
+          -- and the view is rebuilt below, once the columns are text. Views on
+          -- *views* are included (deepest first), because dropping a view that
+          -- another view reads from is refused too.
+          for dependent_view in
+            with recursive dependents(relid, depth) as (
+              select c.oid, 1
+                from pg_depend d
+                join pg_rewrite rw on rw.oid = d.objid
+                join pg_class c on c.oid = rw.ev_class
+               where d.classid = 'pg_rewrite'::regclass
+                 and d.refclassid = 'pg_class'::regclass
+                 and d.refobjid = 'payments'::regclass
+                 and c.relkind in ('v', 'm')
+                 and c.oid <> 'payments'::regclass
+              union
+              select c.oid, dependents.depth + 1
+                from dependents
+                join pg_depend d
+                  on d.classid = 'pg_rewrite'::regclass
+                 and d.refclassid = 'pg_class'::regclass
+                 and d.refobjid = dependents.relid
+                join pg_rewrite rw on rw.oid = d.objid
+                join pg_class c on c.oid = rw.ev_class
+               where c.relkind in ('v', 'm')
+                 and c.oid <> dependents.relid
+                 and dependents.depth < 20
+            )
+            select c.oid, n.nspname, c.relname, c.relkind, c.reloptions, max(depth) as depth
+              from dependents
+              join pg_class c on c.oid = dependents.relid
+              join pg_namespace n on n.oid = c.relnamespace
+             group by c.oid, n.nspname, c.relname, c.relkind, c.reloptions
+             order by depth desc
+          loop
+            if exists (select 1 from pg_class where oid = dependent_view.oid) then
+              declare
+                definition text := pg_get_viewdef(dependent_view.oid);
+                qualified  text := format('%I.%I', dependent_view.nspname, dependent_view.relname);
+                options    text := case when dependent_view.reloptions is null then ''
+                                        else ' with (' || array_to_string(dependent_view.reloptions, ', ') || ')' end;
+                rebuilt    text;
+              begin
+                -- Only a view whose definition could be read is moved: dropping
+                -- one we cannot recreate would be the data loss this block
+                -- exists to avoid, so it stays and the column stays as it was.
+                if definition is not null and btrim(definition) <> '' then
+                  rebuilt := format('create %s view %s%s as %s',
+                                    case when dependent_view.relkind = 'm' then 'materialized' else '' end,
+                                    qualified, options, rtrim(btrim(definition), ';'));
+                  if not (rebuilt = any(rebuild)) then
+                    rebuild := array_append(rebuild, rebuilt);
+                  end if;
+                  execute format('drop %s view %I.%I',
+                                 case when dependent_view.relkind = 'm' then 'materialized' else '' end,
+                                 dependent_view.nspname, dependent_view.relname);
+                  raise warning '[codemasterghana] moved the dependent % view % aside to align payments.% to text; it is put back below with its own definition',
+                                case when dependent_view.relkind = 'm' then 'materialized' else 'plain' end, qualified, column_to_fix.column_name;
+                else
+                  raise warning '[codemasterghana] left the dependent view % alone: its definition could not be read, so payments.% keeps its old type and the view keeps its meaning',
+                                qualified, column_to_fix.column_name;
+                end if;
+              end;
+            end if;
+          end loop;
+
+          -- A generated column that reads this one (cannot alter type of a
+          -- column used by a generated column). The expression is kept and the
+          -- column is added back below; nothing but derived values is touched.
+          for generated_col in
+            select a.attname,
+                   format_type(a.atttypid, a.atttypmod) as type_name,
+                   pg_get_expr(ad.adbin, ad.adrelid) as expression
+              from pg_depend d
+              join pg_attrdef ad on ad.oid = d.objid
+              join pg_attribute a on a.attrelid = ad.adrelid and a.attnum = ad.adnum
+             where d.classid = 'pg_attrdef'::regclass
+               and d.refobjid = 'payments'::regclass
+               and d.refobjsubid = column_attnum
+               and a.attgenerated <> ''
+          loop
+            begin
+              execute format('alter table payments drop column %I', generated_col.attname);
+              rebuild := array_append(rebuild, format('alter table payments add column %I %s generated always as (%s) stored',
+                                                      generated_col.attname, generated_col.type_name, generated_col.expression));
+              raise warning '[codemasterghana] moved generated column payments.% aside (it read the column being aligned) and re-adds it below', generated_col.attname;
+            exception when others then
+              raise warning '[codemasterghana] could not rebuild generated column payments.%: %', generated_col.attname, sqlerrm;
+            end;
+          end loop;
+
+          -- Extended statistics pin a column's type too.
+          for stats_object in
+            select n.nspname, s.stxname, pg_get_statisticsobjdef(s.oid) as definition
+              from pg_statistic_ext s
+              join pg_namespace n on n.oid = s.stxnamespace
+             where s.stxrelid = 'payments'::regclass
+               and column_attnum = any(stxkeys::int2[])
+          loop
+            if stats_object.definition is not null and not (stats_object.definition = any(rebuild)) then
+              rebuild := array_append(rebuild, stats_object.definition);
+            end if;
+            execute format('drop statistics if exists %I.%I', stats_object.nspname, stats_object.stxname);
+            raise warning '[codemasterghana] moved statistics % aside (it named the column being aligned) and recreates it below', stats_object.stxname;
+          end loop;
+
+          -- An identity column cannot become text, and this app always supplies
+          -- the value (a CMG-… reference, its own account id).
+          if exists (select 1
+                       from pg_attribute
+                      where attrelid = 'payments'::regclass
+                        and attnum = column_attnum
+                        and attidentity <> '') then
+            execute format('alter table payments alter column %I drop identity', column_to_fix.column_name);
+            raise warning '[codemasterghana] dropped the identity from payments.% (this app supplies its own ids)', column_to_fix.column_name;
+          end if;
+        exception when others then
+          raise warning '[codemasterghana] could not clear the blockers on payments.%: %', column_to_fix.column_name, sqlerrm;
+        end;
+
+        -- An inherited column is now text because its parent was altered on
+        -- the first pass of the loop above; retyping it here would be refused
+        -- (42P16 cannot alter inherited column), so ask the catalogue first.
+        select data_type into column_type
+          from information_schema.columns
+         where table_schema = current_schema()
+           and table_name = 'payments'
+           and column_name = column_to_fix.column_name;
+        if column_type <> 'text' then
+          execute format('alter table payments alter column %I type text using %I::text',
+                         column_to_fix.column_name, column_to_fix.column_name);
+        end if;
       end;
       raise warning '[codemasterghana] payments.% aligned to text', column_to_fix.column_name;
     exception when others then
       raise warning '[codemasterghana] could not align payments.% to text: %', column_to_fix.column_name, sqlerrm;
     end;
   end loop;
-end $$;
+
+  -- Put back what was dropped for the conversion, in dependency order. The
+  -- loop retries, so a view that reads another rebuilt view lands on a later
+  -- pass whatever order they were found in. A statement that never succeeds is
+  -- logged with its text — the app still starts, and the log says exactly what
+  -- to recreate by hand.
+  for pass_number in 1..6 loop
+    made_progress := false;
+    for statement_index in 1..coalesce(array_length(rebuild, 1), 0) loop
+      if rebuild[statement_index] is not null then
+        begin
+          execute rebuild[statement_index];
+          rebuild[statement_index] := null;
+          made_progress := true;
+        exception when others then
+          null; -- something it reads from may not exist yet; try next pass
+        end;
+      end if;
+    end loop;
+    exit when not made_progress;
+  end loop;
+  for statement_index in 1..coalesce(array_length(rebuild, 1), 0) loop
+    if rebuild[statement_index] is not null then
+      raise warning '[codemasterghana] could not rebuild this object after aligning payments to text: %', rebuild[statement_index];
+    end if;
+  end loop;
+end $heal$;
 
 alter table payments add column if not exists settles_reference text;
 
@@ -396,9 +599,19 @@ create index if not exists payments_user_idx on payments (user_id, created_at de
 
 create index if not exists payments_status_idx on payments (status, created_at desc);
 
-create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null;
+do $heal$
+   begin
+     execute 'create unique index if not exists payments_event_key on payments (provider_event_id) where provider_event_id is not null';
+   exception when others then
+     raise warning '[codemasterghana] could not add the payments provider-event index (%); fulfilment stays idempotent through the row status', sqlerrm;
+   end $heal$;
 
-create index if not exists payments_deposit_idx on payments (user_id, program_id, created_at desc) where deposit;
+do $heal$
+   begin
+     execute 'create index if not exists payments_deposit_idx on payments (user_id, program_id, created_at desc) where deposit';
+   exception when others then
+     raise warning '[codemasterghana] could not add the payments deposit index (%); checkouts are unaffected, only the lookup is slower', sqlerrm;
+   end $heal$;
 
 create index if not exists payments_settles_idx on payments (settles_reference) where settles_reference is not null;
 
