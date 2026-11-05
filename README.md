@@ -351,10 +351,10 @@ Two different failures wear that field, and they need opposite fixes:
   finish in the background — it is abandoned, never cancelled — so the next
   request finds it done. `HEALTH_SCHEMA_TIMEOUT_MS` (default 20s) bounds it.
 
-The schema step is 89 idempotent statements, and it used to be 89 round trips:
+The schema step is 94 idempotent statements, and it used to be 94 round trips:
 on a serverless host each one is a fresh pooler connection, which is how
 *describing* a correct database could outlast the endpoint's own budget.
-`schemaBatches()` in `src/lib/schema.ts` now sends them in 15 groups — the
+`schemaBatches()` in `src/lib/schema.ts` now sends them in 17 groups — the
 `do $$ … $$` repair blocks stay on their own, because their real statement count
 lives inside a body the batcher cannot see — and any group that is refused is
 replayed one statement at a time, which is the old behaviour rather than a
@@ -367,14 +367,28 @@ up, checks the migrations keep the constraints the schema declares, re-applies
 to confirm idempotence, and times a fresh `ready()`.
 
 `npm run payments:schema` covers the harder case: a `payments` table that
-already existed. Each legacy shape — serial, uuid, enum and text account ids,
-a short `varchar` reference, a uuid `reference`, a sibling foreign key on
-`payments.user_id`, an old build's own `settles_reference` — is created in its
-own embedded database, healed by the real `ready()`, and then checked out
-against as a real account. It asserts the student's checkout starts, the row
-carries the text account id, every id/string column is text, the legacy rows
-survive value for value, only this app's two foreign keys remain, its rules are
-back, and a second boot changes nothing.
+already existed. Fourteen legacy shapes are created, each in its own embedded
+database, healed by the real `ready()`, and then checked out against as a real
+account:
+
+- **ids and types** — serial, uuid, enum and text account ids, a short
+  `varchar` reference, a uuid `reference`, a `numeric` amount, a `char(3)`
+  currency, an old build's own `settles_reference`;
+- **links and rules** — a sibling foreign key pointing at `payments.user_id`,
+  `status` / `provider` rules written for a different app, a `deposit` column
+  from another project;
+- **objects in the way** — the shapes that keep the columns in their legacy
+  type even after every constraint is cleared: a reporting view (and a view on
+  that view), a materialized view, a generated column derived from `user_id`,
+  an identity `reference`, a partitioned table, and a table whose columns are
+  inherited from another project's.
+
+It asserts the student's checkout starts, the row carries the text account id,
+every id/string column is text, the legacy rows survive value for value, only
+this app's foreign keys remain, its rules are back, the views / materialized
+views / generated columns / statistics that stood in the way are **back with
+their definitions**, and a second boot changes nothing. Run against the schema
+in `main` before this change, seven of those checks fail.
 
 ## Run locally
 
@@ -1095,11 +1109,27 @@ Postgres error. Two causes are worth knowing:
   payments.reference`) and its `kind` / `status` / `provider` / `period` /
   `amount` / `currency` rules are then put back. Existing payment rows are
   preserved value for value; the rebuilt foreign keys are not validated
-  against old rows, but they protect every new checkout. See the heal blocks
-  in `MIGRATION_STATEMENTS` in `src/lib/schema.ts`, and run
-  `npm run payments:schema` to prove a real checkout starts against each
-  legacy table shape. If the database role cannot alter tables, paste the
-  generated `db/schema.sql` into the database's SQL editor instead.
+  against old rows, but they protect every new checkout.
+- **Objects that keep a column in its old type.** Clearing constraints is not
+  always enough: PostgreSQL also refuses to retype a column that a view, a
+  materialized view, a generated column or an extended statistics object reads
+  (`0A000 cannot alter type of a column used by a view or rule`), an identity
+  column (which cannot be text at all), an inherited column (`42P16`), and a
+  partitioned table (whose unique index must include the partition key). Each
+  of those used to leave the column exactly as it was found, and checkout then
+  failed with the same sentence — after everything looked healed. These are now
+  moved aside for the conversion and **put back afterwards with the definition
+  they had**: views and materialized views are recreated from
+  `pg_get_viewdef` (views on views included, deepest first), generated columns
+  are re-added with their expression, statistics are recreated, identity is
+  dropped from the reference this app supplies itself, and an inherited column
+  is aligned on the parent so every table sharing it follows. The log names
+  each one, and a statement that could not be replayed is logged with its text
+  rather than swallowed. See the heal blocks in `MIGRATION_STATEMENTS` in
+  `src/lib/schema.ts`, and run `npm run payments:schema` to prove a real
+  checkout starts against each legacy table shape — and that the objects it
+  moved are still there afterwards. If the database role cannot alter tables,
+  paste the generated `db/schema.sql` into the database's SQL editor instead.
 - **Paystack refusing the charge.** The message then quotes Paystack ("Invalid
   key", "Currency not supported by merchant", …). Run `npm run payments:check`
   and make sure Ghana cedis (GHS) are activated on the Paystack account.

@@ -14,7 +14,17 @@
  *   * an old `kind` enum (adding `check (kind in (… 'program'))` fails with
  *     22P02 because the enum has no such label);
  *   * a constraint in this app's own table that compares a column with values
- *     the column's type cannot hold (42883).
+ *     the column's type cannot hold (42883);
+ *   * a view, materialized view or generated column over the table (0A000 —
+ *     PostgreSQL refuses to retype a column those depend on), an identity
+ *     column (which cannot be text at all), an inherited column, or a
+ *     partitioned table (whose unique index cannot exist without the partition
+ *     key).
+ *
+ * The last group is the one this script grew for: each of those left every
+ * constraint cleared and the column still in its legacy type, so the student
+ * kept seeing the same sentence. The heal now moves those objects aside,
+ * converts the column, and puts them back.
  *
  * So this does not inspect DDL. For every realistic legacy shape it creates
  * the table, runs the real `ready()`, then starts a real `createCheckout()` as
@@ -46,6 +56,20 @@ interface Shape {
   legacyReferences: string[];
   /** The failure this shape caused before the heal was fixed. */
   usedToFail: string;
+  /**
+   * Objects that stood in the way of the conversion and must be back
+   * afterwards, unchanged: reporting views and materialized views, generated
+   * columns, extended statistics. Healing a column may not quietly delete the
+   * database's own objects.
+   */
+  restored?: { views?: string[]; statistics?: string[]; generated?: string[] };
+  /**
+   * Which of this app's two foreign keys an honest heal can install. A
+   * partitioned or inherited table has no unique `reference` of its own, so
+   * `settles_reference -> reference` cannot be implemented on it; the account
+   * link still can, and it is the one checkout depends on.
+   */
+  foreignKeys?: "both" | "user-only";
 }
 
 const SHAPES: Shape[] = [
@@ -233,6 +257,145 @@ const SHAPES: Shape[] = [
       );
     `,
   },
+  {
+    id: "integer-accounts-with-views",
+    what: "serial account ids, with the reporting views the old project built over the table",
+    usedToFail:
+      "0A000: a view on the table refused the text conversion, so user_id stayed integer and checkout failed with 22P02",
+    legacyReferences: ["OLD-VIEW-1"],
+    restored: {
+      views: ["legacy_payment_report", "legacy_payment_totals"],
+      statistics: ["legacy_pay_stats"],
+    },
+    sql: `
+      create table legacy_accounts (id serial primary key, email text);
+      create table payments (
+        id serial primary key,
+        user_id integer not null references legacy_accounts(id),
+        reference text not null unique,
+        kind text not null default 'pass',
+        amount integer not null default 0,
+        description text not null default '',
+        status text not null default 'succeeded',
+        created_at timestamptz not null default now()
+      );
+      insert into legacy_accounts (email) values ('old@example.com');
+      insert into payments (user_id, reference) values (1, 'OLD-VIEW-1');
+      create view legacy_payment_report as select reference, user_id, amount from payments;
+      -- A view on the view: dropping the first one is refused while this exists.
+      create view legacy_payment_totals as
+        select user_id, sum(amount) as total from legacy_payment_report group by user_id;
+      create statistics legacy_pay_stats on user_id, amount from payments;
+    `,
+  },
+  {
+    id: "materialized-report",
+    what: "uuid ids with a materialized view — the reporting cache another project refreshed on a schedule",
+    usedToFail:
+      "0A000: a materialized view depends on the column just like a view, so the conversion was skipped and user_id stayed uuid",
+    legacyReferences: ["11111111-1111-1111-1111-111111111111"],
+    restored: { views: ["legacy_payment_mv"] },
+    sql: `
+      create table accounts (id uuid primary key default gen_random_uuid());
+      create table payments (
+        reference uuid primary key,
+        user_id uuid not null references accounts(id),
+        kind text not null default 'pass',
+        amount numeric(10,2) not null default 0,
+        description text not null default '',
+        status text not null default 'succeeded',
+        created_at timestamptz not null default now()
+      );
+      insert into accounts (id) values ('00000000-0000-0000-0000-000000000009');
+      insert into payments (reference, user_id, amount)
+        values ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000009', 20);
+      create materialized view legacy_payment_mv as
+        select user_id, count(*) as payments from payments group by user_id;
+    `,
+  },
+  {
+    id: "generated-column",
+    what: "an integer `user_id` with a generated column derived from it",
+    usedToFail: "0A000: cannot alter type of a column used by a generated column",
+    legacyReferences: ["OLD-GEN-1"],
+    restored: { generated: ["user_echo"] },
+    sql: `
+      create table payments (
+        reference text primary key,
+        user_id integer not null,
+        kind text not null default 'pass',
+        amount integer not null default 0,
+        description text not null default '',
+        status text not null default 'succeeded',
+        user_echo text generated always as (coalesce('user ' || user_id::text, '')) stored,
+        created_at timestamptz not null default now()
+      );
+      insert into payments (reference, user_id) values ('OLD-GEN-1', 4);
+    `,
+  },
+  {
+    id: "identity-reference",
+    what: "`reference` as an identity column — a numeric order number, not a CMG-… reference",
+    usedToFail:
+      "0A000: an identity column cannot become text, so every checkout insert failed with 22P02",
+    legacyReferences: ["1"],
+    sql: `
+      create table payments (
+        reference integer generated always as identity primary key,
+        user_id integer not null,
+        kind text not null default 'pass',
+        amount integer not null default 0,
+        description text not null default '',
+        status text not null default 'succeeded',
+        created_at timestamptz not null default now()
+      );
+      insert into payments (user_id) values (9);
+    `,
+  },
+  {
+    id: "partitioned-table",
+    what: "a partitioned `payments` table, split by month of creation",
+    usedToFail:
+      "0A000 on the unique provider-event index aborted `ensureSchema()`, which took checkout down with it",
+    legacyReferences: ["OLD-PART-1"],
+    foreignKeys: "user-only",
+    sql: `
+      create table payments (
+        reference text not null,
+        user_id integer not null,
+        kind text not null default 'pass',
+        amount integer not null default 0,
+        description text not null default '',
+        status text not null default 'succeeded',
+        deposit boolean not null default false,
+        created_at timestamptz not null default now(),
+        primary key (reference, created_at)
+      ) partition by range (created_at);
+      create table payments_2025 partition of payments for values from ('2025-01-01') to ('2027-01-01');
+      create table payments_2027 partition of payments for values from ('2027-01-01') to ('2029-01-01');
+      insert into payments (reference, user_id, created_at) values ('OLD-PART-1', 3, '2025-06-01');
+    `,
+  },
+  {
+    id: "inherited-table",
+    what: "`payments` inheriting another project's table, so its columns are inherited ones",
+    usedToFail: "42P16: cannot alter inherited column — the child alone could never be aligned",
+    legacyReferences: ["OLD-INH-1"],
+    foreignKeys: "user-only",
+    sql: `
+      create table payments_base (
+        reference text primary key,
+        user_id integer not null,
+        kind text not null default 'pass',
+        amount integer not null default 0,
+        description text not null default '',
+        status text not null default 'succeeded',
+        created_at timestamptz not null default now()
+      );
+      create table payments () inherits (payments_base);
+      insert into payments (reference, user_id) values ('OLD-INH-1', 6);
+    `,
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -241,6 +404,12 @@ const SHAPES: Shape[] = [
 
 interface ChildResult {
   columns: { name: string; type: string }[];
+  /** Views and materialized views in `public` that survived the heal. */
+  relations: { name: string; kind: string }[];
+  /** Extended statistics objects that survived the heal. */
+  statistics: string[];
+  /** Generated columns still defined on `payments`. */
+  generatedColumns: string[];
   legacyRows: { reference: string }[];
   checkout: { reference: string; userId: string; amount: number; programId: string | null } | null;
   storedPaymentUserId: string | null;
@@ -256,6 +425,9 @@ async function child(shapeId: string, directory: string, out: string): Promise<v
 
   const result: ChildResult = {
     columns: [],
+    relations: [],
+    statistics: [],
+    generatedColumns: [],
     legacyRows: [],
     checkout: null,
     storedPaymentUserId: null,
@@ -283,6 +455,24 @@ async function child(shapeId: string, directory: string, out: string): Promise<v
         where table_schema = current_schema() and table_name = 'payments'
         order by ordinal_position`
     );
+
+    // Everything the heal had to move out of the way, and must have put back.
+    result.relations = await query<{ name: string; kind: string }>(
+      `select c.relname as name, c.relkind as kind
+         from pg_class c join pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and c.relkind in ('v', 'm')
+        order by c.relname`
+    );
+    result.statistics = (
+      await query<{ name: string }>(`select stxname as name from pg_statistic_ext order by stxname`)
+    ).map((row) => row.name);
+    result.generatedColumns = (
+      await query<{ name: string }>(
+        `select attname as name from pg_attribute
+          where attrelid = 'payments'::regclass and attnum > 0 and not attisdropped and attgenerated <> ''
+          order by attname`
+      )
+    ).map((row) => row.name);
 
     // The student's actual path: a real account, a real program checkout.
     const { createAccount } = await import("../src/lib/store");
@@ -438,17 +628,42 @@ for (const shape of SHAPES) {
     shape.legacyReferences
   );
 
-  // Only this app's two relationships remain, and both are enforceable.
+  // Only this app's relationships remain, and they are enforceable. A
+  // partitioned or inherited table cannot carry the self-reference (it has no
+  // unique `reference` of its own), so those shapes assert the account link —
+  // the one checkout needs — and that nothing else survived.
   const keys = result.foreignKeys.map((key) => `${key.name}: ${key.definition}`).sort();
-  expect(
-    "foreign keys are exactly user_id -> users, settles_reference -> reference",
-    keys.length === 2 &&
-      keys[0].includes("settles_reference") &&
-      keys[0].includes("payments(reference)") &&
-      keys[1].includes("user_id") &&
-      keys[1].includes("users(id)"),
-    true
-  );
+  if (shape.foreignKeys === "user-only") {
+    expect(
+      "the only foreign key is user_id -> users.id",
+      keys.length === 1 && keys[0].includes("user_id") && keys[0].includes("users(id)"),
+      true
+    );
+  } else {
+    expect(
+      "foreign keys are exactly user_id -> users, settles_reference -> reference",
+      keys.length === 2 &&
+        keys[0].includes("settles_reference") &&
+        keys[0].includes("payments(reference)") &&
+        keys[1].includes("user_id") &&
+        keys[1].includes("users(id)"),
+      true
+    );
+  }
+
+  // Nothing that stood in the way was lost: the database's own reporting views,
+  // materialized views, generated columns and statistics are back after the
+  // columns became text.
+  const viewNames = result.relations.map((relation) => relation.name);
+  for (const view of shape.restored?.views ?? []) {
+    expect(`the dependent view ${view} is back`, viewNames.includes(view), true);
+  }
+  for (const statistics of shape.restored?.statistics ?? []) {
+    expect(`the statistics ${statistics} is back`, result.statistics.includes(statistics), true);
+  }
+  for (const column of shape.restored?.generated ?? []) {
+    expect(`the generated column ${column} is back`, result.generatedColumns.includes(column), true);
+  }
 
   // The rules this app relies on are back (and the old ones are gone).
   const rules = result.textChecks.map((rule) => rule.name).sort();
